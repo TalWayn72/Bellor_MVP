@@ -120,7 +120,7 @@ export default function AudioTask() {
       // Update user's response_count and mission_completed_count
       const currentResponseCount = currentUser.response_count || 0;
       const currentMissionCount = currentUser.mission_completed_count || 0;
-      await userService.updateProfile({
+      await userService.updateProfile(currentUser.id, {
         response_count: currentResponseCount + 1,
         mission_completed_count: currentMissionCount + 1,
         last_active_date: new Date().toISOString()

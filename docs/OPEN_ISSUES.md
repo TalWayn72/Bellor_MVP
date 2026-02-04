@@ -22,8 +22,80 @@
 | Upload Routing Issues | 4 | 🔴 קריטי | ✅ תוקן |
 | **Polish: State Components** | 3 | 🟢 שיפור | ✅ הושלם |
 | **E2E Testing: Playwright** | 7 | 🟢 שיפור | ✅ הושלם |
+| **Console Errors (Feb 4)** | 4 | 🔴 קריטי | ✅ תוקן |
+| **Task Upload Errors (Feb 4)** | 2 | 🔴 קריטי | ✅ תוקן |
 
-**סה"כ:** 74 תקלות זוהו → 74 תוקנו ✅
+**סה"כ:** 80 תקלות זוהו → 80 תוקנו ✅
+
+---
+
+## ✅ TASK-001: Task Upload Errors Fix (4 פברואר 2026)
+
+**סטטוס:** ✅ תוקן
+**סוג:** 🔴 קריטי
+**תאריך:** 4 פברואר 2026
+
+### תקלות שתוקנו
+
+| תקלה | קובץ | תיקון |
+|------|------|-------|
+| `PATCH /api/v1/users/[object Object] 403` | `AudioTask.jsx` | הוסף `currentUser.id` כפרמטר ראשון ל-`updateProfile()` |
+| `PATCH /api/v1/users/[object Object] 403` | `VideoTask.jsx` | הוסף `currentUser.id` כפרמטר ראשון ל-`updateProfile()` |
+
+### הסבר הבעיה
+פונקציית `userService.updateProfile(userId, data)` מצפה לשני פרמטרים:
+1. `userId` - מחרוזת עם מזהה המשתמש
+2. `data` - אובייקט עם הנתונים לעדכון
+
+בקוד הישן נשלח רק אובייקט הנתונים, מה שגרם ל-URL להיות `/users/[object Object]`.
+
+### קבצים שעודכנו
+
+| קובץ | שינוי |
+|------|-------|
+| `apps/web/src/pages/AudioTask.jsx` | `updateProfile(currentUser.id, {...})` |
+| `apps/web/src/pages/VideoTask.jsx` | `updateProfile(currentUser.id, {...})` |
+
+### בדיקות שנוספו
+
+| קובץ בדיקה | כיסוי |
+|------------|-------|
+| `userService.test.js` | 9 בדיקות - וידוא פורמט פרמטרים נכון |
+
+---
+
+## ✅ CONSOLE-002: Console Errors Fix (4 פברואר 2026)
+
+**סטטוס:** ✅ תוקן
+**סוג:** 🔴 קריטי
+**תאריך:** 4 פברואר 2026
+
+### תקלות שתוקנו
+
+| תקלה | קובץ | תיקון |
+|------|------|-------|
+| `POST /api/v1/chats 400 Bad Request` | `SharedSpace.jsx` | הוסף בדיקת demo user לפני קריאת API |
+| `TypeError: target must be an object` | `StarSendersModal.jsx` | שינוי `getResponseLikes(id, 'POSITIVE')` ל-`getResponseLikes(id, { likeType: 'POSITIVE' })` |
+| `Cannot read properties of null (reading 'length')` | `StarSendersModal.jsx` | הוסף בדיקת nullish: `!senders \|\| senders.length === 0` |
+| `Warning: Missing "Description"` | `command.jsx` | הוסף `aria-describedby` ו-description element |
+
+### קבצים שעודכנו
+
+| קובץ | שינוי |
+|------|-------|
+| `apps/web/src/pages/SharedSpace.jsx` | בדיקת demo user ID לפני יצירת chat |
+| `apps/web/src/components/feed/StarSendersModal.jsx` | תיקון params ל-API + nullish check |
+| `apps/web/src/components/ui/command.jsx` | הוספת aria-describedby לנגישות |
+
+### בדיקות שנוספו
+
+| קובץ בדיקה | כיסוי |
+|------------|-------|
+| `likeService.test.js` | 9 בדיקות - פורמט params לקריאות API |
+| `SharedSpace.test.jsx` | 6 בדיקות - טיפול ב-demo users |
+| `StarSendersModal.test.jsx` | 10 בדיקות - nullish handling ו-API format |
+
+**סה"כ:** 25 בדיקות חדשות
 
 ---
 
@@ -854,4 +926,5 @@ cd apps/api && npm run build
 | 4 פברואר 2026 | **סיום Phase 6** | ✅ **כל 70 התקלות תוקנו** |
 | 4 פברואר 2026 | **Polish: State Components** | ✅ LoadingState, EmptyState, ErrorState |
 | 4 פברואר 2026 | עדכון 40+ דפים עם State Components | ✅ כל הדפים עודכנו |
+| 4 פברואר 2026 | **E2E Testing: Playwright** | ✅ 7 קבצי בדיקה חדשים, ~224 בדיקות |
 

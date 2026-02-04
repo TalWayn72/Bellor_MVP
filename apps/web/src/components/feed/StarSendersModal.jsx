@@ -95,7 +95,7 @@ export default function StarSendersModal({ isOpen, onClose, response, currentUse
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
             </div>
-          ) : senders.length === 0 ? (
+          ) : !senders || senders.length === 0 ? (
             <div className="text-center py-8">
               <Star className="w-12 h-12 text-gray-400 mx-auto mb-2" />
               <p className="text-sm text-gray-600">עדיין אף אחד לא שלח כוכב</p>

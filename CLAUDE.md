@@ -11,7 +11,8 @@
 - **עבוד בצורה מסודרת ומקצועית** - אתה מפתח בכיר מאוד
 - **עקוב אחר התקינה החדישה** - TypeScript, ESLint, Prettier
 - **סדר קבצים בתיקיות הנכונות** - שמור על מבנה נקי
-- **עדכן תיעוד בסוף כל פעילות** - README, status docs
+- **עדכן תיעוד בסוף כל פעילות** - README, status docs, CLAUDE.md
+- **עדכן מספרים ב-CLAUDE.md** - כשמשתנה מספר טסטים, באגים, קבצים וכו' - לעדכן את המספרים בקובץ זה
 - **מותר לבצע שינויים ללא שאלות** - פעל באופן עצמאי
 - **בדוק פונקציונליות בסיום** - ודא שהכל עובד
 - **השלם בדיקות אוטומטיות לפני פריסה** - תמיד לוודא שכל הבדיקות עוברות לפני deployment
@@ -77,6 +78,34 @@ docker ps && netstat -ano | findstr ":3000 :5173"
 6. ✅ תעד שינויים ב-OPEN_ISSUES.md (אם נדרש)
 
 **אין לסיים משימה ללא אישור שכל השירותים פועלים!**
+
+## 📦 Git Sync - סנכרון קוד
+
+**Repository:** https://github.com/TalWayn72/Bellor_MVP
+
+### מדיניות Commit
+| מצב | פעולה |
+|-----|--------|
+| תיקון באג | Commit מיידי |
+| פיצ'ר שלם | Commit בסיום |
+| Refactoring | Commit אחרי שינוי לוגי שלם |
+| סוף יום עבודה | Commit + Push לגיבוי |
+
+### תהליך עבודה
+1. **אני (Claude) מזכיר** - אחרי השלמת משימה משמעותית, אציע לבצע commit
+2. **אתה מאשר** - תאשר או תדחה את ה-commit
+3. **אני מבצע** - git add, commit, push
+
+### פקודות
+```bash
+# בדיקת סטטוס
+git status
+
+# Commit ו-Push (אחרי אישור)
+git add -A && git commit -m "הודעה" && git push
+```
+
+**⚠️ אסור לעשות commit אוטומטי ללא אישור המשתמש!**
 
 ## תיעוד באגים ובדיקות
 - **תעד כל באג ב-OPEN_ISSUES.md** - כאשר מזהים באג, לתעד אותו מיד במסמך `docs/OPEN_ISSUES.md`
@@ -207,7 +236,8 @@ Priority tasks:
 - [x] Backend Unit Tests - 140/140 עוברות
 - [x] TypeScript Check - תוקנו 19 שגיאות ב-chat.service.ts
 - [x] Frontend Build - עובר בהצלחה
-- [x] תיעוד מעודכן - OPEN_ISSUES.md (66 תקלות תוקנו)
+- [x] תיעוד מעודכן - OPEN_ISSUES.md (74 תקלות תוקנו)
+- [x] E2E Tests - 11 קבצי בדיקה, ~224 בדיקות Playwright
 
 ### 📋 Phase 7: Deployment (Upcoming)
 - Infrastructure setup
@@ -254,6 +284,34 @@ All 12 development groups completed with 50+ UI components:
   - Tasks: AudioTask, VideoTask, CreateStory, VideoDate, CompatibilityQuiz
   - Admin: All 7 admin pages
   - Premium/Support: Premium, Analytics, DateIdeas, IceBreakers, FAQ, etc.
+
+## E2E Testing (Playwright)
+- ✅ **11 Test Files** - Comprehensive E2E coverage
+- **~224 Tests** (Chromium) across all major user flows
+- **Browsers:** Chrome, Mobile Chrome, Mobile Safari, Firefox (CI)
+
+### Test Files
+| File | Description |
+|------|-------------|
+| `e2e/auth.spec.ts` | Authentication - login, register, logout |
+| `e2e/navigation.spec.ts` | Routing, back navigation, deep links |
+| `e2e/feed.spec.ts` | Feed & SharedSpace - mission, responses, likes |
+| `e2e/chat.spec.ts` | Chat & Messaging - messages, typing |
+| `e2e/profile.spec.ts` | Profile - view, edit, my book |
+| `e2e/matches.spec.ts` | Matches & Likes - romantic, positive |
+| `e2e/onboarding.spec.ts` | Full 14-step onboarding |
+| `e2e/notifications.spec.ts` | Notifications - list, mark read |
+| `e2e/settings.spec.ts` | Settings - theme, privacy, blocked |
+| `e2e/api-client.spec.ts` | API client transformers |
+| `e2e/onboarding-drawing.spec.ts` | Canvas drawing |
+
+### Running Tests
+```bash
+npm run test:e2e           # Run all E2E tests
+npm run test:e2e:ui        # UI mode for debugging
+npm run test:e2e:headed    # Run with visible browser
+npm run test:e2e:report    # View test report
+```
 
 ## CI/CD & Docker Images
 
