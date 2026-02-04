@@ -1,0 +1,392 @@
+/**
+ * Bellor Application - Main Stylesheet
+ * =====================================
+ *
+ * Entry point for all styles in the Bellor dating application.
+ * Imports design tokens and configures Tailwind CSS.
+ *
+ * @version 1.0.0
+ * @author Claude Code
+ * @license MIT
+ */
+
+/* ============================================
+ * 1. DESIGN TOKENS
+ * Import all design system tokens first
+ * ============================================ */
+@import './styles/tokens/index.css';
+
+/* ============================================
+ * 2. TAILWIND CSS LAYERS
+ * ============================================ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+ * 3. BASE LAYER STYLES
+ * Global defaults and resets
+ * ============================================ */
+@layer base {
+  /* Root element setup */
+  :root {
+    /* Tailwind CSS variable mappings (HSL format without function) */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 349 89% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 269 100% 95%;
+    --accent-foreground: 274 66% 32%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 47% 11%;
+
+    --info: 199 89% 48%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 349 89% 55%;
+
+    /* Chart colors */
+    --chart-1: 349 89% 55%;
+    --chart-2: 271 91% 65%;
+    --chart-3: 25 95% 53%;
+    --chart-4: 142 71% 45%;
+    --chart-5: 199 89% 48%;
+
+    /* Radius */
+    --radius: 0.5rem;
+
+    /* Sidebar */
+    --sidebar-background: 210 40% 98%;
+    --sidebar-foreground: 215 25% 27%;
+    --sidebar-primary: 349 89% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 349 89% 55%;
+  }
+
+  /* Dark mode overrides */
+  .dark {
+    --background: 229 84% 5%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 349 89% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 274 87% 21%;
+    --accent-foreground: 269 100% 95%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 47% 11%;
+
+    --info: 199 89% 48%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 349 89% 55%;
+
+    /* Chart colors - brighter for dark mode */
+    --chart-1: 351 95% 64%;
+    --chart-2: 270 95% 75%;
+    --chart-3: 27 96% 61%;
+    --chart-4: 142 69% 58%;
+    --chart-5: 198 93% 60%;
+
+    /* Sidebar */
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 349 89% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 349 89% 55%;
+  }
+
+  /* Global element styles */
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    font-family: var(--font-family-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-family-primary);
+    line-height: var(--line-height-normal);
+  }
+
+  /* Improved focus styles for accessibility */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Selection styling */
+  ::selection {
+    background-color: hsl(var(--primary) / 0.2);
+    color: hsl(var(--foreground));
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  /* Dark mode scrollbar */
+  .dark ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.2);
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.4);
+  }
+}
+
+/* ============================================
+ * 4. COMPONENT LAYER STYLES
+ * Reusable component patterns
+ * ============================================ */
+@layer components {
+  /* Glass morphism effect */
+  .glass {
+    background: hsl(var(--background) / 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .dark .glass {
+    background: hsl(var(--background) / 0.8);
+  }
+
+  /* Gradient backgrounds */
+  .gradient-primary {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--color-secondary-500)) 100%
+    );
+  }
+
+  .gradient-love {
+    background: linear-gradient(
+      135deg,
+      hsl(349 89% 55%) 0%,
+      hsl(271 91% 65%) 100%
+    );
+  }
+
+  /* Card hover effect */
+  .card-interactive {
+    @apply transition-all duration-200;
+  }
+
+  .card-interactive:hover {
+    @apply shadow-lg -translate-y-0.5;
+  }
+
+  /* Safe area padding for mobile */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-x {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Loading skeleton */
+  .skeleton {
+    @apply animate-pulse bg-muted rounded;
+  }
+
+  /* Text gradient */
+  .text-gradient {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--color-secondary-500)) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+/* ============================================
+ * 5. UTILITY LAYER STYLES
+ * Additional utilities not in Tailwind
+ * ============================================ */
+@layer utilities {
+  /* Animation utilities */
+  .animate-in {
+    animation: var(--animate-fade-in);
+  }
+
+  .animate-out {
+    animation: var(--animate-fade-out);
+  }
+
+  .animate-slide-up {
+    animation: var(--animate-slide-up);
+  }
+
+  .animate-slide-down {
+    animation: var(--animate-slide-down);
+  }
+
+  .animate-heart {
+    animation: var(--animate-heart-beat);
+  }
+
+  .animate-match {
+    animation: var(--animate-match-pop);
+  }
+
+  .animate-swipe-right {
+    animation: var(--animate-swipe-right);
+  }
+
+  .animate-swipe-left {
+    animation: var(--animate-swipe-left);
+  }
+
+  .animate-like {
+    animation: var(--animate-like-pop);
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Touch action utilities */
+  .touch-none {
+    touch-action: none;
+  }
+
+  .touch-pan-x {
+    touch-action: pan-x;
+  }
+
+  .touch-pan-y {
+    touch-action: pan-y;
+  }
+
+  /* Aspect ratio utilities */
+  .aspect-profile {
+    aspect-ratio: 1 / 1;
+  }
+
+  .aspect-story {
+    aspect-ratio: 9 / 16;
+  }
+
+  .aspect-cover {
+    aspect-ratio: 2 / 1;
+  }
+
+  /* RTL support for Hebrew */
+  [dir="rtl"] {
+    direction: rtl;
+  }
+
+  .rtl-flip {
+    transform: scaleX(-1);
+  }
+
+  [dir="rtl"] .rtl-space-reverse {
+    flex-direction: row-reverse;
+  }
+}
+
+/* ============================================
+ * 6. PRINT STYLES
+ * Optimized for printing
+ * ============================================ */
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}

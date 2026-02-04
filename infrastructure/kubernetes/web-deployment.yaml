@@ -1,0 +1,80 @@
+---
+# Bellor Frontend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bellor-web
+  namespace: bellor
+  labels:
+    app: bellor-web
+    tier: frontend
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: bellor-web
+  template:
+    metadata:
+      labels:
+        app: bellor-web
+        tier: frontend
+    spec:
+      # Uncomment if using private GHCR repository
+      # imagePullSecrets:
+      # - name: ghcr-secret
+      containers:
+      - name: web
+        # Replace YOUR_GITHUB_ORG with your GitHub organization/username
+        # Example: ghcr.io/mycompany/bellor_mvp/web:v1.0.0
+        image: ghcr.io/YOUR_GITHUB_ORG/bellor_mvp/web:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+# Bellor Frontend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: bellor-web
+  namespace: bellor
+  labels:
+    app: bellor-web
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  selector:
+    app: bellor-web

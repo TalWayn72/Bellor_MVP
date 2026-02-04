@@ -1,0 +1,385 @@
+# GitHub Actions Test Workflow
+#
+# @see PRD.md Section 14 - Development Guidelines
+# @see PRD.md Section 10.1 Phase 6 - Testing
+#
+# Runs unit tests, integration tests, and E2E tests on push and PR
+
+name: Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+
+jobs:
+  # ============================================
+  # Unit Tests - API
+  # ============================================
+  unit-tests-api:
+    name: Unit Tests (API)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: bellor
+          POSTGRES_PASSWORD: bellor_test
+          POSTGRES_DB: bellor_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter @bellor/api db:generate
+
+      - name: Run unit tests with coverage
+        run: pnpm --filter @bellor/api test:coverage
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://bellor:bellor_test@localhost:5432/bellor_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret-min-32-chars-for-testing-12345678
+          JWT_REFRESH_SECRET: test-refresh-secret-min-32-chars-for-testing-87654321
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: apps/api/coverage/lcov.info
+          flags: api-unit
+          name: api-coverage
+          fail_ci_if_error: false
+
+  # ============================================
+  # Lint & Type Check
+  # ============================================
+  lint-and-typecheck:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter @bellor/api db:generate
+
+      - name: Lint API
+        run: pnpm --filter @bellor/api lint
+
+      - name: Lint Web
+        run: pnpm --filter @bellor/web lint
+
+      - name: Type check API
+        run: pnpm --filter @bellor/api typecheck
+
+  # ============================================
+  # Build Test
+  # ============================================
+  build:
+    name: Build Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter @bellor/api db:generate
+
+      - name: Build API
+        run: pnpm --filter @bellor/api build
+
+      - name: Build Web
+        run: pnpm --filter @bellor/web build
+        env:
+          VITE_API_URL: http://localhost:3000
+
+  # ============================================
+  # E2E Tests
+  # ============================================
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [unit-tests-api, build]
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: bellor
+          POSTGRES_PASSWORD: bellor_test
+          POSTGRES_DB: bellor_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter @bellor/api db:generate
+
+      - name: Run database migrations
+        run: pnpm --filter @bellor/api db:migrate
+        env:
+          DATABASE_URL: postgresql://bellor:bellor_test@localhost:5432/bellor_test
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @bellor/web exec playwright install chromium --with-deps
+
+      - name: Build applications
+        run: |
+          pnpm --filter @bellor/api build
+          pnpm --filter @bellor/web build
+        env:
+          VITE_API_URL: http://localhost:3000
+
+      - name: Start API server
+        run: |
+          pnpm --filter @bellor/api start &
+          sleep 10
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://bellor:bellor_test@localhost:5432/bellor_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret-min-32-chars-for-testing-12345678
+          JWT_REFRESH_SECRET: test-refresh-secret-min-32-chars-for-testing-87654321
+          PORT: 3000
+
+      - name: Start Web server
+        run: |
+          pnpm --filter @bellor/web preview --port 5173 &
+          sleep 5
+
+      - name: Run E2E tests
+        run: pnpm --filter @bellor/web test:e2e
+        env:
+          E2E_BASE_URL: http://localhost:5173
+          CI: true
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 30
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-results
+          path: apps/web/test-results/
+          retention-days: 7
+
+  # ============================================
+  # Security Scan
+  # ============================================
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run npm audit
+        run: pnpm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+  # ============================================
+  # Summary
+  # ============================================
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [unit-tests-api, lint-and-typecheck, build, e2e-tests, security]
+    if: always()
+
+    steps:
+      - name: Check test results
+        run: |
+          if [ "${{ needs.unit-tests-api.result }}" == "failure" ]; then
+            echo "Unit tests failed!"
+            exit 1
+          fi
+          if [ "${{ needs.lint-and-typecheck.result }}" == "failure" ]; then
+            echo "Lint/Type check failed!"
+            exit 1
+          fi
+          if [ "${{ needs.build.result }}" == "failure" ]; then
+            echo "Build failed!"
+            exit 1
+          fi
+          if [ "${{ needs.e2e-tests.result }}" == "failure" ]; then
+            echo "E2E tests failed!"
+            exit 1
+          fi
+          echo "All tests passed!"

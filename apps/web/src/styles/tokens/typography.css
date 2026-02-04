@@ -1,0 +1,242 @@
+/**
+ * Bellor Design System - Typography Tokens
+ * =========================================
+ *
+ * Typography system for the Bellor dating application.
+ * Based on Figma design system (Bellor-Mui) using Satoshi font family.
+ *
+ * @version 1.0.0
+ * @author Claude Code
+ * @license MIT
+ */
+
+/* ============================================
+ * FONT IMPORTS
+ * Using Satoshi as primary (from Figma) with system fallbacks
+ * ============================================ */
+
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,600,700,800,900&display=swap');
+
+:root {
+  /* ============================================
+   * FONT FAMILIES
+   * ============================================ */
+
+  /* Primary font - Satoshi (modern, clean, friendly) */
+  --font-family-primary: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  /* Secondary font - System UI for performance */
+  --font-family-secondary: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Monospace font - For code/technical content */
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Monaco, 'Cascadia Code', monospace;
+
+  /* ============================================
+   * FONT SIZES
+   * Based on 4px baseline grid with modular scale
+   * ============================================ */
+
+  /* Extra Small - Captions, labels */
+  --font-size-2xs: 0.625rem;   /* 10px */
+  --font-size-xs: 0.75rem;     /* 12px */
+
+  /* Small - Secondary text, metadata */
+  --font-size-sm: 0.875rem;    /* 14px */
+
+  /* Base - Body text */
+  --font-size-base: 1rem;      /* 16px */
+
+  /* Medium - Emphasized body */
+  --font-size-md: 1.125rem;    /* 18px */
+
+  /* Large - Subheadings */
+  --font-size-lg: 1.25rem;     /* 20px */
+  --font-size-xl: 1.5rem;      /* 24px */
+
+  /* Display - Headings */
+  --font-size-2xl: 1.875rem;   /* 30px */
+  --font-size-3xl: 2.25rem;    /* 36px */
+  --font-size-4xl: 3rem;       /* 48px */
+  --font-size-5xl: 3.75rem;    /* 60px */
+  --font-size-6xl: 4.5rem;     /* 72px */
+
+  /* ============================================
+   * FONT WEIGHTS
+   * ============================================ */
+
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
+
+  /* ============================================
+   * LINE HEIGHTS
+   * Optimized for readability
+   * ============================================ */
+
+  --line-height-none: 1;
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+
+  /* ============================================
+   * LETTER SPACING
+   * ============================================ */
+
+  --letter-spacing-tighter: -0.05em;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+  --letter-spacing-widest: 0.1em;
+
+  /* ============================================
+   * TEXT STYLES (Composite tokens)
+   * Pre-defined typography combinations
+   * ============================================ */
+
+  /* Display styles - Hero sections, large headings */
+  --text-display-lg: var(--font-weight-bold) var(--font-size-5xl)/var(--line-height-tight) var(--font-family-primary);
+  --text-display-md: var(--font-weight-bold) var(--font-size-4xl)/var(--line-height-tight) var(--font-family-primary);
+  --text-display-sm: var(--font-weight-bold) var(--font-size-3xl)/var(--line-height-tight) var(--font-family-primary);
+
+  /* Heading styles */
+  --text-heading-xl: var(--font-weight-semibold) var(--font-size-2xl)/var(--line-height-tight) var(--font-family-primary);
+  --text-heading-lg: var(--font-weight-semibold) var(--font-size-xl)/var(--line-height-snug) var(--font-family-primary);
+  --text-heading-md: var(--font-weight-semibold) var(--font-size-lg)/var(--line-height-snug) var(--font-family-primary);
+  --text-heading-sm: var(--font-weight-semibold) var(--font-size-base)/var(--line-height-snug) var(--font-family-primary);
+
+  /* Body styles */
+  --text-body-lg: var(--font-weight-normal) var(--font-size-md)/var(--line-height-relaxed) var(--font-family-primary);
+  --text-body-md: var(--font-weight-normal) var(--font-size-base)/var(--line-height-normal) var(--font-family-primary);
+  --text-body-sm: var(--font-weight-normal) var(--font-size-sm)/var(--line-height-normal) var(--font-family-primary);
+
+  /* Label/Caption styles */
+  --text-label-lg: var(--font-weight-medium) var(--font-size-sm)/var(--line-height-tight) var(--font-family-primary);
+  --text-label-md: var(--font-weight-medium) var(--font-size-xs)/var(--line-height-tight) var(--font-family-primary);
+  --text-label-sm: var(--font-weight-medium) var(--font-size-2xs)/var(--line-height-tight) var(--font-family-primary);
+
+  /* Caption styles */
+  --text-caption: var(--font-weight-normal) var(--font-size-xs)/var(--line-height-normal) var(--font-family-primary);
+  --text-overline: var(--font-weight-semibold) var(--font-size-xs)/var(--line-height-tight) var(--font-family-primary);
+}
+
+/* ============================================
+ * UTILITY CLASSES
+ * Quick access to typography styles
+ * ============================================ */
+
+/* Font family utilities */
+.font-primary {
+  font-family: var(--font-family-primary);
+}
+
+.font-secondary {
+  font-family: var(--font-family-secondary);
+}
+
+.font-mono {
+  font-family: var(--font-family-mono);
+}
+
+/* Display text utilities */
+.text-display-lg {
+  font: var(--text-display-lg);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.text-display-md {
+  font: var(--text-display-md);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.text-display-sm {
+  font: var(--text-display-sm);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+/* Heading utilities */
+.text-heading-xl {
+  font: var(--text-heading-xl);
+}
+
+.text-heading-lg {
+  font: var(--text-heading-lg);
+}
+
+.text-heading-md {
+  font: var(--text-heading-md);
+}
+
+.text-heading-sm {
+  font: var(--text-heading-sm);
+}
+
+/* Body text utilities */
+.text-body-lg {
+  font: var(--text-body-lg);
+}
+
+.text-body-md {
+  font: var(--text-body-md);
+}
+
+.text-body-sm {
+  font: var(--text-body-sm);
+}
+
+/* Label utilities */
+.text-label-lg {
+  font: var(--text-label-lg);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+.text-label-md {
+  font: var(--text-label-md);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+.text-label-sm {
+  font: var(--text-label-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wider);
+}
+
+/* Caption utilities */
+.text-caption {
+  font: var(--text-caption);
+}
+
+.text-overline {
+  font: var(--text-overline);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-widest);
+}
+
+/* Truncation utilities */
+.truncate-1 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.truncate-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

@@ -1,0 +1,624 @@
+// Bellor MVP - Database Schema
+// Generated: February 2026
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ==================== USERS ====================
+
+model User {
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  passwordHash          String?
+  googleId              String?   @unique
+  firstName             String?
+  lastName              String?
+  bio                   String?
+  birthDate             DateTime?
+  gender                Gender?
+  profileImages         String[]
+  drawingUrl            String?   // User's onboarding drawing/art
+  sketchMethod          String?   // 'self' | 'guess' | 'draw'
+  location              Json?     // { lat, lng, city, country }
+
+  // Preferences
+  preferredLanguage     Language  @default(ENGLISH)
+  lookingFor            Gender[]
+  ageRangeMin           Int?      @default(18)
+  ageRangeMax           Int?      @default(99)
+  maxDistance           Int?      @default(100) // km
+
+  // Status
+  isVerified            Boolean   @default(false)
+  isBlocked             Boolean   @default(false)
+  isPremium             Boolean   @default(false)
+  isAdmin               Boolean   @default(false)
+  premiumExpiresAt      DateTime?
+  lastActiveAt          DateTime?
+
+  // Stats
+  responseCount         Int       @default(0)
+  chatCount             Int       @default(0)
+  missionCompletedCount Int       @default(0)
+
+  // Timestamps
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Relations
+  chatsAsUser1          Chat[]    @relation("ChatUser1")
+  chatsAsUser2          Chat[]    @relation("ChatUser2")
+  sentMessages          Message[] @relation("MessageSender")
+  responses             Response[]
+  stories               Story[]
+  achievements          UserAchievement[]
+  reportsMade           Report[]  @relation("Reporter")
+  reportsReceived       Report[]  @relation("ReportedUser")
+
+  @@index([email])
+  @@index([lastActiveAt])
+  @@index([location(ops: JsonbPathOps)], type: Gin)
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  NON_BINARY
+  OTHER
+}
+
+enum Language {
+  ENGLISH
+  HEBREW
+  SPANISH
+  GERMAN
+  FRENCH
+}
+
+// ==================== CHATS ====================
+
+model Chat {
+  id                    String    @id @default(cuid())
+  user1Id               String
+  user2Id               String
+
+  // Status
+  status                ChatStatus @default(ACTIVE)
+  isTemporary           Boolean    @default(true)
+  isPermanent           Boolean    @default(false)
+  isConvertedToPermanent Boolean   @default(false)
+
+  // Expiry (for temporary chats)
+  expiresAt             DateTime?
+
+  // Stats
+  reportedCount         Int        @default(0)
+  messageCount          Int        @default(0)
+
+  // Timestamps
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  lastMessageAt         DateTime?
+
+  // Relations
+  user1                 User       @relation("ChatUser1", fields: [user1Id], references: [id])
+  user2                 User       @relation("ChatUser2", fields: [user2Id], references: [id])
+  messages              Message[]
+
+  @@unique([user1Id, user2Id])
+  @@index([user1Id])
+  @@index([user2Id])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+enum ChatStatus {
+  ACTIVE
+  EXPIRED
+  BLOCKED
+  DELETED
+}
+
+// ==================== MESSAGES ====================
+
+model Message {
+  id                    String      @id @default(cuid())
+  chatId                String
+  senderId              String
+
+  // Content
+  messageType           MessageType
+  content               String?     // Text content or URL for media
+  textContent           String?     // Text version (for voice transcription)
+
+  // Status
+  isRead                Boolean     @default(false)
+  isDeleted             Boolean     @default(false)
+
+  // Timestamps
+  createdAt             DateTime    @default(now())
+  readAt                DateTime?
+
+  // Relations
+  chat                  Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender                User        @relation("MessageSender", fields: [senderId], references: [id])
+
+  @@index([chatId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+enum MessageType {
+  TEXT
+  VOICE
+  IMAGE
+  VIDEO
+  DRAWING
+}
+
+// ==================== RESPONSES (Task Responses) ====================
+
+model Response {
+  id                    String       @id @default(cuid())
+  userId                String
+  missionId             String?
+
+  // Content
+  responseType          ResponseType
+  content               String       // URL or text content
+  textContent           String?
+  thumbnailUrl          String?
+  duration              Int?         // For audio/video in seconds
+
+  // Stats
+  viewCount             Int          @default(0)
+  likeCount             Int          @default(0)
+
+  // Privacy
+  isPublic              Boolean      @default(true)
+
+  // Timestamps
+  createdAt             DateTime     @default(now())
+
+  // Relations
+  user                  User         @relation(fields: [userId], references: [id])
+  mission               Mission?     @relation(fields: [missionId], references: [id])
+
+  @@index([userId])
+  @@index([missionId])
+  @@index([createdAt])
+}
+
+enum ResponseType {
+  TEXT
+  VOICE
+  VIDEO
+  DRAWING
+}
+
+// ==================== MISSIONS ====================
+
+model Mission {
+  id                    String    @id @default(cuid())
+
+  // Content
+  title                 String
+  description           String
+  missionType           MissionType
+  difficulty            Int       @default(1) // 1-5
+
+  // Rewards
+  xpReward              Int       @default(10)
+
+  // Scheduling
+  activeFrom            DateTime?
+  activeUntil           DateTime?
+
+  // Timestamps
+  createdAt             DateTime  @default(now())
+
+  // Relations
+  responses             Response[]
+
+  @@index([activeFrom, activeUntil])
+}
+
+enum MissionType {
+  DAILY
+  WEEKLY
+  SPECIAL
+  ICE_BREAKER
+}
+
+// ==================== STORIES ====================
+
+model Story {
+  id                    String    @id @default(cuid())
+  userId                String
+
+  // Content
+  mediaType             MediaType
+  mediaUrl              String
+  thumbnailUrl          String?
+  caption               String?
+
+  // Stats
+  viewCount             Int       @default(0)
+
+  // Timestamps
+  createdAt             DateTime  @default(now())
+  expiresAt             DateTime  // 24 hours from creation
+
+  // Relations
+  user                  User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+// ==================== REPORTS ====================
+
+model Report {
+  id                    String       @id @default(cuid())
+  reporterId            String
+  reportedUserId        String
+
+  // Content reference
+  reportedContentType   ContentType?
+  reportedContentId     String?
+
+  // Details
+  reason                ReportReason
+  description           String?
+  priority              Int          @default(1) // 1-5
+
+  // Status
+  status                ReportStatus @default(PENDING)
+  reviewedBy            String?
+  reviewNotes           String?
+
+  // Timestamps
+  createdAt             DateTime     @default(now())
+  reviewedAt            DateTime?
+
+  // Relations
+  reporter              User         @relation("Reporter", fields: [reporterId], references: [id])
+  reportedUser          User         @relation("ReportedUser", fields: [reportedUserId], references: [id])
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([reporterId])
+  @@index([reportedUserId])
+  @@index([priority])
+}
+
+enum ContentType {
+  MESSAGE
+  RESPONSE
+  STORY
+  PROFILE
+}
+
+enum ReportReason {
+  SPAM
+  HARASSMENT
+  INAPPROPRIATE_CONTENT
+  FAKE_PROFILE
+  UNDERAGE
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  ACTION_TAKEN
+  DISMISSED
+}
+
+// ==================== ACHIEVEMENTS ====================
+
+model Achievement {
+  id                    String    @id @default(cuid())
+
+  // Content
+  name                  String
+  description           String
+  iconUrl               String?
+
+  // Requirements
+  requirement           Json      // { type: 'response_count', value: 10 }
+  xpReward              Int       @default(50)
+
+  // Relations
+  users                 UserAchievement[]
+}
+
+model UserAchievement {
+  id                    String    @id @default(cuid())
+  userId                String
+  achievementId         String
+  unlockedAt            DateTime  @default(now())
+
+  user                  User       @relation(fields: [userId], references: [id])
+  achievement           Achievement @relation(fields: [achievementId], references: [id])
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
+  @@index([unlockedAt])
+}
+
+// ==================== LIKES ====================
+
+model Like {
+  id                    String    @id @default(cuid())
+  userId                String
+  targetUserId          String?   // For liking a user
+  targetResponseId      String?   // For liking a response
+
+  likeType              LikeType  @default(ROMANTIC)
+
+  createdAt             DateTime  @default(now())
+
+  @@unique([userId, targetUserId])
+  @@unique([userId, targetResponseId])
+  @@index([userId])
+  @@index([targetUserId])
+  @@index([targetResponseId])
+}
+
+enum LikeType {
+  ROMANTIC
+  POSITIVE
+  SUPER
+}
+
+// ==================== FOLLOWS ====================
+
+model Follow {
+  id                    String    @id @default(cuid())
+  followerId            String
+  followingId           String
+
+  createdAt             DateTime  @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+// ==================== NOTIFICATIONS ====================
+
+model Notification {
+  id                    String             @id @default(cuid())
+  userId                String
+
+  type                  NotificationType
+  title                 String
+  message               String
+
+  // Reference to related entity
+  relatedUserId         String?
+  relatedContentType    ContentType?
+  relatedContentId      String?
+
+  isRead                Boolean            @default(false)
+
+  createdAt             DateTime           @default(now())
+  readAt                DateTime?
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+enum NotificationType {
+  NEW_MESSAGE
+  NEW_MATCH
+  NEW_LIKE
+  NEW_FOLLOW
+  MISSION_REMINDER
+  ACHIEVEMENT_UNLOCKED
+  CHAT_REQUEST
+  STORY_VIEW
+  SYSTEM
+}
+
+// ==================== APP SETTINGS ====================
+
+model AppSetting {
+  id                    String    @id @default(cuid())
+  key                   String    @unique
+  value                 String
+  description           String?
+  dataType              String    @default("string") // string, number, boolean, json
+  category              String    @default("system")
+  updatedAt             DateTime  @updatedAt
+}
+
+// ==================== REFERRALS ====================
+
+model Referral {
+  id                    String    @id @default(cuid())
+  referrerUserId        String?
+  referredEmail         String
+  phoneNumber           String?
+
+  // Status
+  status                ReferralStatus @default(PENDING)
+  emailSent             Boolean    @default(false)
+  whatsappSent          Boolean    @default(false)
+
+  // Timestamps
+  createdAt             DateTime   @default(now())
+  signedUpAt            DateTime?
+
+  @@index([referrerUserId])
+  @@index([referredEmail])
+  @@index([status])
+}
+
+enum ReferralStatus {
+  PENDING
+  SIGNED_UP
+  COMPLETED
+}
+
+// ==================== SUBSCRIPTIONS ====================
+
+model SubscriptionPlan {
+  id                    String    @id @default(cuid())
+
+  // Plan details
+  name                  String
+  description           String?
+  price                 Float     // Monthly price in USD
+  priceYearly           Float?    // Yearly price (optional discount)
+  currency              String    @default("USD")
+
+  // Stripe IDs
+  stripePriceId         String?   @unique
+  stripePriceIdYearly   String?   @unique
+  stripeProductId       String?
+
+  // Features
+  features              Json      // Array of feature strings
+
+  // Status
+  isActive              Boolean   @default(true)
+  isPopular             Boolean   @default(false)
+  sortOrder             Int       @default(0)
+
+  // Timestamps
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Relations
+  subscriptions         Subscription[]
+}
+
+model Subscription {
+  id                    String             @id @default(cuid())
+  userId                String
+  planId                String
+
+  // Stripe IDs
+  stripeCustomerId      String?
+  stripeSubscriptionId  String?            @unique
+
+  // Status
+  status                SubscriptionStatus @default(ACTIVE)
+  billingCycle          BillingCycle       @default(MONTHLY)
+
+  // Dates
+  currentPeriodStart    DateTime?
+  currentPeriodEnd      DateTime?
+  canceledAt            DateTime?
+  cancelAtPeriodEnd     Boolean            @default(false)
+
+  // Timestamps
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  // Relations
+  plan                  SubscriptionPlan   @relation(fields: [planId], references: [id])
+  payments              Payment[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([stripeSubscriptionId])
+  @@index([planId])
+  @@index([currentPeriodEnd])
+}
+
+model Payment {
+  id                    String        @id @default(cuid())
+  subscriptionId        String?
+  userId                String
+
+  // Payment details
+  amount                Float
+  currency              String        @default("USD")
+
+  // Stripe IDs
+  stripePaymentIntentId String?       @unique
+  stripeInvoiceId       String?
+
+  // Status
+  status                PaymentStatus @default(PENDING)
+
+  // Timestamps
+  createdAt             DateTime      @default(now())
+  paidAt                DateTime?
+
+  // Relations
+  subscription          Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([subscriptionId])
+  @@index([createdAt])
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  PAUSED
+  TRIALING
+  EXPIRED
+}
+
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+// ==================== DEVICE TOKENS (Push Notifications) ====================
+
+model DeviceToken {
+  id                    String    @id @default(cuid())
+  userId                String
+
+  // Token details
+  token                 String    @unique
+  platform              Platform
+  deviceId              String?
+  deviceName            String?
+
+  // Status
+  isActive              Boolean   @default(true)
+  lastUsedAt            DateTime?
+
+  // Timestamps
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([token])
+  @@index([isActive])
+}
+
+enum Platform {
+  IOS
+  ANDROID
+  WEB
+}

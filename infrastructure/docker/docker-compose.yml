@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bellor_postgres
+    environment:
+      POSTGRES_USER: bellor
+      POSTGRES_PASSWORD: bellor_dev
+      POSTGRES_DB: bellor
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bellor"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bellor_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: bellor_redis
+    command: redis-server --requirepass bellor_dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bellor_network
+
+  # Optional: Redis Commander (Redis GUI)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: bellor_redis_commander
+    environment:
+      - REDIS_HOSTS=local:bellor_redis:6379:0:bellor_dev
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - bellor_network
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  bellor_network:
+    driver: bridge

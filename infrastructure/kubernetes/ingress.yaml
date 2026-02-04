@@ -1,0 +1,72 @@
+---
+# Bellor Ingress - SSL + Routing
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bellor-ingress
+  namespace: bellor
+  annotations:
+    # Use cert-manager for automatic SSL
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+
+    # nginx ingress annotations
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+
+    # WebSocket support
+    nginx.ingress.kubernetes.io/websocket-services: "bellor-api"
+
+    # Rate limiting
+    nginx.ingress.kubernetes.io/limit-rps: "100"
+
+    # CORS (if needed)
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://bellor.app"
+
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - bellor.app
+    - www.bellor.app
+    secretName: bellor-tls
+  - hosts:
+    - api.bellor.app
+    secretName: bellor-api-tls
+
+  rules:
+  # Frontend
+  - host: bellor.app
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bellor-web
+            port:
+              number: 80
+
+  - host: www.bellor.app
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bellor-web
+            port:
+              number: 80
+
+  # API
+  - host: api.bellor.app
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bellor-api
+            port:
+              number: 80

@@ -1,0 +1,197 @@
+/**
+ * Bellor Design System - Spacing & Layout Tokens
+ * ===============================================
+ *
+ * Spacing system for the Bellor dating application.
+ * Based on 4px baseline grid with consistent scaling.
+ *
+ * @version 1.0.0
+ * @author Claude Code
+ * @license MIT
+ */
+
+:root {
+  /* ============================================
+   * BASE UNIT
+   * All spacing derives from this base
+   * ============================================ */
+
+  --spacing-unit: 4px;
+
+  /* ============================================
+   * SPACING SCALE
+   * Consistent spacing values (4px increments)
+   * ============================================ */
+
+  --spacing-0: 0;                          /* 0px */
+  --spacing-px: 1px;                       /* 1px */
+  --spacing-0-5: calc(var(--spacing-unit) * 0.5);  /* 2px */
+  --spacing-1: var(--spacing-unit);        /* 4px */
+  --spacing-1-5: calc(var(--spacing-unit) * 1.5);  /* 6px */
+  --spacing-2: calc(var(--spacing-unit) * 2);      /* 8px */
+  --spacing-2-5: calc(var(--spacing-unit) * 2.5);  /* 10px */
+  --spacing-3: calc(var(--spacing-unit) * 3);      /* 12px */
+  --spacing-3-5: calc(var(--spacing-unit) * 3.5);  /* 14px */
+  --spacing-4: calc(var(--spacing-unit) * 4);      /* 16px */
+  --spacing-5: calc(var(--spacing-unit) * 5);      /* 20px */
+  --spacing-6: calc(var(--spacing-unit) * 6);      /* 24px */
+  --spacing-7: calc(var(--spacing-unit) * 7);      /* 28px */
+  --spacing-8: calc(var(--spacing-unit) * 8);      /* 32px */
+  --spacing-9: calc(var(--spacing-unit) * 9);      /* 36px */
+  --spacing-10: calc(var(--spacing-unit) * 10);    /* 40px */
+  --spacing-11: calc(var(--spacing-unit) * 11);    /* 44px */
+  --spacing-12: calc(var(--spacing-unit) * 12);    /* 48px */
+  --spacing-14: calc(var(--spacing-unit) * 14);    /* 56px */
+  --spacing-16: calc(var(--spacing-unit) * 16);    /* 64px */
+  --spacing-20: calc(var(--spacing-unit) * 20);    /* 80px */
+  --spacing-24: calc(var(--spacing-unit) * 24);    /* 96px */
+  --spacing-28: calc(var(--spacing-unit) * 28);    /* 112px */
+  --spacing-32: calc(var(--spacing-unit) * 32);    /* 128px */
+  --spacing-36: calc(var(--spacing-unit) * 36);    /* 144px */
+  --spacing-40: calc(var(--spacing-unit) * 40);    /* 160px */
+  --spacing-44: calc(var(--spacing-unit) * 44);    /* 176px */
+  --spacing-48: calc(var(--spacing-unit) * 48);    /* 192px */
+  --spacing-52: calc(var(--spacing-unit) * 52);    /* 208px */
+  --spacing-56: calc(var(--spacing-unit) * 56);    /* 224px */
+  --spacing-60: calc(var(--spacing-unit) * 60);    /* 240px */
+  --spacing-64: calc(var(--spacing-unit) * 64);    /* 256px */
+  --spacing-72: calc(var(--spacing-unit) * 72);    /* 288px */
+  --spacing-80: calc(var(--spacing-unit) * 80);    /* 320px */
+  --spacing-96: calc(var(--spacing-unit) * 96);    /* 384px */
+
+  /* ============================================
+   * SEMANTIC SPACING
+   * Named spacing for specific use cases
+   * ============================================ */
+
+  /* Component internal spacing */
+  --spacing-component-xs: var(--spacing-1);   /* 4px - Tight spacing */
+  --spacing-component-sm: var(--spacing-2);   /* 8px - Small spacing */
+  --spacing-component-md: var(--spacing-3);   /* 12px - Medium spacing */
+  --spacing-component-lg: var(--spacing-4);   /* 16px - Large spacing */
+  --spacing-component-xl: var(--spacing-6);   /* 24px - Extra large */
+
+  /* Section spacing */
+  --spacing-section-xs: var(--spacing-4);     /* 16px */
+  --spacing-section-sm: var(--spacing-6);     /* 24px */
+  --spacing-section-md: var(--spacing-8);     /* 32px */
+  --spacing-section-lg: var(--spacing-12);    /* 48px */
+  --spacing-section-xl: var(--spacing-16);    /* 64px */
+
+  /* Page margins */
+  --spacing-page-mobile: var(--spacing-4);    /* 16px */
+  --spacing-page-tablet: var(--spacing-6);    /* 24px */
+  --spacing-page-desktop: var(--spacing-8);   /* 32px */
+
+  /* Gap spacing for flex/grid */
+  --gap-xs: var(--spacing-1);                 /* 4px */
+  --gap-sm: var(--spacing-2);                 /* 8px */
+  --gap-md: var(--spacing-4);                 /* 16px */
+  --gap-lg: var(--spacing-6);                 /* 24px */
+  --gap-xl: var(--spacing-8);                 /* 32px */
+
+  /* ============================================
+   * BORDER RADIUS
+   * Rounded corners for friendly UI feel
+   * ============================================ */
+
+  --radius-none: 0;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-DEFAULT: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-3xl: 32px;
+  --radius-full: 9999px;
+
+  /* Semantic radius */
+  --radius-button: var(--radius-lg);          /* 12px - Buttons */
+  --radius-card: var(--radius-xl);            /* 16px - Cards */
+  --radius-modal: var(--radius-2xl);          /* 24px - Modals */
+  --radius-avatar: var(--radius-full);        /* Full circle */
+  --radius-input: var(--radius-md);           /* 6px - Inputs */
+  --radius-badge: var(--radius-full);         /* Pills */
+  --radius-tooltip: var(--radius-sm);         /* 4px - Tooltips */
+
+  /* Tailwind compatibility */
+  --radius: var(--radius-DEFAULT);
+
+  /* ============================================
+   * CONTAINER WIDTHS
+   * Max-width constraints for layouts
+   * ============================================ */
+
+  --container-xs: 320px;
+  --container-sm: 384px;
+  --container-md: 448px;
+  --container-lg: 512px;
+  --container-xl: 576px;
+  --container-2xl: 672px;
+  --container-3xl: 768px;
+  --container-4xl: 896px;
+  --container-5xl: 1024px;
+  --container-6xl: 1152px;
+  --container-7xl: 1280px;
+  --container-full: 100%;
+
+  /* Mobile-first container */
+  --container-mobile: 100%;
+  --container-tablet: var(--container-3xl);
+  --container-desktop: var(--container-5xl);
+
+  /* ============================================
+   * Z-INDEX SCALE
+   * Layer stacking order
+   * ============================================ */
+
+  --z-index-base: 0;
+  --z-index-dropdown: 100;
+  --z-index-sticky: 200;
+  --z-index-fixed: 300;
+  --z-index-drawer: 400;
+  --z-index-modal-backdrop: 500;
+  --z-index-modal: 600;
+  --z-index-popover: 700;
+  --z-index-tooltip: 800;
+  --z-index-toast: 900;
+  --z-index-max: 9999;
+
+  /* ============================================
+   * BREAKPOINTS
+   * Responsive design breakpoints
+   * ============================================ */
+
+  --breakpoint-xs: 320px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  /* ============================================
+   * ASPECT RATIOS
+   * Common aspect ratios for images/video
+   * ============================================ */
+
+  --aspect-square: 1 / 1;
+  --aspect-video: 16 / 9;
+  --aspect-portrait: 3 / 4;
+  --aspect-landscape: 4 / 3;
+  --aspect-story: 9 / 16;
+  --aspect-profile: 1 / 1;
+  --aspect-cover: 2 / 1;
+}
+
+/* ============================================
+ * SAFE AREA INSETS
+ * For notched devices (iPhone X+)
+ * ============================================ */
+
+:root {
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+}

@@ -1,0 +1,226 @@
+# ==========================================================
+# Bellor MVP - Advanced Horizontal Pod Autoscaler
+# ==========================================================
+# Production-grade auto-scaling for 10K+ concurrent users
+# Features:
+# - CPU and Memory based scaling
+# - Custom metrics (request rate)
+# - Scale-up/down policies for stability
+# - Pod Disruption Budgets
+# ==========================================================
+
+---
+# Advanced HPA for API with behavior policies
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: bellor-api-hpa-advanced
+  namespace: bellor
+  labels:
+    app: bellor-api
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: bellor-api
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  # CPU-based scaling
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 65
+  # Memory-based scaling
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 75
+  # Custom metric: requests per second (requires metrics-server + prometheus-adapter)
+  # - type: Pods
+  #   pods:
+  #     metric:
+  #       name: http_requests_per_second
+  #     target:
+  #       type: AverageValue
+  #       averageValue: 100
+  behavior:
+    scaleUp:
+      # Allow aggressive scale-up for traffic spikes
+      stabilizationWindowSeconds: 30
+      policies:
+      - type: Pods
+        value: 4
+        periodSeconds: 60
+      - type: Percent
+        value: 100
+        periodSeconds: 60
+      selectPolicy: Max
+    scaleDown:
+      # Conservative scale-down to prevent flapping
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 60
+      - type: Percent
+        value: 25
+        periodSeconds: 120
+      selectPolicy: Min
+
+---
+# HPA for Web Frontend
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: bellor-web-hpa
+  namespace: bellor
+  labels:
+    app: bellor-web
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: bellor-web
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Pods
+        value: 2
+        periodSeconds: 60
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 120
+      selectPolicy: Min
+
+---
+# Pod Disruption Budget for API
+# Ensures minimum availability during updates/maintenance
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: bellor-api-pdb
+  namespace: bellor
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: bellor-api
+
+---
+# Pod Disruption Budget for Web
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: bellor-web-pdb
+  namespace: bellor
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: bellor-web
+
+---
+# Vertical Pod Autoscaler (VPA) for API
+# Auto-adjusts resource requests based on actual usage
+# Requires VPA controller to be installed
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: bellor-api-vpa
+  namespace: bellor
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: bellor-api
+  updatePolicy:
+    updateMode: "Off"  # Set to "Auto" for automatic updates
+  resourcePolicy:
+    containerPolicies:
+    - containerName: api
+      minAllowed:
+        cpu: 100m
+        memory: 256Mi
+      maxAllowed:
+        cpu: 4000m
+        memory: 4Gi
+      controlledResources: ["cpu", "memory"]
+
+---
+# Priority Class for API pods (higher priority than web)
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: bellor-api-priority
+value: 1000
+globalDefault: false
+description: "Priority class for Bellor API pods"
+
+---
+# Priority Class for Web pods
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: bellor-web-priority
+value: 500
+globalDefault: false
+description: "Priority class for Bellor Web pods"
+
+---
+# Resource Quota for bellor namespace
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: bellor-quota
+  namespace: bellor
+spec:
+  hard:
+    requests.cpu: "20"
+    requests.memory: 40Gi
+    limits.cpu: "40"
+    limits.memory: 80Gi
+    pods: "50"
+    services: "10"
+    persistentvolumeclaims: "10"
+
+---
+# Limit Range for default container resources
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: bellor-limits
+  namespace: bellor
+spec:
+  limits:
+  - default:
+      cpu: 500m
+      memory: 512Mi
+    defaultRequest:
+      cpu: 100m
+      memory: 128Mi
+    max:
+      cpu: 4000m
+      memory: 4Gi
+    min:
+      cpu: 50m
+      memory: 64Mi
+    type: Container

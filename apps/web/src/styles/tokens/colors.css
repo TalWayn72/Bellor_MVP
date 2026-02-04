@@ -1,0 +1,348 @@
+/**
+ * Bellor Design System - Color Tokens
+ * ====================================
+ *
+ * Color palette for the Bellor dating application.
+ * Based on Figma design system (Bellor-Mui).
+ *
+ * Color Format: HSL (Hue Saturation Lightness)
+ * Usage: hsl(var(--color-name))
+ *
+ * @version 1.0.0
+ * @author Claude Code
+ * @license MIT
+ */
+
+:root {
+  /* ============================================
+   * BRAND COLORS
+   * Primary brand identity colors
+   * ============================================ */
+
+  /* Primary - Rose/Pink (Romantic theme) */
+  --color-primary-50: 355 100% 97%;
+  --color-primary-100: 355 100% 94%;
+  --color-primary-200: 353 96% 86%;
+  --color-primary-300: 353 96% 76%;
+  --color-primary-400: 351 95% 64%;
+  --color-primary-500: 349 89% 55%;  /* Main primary */
+  --color-primary-600: 346 84% 46%;
+  --color-primary-700: 345 83% 38%;
+  --color-primary-800: 343 80% 32%;
+  --color-primary-900: 341 76% 27%;
+  --color-primary-950: 339 84% 15%;
+
+  /* Secondary - Purple (Complementary) */
+  --color-secondary-50: 270 100% 98%;
+  --color-secondary-100: 269 100% 95%;
+  --color-secondary-200: 269 100% 92%;
+  --color-secondary-300: 269 97% 85%;
+  --color-secondary-400: 270 95% 75%;
+  --color-secondary-500: 271 91% 65%;  /* Main secondary */
+  --color-secondary-600: 271 81% 56%;
+  --color-secondary-700: 272 72% 47%;
+  --color-secondary-800: 273 67% 39%;
+  --color-secondary-900: 274 66% 32%;
+  --color-secondary-950: 274 87% 21%;
+
+  /* Accent - Coral/Orange (Warm accent) */
+  --color-accent-50: 33 100% 96%;
+  --color-accent-100: 34 100% 91%;
+  --color-accent-200: 32 98% 83%;
+  --color-accent-300: 31 97% 72%;
+  --color-accent-400: 27 96% 61%;
+  --color-accent-500: 25 95% 53%;  /* Main accent */
+  --color-accent-600: 21 90% 48%;
+  --color-accent-700: 17 88% 40%;
+  --color-accent-800: 15 79% 34%;
+  --color-accent-900: 15 75% 28%;
+  --color-accent-950: 13 81% 15%;
+
+  /* ============================================
+   * SEMANTIC COLORS
+   * Functional/status colors
+   * ============================================ */
+
+  /* Success - Green */
+  --color-success-50: 138 76% 97%;
+  --color-success-100: 141 84% 93%;
+  --color-success-200: 141 79% 85%;
+  --color-success-300: 142 77% 73%;
+  --color-success-400: 142 69% 58%;
+  --color-success-500: 142 71% 45%;  /* Main success */
+  --color-success-600: 142 76% 36%;
+  --color-success-700: 142 72% 29%;
+  --color-success-800: 143 64% 24%;
+  --color-success-900: 144 61% 20%;
+  --color-success-950: 145 80% 10%;
+
+  /* Warning - Amber */
+  --color-warning-50: 48 100% 96%;
+  --color-warning-100: 48 96% 89%;
+  --color-warning-200: 48 97% 77%;
+  --color-warning-300: 46 97% 65%;
+  --color-warning-400: 43 96% 56%;
+  --color-warning-500: 38 92% 50%;  /* Main warning */
+  --color-warning-600: 32 95% 44%;
+  --color-warning-700: 26 90% 37%;
+  --color-warning-800: 23 83% 31%;
+  --color-warning-900: 22 78% 26%;
+  --color-warning-950: 21 92% 14%;
+
+  /* Error/Destructive - Red */
+  --color-error-50: 0 86% 97%;
+  --color-error-100: 0 93% 94%;
+  --color-error-200: 0 96% 89%;
+  --color-error-300: 0 94% 82%;
+  --color-error-400: 0 91% 71%;
+  --color-error-500: 0 84% 60%;  /* Main error */
+  --color-error-600: 0 72% 51%;
+  --color-error-700: 0 74% 42%;
+  --color-error-800: 0 70% 35%;
+  --color-error-900: 0 63% 31%;
+  --color-error-950: 0 75% 15%;
+
+  /* Info - Blue */
+  --color-info-50: 204 100% 97%;
+  --color-info-100: 204 94% 94%;
+  --color-info-200: 201 94% 86%;
+  --color-info-300: 199 95% 74%;
+  --color-info-400: 198 93% 60%;
+  --color-info-500: 199 89% 48%;  /* Main info */
+  --color-info-600: 200 98% 39%;
+  --color-info-700: 201 96% 32%;
+  --color-info-800: 201 90% 27%;
+  --color-info-900: 202 80% 24%;
+  --color-info-950: 204 80% 16%;
+
+  /* ============================================
+   * NEUTRAL COLORS
+   * Grayscale for text, backgrounds, borders
+   * ============================================ */
+
+  /* Neutral - Slate Gray */
+  --color-neutral-0: 0 0% 100%;      /* White */
+  --color-neutral-50: 210 40% 98%;
+  --color-neutral-100: 210 40% 96%;
+  --color-neutral-200: 214 32% 91%;
+  --color-neutral-300: 213 27% 84%;
+  --color-neutral-400: 215 20% 65%;
+  --color-neutral-500: 215 16% 47%;
+  --color-neutral-600: 215 19% 35%;
+  --color-neutral-700: 215 25% 27%;
+  --color-neutral-800: 217 33% 17%;
+  --color-neutral-900: 222 47% 11%;
+  --color-neutral-950: 229 84% 5%;
+  --color-neutral-1000: 0 0% 0%;     /* Black */
+
+  /* ============================================
+   * SPECIAL COLORS
+   * Dating app specific colors
+   * ============================================ */
+
+  /* Love/Heart - For like/match interactions */
+  --color-love: 349 89% 55%;
+  --color-love-light: 353 96% 86%;
+  --color-love-dark: 345 83% 38%;
+
+  /* Match - For successful matches */
+  --color-match: 271 91% 65%;
+  --color-match-light: 269 100% 92%;
+  --color-match-dark: 272 72% 47%;
+
+  /* Super Like - Gold/Star */
+  --color-superlike: 45 93% 47%;
+  --color-superlike-light: 48 96% 89%;
+  --color-superlike-dark: 32 95% 44%;
+
+  /* Online Status */
+  --color-online: 142 71% 45%;
+  --color-offline: 215 16% 47%;
+  --color-away: 38 92% 50%;
+
+  /* Verification Badge */
+  --color-verified: 199 89% 48%;
+  --color-premium: 271 91% 65%;
+}
+
+/**
+ * LIGHT MODE SEMANTIC MAPPING
+ * Maps design tokens to semantic UI variables
+ */
+:root {
+  /* Background colors */
+  --background: var(--color-neutral-0);
+  --background-subtle: var(--color-neutral-50);
+  --background-muted: var(--color-neutral-100);
+
+  /* Foreground/Text colors */
+  --foreground: var(--color-neutral-900);
+  --foreground-muted: var(--color-neutral-500);
+  --foreground-subtle: var(--color-neutral-400);
+
+  /* Card surfaces */
+  --card: var(--color-neutral-0);
+  --card-foreground: var(--color-neutral-900);
+  --card-hover: var(--color-neutral-50);
+
+  /* Popover surfaces */
+  --popover: var(--color-neutral-0);
+  --popover-foreground: var(--color-neutral-900);
+
+  /* Primary brand */
+  --primary: var(--color-primary-500);
+  --primary-foreground: var(--color-neutral-0);
+  --primary-hover: var(--color-primary-600);
+  --primary-active: var(--color-primary-700);
+
+  /* Secondary */
+  --secondary: var(--color-neutral-100);
+  --secondary-foreground: var(--color-neutral-900);
+  --secondary-hover: var(--color-neutral-200);
+
+  /* Muted elements */
+  --muted: var(--color-neutral-100);
+  --muted-foreground: var(--color-neutral-500);
+
+  /* Accent */
+  --accent: var(--color-secondary-100);
+  --accent-foreground: var(--color-secondary-900);
+
+  /* Destructive/Error */
+  --destructive: var(--color-error-500);
+  --destructive-foreground: var(--color-neutral-0);
+  --destructive-hover: var(--color-error-600);
+
+  /* Success */
+  --success: var(--color-success-500);
+  --success-foreground: var(--color-neutral-0);
+
+  /* Warning */
+  --warning: var(--color-warning-500);
+  --warning-foreground: var(--color-neutral-900);
+
+  /* Info */
+  --info: var(--color-info-500);
+  --info-foreground: var(--color-neutral-0);
+
+  /* Borders */
+  --border: var(--color-neutral-200);
+  --border-hover: var(--color-neutral-300);
+  --border-focus: var(--color-primary-500);
+
+  /* Inputs */
+  --input: var(--color-neutral-200);
+  --input-focus: var(--color-primary-500);
+
+  /* Focus ring */
+  --ring: var(--color-primary-500);
+  --ring-offset: var(--color-neutral-0);
+
+  /* Charts */
+  --chart-1: var(--color-primary-500);
+  --chart-2: var(--color-secondary-500);
+  --chart-3: var(--color-accent-500);
+  --chart-4: var(--color-success-500);
+  --chart-5: var(--color-info-500);
+
+  /* Sidebar */
+  --sidebar-background: var(--color-neutral-50);
+  --sidebar-foreground: var(--color-neutral-700);
+  --sidebar-primary: var(--color-primary-500);
+  --sidebar-primary-foreground: var(--color-neutral-0);
+  --sidebar-accent: var(--color-neutral-100);
+  --sidebar-accent-foreground: var(--color-neutral-900);
+  --sidebar-border: var(--color-neutral-200);
+  --sidebar-ring: var(--color-primary-500);
+}
+
+/**
+ * DARK MODE SEMANTIC MAPPING
+ * Inverted color scheme for dark theme
+ */
+.dark {
+  /* Background colors */
+  --background: var(--color-neutral-950);
+  --background-subtle: var(--color-neutral-900);
+  --background-muted: var(--color-neutral-800);
+
+  /* Foreground/Text colors */
+  --foreground: var(--color-neutral-50);
+  --foreground-muted: var(--color-neutral-400);
+  --foreground-subtle: var(--color-neutral-500);
+
+  /* Card surfaces */
+  --card: var(--color-neutral-900);
+  --card-foreground: var(--color-neutral-50);
+  --card-hover: var(--color-neutral-800);
+
+  /* Popover surfaces */
+  --popover: var(--color-neutral-900);
+  --popover-foreground: var(--color-neutral-50);
+
+  /* Primary brand */
+  --primary: var(--color-primary-500);
+  --primary-foreground: var(--color-neutral-0);
+  --primary-hover: var(--color-primary-400);
+  --primary-active: var(--color-primary-300);
+
+  /* Secondary */
+  --secondary: var(--color-neutral-800);
+  --secondary-foreground: var(--color-neutral-50);
+  --secondary-hover: var(--color-neutral-700);
+
+  /* Muted elements */
+  --muted: var(--color-neutral-800);
+  --muted-foreground: var(--color-neutral-400);
+
+  /* Accent */
+  --accent: var(--color-secondary-900);
+  --accent-foreground: var(--color-secondary-100);
+
+  /* Destructive/Error */
+  --destructive: var(--color-error-600);
+  --destructive-foreground: var(--color-neutral-0);
+  --destructive-hover: var(--color-error-500);
+
+  /* Success */
+  --success: var(--color-success-500);
+  --success-foreground: var(--color-neutral-0);
+
+  /* Warning */
+  --warning: var(--color-warning-500);
+  --warning-foreground: var(--color-neutral-900);
+
+  /* Info */
+  --info: var(--color-info-500);
+  --info-foreground: var(--color-neutral-0);
+
+  /* Borders */
+  --border: var(--color-neutral-800);
+  --border-hover: var(--color-neutral-700);
+  --border-focus: var(--color-primary-500);
+
+  /* Inputs */
+  --input: var(--color-neutral-800);
+  --input-focus: var(--color-primary-500);
+
+  /* Focus ring */
+  --ring: var(--color-primary-400);
+  --ring-offset: var(--color-neutral-950);
+
+  /* Charts */
+  --chart-1: var(--color-primary-400);
+  --chart-2: var(--color-secondary-400);
+  --chart-3: var(--color-accent-400);
+  --chart-4: var(--color-success-400);
+  --chart-5: var(--color-info-400);
+
+  /* Sidebar */
+  --sidebar-background: var(--color-neutral-900);
+  --sidebar-foreground: var(--color-neutral-100);
+  --sidebar-primary: var(--color-primary-500);
+  --sidebar-primary-foreground: var(--color-neutral-0);
+  --sidebar-accent: var(--color-neutral-800);
+  --sidebar-accent-foreground: var(--color-neutral-100);
+  --sidebar-border: var(--color-neutral-800);
+  --sidebar-ring: var(--color-primary-400);
+}

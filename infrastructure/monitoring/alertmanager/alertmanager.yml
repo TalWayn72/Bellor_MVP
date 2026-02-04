@@ -1,0 +1,84 @@
+global:
+  resolve_timeout: 5m
+  # Slack webhook (add your webhook URL)
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+
+# Templates for notifications
+templates:
+  - '/etc/alertmanager/*.tmpl'
+
+# Route all alerts
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  receiver: 'default'
+
+  routes:
+    # Critical alerts go to Slack and email
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      continue: true
+
+    # Warning alerts go to Slack only
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+
+# Receivers
+receivers:
+  - name: 'default'
+    slack_configs:
+      - channel: '#bellor-alerts'
+        title: 'Bellor Alert'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+
+  - name: 'critical-alerts'
+    slack_configs:
+      - channel: '#bellor-critical'
+        title: '🚨 Critical Alert'
+        text: |
+          *Alert:* {{ .GroupLabels.alertname }}
+          *Severity:* {{ .CommonLabels.severity }}
+          *Component:* {{ .CommonLabels.component }}
+          *Summary:* {{ .CommonAnnotations.summary }}
+          *Description:* {{ .CommonAnnotations.description }}
+        send_resolved: true
+    # Add email configuration here
+    # email_configs:
+    #   - to: 'oncall@bellor.app'
+    #     from: 'alerts@bellor.app'
+    #     smarthost: 'smtp.gmail.com:587'
+    #     auth_username: '${SMTP_USERNAME}'
+    #     auth_password: '${SMTP_PASSWORD}'
+    #     headers:
+    #       subject: '🚨 Critical Alert: {{ .GroupLabels.alertname }}'
+
+  - name: 'warning-alerts'
+    slack_configs:
+      - channel: '#bellor-warnings'
+        title: '⚠️ Warning'
+        text: |
+          *Alert:* {{ .GroupLabels.alertname }}
+          *Component:* {{ .CommonLabels.component }}
+          *Summary:* {{ .CommonAnnotations.summary }}
+        send_resolved: true
+
+# Inhibition rules (prevent alert spam)
+inhibit_rules:
+  # Inhibit warning alerts if critical alert is firing
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'cluster', 'service']
+
+  # Inhibit any alert if the entire system is down
+  - source_match:
+      alertname: 'APIDown'
+    target_match_re:
+      alertname: '.*'
+    equal: ['cluster']

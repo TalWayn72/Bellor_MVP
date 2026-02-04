@@ -1,0 +1,360 @@
+/**
+ * Bellor Design System - Effects Tokens
+ * ======================================
+ *
+ * Visual effects including shadows, animations, and transitions.
+ * Based on Figma design system (Bellor-Mui).
+ *
+ * @version 1.0.0
+ * @author Claude Code
+ * @license MIT
+ */
+
+:root {
+  /* ============================================
+   * SHADOW SYSTEM (Elevation)
+   * Progressive shadow depth for UI layers
+   * ============================================ */
+
+  /* No shadow */
+  --shadow-none: none;
+
+  /* Subtle - Buttons, inputs hover */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+
+  /* Small - Cards, dropdowns */
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+
+  /* Medium - Floating elements */
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
+  /* Large - Modals, sheets */
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  /* Extra Large - Prominent modals */
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  /* 2XL - Full overlays */
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+
+  /* Inner shadow */
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+
+  /* ============================================
+   * COLORED SHADOWS
+   * Brand-colored shadows for emphasis
+   * ============================================ */
+
+  /* Primary (Rose) glow */
+  --shadow-primary-sm: 0 2px 8px -2px hsl(349 89% 55% / 0.3);
+  --shadow-primary-md: 0 4px 14px -3px hsl(349 89% 55% / 0.4);
+  --shadow-primary-lg: 0 8px 24px -4px hsl(349 89% 55% / 0.5);
+
+  /* Secondary (Purple) glow */
+  --shadow-secondary-sm: 0 2px 8px -2px hsl(271 91% 65% / 0.3);
+  --shadow-secondary-md: 0 4px 14px -3px hsl(271 91% 65% / 0.4);
+  --shadow-secondary-lg: 0 8px 24px -4px hsl(271 91% 65% / 0.5);
+
+  /* Success (Green) glow */
+  --shadow-success-sm: 0 2px 8px -2px hsl(142 71% 45% / 0.3);
+  --shadow-success-md: 0 4px 14px -3px hsl(142 71% 45% / 0.4);
+
+  /* Error (Red) glow */
+  --shadow-error-sm: 0 2px 8px -2px hsl(0 84% 60% / 0.3);
+  --shadow-error-md: 0 4px 14px -3px hsl(0 84% 60% / 0.4);
+
+  /* ============================================
+   * SEMANTIC SHADOWS
+   * Shadows for specific component types
+   * ============================================ */
+
+  --shadow-card: var(--shadow-sm);
+  --shadow-card-hover: var(--shadow-md);
+  --shadow-dropdown: var(--shadow-lg);
+  --shadow-modal: var(--shadow-xl);
+  --shadow-tooltip: var(--shadow-md);
+  --shadow-button: var(--shadow-xs);
+  --shadow-button-hover: var(--shadow-sm);
+  --shadow-input-focus: 0 0 0 3px hsl(349 89% 55% / 0.15);
+  --shadow-nav: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+
+  /* ============================================
+   * DARK MODE SHADOWS
+   * Adjusted shadows for dark backgrounds
+   * ============================================ */
+}
+
+.dark {
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.6);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.3);
+}
+
+:root {
+  /* ============================================
+   * TRANSITION DURATIONS
+   * Consistent timing for animations
+   * ============================================ */
+
+  --duration-instant: 0ms;
+  --duration-fastest: 50ms;
+  --duration-faster: 100ms;
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 400ms;
+  --duration-slowest: 500ms;
+
+  /* Semantic durations */
+  --duration-hover: var(--duration-fast);
+  --duration-focus: var(--duration-faster);
+  --duration-active: var(--duration-fastest);
+  --duration-enter: var(--duration-normal);
+  --duration-exit: var(--duration-fast);
+  --duration-page: var(--duration-slow);
+  --duration-modal: var(--duration-normal);
+  --duration-collapse: var(--duration-slow);
+
+  /* ============================================
+   * EASING FUNCTIONS
+   * Timing curves for natural motion
+   * ============================================ */
+
+  /* Standard easings */
+  --ease-linear: linear;
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Expressive easings */
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* Semantic easings */
+  --ease-enter: var(--ease-out);
+  --ease-exit: var(--ease-in);
+  --ease-move: var(--ease-in-out);
+  --ease-emphasis: var(--ease-bounce);
+
+  /* ============================================
+   * TRANSITION PRESETS
+   * Common transition combinations
+   * ============================================ */
+
+  --transition-none: none;
+  --transition-all: all var(--duration-normal) var(--ease-in-out);
+  --transition-colors: color var(--duration-fast) var(--ease-in-out),
+                       background-color var(--duration-fast) var(--ease-in-out),
+                       border-color var(--duration-fast) var(--ease-in-out);
+  --transition-opacity: opacity var(--duration-fast) var(--ease-in-out);
+  --transition-shadow: box-shadow var(--duration-fast) var(--ease-in-out);
+  --transition-transform: transform var(--duration-normal) var(--ease-in-out);
+
+  /* Component transitions */
+  --transition-button: var(--transition-colors), var(--transition-shadow), var(--transition-transform);
+  --transition-input: var(--transition-colors), var(--transition-shadow);
+  --transition-card: var(--transition-shadow), var(--transition-transform);
+  --transition-link: color var(--duration-fast) var(--ease-in-out);
+  --transition-scale: transform var(--duration-fast) var(--ease-spring);
+
+  /* ============================================
+   * ANIMATIONS
+   * Keyframe-based animations
+   * ============================================ */
+
+  /* Fade animations */
+  --animate-fade-in: fade-in var(--duration-normal) var(--ease-out) forwards;
+  --animate-fade-out: fade-out var(--duration-fast) var(--ease-in) forwards;
+
+  /* Slide animations */
+  --animate-slide-up: slide-up var(--duration-normal) var(--ease-out) forwards;
+  --animate-slide-down: slide-down var(--duration-normal) var(--ease-out) forwards;
+  --animate-slide-left: slide-left var(--duration-normal) var(--ease-out) forwards;
+  --animate-slide-right: slide-right var(--duration-normal) var(--ease-out) forwards;
+
+  /* Scale animations */
+  --animate-scale-in: scale-in var(--duration-normal) var(--ease-spring) forwards;
+  --animate-scale-out: scale-out var(--duration-fast) var(--ease-in) forwards;
+
+  /* Special animations */
+  --animate-bounce: bounce 1s var(--ease-bounce) infinite;
+  --animate-pulse: pulse 2s var(--ease-in-out) infinite;
+  --animate-spin: spin 1s var(--ease-linear) infinite;
+  --animate-ping: ping 1s var(--ease-in-out) infinite;
+  --animate-shake: shake 0.5s var(--ease-in-out);
+
+  /* Dating app specific */
+  --animate-heart-beat: heart-beat 1.2s var(--ease-in-out) infinite;
+  --animate-match-pop: match-pop 0.6s var(--ease-bounce) forwards;
+  --animate-swipe-right: swipe-right 0.3s var(--ease-out) forwards;
+  --animate-swipe-left: swipe-left 0.3s var(--ease-out) forwards;
+  --animate-like-pop: like-pop 0.4s var(--ease-spring) forwards;
+
+  /* Accordion animations */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+}
+
+/* ============================================
+ * KEYFRAME DEFINITIONS
+ * ============================================ */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-down {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-left {
+  from { transform: translateX(10px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slide-right {
+  from { transform: translateX(-10px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes scale-out {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.95); opacity: 0; }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ping {
+  0% { transform: scale(1); opacity: 1; }
+  75%, 100% { transform: scale(2); opacity: 0; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+/* Dating app specific keyframes */
+@keyframes heart-beat {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.1); }
+  50% { transform: scale(1); }
+  75% { transform: scale(1.1); }
+}
+
+@keyframes match-pop {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes swipe-right {
+  0% { transform: translateX(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateX(150%) rotate(20deg); opacity: 0; }
+}
+
+@keyframes swipe-left {
+  0% { transform: translateX(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateX(-150%) rotate(-20deg); opacity: 0; }
+}
+
+@keyframes like-pop {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+/* Accordion keyframes (for Radix compatibility) */
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
+}
+
+/* ============================================
+ * BLUR EFFECTS
+ * ============================================ */
+
+:root {
+  --blur-none: 0;
+  --blur-sm: 4px;
+  --blur-md: 8px;
+  --blur-lg: 16px;
+  --blur-xl: 24px;
+  --blur-2xl: 40px;
+  --blur-3xl: 64px;
+
+  /* Backdrop blur for glass effects */
+  --backdrop-blur-sm: blur(4px);
+  --backdrop-blur-md: blur(8px);
+  --backdrop-blur-lg: blur(16px);
+}
+
+/* ============================================
+ * OPACITY VALUES
+ * ============================================ */
+
+:root {
+  --opacity-0: 0;
+  --opacity-5: 0.05;
+  --opacity-10: 0.1;
+  --opacity-20: 0.2;
+  --opacity-25: 0.25;
+  --opacity-30: 0.3;
+  --opacity-40: 0.4;
+  --opacity-50: 0.5;
+  --opacity-60: 0.6;
+  --opacity-70: 0.7;
+  --opacity-75: 0.75;
+  --opacity-80: 0.8;
+  --opacity-90: 0.9;
+  --opacity-95: 0.95;
+  --opacity-100: 1;
+
+  /* Semantic opacities */
+  --opacity-disabled: var(--opacity-50);
+  --opacity-hover: var(--opacity-80);
+  --opacity-overlay: var(--opacity-50);
+  --opacity-backdrop: var(--opacity-75);
+}

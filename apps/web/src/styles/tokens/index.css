@@ -1,0 +1,56 @@
+/**
+ * Bellor Design System - Token Index
+ * ===================================
+ *
+ * Central import file for all design tokens.
+ * Import this file to get access to all design system variables.
+ *
+ * @version 1.0.0
+ * @author Claude Code
+ * @license MIT
+ *
+ * Usage:
+ *   @import './styles/tokens/index.css';
+ *
+ * Or in JavaScript:
+ *   import './styles/tokens/index.css';
+ */
+
+/* Import all token files in order of dependency */
+@import './colors.css';
+@import './typography.css';
+@import './spacing.css';
+@import './effects.css';
+
+/**
+ * Design Token Overview:
+ *
+ * COLORS (colors.css)
+ * - Brand colors: primary (rose), secondary (purple), accent (coral)
+ * - Semantic colors: success, warning, error, info
+ * - Neutral colors: slate gray scale
+ * - Special colors: love, match, superlike, online status
+ * - Light/Dark mode support
+ *
+ * TYPOGRAPHY (typography.css)
+ * - Font families: Satoshi (primary), System UI, Monospace
+ * - Font sizes: 10px to 72px
+ * - Font weights: 300 to 900
+ * - Line heights: tight to loose
+ * - Pre-defined text styles: display, heading, body, label, caption
+ *
+ * SPACING (spacing.css)
+ * - 4px baseline grid
+ * - Spacing scale: 0 to 384px
+ * - Border radius: none to full
+ * - Container widths: mobile to desktop
+ * - Z-index scale: base to max
+ * - Breakpoints: xs to 2xl
+ *
+ * EFFECTS (effects.css)
+ * - Shadows: xs to 2xl, plus colored glows
+ * - Transitions: durations and easings
+ * - Animations: fade, slide, scale, plus dating-specific
+ * - Blur effects
+ * - Opacity values
+ */

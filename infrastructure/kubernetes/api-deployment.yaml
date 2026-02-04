@@ -1,0 +1,155 @@
+---
+# Bellor API Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bellor-api
+  namespace: bellor
+  labels:
+    app: bellor-api
+    tier: backend
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: bellor-api
+  template:
+    metadata:
+      labels:
+        app: bellor-api
+        tier: backend
+    spec:
+      # Uncomment if using private GHCR repository
+      # imagePullSecrets:
+      # - name: ghcr-secret
+      containers:
+      - name: api
+        # Replace YOUR_GITHUB_ORG with your GitHub organization/username
+        # Example: ghcr.io/mycompany/bellor_mvp/api:v1.0.0
+        image: ghcr.io/YOUR_GITHUB_ORG/bellor_mvp/api:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"
+        - name: HOST
+          value: "0.0.0.0"
+        - name: LOG_LEVEL
+          value: "info"
+
+        # Secrets from ConfigMap/Secrets
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: bellor-secrets
+              key: database-url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: bellor-secrets
+              key: redis-url
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: bellor-secrets
+              key: jwt-secret
+        - name: JWT_REFRESH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: bellor-secrets
+              key: jwt-refresh-secret
+        - name: FRONTEND_URL
+          valueFrom:
+            configMapKeyRef:
+              name: bellor-config
+              key: frontend-url
+
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 10"]
+
+      terminationGracePeriodSeconds: 30
+
+---
+# Bellor API Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: bellor-api
+  namespace: bellor
+  labels:
+    app: bellor-api
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 3000
+    protocol: TCP
+    name: http
+  selector:
+    app: bellor-api
+
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: bellor-api-hpa
+  namespace: bellor
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: bellor-api
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80

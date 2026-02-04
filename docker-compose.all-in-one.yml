@@ -1,0 +1,182 @@
+# ================================================
+# Bellor MVP - All-In-One Docker Compose
+# ================================================
+# Everything in containers - perfect for:
+# - Local development
+# - Quick demos
+# - Free hosting services
+# - Development servers
+#
+# Usage: docker compose -f docker-compose.all-in-one.yml up -d
+
+version: '3.8'
+
+services:
+  # ======== PostgreSQL Database ========
+  postgres:
+    image: postgres:16-alpine
+    container_name: bellor-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-bellor}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bellor_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-bellor}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - bellor-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bellor}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    # Performance tuning for small VMs
+    command: >
+      postgres
+      -c shared_buffers=128MB
+      -c max_connections=100
+      -c effective_cache_size=512MB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+
+  # ======== Redis Cache ========
+  redis:
+    image: redis:7-alpine
+    container_name: bellor-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD:-bellor_dev_redis}
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    networks:
+      - bellor-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-bellor_dev_redis}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ======== API Service ========
+  api:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.api
+    container_name: bellor-api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 3000
+      HOST: 0.0.0.0
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+
+      # Database (internal)
+      DATABASE_URL: postgresql://${POSTGRES_USER:-bellor}:${POSTGRES_PASSWORD:-bellor_dev_password}@postgres:5432/${POSTGRES_DB:-bellor}
+
+      # Redis (internal)
+      REDIS_URL: redis://:${REDIS_PASSWORD:-bellor_dev_redis}@redis:6379
+
+      # JWT Secrets
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+
+      # Frontend URL (for CORS)
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+
+      # Storage (optional)
+      R2_ENDPOINT: ${R2_ENDPOINT:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      R2_BUCKET: ${R2_BUCKET:-}
+      CDN_URL: ${CDN_URL:-}
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - bellor-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  # ======== Frontend ========
+  web:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.web
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+        VITE_WS_URL: ${VITE_WS_URL:-ws://localhost:3000}
+        VITE_CDN_URL: ${VITE_CDN_URL:-http://localhost:3000}
+    container_name: bellor-web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-80}:80"
+    networks:
+      - bellor-network
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  bellor-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+
+# ==================================================
+# Quick Start:
+# ==================================================
+# 1. Create .env file:
+#    cp .env.example .env
+#
+# 2. Start everything:
+#    docker compose -f docker-compose.all-in-one.yml up -d
+#
+# 3. Run migrations:
+#    docker compose -f docker-compose.all-in-one.yml exec api pnpm prisma migrate deploy
+#
+# 4. Seed database:
+#    docker compose -f docker-compose.all-in-one.yml exec api pnpm prisma:seed
+#
+# 5. Open browser:
+#    http://localhost
+#
+# ==================================================
+# Resource Usage (typical):
+# ==================================================
+# PostgreSQL: ~50MB RAM
+# Redis:      ~15MB RAM
+# API:        ~200MB RAM
+# Web:        ~10MB RAM
+# ----------------------------------
+# Total:      ~275MB RAM minimum
+#
+# Recommended: 512MB RAM server
+# Comfortable: 1GB RAM server
+# ==================================================
