@@ -103,7 +103,7 @@ export class AuthService {
     }
 
     // Check if user is active
-    if (!!user.isBlocked) {
+    if (user.isBlocked) {
       throw new Error('Account is deactivated');
     }
 

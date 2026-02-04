@@ -341,7 +341,7 @@ export const AdminController = {
         });
       }
 
-      let updateData: any = {};
+      const updateData: any = {};
 
       switch (data.action) {
         case 'block':

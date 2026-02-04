@@ -24,8 +24,65 @@
 | **E2E Testing: Playwright** | 7 | 🟢 שיפור | ✅ הושלם |
 | **Console Errors (Feb 4)** | 4 | 🔴 קריטי | ✅ תוקן |
 | **Task Upload Errors (Feb 4)** | 2 | 🔴 קריטי | ✅ תוקן |
+| **ESLint & Test Coverage (Feb 4)** | 3 | 🟡 בינוני | ✅ תוקן |
+| **Backend Tests Expansion (Feb 4)** | 166 | 🟢 שיפור | ✅ הושלם |
 
-**סה"כ:** 80 תקלות זוהו → 80 תוקנו ✅
+**סה"כ:** 249 פריטים זוהו → 249 טופלו ✅
+
+---
+
+## ✅ TEST-003: Backend Tests Expansion (4 פברואר 2026)
+
+**סטטוס:** ✅ הושלם
+**סוג:** 🟢 שיפור
+**תאריך:** 4 פברואר 2026
+
+### תיאור
+הרחבת כיסוי בדיקות Backend ל-100% של כל ה-services.
+
+### קבצי בדיקות חדשים (7 קבצים)
+
+| קובץ | מספר בדיקות |
+|------|-------------|
+| `chat.service.test.ts` | 37 |
+| `likes.service.test.ts` | 27 |
+| `notifications.service.test.ts` | 22 |
+| `achievements.service.test.ts` | 19 |
+| `stories.service.test.ts` | 22 |
+| `follows.service.test.ts` | 15 |
+| `reports.service.test.ts` | 24 |
+
+**סה"כ:** 166 בדיקות חדשות
+
+### שינויים נוספים
+
+| קובץ | שינוי |
+|------|-------|
+| `setup.ts` | הוספת mocks חסרים (findFirst, count, aggregate, etc.) |
+
+---
+
+## ✅ LINT-003: ESLint & Code Quality Fix (4 פברואר 2026)
+
+**סטטוס:** ✅ תוקן
+**סוג:** 🟡 בינוני
+**תאריך:** 4 פברואר 2026
+
+### תקלות שתוקנו
+
+| תקלה | קובץ | תיקון |
+|------|------|-------|
+| ESLint parsing error for test files | `eslint.config.js` | הוספת config נפרד לקבצי test ללא project requirement |
+| `let` should be `const` | `admin.controller.ts` | שינוי `let updateData` ל-`const updateData` |
+| Redundant double negation | `auth.service.ts` | שינוי `!!user.isBlocked` ל-`user.isBlocked` |
+
+### קבצים שעודכנו
+
+| קובץ | שינוי |
+|------|-------|
+| `apps/api/eslint.config.js` | הוספת config לקבצי test |
+| `apps/api/src/controllers/admin.controller.ts` | `const` במקום `let` |
+| `apps/api/src/services/auth.service.ts` | הסרת `!!` מיותר |
 
 ---
 

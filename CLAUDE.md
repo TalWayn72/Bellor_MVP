@@ -12,7 +12,7 @@
 - **עקוב אחר התקינה החדישה** - TypeScript, ESLint, Prettier
 - **סדר קבצים בתיקיות הנכונות** - שמור על מבנה נקי
 - **עדכן תיעוד בסוף כל פעילות** - README, status docs, CLAUDE.md
-- **עדכן מספרים ב-CLAUDE.md** - כשמשתנה מספר טסטים, באגים, קבצים וכו' - לעדכן את המספרים בקובץ זה
+- **סנכרן מספרים ב-CLAUDE.md וב-README.md** - כשמשתנה מספר טסטים, באגים, קבצים, סטטוס שלבים וכו' - לעדכן את שני הקבצים יחד כדי לשמור על עקביות
 - **מותר לבצע שינויים ללא שאלות** - פעל באופן עצמאי
 - **בדוק פונקציונליות בסיום** - ודא שהכל עובד
 - **השלם בדיקות אוטומטיות לפני פריסה** - תמיד לוודא שכל הבדיקות עוברות לפני deployment
@@ -233,11 +233,12 @@ Priority tasks:
 - [x] adminService.js - Frontend admin API service
 
 ### ✅ Phase 6: Testing & QA (COMPLETE)
-- [x] Backend Unit Tests - 140/140 עוברות
+- [x] Backend Unit Tests - 306/306 עוברות (14 קבצי בדיקה)
 - [x] TypeScript Check - תוקנו 19 שגיאות ב-chat.service.ts
 - [x] Frontend Build - עובר בהצלחה
 - [x] תיעוד מעודכן - OPEN_ISSUES.md (74 תקלות תוקנו)
 - [x] E2E Tests - 11 קבצי בדיקה, ~224 בדיקות Playwright
+- [x] **100% Backend Services Coverage** - כל 14 services מכוסים בבדיקות
 
 ### 📋 Phase 7: Deployment (Upcoming)
 - Infrastructure setup
