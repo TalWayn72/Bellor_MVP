@@ -1,0 +1,143 @@
+/**
+ * Seed Data - Missions, Achievements, Responses, Stories
+ */
+
+import { MissionType, MediaType } from '@prisma/client';
+
+export const demoMissions = [
+  {
+    title: 'Ice Breaker: Your Perfect Day',
+    description: 'Describe your ideal perfect day from morning to night. What would you do?',
+    missionType: MissionType.ICE_BREAKER,
+    difficulty: 1,
+    xpReward: 10,
+    activeFrom: new Date(),
+    activeUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+  },
+  {
+    title: 'Daily Challenge: Morning Routine',
+    description: 'Share your morning routine! How do you start your day?',
+    missionType: MissionType.DAILY,
+    difficulty: 1,
+    xpReward: 15,
+    activeFrom: new Date(),
+    activeUntil: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+  },
+  {
+    title: 'Weekly Quest: Hidden Talent',
+    description: "Show us a talent that most people don't know you have!",
+    missionType: MissionType.WEEKLY,
+    difficulty: 2,
+    xpReward: 25,
+    activeFrom: new Date(),
+    activeUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  },
+  {
+    title: 'Favorite Travel Memory',
+    description: 'Share your favorite travel memory. Where was it and why was it special?',
+    missionType: MissionType.ICE_BREAKER,
+    difficulty: 1,
+    xpReward: 10,
+    activeFrom: new Date(),
+    activeUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+  },
+  {
+    title: 'Cook Something New',
+    description: 'Try cooking a dish from a cuisine you\'ve never tried before and share the result!',
+    missionType: MissionType.WEEKLY,
+    difficulty: 3,
+    xpReward: 30,
+    activeFrom: new Date(),
+    activeUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  },
+  {
+    title: 'Sunset Photo',
+    description: 'Capture a beautiful sunset and share it with the community.',
+    missionType: MissionType.DAILY,
+    difficulty: 1,
+    xpReward: 15,
+    activeFrom: new Date(),
+    activeUntil: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+  },
+  {
+    title: 'Special: Valentine\'s Day',
+    description: 'What does love mean to you? Share your thoughts in a creative way.',
+    missionType: MissionType.SPECIAL,
+    difficulty: 2,
+    xpReward: 50,
+    activeFrom: new Date(),
+    activeUntil: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+  },
+  {
+    title: 'Draw Your Mood',
+    description: 'Draw or sketch how you feel today. Let your creativity flow!',
+    missionType: MissionType.DAILY,
+    difficulty: 1,
+    xpReward: 15,
+    activeFrom: new Date(),
+    activeUntil: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+  },
+  {
+    title: 'Two Truths and a Lie',
+    description: 'Share two truths and one lie about yourself. Let others guess!',
+    missionType: MissionType.ICE_BREAKER,
+    difficulty: 1,
+    xpReward: 10,
+    activeFrom: new Date(),
+    activeUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+  },
+  {
+    title: 'Weekly: Bucket List',
+    description: 'Share the top 3 things on your bucket list and why.',
+    missionType: MissionType.WEEKLY,
+    difficulty: 2,
+    xpReward: 25,
+    activeFrom: new Date(),
+    activeUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  },
+];
+
+export const demoAchievements = [
+  { name: 'First Response', description: 'Complete your first mission response', requirement: { type: 'response_count', value: 1 }, xpReward: 50, iconUrl: '🎯' },
+  { name: 'Chatty', description: 'Start 5 conversations', requirement: { type: 'chat_count', value: 5 }, xpReward: 100, iconUrl: '💬' },
+  { name: 'Social Butterfly', description: 'Complete 10 missions', requirement: { type: 'mission_count', value: 10 }, xpReward: 150, iconUrl: '🦋' },
+  { name: 'Story Teller', description: 'Post your first story', requirement: { type: 'story_count', value: 1 }, xpReward: 75, iconUrl: '📖' },
+  { name: 'Explorer', description: 'View 20 different profiles', requirement: { type: 'profile_views', value: 20 }, xpReward: 80, iconUrl: '🔍' },
+  { name: 'Popular', description: 'Get 50 likes on your responses', requirement: { type: 'total_likes', value: 50 }, xpReward: 200, iconUrl: '⭐' },
+  { name: 'Consistent', description: 'Complete 7 daily missions in a row', requirement: { type: 'streak', value: 7 }, xpReward: 250, iconUrl: '🔥' },
+  { name: 'Premium Member', description: 'Upgrade to Premium', requirement: { type: 'premium', value: 1 }, xpReward: 100, iconUrl: '💎' },
+  { name: 'Artist', description: 'Submit 5 drawing responses', requirement: { type: 'drawing_count', value: 5 }, xpReward: 120, iconUrl: '🎨' },
+  { name: 'Connector', description: 'Match with 3 people', requirement: { type: 'match_count', value: 3 }, xpReward: 150, iconUrl: '🤝' },
+  { name: 'Heart Breaker', description: 'Receive 100 likes', requirement: { type: 'received_likes', value: 100 }, xpReward: 300, iconUrl: '💘' },
+];
+
+export const demoResponseTexts = [
+  'My perfect day would start with sunrise yoga on the beach, followed by a homemade brunch. Then exploring a new hiking trail and ending with stargazing!',
+  'I wake up at 6am, do 20 minutes of meditation, make my favorite coffee, and journal. It sets such a positive tone for the day!',
+  "Not many people know this, but I can solve a Rubik's cube in under 2 minutes! Started learning during quarantine.",
+  'My favorite travel memory is watching the northern lights in Iceland. The colors dancing across the sky was absolutely magical.',
+  'Just made homemade pasta from scratch for the first time! It was easier than I thought and so delicious.',
+  'My perfect day: coffee in the morning by the sea, a day in nature with friends, and an evening of board games!',
+  'My hidden talent - I can do complex origami. Here is a swan I folded!',
+  'My perfect day includes tapas with friends, live music, and a good book on the beach!',
+  'Captured this amazing sunset during my trip to Santorini. The colors were unreal!',
+  'Morning routine: 5am wake up, cold shower, 30 min run, healthy smoothie. Changed my life!',
+  'Two truths and a lie: I can speak 4 languages, I have a pilot license, I once swam with sharks. Guess which is the lie!',
+  'Bucket list top 3: 1) Northern lights in Norway, 2) Hike the Inca trail, 3) Learn to surf in Bali',
+  'Today I feel like a calm ocean - peaceful but full of depth. Drew a watercolor to express it.',
+  'What I miss most is long late-night conversations with real friends. Those are the most beautiful moments.',
+  'My favorite dish: a homemade mushroom risotto. My grandmother\'s recipe!',
+];
+
+export const demoStoryImages = [
+  { url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600', caption: 'Morning hike views', mediaType: MediaType.IMAGE },
+  { url: 'https://images.unsplash.com/photo-1493770348161-369560ae357d?w=600', caption: 'Brunch time!', mediaType: MediaType.IMAGE },
+  { url: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=600', caption: 'Weekend camping', mediaType: MediaType.IMAGE },
+  { url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600', caption: 'Dinner date', mediaType: MediaType.IMAGE },
+  { url: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600', caption: 'Pizza night!', mediaType: MediaType.IMAGE },
+  { url: 'https://images.unsplash.com/photo-1552733407-5d5c46c3bb3b?w=600', caption: 'Beach day', mediaType: MediaType.IMAGE },
+  { url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600', caption: 'Night sky magic', mediaType: MediaType.IMAGE },
+  { url: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=600', caption: 'Coffee time', mediaType: MediaType.IMAGE },
+  { url: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600', caption: 'Road trip vibes', mediaType: MediaType.IMAGE },
+  { url: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=600', caption: 'Golden hour', mediaType: MediaType.IMAGE },
+];
