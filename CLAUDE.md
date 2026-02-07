@@ -26,6 +26,21 @@ The **only active project** is **Bellor_MVP** at `C:\Users\talwa\.claude\project
 - **תקן תקלות אוטומטית** - במקרה של כשל, לזהות ולתקן את הבעיה באופן עצמאי
 - **השתמש ב-VS Code Extensions** - להשתמש בתוספים המותקנים כדי לייעל את העבודה (Vitest, Playwright, Docker, PostgreSQL Client וכו')
 
+## 📏 Code Quality Rules
+
+### Maximum File Size (150 Lines)
+- **150 lines maximum** per source code file
+- If a file approaches or exceeds 150 lines, it MUST be split into smaller modules
+- Extract sub-components, utility functions, constants, or data into separate files
+- Always create barrel files (index.js/ts) when splitting to maintain backward-compatible imports
+- **Exceptions:** Test files, Prisma schema, Radix UI wrappers (`apps/web/src/components/ui/`), app entry points
+
+### Activity Tracking
+- **Every task/activity MUST be logged in `docs/OPEN_ISSUES.md`** with status tracking
+- Update status as work progresses: ⏳ pending -> 🔄 in progress -> ✅ completed
+- This applies to: bug fixes, feature additions, refactoring, infrastructure changes
+- At the end of each task, verify OPEN_ISSUES.md is up to date
+
 ## 🚀 הפעלת שירותים חובה - בתחילת כל שיחה
 
 **⚠️ חובה להפעיל את כל השירותים בתחילת כל שיחת עבודה!**
