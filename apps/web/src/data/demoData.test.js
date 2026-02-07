@@ -171,11 +171,13 @@ describe("getDemoChatUsers", () => {
 });
 
 describe("getDemoTempChats", () => {
-  it("should return temp chats with user info", () => {
+  it("should return temp chats with otherUser info", () => {
     const tempChats = getDemoTempChats("test-user");
     expect(tempChats.length).toBeGreaterThan(0);
     tempChats.forEach((chat) => {
-      expect(chat.user1_id).toBe("test-user");
+      expect(chat.otherUser).toBeDefined();
+      expect(chat.otherUser.id).toBeDefined();
+      expect(chat.otherUser.first_name).toBeDefined();
     });
   });
 });
@@ -189,10 +191,13 @@ describe("getDemoFollows", () => {
 });
 
 describe("createDemoChat", () => {
-  it("should create a chat object with demo user", () => {
+  it("should create a chat object with otherUser", () => {
     const chat = createDemoChat("demo-user-1");
     expect(chat).toHaveProperty("id");
     expect(chat.status).toBe("active");
+    expect(chat.otherUser).toBeDefined();
+    expect(chat.otherUser.id).toBe("demo-user-1");
+    expect(chat.otherUser.first_name).toBeDefined();
   });
 });
 

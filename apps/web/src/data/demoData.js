@@ -554,13 +554,16 @@ export function getDemoChatUsers() {
  */
 export function getDemoTempChats(currentUserId) {
   return DEMO_TEMP_CHATS.map(c => {
-    const otherUser = getDemoUser(c.user2_id);
+    const user = getDemoUser(c.user2_id);
     return {
       ...c,
-      user1_id: currentUserId,
-      user2_name: otherUser?.nickname,
-      user2_image: otherUser?.profile_images?.[0],
-      other_user: otherUser,
+      otherUser: user ? {
+        id: user.id,
+        first_name: user.nickname,
+        last_name: '',
+        profile_images: user.profile_images || [],
+        is_verified: user.is_verified || false,
+      } : null,
     };
   });
 }
@@ -584,10 +587,16 @@ export function getDemoFollows(userId, type) {
  */
 export function createDemoChat(otherUserId) {
   const resolvedId = resolveLegacyId(otherUserId);
+  const user = getDemoUser(resolvedId);
   return {
     id: `demo-chat-${resolvedId}`,
-    other_user_id: resolvedId,
-    user2_id: resolvedId,
+    otherUser: user ? {
+      id: user.id,
+      first_name: user.nickname,
+      last_name: '',
+      profile_images: user.profile_images || [],
+      is_verified: user.is_verified || false,
+    } : { id: resolvedId, first_name: 'User', last_name: '', profile_images: [], is_verified: false },
     messages: [],
     created_at: new Date().toISOString(),
     status: 'active',

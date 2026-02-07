@@ -158,7 +158,7 @@ export default function AdminChatMonitoring() {
                     {chats.slice(0, 50).map((chat) => (
                       <tr key={chat.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => navigate(createPageUrl(`PrivateChat?chatId=${chat.id}`))}>
                         <td className="px-6 py-4 text-sm text-foreground">
-                          {chat.user1_id.substring(0, 8)}... ↔ {chat.user2_id.substring(0, 8)}...
+                          {chat.otherUser?.id?.substring(0, 8) || '?'}... ↔ You
                         </td>
                         <td className="px-6 py-4">
                           {chat.is_permanent || chat.is_converted_to_permanent ? (

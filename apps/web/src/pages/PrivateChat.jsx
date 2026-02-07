@@ -99,12 +99,12 @@ export default function PrivateChat() {
 
   // Fetch other user details
   const { data: otherUser } = useQuery({
-    queryKey: ['user', otherUserId, chat?.user1_id, chat?.user2_id],
+    queryKey: ['user', otherUserId, chat?.otherUser?.id],
     queryFn: async () => {
       let targetUserId = otherUserId;
 
-      if (!targetUserId && chat && currentUser) {
-        targetUserId = chat.user1_id === currentUser.id ? chat.user2_id : chat.user1_id;
+      if (!targetUserId && chat) {
+        targetUserId = chat.otherUser?.id;
       }
 
       if (!targetUserId) return null;

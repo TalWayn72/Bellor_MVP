@@ -322,7 +322,7 @@ Priority tasks:
 - [x] Backend Unit Tests - 306/306 עוברות (14 קבצי בדיקה)
 - [x] TypeScript Check - תוקנו 19 שגיאות ב-chat.service.ts
 - [x] Frontend Build - עובר בהצלחה
-- [x] תיעוד מעודכן - OPEN_ISSUES.md (74 תקלות תוקנו)
+- [x] תיעוד מעודכן - OPEN_ISSUES.md (75 תקלות תוקנו)
 - [x] E2E Tests - 11 קבצי בדיקה, ~224 בדיקות Playwright
 - [x] **100% Backend Services Coverage** - כל 14 services מכוסים בבדיקות
 

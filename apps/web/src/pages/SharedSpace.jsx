@@ -137,16 +137,13 @@ export default function SharedSpace() {
 
     if (!chats.length) return getDemoChatUsers();
 
-    return chats.slice(0, 7).map(chat => {
-      const otherUserId = chat.user1_id === currentUser.id ? chat.user2_id : chat.user1_id;
-      return {
-        chatId: chat.id,
-        userId: otherUserId,
-        name: chat.user1_id === currentUser.id ? chat.user2_name : chat.user1_name,
-        image: chat.user1_id === currentUser.id ? chat.user2_image : chat.user1_image,
-        isOnline: false
-      };
-    });
+    return chats.slice(0, 7).map(chat => ({
+      chatId: chat.id,
+      userId: chat.otherUser?.id,
+      name: chat.otherUser?.first_name,
+      image: chat.otherUser?.profile_images?.[0],
+      isOnline: false
+    }));
   }, [chats, currentUser]);
 
   let responses = allResponses;
@@ -233,7 +230,7 @@ export default function SharedSpace() {
                 {activeChatUsers.map((user) => (
                   <button
                     key={user.chatId}
-                    onClick={() => navigate(createPageUrl(`PrivateChat?chatId=${user.chatId}&userId=${user.userId}`))}
+                    onClick={() => navigate(createPageUrl(`UserProfile?id=${user.userId}`))}
                     className="flex-shrink-0"
                   >
                     <div className="relative">

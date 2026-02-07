@@ -149,9 +149,9 @@ export default function TemporaryChats() {
         ) : (
           <div className="space-y-3">
             {filteredChats.map((chat) => {
-              const otherUserId = chat.user1_id === currentUser.id ? chat.user2_id : chat.user1_id;
-              const otherUserName = chat.user1_id === currentUser.id ? chat.user2_name : chat.user1_name;
-              const otherUserImage = chat.user1_id === currentUser.id ? chat.user2_image : chat.user1_image;
+              const otherUserId = chat.otherUser?.id;
+              const otherUserName = chat.otherUser?.first_name;
+              const otherUserImage = chat.otherUser?.profile_images?.[0];
               const timeRemaining = getTimeRemaining(chat.expires_at);
               const isExpired = timeRemaining === 'Expired';
 

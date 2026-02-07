@@ -36,8 +36,46 @@
 | **ISSUE-018: Date Format Mismatch ISO vs yyyy-MM-dd (Feb 6)** | 1 | 🟡 בינוני | ✅ תוקן |
 | **ISSUE-019: AdminDashboard & Service Response Mismatch (Feb 6)** | 5 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-020: Centralized Demo Data System (Feb 7)** | 8 | 🟢 שיפור | ✅ הושלם (Phase 1-2) |
+| **ISSUE-021: Chat Data Mapping Mismatch - userId=undefined (Feb 7)** | 6 | 🔴 קריטי | ✅ תוקן |
 
-**סה"כ:** 289 פריטים זוהו → 289 טופלו ✅
+**סה"כ:** 295 פריטים זוהו → 295 טופלו ✅
+
+---
+
+## ✅ ISSUE-021: Chat Data Mapping Mismatch - userId=undefined (7 פברואר 2026)
+
+**סטטוס:** ✅ תוקן
+**חומרה:** 🔴 קריטי
+**תאריך:** 7 פברואר 2026
+
+### תיאור הבעיה
+
+**בעיה מקורית:** לחיצה על תמונת משתמש ב-SharedSpace גרמה לניווט ל-`PrivateChat?userId=undefined` וקריסת הדף עם שגיאת `TypeError: Cannot read properties of undefined`.
+
+**שורש הבעיה:** ה-Backend API מחזיר צ'אטים בפורמט `{ otherUser: { id, first_name, ... } }`, אבל ה-Frontend ניסה לגשת לשדות שלא קיימים: `chat.user1_id`, `chat.user2_id`, `chat.user1_name`, `chat.user2_image`.
+
+### קבצים מושפעים
+
+| קובץ | שורות | בעיה |
+|-------|--------|-------|
+| `apps/web/src/pages/SharedSpace.jsx` | 140-149, 236 | מיפוי שגוי + ניווט ל-PrivateChat במקום UserProfile |
+| `apps/web/src/pages/TemporaryChats.jsx` | 152-154 | מיפוי שגוי של otherUser |
+| `apps/web/src/pages/PrivateChat.jsx` | 102-107 | מיפוי שגוי של otherUser מתוך chat |
+| `apps/web/src/pages/VideoDate.jsx` | 29 | מיפוי שגוי של otherUser מתוך chat |
+| `apps/web/src/pages/AdminChatMonitoring.jsx` | 161 | מיפוי שגוי של user IDs |
+| `apps/web/src/data/demoData.js` | 555-596 | Demo data חסר שדה otherUser |
+
+### פתרון
+
+1. **עדכון מיפוי נתונים** - כל הדפים עודכנו להשתמש ב-`chat.otherUser?.id`, `chat.otherUser?.first_name`, `chat.otherUser?.profile_images?.[0]`
+2. **שינוי ניווט** - לחיצה על אווטאר ב-SharedSpace מנווטת עכשיו ל-`UserProfile?id=` במקום `PrivateChat`
+3. **עדכון Demo Data** - `getDemoTempChats()` ו-`createDemoChat()` מחזירים עכשיו `otherUser` בפורמט זהה ל-Backend
+
+### בדיקות שנוספו/עודכנו
+
+| קובץ בדיקה | כיסוי |
+|------------|-------|
+| `apps/web/src/data/demoData.test.js` | בדיקת שדה otherUser ב-getDemoTempChats ו-createDemoChat (25/25 עוברות) |
 
 ---
 
