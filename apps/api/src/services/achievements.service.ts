@@ -4,6 +4,7 @@
  */
 
 import { prisma } from '../lib/prisma.js';
+import { cacheGet, cacheSet, cacheDel, CacheKey, CacheTTL } from '../lib/cache.js';
 
 interface ListAchievementsParams {
   limit?: number;
@@ -28,6 +29,13 @@ export const AchievementsService = {
   async listAchievements(params: ListAchievementsParams = {}) {
     const { limit = 100, offset = 0 } = params;
 
+    // Cache only first page (default params)
+    const cacheKey = offset === 0 && limit === 100 ? CacheKey.achievementsList() : null;
+    if (cacheKey) {
+      const cached = await cacheGet<any>(cacheKey);
+      if (cached) return cached;
+    }
+
     const [achievements, total] = await Promise.all([
       prisma.achievement.findMany({
         skip: offset,
@@ -41,7 +49,7 @@ export const AchievementsService = {
       prisma.achievement.count(),
     ]);
 
-    return {
+    const result = {
       achievements: achievements.map(a => ({
         ...a,
         unlockedCount: a._count.users,
@@ -53,12 +61,21 @@ export const AchievementsService = {
         hasMore: offset + achievements.length < total,
       },
     };
+
+    if (cacheKey) {
+      await cacheSet(cacheKey, result, CacheTTL.ACHIEVEMENT);
+    }
+
+    return result;
   },
 
   /**
    * Get achievement by ID
    */
   async getAchievementById(id: string) {
+    const cached = await cacheGet<any>(CacheKey.achievement(id));
+    if (cached) return cached;
+
     const achievement = await prisma.achievement.findUnique({
       where: { id },
       include: {
@@ -72,10 +89,14 @@ export const AchievementsService = {
       throw new Error('Achievement not found');
     }
 
-    return {
+    const result = {
       ...achievement,
       unlockedCount: achievement._count.users,
     };
+
+    await cacheSet(CacheKey.achievement(id), result, CacheTTL.ACHIEVEMENT);
+
+    return result;
   },
 
   /**
@@ -174,6 +195,10 @@ export const AchievementsService = {
         relatedContentId: achievementId,
       },
     });
+
+    // Invalidate caches
+    await cacheDel(CacheKey.achievementsList());
+    await cacheDel(CacheKey.achievement(achievementId));
 
     return userAchievement;
   },

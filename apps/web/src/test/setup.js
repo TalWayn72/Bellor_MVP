@@ -1,36 +1,52 @@
+/**
+ * Vitest Test Setup
+ * Global configuration for all tests
+ */
+
 import '@testing-library/jest-dom';
-import { vi } from 'vitest';
 
-// Mock react-router-dom
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
-  return {
-    ...actual,
-    useNavigate: () => vi.fn(),
-  };
+// Mock window.matchMedia for components that use media queries
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
 });
 
-// Mock @tanstack/react-query
-vi.mock('@tanstack/react-query', async () => {
-  const actual = await vi.importActual('@tanstack/react-query');
-  return {
-    ...actual,
-    useQuery: vi.fn(() => ({ data: null, isLoading: false })),
-  };
+// Mock localStorage
+const localStorageMock = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+};
+Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+
+// Mock IntersectionObserver
+class IntersectionObserverMock {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+}
+Object.defineProperty(window, 'IntersectionObserver', {
+  writable: true,
+  value: IntersectionObserverMock,
 });
 
-// Mock API services
-vi.mock('@/api', () => ({
-  likeService: {
-    getResponseLikes: vi.fn(() => Promise.resolve({ likes: [] })),
-    likeUser: vi.fn(() => Promise.resolve({})),
-  },
-  userService: {
-    getUserById: vi.fn(() => Promise.resolve(null)),
-  },
-}));
-
-// Mock createPageUrl
-vi.mock('@/utils', () => ({
-  createPageUrl: vi.fn((page) => `/${page}`),
-}));
+// Mock ResizeObserver
+class ResizeObserverMock {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+}
+Object.defineProperty(window, 'ResizeObserver', {
+  writable: true,
+  value: ResizeObserverMock,
+});

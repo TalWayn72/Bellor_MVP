@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { CardsSkeleton } from '@/components/states';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
+import { getDemoProfiles } from '@/data/demoData';
 
 export default function Discover() {
   const navigate = useNavigate();
@@ -30,27 +31,7 @@ export default function Discover() {
   const [superLikeMessage, setSuperLikeMessage] = useState('');
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
 
-  const getDemoProfiles = () => [
-    {
-      id: 'demo-discover-1',
-      nickname: 'Sarah',
-      age: 28,
-      location: 'Tel Aviv',
-      bio: 'Love music, travel, and good coffee ☕',
-      interests: ['Music', 'Travel', 'Coffee'],
-      profile_images: ['https://i.pravatar.cc/600?img=47']
-    },
-    {
-      id: 'demo-discover-2',
-      nickname: 'David',
-      age: 31,
-      location: 'Jerusalem',
-      bio: 'Adventure seeker and food lover 🌍',
-      interests: ['Travel', 'Food', 'Sports'],
-      profile_images: ['https://i.pravatar.cc/600?img=12']
-    }
-  ];
-
+  // getDemoProfiles from centralized demoData
   const { data: profiles = [] } = useQuery({
     queryKey: ['discover', currentUser?.id, filters],
     queryFn: async () => {

@@ -10,6 +10,74 @@ import { ArrowRight } from 'lucide-react';
 import ProgressBar from '../components/onboarding/ProgressBar';
 import BackButton from '../components/navigation/BackButton';
 
+/**
+ * Format date to yyyy-MM-dd for HTML date input
+ * Handles both ISO dates and already formatted dates
+ * @param {string | Date} date - Date to format
+ * @returns {string} Formatted date string
+ */
+function formatDateForInput(date) {
+  if (!date) return '';
+
+  // If it's already in yyyy-MM-dd format, return as-is
+  if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return date;
+  }
+
+  // Convert to Date object if string
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+  // Check if valid date
+  if (isNaN(dateObj.getTime())) {
+    console.warn('[DATE_FORMAT] Invalid date:', date);
+    return '';
+  }
+
+  // Format as yyyy-MM-dd
+  return dateObj.toISOString().split('T')[0];
+}
+
+/**
+ * Validate date string format and value
+ * @param {string} dateStr - Date string to validate
+ * @returns {{ isValid: boolean, error?: string, date?: Date }}
+ */
+function validateDateOfBirth(dateStr) {
+  // Check if empty
+  if (!dateStr) {
+    return { isValid: false, error: 'Date of birth is required' };
+  }
+
+  // Check format: yyyy-MM-dd
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(dateStr)) {
+    console.error('[DATE_VALIDATION] Invalid format:', dateStr, 'Expected: yyyy-MM-dd');
+    return { isValid: false, error: 'Date must be in yyyy-MM-dd format' };
+  }
+
+  // Parse and check if valid date
+  const parsed = new Date(dateStr);
+  if (isNaN(parsed.getTime())) {
+    console.error('[DATE_VALIDATION] Invalid date:', dateStr);
+    return { isValid: false, error: 'Invalid date' };
+  }
+
+  // Check year range (1900 to today - 18 years)
+  const year = parsed.getFullYear();
+  const currentYear = new Date().getFullYear();
+  if (year < 1900) {
+    console.error('[DATE_VALIDATION] Year too old:', year);
+    return { isValid: false, error: 'Please enter a valid birth year' };
+  }
+  if (year > currentYear - 18) {
+    console.error('[DATE_VALIDATION] User must be 18+:', year);
+    return { isValid: false, error: 'You must be at least 18 years old' };
+  }
+
+  console.log('[DATE_VALIDATION] Valid date:', dateStr, '→', parsed.toISOString());
+  return { isValid: true, date: parsed };
+}
+
 const TOTAL_STEPS = 12;
 
 export default function Onboarding() {
@@ -56,30 +124,33 @@ export default function Onboarding() {
   });
 
   // Load existing user data if available
+  // Note: API returns camelCase → apiClient transforms to snake_case
+  // Field mapping: nickname→nickname, birthDate→birth_date, lookingFor→looking_for
   React.useEffect(() => {
     if (isAuthenticated && authUser) {
+      console.log('[ONBOARDING] Loading user data:', authUser);
       setFormData(prev => ({
         ...prev,
+        // nickname is now a dedicated field (API: nickname → snake: nickname)
         nickname: authUser.nickname || prev.nickname,
-        date_of_birth: authUser.date_of_birth || prev.date_of_birth,
-        location: authUser.location || prev.location,
-        location_city: authUser.location_city || prev.location_city,
-        location_state: authUser.location_state || prev.location_state,
-        can_currently_relocate: authUser.can_currently_relocate ?? prev.can_currently_relocate,
-        can_language_travel: authUser.can_language_travel ?? prev.can_language_travel,
-        occupation: authUser.occupation || prev.occupation,
-        education: authUser.education || prev.education,
+        // birthDate → birth_date
+        date_of_birth: formatDateForInput(authUser.birth_date) || prev.date_of_birth,
+        // Location might be object {city, country} or string
+        location: typeof authUser.location === 'object' ? authUser.location?.city : (authUser.location || prev.location),
+        location_city: authUser.location?.city || authUser.location_city || prev.location_city,
+        location_state: authUser.location?.country || authUser.location_state || prev.location_state,
+        // gender stays as-is
         gender: authUser.gender || prev.gender,
-        gender_other: authUser.gender_other || prev.gender_other,
-        looking_for: authUser.looking_for || prev.looking_for,
+        // lookingFor → looking_for (it's an array)
+        looking_for: Array.isArray(authUser.looking_for) ? authUser.looking_for[0] : (authUser.looking_for || prev.looking_for),
+        // profileImages → profile_images
         profile_images: (authUser.profile_images && authUser.profile_images.length > 0) ? authUser.profile_images : prev.profile_images,
-        main_profile_image_url: authUser.main_profile_image_url || prev.main_profile_image_url,
-        verification_photos: authUser.verification_photos || prev.verification_photos,
+        main_profile_image_url: authUser.profile_images?.[0] || prev.main_profile_image_url,
+        // sketchMethod → sketch_method
         sketch_method: authUser.sketch_method || prev.sketch_method,
+        // drawingUrl → drawing_url
         drawing_url: authUser.drawing_url || prev.drawing_url,
-        phone: authUser.phone || prev.phone,
         bio: authUser.bio || prev.bio,
-        interests: (authUser.interests && authUser.interests.length > 0) ? authUser.interests : prev.interests
       }));
     }
   }, [isAuthenticated, authUser]);
@@ -117,10 +188,53 @@ export default function Onboarding() {
     }
   }, [currentStep, navigate]);
 
+  // Save profile data incrementally (called after key steps)
+  const saveProfileData = async (partialData) => {
+    if (!authUser?.id) {
+      console.warn('[ONBOARDING] Cannot save - no user ID');
+      return false;
+    }
+    try {
+      console.log('[ONBOARDING] Saving partial data:', partialData);
+      await userService.updateUser(authUser.id, partialData);
+      console.log('[ONBOARDING] Partial save successful');
+      return true;
+    } catch (error) {
+      console.error('[ONBOARDING] Partial save failed:', error);
+      return false;
+    }
+  };
+
   const handleNext = async () => {
     if (currentStep === 7.5 || currentStep === 7.7) {
       navigate(createPageUrl('Onboarding') + '?step=8');
     } else if (currentStep < 14) {
+      // Save data incrementally at key steps
+      if (authUser?.id) {
+        // Step 3: Save nickname (dedicated field)
+        if (currentStep === 3 && formData.nickname) {
+          await saveProfileData({ nickname: formData.nickname });
+        }
+        // Step 4: Save date of birth (birthDate in Prisma)
+        if (currentStep === 4 && formData.date_of_birth) {
+          await saveProfileData({ birthDate: formData.date_of_birth });
+        }
+        // Step 5: Save gender
+        if (currentStep === 5 && formData.gender) {
+          await saveProfileData({ gender: formData.gender });
+        }
+        // Step 6: Save lookingFor (must be array - Prisma expects Gender[])
+        if (currentStep === 6 && formData.looking_for) {
+          const lookingForArray = Array.isArray(formData.looking_for)
+            ? formData.looking_for
+            : [formData.looking_for];
+          await saveProfileData({ lookingFor: lookingForArray });
+        }
+        // Step 8: Save profile images
+        if (currentStep === 8 && formData.profile_images?.length > 0) {
+          await saveProfileData({ profileImages: formData.profile_images });
+        }
+      }
       navigate(createPageUrl('Onboarding') + '?step=' + (currentStep + 1));
     } else {
       // Save user data to database before completing
@@ -129,50 +243,84 @@ export default function Onboarding() {
         return;
       }
 
+      // Validate authUser.id exists before making API call
+      if (!authUser.id) {
+        console.error('authUser.id is undefined:', authUser);
+        alert('User ID not found. Please log out and log in again.');
+        return;
+      }
+
       setIsLoading(true);
       try {
-        // Calculate age from date_of_birth
+        // Validate date_of_birth BEFORE sending to API
+        const dateValidation = validateDateOfBirth(formData.date_of_birth);
+        if (!dateValidation.isValid) {
+          console.error('[ONBOARDING] Date validation failed:', dateValidation.error);
+          alert(`Invalid date of birth: ${dateValidation.error}`);
+          setIsLoading(false);
+          return;
+        }
+
+        // Calculate age from validated date_of_birth
         const age = formData.date_of_birth
           ? new Date().getFullYear() - new Date(formData.date_of_birth).getFullYear()
           : null;
 
-        // Prepare user data to update
-        const userData = {
-          nickname: formData.nickname,
-          age: age,
+        console.log('[ONBOARDING] Preparing user data:', {
           date_of_birth: formData.date_of_birth,
+          age,
+          validatedDate: dateValidation.date?.toISOString(),
+        });
+
+        // Prepare user data to update (using Prisma field names)
+        const lookingForArray = formData.looking_for
+          ? (Array.isArray(formData.looking_for) ? formData.looking_for : [formData.looking_for])
+          : [];
+        const userData = {
+          nickname: formData.nickname, // nickname is now a dedicated field
+          birthDate: formData.date_of_birth, // date_of_birth → birthDate
           gender: formData.gender,
-          gender_other: formData.gender_other,
-          looking_for: formData.looking_for,
-          location: formData.location,
-          location_city: formData.location_city,
-          location_state: formData.location_state,
-          can_currently_relocate: formData.can_currently_relocate,
-          can_language_travel: formData.can_language_travel,
-          occupation: formData.occupation,
-          education: formData.education,
-          profile_images: formData.profile_images,
-          verification_photos: formData.verification_photos,
-          sketch_method: formData.sketch_method,
-          drawing_url: formData.drawing_url,
-          phone: formData.phone,
+          lookingFor: lookingForArray, // Must be array - Prisma expects Gender[]
+          location: formData.location_city && formData.location_state
+            ? { city: formData.location_city, country: formData.location_state }
+            : formData.location,
+          profileImages: formData.profile_images || [], // profile_images → profileImages
+          sketchMethod: formData.sketch_method, // sketch_method → sketchMethod
+          drawingUrl: formData.drawing_url, // drawing_url → drawingUrl
           bio: formData.bio,
-          interests: formData.interests,
-          main_profile_image_url: formData.main_profile_image_url || formData.profile_images?.[0] || '',
-          last_active_date: new Date().toISOString(),
-          response_count: 0,
-          chat_count: 0,
-          mission_completed_count: 0,
-          onboarding_completed: true
+          lastActiveAt: new Date().toISOString(),
         };
 
         // Update user with all collected data
+        console.log('Saving user data:', {
+          userId: authUser.id,
+          userIdType: typeof authUser.id,
+          authUserKeys: Object.keys(authUser),
+          currentStep
+        });
         await userService.updateUser(authUser.id, userData);
 
+        console.log('[ONBOARDING] User data saved successfully');
         navigate(createPageUrl('SharedSpace'));
       } catch (error) {
-        console.error('Error saving user data:', error);
-        alert('Error saving data. Please try again.');
+        console.error('[ONBOARDING] Error saving user data:', {
+          error,
+          errorMessage: error?.message,
+          errorResponse: error?.response?.data,
+          errorStatus: error?.response?.status,
+          userData: {
+            date_of_birth: formData.date_of_birth,
+            nickname: formData.nickname,
+            gender: formData.gender,
+          },
+        });
+
+        // Show more specific error message if available
+        const errorMessage = error?.response?.data?.error?.message
+          || error?.response?.data?.message
+          || error?.message
+          || 'Error saving data. Please try again.';
+        alert(errorMessage);
       } finally {
         setIsLoading(false);
       }
@@ -591,7 +739,8 @@ export default function Onboarding() {
                       const birthYear = parseInt(selectedDate.split('-')[0]);
                       const currentYear = new Date().getFullYear();
                       const minYear = currentYear - 120;
-                      if (birthYear < minYear || birthYear > currentYear) {
+                      const maxYear = currentYear - 18; // Must be 18+
+                      if (birthYear < minYear || birthYear > maxYear) {
                         return;
                       }
                     }
@@ -601,10 +750,15 @@ export default function Onboarding() {
                     const currentYear = new Date().getFullYear();
                     return `${currentYear - 120}-01-01`;
                   })()}
-                  max={new Date().toISOString().split('T')[0]}
+                  max={(() => {
+                    // Max date is 18 years ago (user must be 18+)
+                    const date = new Date();
+                    date.setFullYear(date.getFullYear() - 18);
+                    return date.toISOString().split('T')[0];
+                  })()}
                   className="w-full h-12 text-base"
                 />
-                <p className="text-xs text-muted-foreground mt-1">You must be between 0-120 years old</p>
+                <p className="text-xs text-muted-foreground mt-1">You must be at least 18 years old</p>
               </div>
             </div>
 
@@ -614,7 +768,7 @@ export default function Onboarding() {
                 disabled={!formData.date_of_birth || (() => {
                   const year = parseInt(formData.date_of_birth.split('-')[0]);
                   const currentYear = new Date().getFullYear();
-                  return year < (currentYear - 120) || year > currentYear;
+                  return year < (currentYear - 120) || year > (currentYear - 18); // Must be 18+
                 })()}
                 className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -1028,24 +1182,19 @@ export default function Onboarding() {
                     const uploadedUrls = [];
                     for (const file of files) {
                       try {
-                        const { file_url } = await uploadService.uploadFile(file);
-                        uploadedUrls.push(file_url);
+                        // Use uploadProfileImage for profile photos (saves to profiles folder + updates user DB automatically)
+                        const result = await uploadService.uploadProfileImage(file);
+                        if (result?.url) {
+                          uploadedUrls.push(result.url);
+                        }
                       } catch (error) {
                         console.error('Error uploading file:', error);
                       }
                     }
-                    const newImages = [...formData.profile_images, ...uploadedUrls];
+                    if (uploadedUrls.length === 0) return;
+                    const newImages = [...formData.profile_images, ...uploadedUrls].filter(Boolean);
                     const newMainImage = formData.main_profile_image_url || (newImages.length > 0 ? newImages[0] : '');
                     setFormData({ ...formData, profile_images: newImages, main_profile_image_url: newMainImage });
-
-                    // Save images immediately to database
-                    try {
-                      if (isAuthenticated && authUser) {
-                        await userService.updateUser(authUser.id, { profile_images: newImages, main_profile_image_url: newMainImage });
-                      }
-                    } catch (error) {
-                      console.error('Error saving images to database:', error);
-                    }
                   }}
                 />
 
@@ -1080,10 +1229,11 @@ export default function Onboarding() {
                               const imageUrl = formData.profile_images[i];
                               setFormData({ ...formData, main_profile_image_url: imageUrl });
 
-                              // Update database immediately
+                              // Update database immediately (reorder profileImages to put main first)
                               try {
-                                if (isAuthenticated && authUser) {
-                                  await userService.updateUser(authUser.id, { main_profile_image_url: imageUrl });
+                                if (isAuthenticated && authUser?.id) {
+                                  const reorderedImages = [imageUrl, ...formData.profile_images.filter(img => img !== imageUrl)];
+                                  await userService.updateUser(authUser.id, { profileImages: reorderedImages });
                                 }
                               } catch (error) {
                                 console.error('Error updating main profile image:', error);
@@ -1112,8 +1262,8 @@ export default function Onboarding() {
 
                               // Update database immediately
                               try {
-                                if (isAuthenticated && authUser) {
-                                  await userService.updateUser(authUser.id, { profile_images: newImages, main_profile_image_url: newMainImage });
+                                if (isAuthenticated && authUser?.id) {
+                                  await userService.updateUser(authUser.id, { profileImages: newImages });
                                 }
                               } catch (error) {
                                 console.error('Error updating images in database:', error);

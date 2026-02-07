@@ -92,6 +92,59 @@ describe('userService', () => {
       // This is what happens with wrong usage
       expect(resultUrl).toBe('/users/[object Object]');
     });
+
+    // New validation tests (ISSUE-013)
+    it('should throw error when userId is undefined', async () => {
+      const data = { profile_images: ['image1.jpg'] };
+
+      await expect(userService.updateUser(undefined, data))
+        .rejects.toThrow('Invalid user ID: userId is required');
+    });
+
+    it('should throw error when userId is null', async () => {
+      const data = { profile_images: ['image1.jpg'] };
+
+      await expect(userService.updateUser(null, data))
+        .rejects.toThrow('Invalid user ID: userId is required');
+    });
+
+    it('should throw error when userId is string "undefined"', async () => {
+      const data = { profile_images: ['image1.jpg'] };
+
+      await expect(userService.updateUser('undefined', data))
+        .rejects.toThrow('Invalid user ID: userId is required');
+    });
+
+    it('should throw error when userId is empty string', async () => {
+      const data = { profile_images: ['image1.jpg'] };
+
+      await expect(userService.updateUser('', data))
+        .rejects.toThrow('Invalid user ID: userId is required');
+    });
+
+    it('should throw error when data is not an object', async () => {
+      const userId = 'user-456';
+
+      await expect(userService.updateUser(userId, 14))
+        .rejects.toThrow('Invalid data: must be an object');
+    });
+
+    it('should throw error when data is null', async () => {
+      const userId = 'user-456';
+
+      await expect(userService.updateUser(userId, null))
+        .rejects.toThrow('Invalid data: must be an object');
+    });
+
+    it('should NOT call API when validation fails', async () => {
+      try {
+        await userService.updateUser(undefined, { test: true });
+      } catch (e) {
+        // Expected
+      }
+
+      expect(apiClient.patch).not.toHaveBeenCalled();
+    });
   });
 
   describe('getUserById', () => {

@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { storageService } from '../../services/storage.service.js';
 import { prisma } from '../../lib/prisma.js';
 import { authMiddleware } from '../../middleware/auth.middleware.js';
+import { validateUploadedFile } from '../../middleware/upload.middleware.js';
+import { securityLogger } from '../../security/logger.js';
 
 // Validation schemas
 const presignedUrlQuerySchema = z.object({
@@ -48,12 +50,24 @@ export default async function uploadsRoutes(app: FastifyInstance) {
 
     try {
       const buffer = await data.toBuffer();
+
+      // Security: Validate uploaded file
+      const validation = validateUploadedFile(buffer, data.filename, data.mimetype, 'image', request);
+      if (!validation.valid) {
+        return reply.code(400).send({
+          success: false,
+          error: { code: 'INVALID_FILE', message: validation.error || 'File validation failed' },
+        });
+      }
+
       const result = await storageService.uploadProfileImage(
         buffer,
         data.mimetype,
-        data.filename,
+        validation.sanitizedFilename,
         request.user!.userId
       );
+
+      securityLogger.uploadSuccess(request, 'image', buffer.length);
 
       // Update user's profile images
       const user = await prisma.user.findUnique({
@@ -170,12 +184,24 @@ export default async function uploadsRoutes(app: FastifyInstance) {
 
     try {
       const buffer = await data.toBuffer();
+
+      // Security: Validate uploaded file
+      const validation = validateUploadedFile(buffer, data.filename, data.mimetype, 'image', request);
+      if (!validation.valid) {
+        return reply.code(400).send({
+          success: false,
+          error: { code: 'INVALID_FILE', message: validation.error || 'File validation failed' },
+        });
+      }
+
       const result = await storageService.uploadStoryMedia(
         buffer,
         data.mimetype,
-        data.filename,
+        validation.sanitizedFilename,
         request.user!.userId
       );
+
+      securityLogger.uploadSuccess(request, 'image', buffer.length);
 
       return {
         success: true,
@@ -223,12 +249,24 @@ export default async function uploadsRoutes(app: FastifyInstance) {
 
     try {
       const buffer = await data.toBuffer();
+
+      // Security: Validate uploaded file
+      const validation = validateUploadedFile(buffer, data.filename, data.mimetype, 'audio', request);
+      if (!validation.valid) {
+        return reply.code(400).send({
+          success: false,
+          error: { code: 'INVALID_FILE', message: validation.error || 'File validation failed' },
+        });
+      }
+
       const result = await storageService.uploadAudio(
         buffer,
         data.mimetype,
-        data.filename,
+        validation.sanitizedFilename,
         request.user!.userId
       );
+
+      securityLogger.uploadSuccess(request, 'audio', buffer.length);
 
       return {
         success: true,
@@ -277,14 +315,25 @@ export default async function uploadsRoutes(app: FastifyInstance) {
     try {
       const buffer = await data.toBuffer();
 
+      // Security: Validate uploaded file
+      const validation = validateUploadedFile(buffer, data.filename, data.mimetype, 'image', request);
+      if (!validation.valid) {
+        return reply.code(400).send({
+          success: false,
+          error: { code: 'INVALID_FILE', message: validation.error || 'File validation failed' },
+        });
+      }
+
       // Upload to drawings folder (separate from profiles)
       const result = await storageService.uploadFile(
         buffer,
         data.mimetype,
-        data.filename,
+        validation.sanitizedFilename,
         request.user!.userId,
         'drawings' // Separate folder for drawings
       );
+
+      securityLogger.uploadSuccess(request, 'image', buffer.length);
 
       // Update user's drawing URL (NOT profile images!)
       await prisma.user.update({
@@ -336,14 +385,25 @@ export default async function uploadsRoutes(app: FastifyInstance) {
     try {
       const buffer = await data.toBuffer();
 
+      // Security: Validate uploaded file
+      const validation = validateUploadedFile(buffer, data.filename, data.mimetype, 'video', request);
+      if (!validation.valid) {
+        return reply.code(400).send({
+          success: false,
+          error: { code: 'INVALID_FILE', message: validation.error || 'File validation failed' },
+        });
+      }
+
       // Upload to videos folder
       const result = await storageService.uploadFile(
         buffer,
         data.mimetype,
-        data.filename,
+        validation.sanitizedFilename,
         request.user!.userId,
         'videos'
       );
+
+      securityLogger.uploadSuccess(request, 'video', buffer.length);
 
       return {
         success: true,
@@ -392,14 +452,25 @@ export default async function uploadsRoutes(app: FastifyInstance) {
     try {
       const buffer = await data.toBuffer();
 
+      // Security: Validate uploaded file
+      const validation = validateUploadedFile(buffer, data.filename, data.mimetype, 'image', request);
+      if (!validation.valid) {
+        return reply.code(400).send({
+          success: false,
+          error: { code: 'INVALID_FILE', message: validation.error || 'File validation failed' },
+        });
+      }
+
       // Upload to responses folder (NOT profiles!)
       const result = await storageService.uploadFile(
         buffer,
         data.mimetype,
-        data.filename,
+        validation.sanitizedFilename,
         request.user!.userId,
         'responses'
       );
+
+      securityLogger.uploadSuccess(request, 'image', buffer.length);
 
       return {
         success: true,

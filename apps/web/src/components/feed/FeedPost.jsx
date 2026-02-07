@@ -2,7 +2,7 @@ import React from 'react';
 import { Heart, MessageCircle, Volume2, Flag, MessageSquare, Star } from 'lucide-react';
 import { likeService, userService } from '@/api';
 import { useNavigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import { createPageUrl, transformUser } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import HeartResponseSelector from './HeartResponseSelector';
 import CommentsDialog from '../comments/CommentsDialog';
@@ -129,7 +129,8 @@ export default function FeedPost({ response, currentUser, theme, onChatRequest, 
       try {
         const user = await userService.getUserById(response.user_id);
         if (user) {
-          setUserData(user);
+          // Use transformer to ensure consistent data format (nickname, age, location_display)
+          setUserData(transformUser(user));
         } else {
           // Fallback for deleted users
           setUserData({
@@ -252,17 +253,19 @@ export default function FeedPost({ response, currentUser, theme, onChatRequest, 
 
       {/* Action Bar - Interaction Icons Order: Heart, Comment, Star, Chat */}
       <div className="px-3 pb-3 flex items-center justify-around border-t pt-3">
-        {/* 1. Heart - Romantic Interest */}
-        <button
-          className="flex flex-col items-center gap-1 disabled:opacity-50"
-          onClick={() => setIsHeartSelectorOpen(true)}
-          disabled={heartSent}
-        >
-          <Heart className={`w-6 h-6 ${heartSent ? 'fill-love text-love' : 'text-love'}`} />
-          <span className={`text-xs ${heartSent ? 'text-success font-medium' : 'text-muted-foreground'}`}>
-            {heartSent ? '✓ נשלח' : 'עניין רומנטי'}
-          </span>
-        </button>
+        {/* 1. Heart - Romantic Interest (hidden on own posts) */}
+        {currentUser?.id !== response.user_id && (
+          <button
+            className="flex flex-col items-center gap-1 disabled:opacity-50"
+            onClick={() => setIsHeartSelectorOpen(true)}
+            disabled={heartSent}
+          >
+            <Heart className={`w-6 h-6 ${heartSent ? 'fill-love text-love' : 'text-love'}`} />
+            <span className={`text-xs ${heartSent ? 'text-success font-medium' : 'text-muted-foreground'}`}>
+              {heartSent ? '✓ נשלח' : 'עניין רומנטי'}
+            </span>
+          </button>
+        )}
 
         {/* 2. Comment */}
         <button
@@ -320,7 +323,7 @@ export default function FeedPost({ response, currentUser, theme, onChatRequest, 
         {/* 4. Temporary Chat Request */}
         <button
           onClick={() => {
-            if (!chatRequestSent && onChatRequest) {
+            if (!chatRequestSent && onChatRequest && response.user_id) {
               onChatRequest({ ...userData, id: response.user_id });
               setChatRequestSent(true);
             }

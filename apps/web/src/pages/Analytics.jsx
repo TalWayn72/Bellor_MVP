@@ -9,27 +9,22 @@ import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CardsSkeleton } from '@/components/states';
+import { getDemoLikes, getDemoResponses, getDemoChatUsers } from '@/data/demoData';
 
 export default function Analytics() {
   const navigate = useNavigate();
   const { currentUser, isLoading } = useCurrentUser();
 
-  const getDemoData = () => ({
-    likes: [{ id: 'demo-like-1' }, { id: 'demo-like-2' }],
-    chats: [{ id: 'demo-chat-1', status: 'active' }],
-    responses: [{ id: 'demo-resp-1' }]
-  });
-
   const { data: likesReceived = [] } = useQuery({
     queryKey: ['likesReceived', currentUser?.id],
     queryFn: async () => {
-      if (!currentUser) return getDemoData().likes;
+      if (!currentUser) return getDemoLikes('romantic', currentUser?.id);
       try {
         const result = await likeService.getReceivedLikes();
         const likes = result.likes || [];
-        return likes.length > 0 ? likes : getDemoData().likes;
+        return likes.length > 0 ? likes : getDemoLikes('romantic', currentUser?.id);
       } catch {
-        return getDemoData().likes;
+        return getDemoLikes('romantic', currentUser?.id);
       }
     },
     enabled: !!currentUser,
@@ -52,13 +47,13 @@ export default function Analytics() {
   const { data: responses = [] } = useQuery({
     queryKey: ['userResponses', currentUser?.id],
     queryFn: async () => {
-      if (!currentUser) return getDemoData().responses;
+      if (!currentUser) return getDemoResponses();
       try {
         const result = await responseService.listResponses({ userId: currentUser.id });
         const resps = result.responses || [];
-        return resps.length > 0 ? resps : getDemoData().responses;
+        return resps.length > 0 ? resps : getDemoResponses();
       } catch {
-        return getDemoData().responses;
+        return getDemoResponses();
       }
     },
     enabled: !!currentUser,
@@ -67,13 +62,15 @@ export default function Analytics() {
   const { data: chats = [] } = useQuery({
     queryKey: ['userChats', currentUser?.id],
     queryFn: async () => {
-      if (!currentUser) return getDemoData().chats;
+      // Convert demo chat users to chat format for counting
+      const demoChatData = getDemoChatUsers().map(u => ({ id: u.chatId, status: 'active' }));
+      if (!currentUser) return demoChatData;
       try {
         const result = await chatService.getChats();
         const dbChats = result.chats || [];
-        return dbChats.length > 0 ? dbChats : getDemoData().chats;
+        return dbChats.length > 0 ? dbChats : demoChatData;
       } catch {
-        return getDemoData().chats;
+        return demoChatData;
       }
     },
     enabled: !!currentUser,

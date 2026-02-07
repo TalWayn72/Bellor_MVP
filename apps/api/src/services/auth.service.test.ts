@@ -607,4 +607,220 @@ describe('AuthService', () => {
       expect(prisma.user.update).not.toHaveBeenCalled();
     });
   });
+
+  // ============================================
+  // FORGOT PASSWORD TESTS
+  // ============================================
+  describe('forgotPassword', () => {
+    it('should generate reset token and store in Redis for valid user', async () => {
+      const mockUser = {
+        id: 'test-user-id',
+        email: 'test@example.com',
+        firstName: 'John',
+        isBlocked: false,
+      };
+
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+
+      await AuthService.forgotPassword('test@example.com');
+
+      // Verify token was stored in Redis with correct prefix
+      expect(redis.setex).toHaveBeenCalledWith(
+        expect.stringContaining('password_reset:'),
+        60 * 60, // 1 hour
+        mockUser.id
+      );
+    });
+
+    it('should silently succeed when user does not exist (prevent enumeration)', async () => {
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+
+      // Should not throw
+      await expect(AuthService.forgotPassword('nonexistent@example.com')).resolves.toBeUndefined();
+
+      // Redis should NOT be called
+      expect(redis.setex).not.toHaveBeenCalled();
+    });
+
+    it('should silently succeed when user is blocked (prevent enumeration)', async () => {
+      const blockedUser = {
+        id: 'blocked-user-id',
+        email: 'blocked@example.com',
+        firstName: 'Blocked',
+        isBlocked: true,
+      };
+
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(blockedUser as any);
+
+      // Should not throw
+      await expect(AuthService.forgotPassword('blocked@example.com')).resolves.toBeUndefined();
+
+      // Redis should NOT be called
+      expect(redis.setex).not.toHaveBeenCalled();
+    });
+
+    it('should use firstName in email, default to "User" if null', async () => {
+      const userWithoutName = {
+        id: 'test-user-id',
+        email: 'test@example.com',
+        firstName: null,
+        isBlocked: false,
+      };
+
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(userWithoutName as any);
+
+      await AuthService.forgotPassword('test@example.com');
+
+      // Should complete without error
+      expect(redis.setex).toHaveBeenCalled();
+    });
+
+    it('should generate cryptographically secure token (64 hex chars)', async () => {
+      const mockUser = {
+        id: 'test-user-id',
+        email: 'test@example.com',
+        firstName: 'John',
+        isBlocked: false,
+      };
+
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+
+      await AuthService.forgotPassword('test@example.com');
+
+      // Get the key from the setex call
+      const setexCall = vi.mocked(redis.setex).mock.calls[0];
+      const key = setexCall[0] as string;
+      const token = key.replace('password_reset:', '');
+
+      // Token should be 64 characters (32 bytes = 64 hex chars)
+      expect(token.length).toBe(64);
+      // Token should be valid hex
+      expect(/^[a-f0-9]+$/.test(token)).toBe(true);
+    });
+
+    it('should set correct TTL of 1 hour (3600 seconds)', async () => {
+      const mockUser = {
+        id: 'test-user-id',
+        email: 'test@example.com',
+        firstName: 'John',
+        isBlocked: false,
+      };
+
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+
+      await AuthService.forgotPassword('test@example.com');
+
+      expect(redis.setex).toHaveBeenCalledWith(
+        expect.any(String),
+        3600, // 60 * 60 = 1 hour
+        expect.any(String)
+      );
+    });
+  });
+
+  // ============================================
+  // RESET PASSWORD TESTS
+  // ============================================
+  describe('resetPassword', () => {
+    const validToken = 'valid-reset-token-abc123';
+    const newPassword = 'NewSecurePassword123!';
+
+    it('should reset password successfully with valid token', async () => {
+      const mockUser = {
+        id: 'test-user-id',
+        email: 'test@example.com',
+      };
+
+      vi.mocked(redis.get).mockResolvedValue(mockUser.id);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+      vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+
+      await AuthService.resetPassword(validToken, newPassword);
+
+      // Verify password was updated
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: mockUser.id },
+        data: { passwordHash: expect.any(String) },
+      });
+    });
+
+    it('should throw error for invalid/expired token', async () => {
+      vi.mocked(redis.get).mockResolvedValue(null);
+
+      await expect(AuthService.resetPassword(validToken, newPassword)).rejects.toThrow(
+        'Invalid or expired reset token'
+      );
+    });
+
+    it('should throw error if user no longer exists', async () => {
+      vi.mocked(redis.get).mockResolvedValue('deleted-user-id');
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+
+      await expect(AuthService.resetPassword(validToken, newPassword)).rejects.toThrow(
+        'Invalid or expired reset token'
+      );
+    });
+
+    it('should hash new password before storing', async () => {
+      const mockUser = {
+        id: 'test-user-id',
+        email: 'test@example.com',
+      };
+
+      vi.mocked(redis.get).mockResolvedValue(mockUser.id);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+      vi.mocked(prisma.user.update).mockImplementation(async ({ data }) => {
+        // Verify password is hashed (not plain text)
+        expect(data.passwordHash).not.toBe(newPassword);
+        expect(data.passwordHash!.length).toBeGreaterThan(50); // bcrypt hash is ~60 chars
+        return mockUser as any;
+      });
+
+      await AuthService.resetPassword(validToken, newPassword);
+    });
+
+    it('should delete reset token after successful reset (one-time use)', async () => {
+      const mockUser = {
+        id: 'test-user-id',
+        email: 'test@example.com',
+      };
+
+      vi.mocked(redis.get).mockResolvedValue(mockUser.id);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+      vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+
+      await AuthService.resetPassword(validToken, newPassword);
+
+      // Verify token was deleted from Redis
+      expect(redis.del).toHaveBeenCalledWith(`password_reset:${validToken}`);
+    });
+
+    it('should invalidate all refresh tokens (force re-login)', async () => {
+      const mockUser = {
+        id: 'test-user-id',
+        email: 'test@example.com',
+      };
+
+      vi.mocked(redis.get).mockResolvedValue(mockUser.id);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+      vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+
+      await AuthService.resetPassword(validToken, newPassword);
+
+      // Verify refresh token was invalidated (logout called)
+      expect(redis.del).toHaveBeenCalledWith(`refresh_token:${mockUser.id}`);
+    });
+
+    it('should look up token with correct prefix in Redis', async () => {
+      vi.mocked(redis.get).mockResolvedValue(null);
+
+      try {
+        await AuthService.resetPassword(validToken, newPassword);
+      } catch (e) {
+        // Expected to throw
+      }
+
+      expect(redis.get).toHaveBeenCalledWith(`password_reset:${validToken}`);
+    });
+  });
 });

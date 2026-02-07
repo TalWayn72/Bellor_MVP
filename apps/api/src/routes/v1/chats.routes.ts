@@ -6,6 +6,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { chatService } from '../../services/chat.service.js';
 import { authMiddleware } from '../../middleware/auth.middleware.js';
+import { isDemoUserId, isDemoId } from '../../utils/demoId.util.js';
 
 export default async function chatsRoutes(app: FastifyInstance) {
   // Apply auth middleware to all routes
@@ -70,9 +71,20 @@ export default async function chatsRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: 'Cannot create chat with yourself' });
     }
 
-    const chat = await chatService.createOrGetChat(userId, targetUserId, temporary);
+    // Reject operations on demo users
+    if (isDemoUserId(targetUserId)) {
+      return reply.code(400).send({ error: 'Cannot perform operations on demo users' });
+    }
 
-    return reply.code(201).send({ chat });
+    try {
+      const chat = await chatService.createOrGetChat(userId, targetUserId, temporary);
+      return reply.code(201).send({ chat });
+    } catch (error: any) {
+      if (error.message === 'Target user not found') {
+        return reply.code(404).send({ error: 'Target user not found' });
+      }
+      return reply.code(500).send({ error: error.message });
+    }
   });
 
   /**
@@ -110,6 +122,11 @@ export default async function chatsRoutes(app: FastifyInstance) {
 
     if (!content) {
       return reply.code(400).send({ error: 'content is required' });
+    }
+
+    // Reject operations on demo chats
+    if (isDemoId(chatId)) {
+      return reply.code(400).send({ error: 'Cannot perform operations on demo chats' });
     }
 
     const msgType = messageType || message_type || type || 'TEXT';
@@ -152,7 +169,12 @@ export default async function chatsRoutes(app: FastifyInstance) {
     '/:chatId/messages/:messageId',
     async (request: FastifyRequest, reply: FastifyReply) => {
       const userId = request.user!.id;
-      const { messageId } = request.params as { chatId: string; messageId: string };
+      const { chatId, messageId } = request.params as { chatId: string; messageId: string };
+
+      // Reject operations on demo chats/messages
+      if (isDemoId(chatId) || isDemoId(messageId)) {
+        return reply.code(400).send({ error: 'Cannot perform operations on demo content' });
+      }
 
       const result = await chatService.deleteMessage(messageId, userId);
 

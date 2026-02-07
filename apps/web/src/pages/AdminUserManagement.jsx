@@ -116,7 +116,8 @@ export default function AdminUserManagement() {
   };
 
   const handleRoleChange = (user) => {
-    const newRole = user.role === 'admin' ? 'user' : 'admin';
+    const isCurrentlyAdmin = user.is_admin;
+    const newRole = isCurrentlyAdmin ? 'user' : 'admin';
     if (window.confirm(`Are you sure you want to change ${user.full_name || user.email} to ${newRole}?`)) {
       roleChangeMutation.mutate({ userId: user.id, newRole });
     }
@@ -215,8 +216,8 @@ export default function AdminUserManagement() {
                       </td>
                       <td className="px-6 py-4 text-sm text-muted-foreground">{user.email}</td>
                       <td className="px-6 py-4">
-                        <Badge variant={user.role === 'admin' ? 'premium' : 'info'}>
-                          {user.role}
+                        <Badge variant={user.is_admin ? 'premium' : 'info'}>
+                          {user.is_admin ? 'admin' : 'user'}
                         </Badge>
                       </td>
                       <td className="px-6 py-4">
@@ -278,7 +279,7 @@ export default function AdminUserManagement() {
                             disabled={roleChangeMutation.isPending}
                             className="text-purple-600 hover:text-purple-700"
                           >
-                            {user.role === 'admin' ? 'Remove Admin' : 'Make Admin'}
+                            {user.is_admin ? 'Remove Admin' : 'Make Admin'}
                           </Button>
                           <Button
                             variant="outline"

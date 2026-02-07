@@ -63,7 +63,19 @@ export default function PrivacyPolicy() {
       content: 'We may update this Privacy Policy periodically. We will notify you of significant changes via email or app notification. Continued use constitutes acceptance of updates.'
     },
     {
-      title: '14. Contact Us',
+      title: '14. GDPR Rights (EU Users)',
+      content: 'Under the General Data Protection Regulation (GDPR), EU residents have the following rights: Right of Access (Article 15) - Request a copy of your personal data. Right to Rectification (Article 16) - Request correction of inaccurate data. Right to Erasure (Article 17) - Request deletion of your data ("Right to be Forgotten"). Right to Data Portability (Article 20) - Export your data in a machine-readable format. Right to Object (Article 21) - Object to processing of your data. You can exercise these rights through Privacy Settings in your account.'
+    },
+    {
+      title: '15. CCPA Rights (California Residents)',
+      content: 'Under the California Consumer Privacy Act (CCPA), California residents have additional rights: Right to Know - Request disclosure of what personal information we collect. Right to Delete - Request deletion of your personal information. Right to Opt-Out - Opt out of the sale of personal information. Right to Non-Discrimination - We will not discriminate against you for exercising your CCPA rights. To exercise these rights, go to Privacy Settings or contact us at privacy@bellor.com'
+    },
+    {
+      title: '16. Data Processing Legal Basis',
+      content: 'We process your data based on: Consent (when you create an account), Contractual Necessity (to provide our services), Legitimate Interest (for security and improvements), and Legal Obligation (when required by law). You can withdraw consent at any time through your account settings.'
+    },
+    {
+      title: '17. Contact Us',
       content: 'For privacy-related questions or concerns, contact our Data Protection Officer at privacy@bellor.com'
     }
   ];

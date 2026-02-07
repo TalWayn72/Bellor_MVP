@@ -4,6 +4,8 @@
  */
 
 import { apiClient } from '../client/apiClient';
+import { validateUserId, validateRequiredId, validateDataObject } from '../utils/validation';
+import { isDemoUser, getDemoStories } from '@/data/demoData';
 
 export const storyService = {
   /**
@@ -40,6 +42,8 @@ export const storyService = {
    * @returns {Promise<{story}>}
    */
   async createStory(data) {
+    validateDataObject(data, 'createStory');
+
     const response = await apiClient.post('/stories', data);
     return response.data;
   },
@@ -50,6 +54,14 @@ export const storyService = {
    * @returns {Promise<{stories}>}
    */
   async getStoriesByUser(userId) {
+    // Return demo stories for demo users
+    if (isDemoUser(userId)) {
+      const stories = getDemoStories().filter(s => s.user_id === userId);
+      return { stories };
+    }
+
+    validateUserId(userId, 'getStoriesByUser');
+
     const response = await apiClient.get(`/stories/user/${userId}`);
     return response.data;
   },
@@ -60,6 +72,8 @@ export const storyService = {
    * @returns {Promise<{story}>}
    */
   async getStoryById(storyId) {
+    validateRequiredId(storyId, 'storyId', 'getStoryById');
+
     const response = await apiClient.get(`/stories/${storyId}`);
     return response.data;
   },
@@ -70,6 +84,8 @@ export const storyService = {
    * @returns {Promise<{message}>}
    */
   async viewStory(storyId) {
+    validateRequiredId(storyId, 'storyId', 'viewStory');
+
     const response = await apiClient.post(`/stories/${storyId}/view`);
     return response.data;
   },
@@ -80,6 +96,8 @@ export const storyService = {
    * @returns {Promise<{message}>}
    */
   async deleteStory(storyId) {
+    validateRequiredId(storyId, 'storyId', 'deleteStory');
+
     const response = await apiClient.delete(`/stories/${storyId}`);
     return response.data;
   },

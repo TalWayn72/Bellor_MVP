@@ -4,6 +4,8 @@
  */
 
 import { apiClient } from '../client/apiClient';
+import { validateRequiredId } from '../utils/validation';
+import { isDemoId } from '@/data/demoData';
 
 export const notificationService = {
   /**
@@ -31,6 +33,13 @@ export const notificationService = {
    * @returns {Promise<{notification}>}
    */
   async markAsRead(notificationId) {
+    // Skip API for demo notifications
+    if (isDemoId(notificationId)) {
+      return { notification: { id: notificationId, is_read: true }, demo: true };
+    }
+
+    validateRequiredId(notificationId, 'notificationId', 'markAsRead');
+
     const response = await apiClient.patch(`/notifications/${notificationId}/read`);
     return response.data;
   },
@@ -50,6 +59,8 @@ export const notificationService = {
    * @returns {Promise<{message}>}
    */
   async deleteNotification(notificationId) {
+    validateRequiredId(notificationId, 'notificationId', 'deleteNotification');
+
     const response = await apiClient.delete(`/notifications/${notificationId}`);
     return response.data;
   },

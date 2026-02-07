@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import { MissionType, Prisma } from '@prisma/client';
+import { cacheGet, cacheSet, cacheDel, CacheKey, CacheTTL } from '../lib/cache.js';
 
 interface CreateMissionInput {
   title: string;
@@ -47,6 +48,9 @@ export class MissionsService {
    * Get mission by ID
    */
   static async getMissionById(id: string) {
+    const cached = await cacheGet<any>(CacheKey.mission(id));
+    if (cached) return cached;
+
     const mission = await prisma.mission.findUnique({
       where: { id },
       include: {
@@ -59,6 +63,8 @@ export class MissionsService {
     if (!mission) {
       throw new Error('Mission not found');
     }
+
+    await cacheSet(CacheKey.mission(id), mission, CacheTTL.MISSION);
 
     return mission;
   }
@@ -121,6 +127,9 @@ export class MissionsService {
    * Get today's active mission (or create a daily one)
    */
   static async getTodaysMission() {
+    const cached = await cacheGet<any>(CacheKey.missionToday());
+    if (cached) return cached;
+
     const now = new Date();
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
@@ -157,6 +166,10 @@ export class MissionsService {
       });
     }
 
+    if (mission) {
+      await cacheSet(CacheKey.missionToday(), mission, CacheTTL.MISSION_TODAY);
+    }
+
     return mission;
   }
 
@@ -182,6 +195,9 @@ export class MissionsService {
       },
     });
 
+    await cacheDel(CacheKey.mission(id));
+    await cacheDel(CacheKey.missionToday());
+
     return mission;
   }
 
@@ -192,5 +208,8 @@ export class MissionsService {
     await prisma.mission.delete({
       where: { id },
     });
+
+    await cacheDel(CacheKey.mission(id));
+    await cacheDel(CacheKey.missionToday());
   }
 }

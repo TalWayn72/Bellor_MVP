@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { ChatSkeleton } from '@/components/states';
 import { createPageUrl } from '@/utils';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
+import { isDemoUser, getDemoUser } from '@/data/demoData';
 
 export default function PrivateChat() {
   const navigate = useNavigate();
@@ -42,14 +43,23 @@ export default function PrivateChat() {
   } = useChatRoom(chatId);
 
   // Fetch chat details
-  const { data: chat } = useQuery({
+  const { data: chat, isError: chatError } = useQuery({
     queryKey: ['chat', chatId],
     queryFn: async () => {
       if (!chatId) return null;
-      const result = await chatService.getChatById(chatId);
-      return result.chat;
+      // Skip demo chat IDs
+      if (chatId.startsWith('demo-')) return null;
+      try {
+        const result = await chatService.getChatById(chatId);
+        return result.chat;
+      } catch (error) {
+        // Return null for 404 (chat not found) instead of throwing
+        if (error.response?.status === 404) return null;
+        throw error;
+      }
     },
-    enabled: !!chatId,
+    enabled: !!chatId && !chatId.startsWith('demo-'),
+    retry: false,
   });
 
   // Fetch initial messages (no polling - using WebSocket now)
@@ -57,10 +67,19 @@ export default function PrivateChat() {
     queryKey: ['messages', chatId],
     queryFn: async () => {
       if (!chatId) return [];
-      const result = await chatService.getMessages(chatId, { limit: 100 });
-      return result.messages || [];
+      // Skip demo chat IDs
+      if (chatId.startsWith('demo-')) return [];
+      try {
+        const result = await chatService.getMessages(chatId, { limit: 100 });
+        return result.messages || [];
+      } catch (error) {
+        // Return empty array for 404 instead of throwing
+        if (error.response?.status === 404) return [];
+        throw error;
+      }
     },
-    enabled: !!chatId,
+    enabled: !!chatId && !chatId.startsWith('demo-'),
+    retry: false,
   });
 
   // Combine initial messages with realtime messages
@@ -196,8 +215,51 @@ export default function PrivateChat() {
     }
   };
 
-  if (isLoading || !otherUser) {
-    return <ChatSkeleton count={6} />;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background p-4">
+        <ChatSkeleton count={6} />
+      </div>
+    );
+  }
+
+  // Show error state for non-existent chat
+  if (chatId && !chatId.startsWith('demo-') && chatError) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-foreground mb-2">Chat Not Found</h2>
+          <p className="text-muted-foreground mb-4">This conversation doesn't exist or has been deleted.</p>
+          <Button onClick={() => navigate(createPageUrl('SharedSpace'))}>
+            Back to Feed
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if we can't determine the other user
+  if (!otherUser) {
+    // If we have no way to get the other user (no userId in URL and no chat loaded), show error
+    if (!otherUserId && !chat) {
+      return (
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+          <div className="text-center">
+            <h2 className="text-lg font-semibold text-foreground mb-2">Unable to Load Chat</h2>
+            <p className="text-muted-foreground mb-4">Could not find the user for this conversation.</p>
+            <Button onClick={() => navigate(createPageUrl('SharedSpace'))}>
+              Back to Feed
+            </Button>
+          </div>
+        </div>
+      );
+    }
+    // Still loading
+    return (
+      <div className="min-h-screen bg-background p-4">
+        <ChatSkeleton count={6} />
+      </div>
+    );
   }
 
   const isTemporary = chat?.is_temporary && !chat?.is_permanent;

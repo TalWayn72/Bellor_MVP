@@ -52,8 +52,8 @@ export default function LayoutAdmin({ children }) {
     );
   }
 
-  // Check if user is admin
-  if (!currentUser || currentUser.role !== 'admin') {
+  // Check if user is admin (backend returns isAdmin -> transformed to is_admin by apiClient)
+  if (!currentUser || !currentUser.is_admin) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="bg-white rounded-2xl p-8 shadow-lg max-w-md text-center">

@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { createPageUrl } from '@/utils';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import { ListSkeleton, EmptyState } from '@/components/states';
+import { getDemoNotifications } from '@/data/demoData';
 
 export default function Notifications() {
   const navigate = useNavigate();
@@ -38,39 +39,16 @@ export default function Notifications() {
     };
   }, [queryClient]);
 
-  const getDemoNotifications = () => [
-    {
-      id: 'demo-notif-1',
-      user_id: currentUser?.id,
-      type: 'new_message',
-      title: 'New Message',
-      message: 'Someone sent you a message',
-      related_id: 'demo-user-1',
-      created_date: new Date().toISOString(),
-      is_read: false
-    },
-    {
-      id: 'demo-notif-2',
-      user_id: currentUser?.id,
-      type: 'match',
-      title: 'New Match',
-      message: 'You have a new match!',
-      related_id: 'demo-user-2',
-      created_date: new Date(Date.now() - 3600000).toISOString(),
-      is_read: false
-    }
-  ];
-
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications', currentUser?.id],
     queryFn: async () => {
-      if (!currentUser) return getDemoNotifications();
+      if (!currentUser) return getDemoNotifications(currentUser?.id);
       try {
         const result = await notificationService.getNotifications();
         const dbNotifications = result.notifications || [];
-        return dbNotifications.length > 0 ? dbNotifications : getDemoNotifications();
+        return dbNotifications.length > 0 ? dbNotifications : getDemoNotifications(currentUser?.id);
       } catch (error) {
-        return getDemoNotifications();
+        return getDemoNotifications(currentUser?.id);
       }
     },
     enabled: !!currentUser,

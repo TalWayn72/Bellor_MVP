@@ -53,10 +53,20 @@ export default function EditProfile() {
 
     setIsSaving(true);
     try {
-      await userService.updateUser(currentUser.id, {
-        ...formData,
-        last_active_date: new Date().toISOString()
-      });
+      // Map frontend fields to Prisma field names
+      const updateData = {
+        nickname: formData.nickname, // nickname is a dedicated field
+        bio: formData.bio,
+        gender: formData.gender,
+        // lookingFor must be array
+        lookingFor: formData.looking_for
+          ? (Array.isArray(formData.looking_for) ? formData.looking_for : [formData.looking_for])
+          : [],
+        location: formData.location,
+        profileImages: formData.profile_images || [],
+        lastActiveAt: new Date().toISOString()
+      };
+      await userService.updateUser(currentUser.id, updateData);
 
       navigate(createPageUrl('Profile'));
     } catch (error) {

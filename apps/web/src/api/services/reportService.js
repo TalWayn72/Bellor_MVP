@@ -4,6 +4,7 @@
  */
 
 import { apiClient } from '../client/apiClient';
+import { validateUserId, validateRequiredId, validateDataObject } from '../utils/validation';
 
 export const reportService = {
   /**
@@ -12,6 +13,8 @@ export const reportService = {
    * @returns {Promise<{report}>}
    */
   async createReport(data) {
+    validateDataObject(data, 'createReport');
+
     const response = await apiClient.post('/reports', data);
     return response.data;
   },
@@ -41,7 +44,14 @@ export const reportService = {
    */
   async listReports(params = {}) {
     const response = await apiClient.get('/reports', { params });
-    return response.data;
+    // API returns { success, data: [...reports], pagination }
+    // Normalize to { reports, pagination }
+    const result = response.data;
+    return {
+      reports: result.data || result.reports || [],
+      total: result.pagination?.total || (result.data || result.reports || []).length,
+      pagination: result.pagination,
+    };
   },
 
   /**
@@ -51,6 +61,8 @@ export const reportService = {
    * @returns {Promise<{reports, pagination}>}
    */
   async getReportsForUser(userId, params = {}) {
+    validateUserId(userId, 'getReportsForUser');
+
     const response = await apiClient.get(`/reports/user/${userId}`, { params });
     return response.data;
   },
@@ -61,6 +73,8 @@ export const reportService = {
    * @returns {Promise<{report}>}
    */
   async getReportById(reportId) {
+    validateRequiredId(reportId, 'reportId', 'getReportById');
+
     const response = await apiClient.get(`/reports/${reportId}`);
     return response.data;
   },
@@ -72,6 +86,9 @@ export const reportService = {
    * @returns {Promise<{report}>}
    */
   async reviewReport(reportId, data) {
+    validateRequiredId(reportId, 'reportId', 'reviewReport');
+    validateDataObject(data, 'reviewReport');
+
     const response = await apiClient.patch(`/reports/${reportId}/review`, data);
     return response.data;
   }

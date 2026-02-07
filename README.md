@@ -2,6 +2,12 @@
 
 A modern dating and social networking application - **standalone version, completely independent from Base44 platform**.
 
+> **🔴 Before Starting:** Always ensure all services are running!
+> ```bash
+> npm run docker:up   # Start PostgreSQL + Redis
+> npm run dev:all     # Start Backend + Frontend
+> ```
+
 ## 🎯 Project Status
 
 **Current Phase:** Phase 7 - Deployment ✅ (All Phases Complete)
@@ -98,6 +104,16 @@ The application will be available at:
 - Backend API: http://localhost:3000
 - API Health: http://localhost:3000/health
 - Prisma Studio: `npm run prisma:studio` (port 5555)
+
+> **⚠️ IMPORTANT: Backend Must Be Running!**
+>
+> The Frontend requires the Backend API to be running on port 3000.
+> If you see "Network Error" or "ERR_CONNECTION_REFUSED", run:
+> ```bash
+> npm run dev:api    # Start backend only
+> # OR
+> npm run dev:all    # Start both frontend and backend
+> ```
 
 **📖 For detailed setup instructions, see [QUICK_START.md](QUICK_START.md)**
 
@@ -438,17 +454,77 @@ VITE_CDN_URL=http://localhost:3000
 
 ## 📚 Documentation
 
+### Core Documents (Root)
 | Document | Description |
 |----------|-------------|
-| [Migration Plan](docs/MIGRATION_PLAN.md) | Complete Base44 to standalone migration strategy (Updated with Phase 8) |
-| [Phase 3 Status](docs/PHASE_3_COMPLETION_STATUS.md) | Backend implementation details (90% complete) |
-| [Deployment Complete](docs/DEPLOYMENT_INFRASTRUCTURE_COMPLETE.md) | Universal deployment status (100% complete) |
-| [Cloud-Agnostic Guide](docs/CLOUD_AGNOSTIC_DEPLOYMENT.md) | Deploy anywhere strategy |
-| [Free Hosting Options](docs/FREE_HOSTING_OPTIONS.md) | 5 free hosting services (Hebrew) |
-| [Quick Deploy Guide](docs/QUICK_DEPLOY_GUIDE.md) | 15-min Docker / 30-min K8s setup (Hebrew) |
-| [**Oracle Cloud QA Deployment**](docs/ORACLE_CLOUD_QA_DEPLOYMENT.md) | **תוכנית פריסה לסביבת QA ב-Oracle Cloud (Hebrew)** |
-| [Schema Fixes](docs/SCHEMA_FIXES_REMAINING.md) | TypeScript fixes completed (Hebrew) |
-| [Work Instructions](WORK_INSTRUCTIONS.md) | Development task tracking |
+| [README.md](README.md) | Project overview and quick start |
+| [CLAUDE.md](CLAUDE.md) | Claude AI configuration and guidelines |
+| [QUICK_START.md](QUICK_START.md) | Detailed setup instructions |
+| [GUIDELINES.md](GUIDELINES.md) | Development guidelines |
+| [WORK_INSTRUCTIONS.md](WORK_INSTRUCTIONS.md) | Task tracking |
+
+### Product & Planning (docs/)
+| Document | Description |
+|----------|-------------|
+| [PRD.md](docs/PRD.md) | Product Requirements Document (Hebrew) |
+| [MIGRATION_PLAN.md](docs/MIGRATION_PLAN.md) | Base44 to standalone migration strategy |
+| [REMAINING_FEATURES_PLAN.md](docs/REMAINING_FEATURES_PLAN.md) | Remaining features roadmap |
+| [POST_INTEGRATION_PLAN.md](docs/POST_INTEGRATION_PLAN.md) | Post-integration plan |
+
+### Mobile App (docs/)
+| Document | Description |
+|----------|-------------|
+| [**GOOGLE_PLAY_DEPLOYMENT.md**](docs/GOOGLE_PLAY_DEPLOYMENT.md) | **Google Play & iOS deployment guide (Hebrew)** |
+| [**MOBILE_APP_REQUIREMENTS.md**](docs/MOBILE_APP_REQUIREMENTS.md) | **Mobile app requirements (Hebrew)** |
+
+### Deployment & Infrastructure (docs/)
+| Document | Description |
+|----------|-------------|
+| [DEPLOYMENT_INFRASTRUCTURE_COMPLETE.md](docs/DEPLOYMENT_INFRASTRUCTURE_COMPLETE.md) | Universal deployment status |
+| [CLOUD_AGNOSTIC_DEPLOYMENT.md](docs/CLOUD_AGNOSTIC_DEPLOYMENT.md) | Multi-cloud deployment strategy |
+| [FREE_HOSTING_OPTIONS.md](docs/FREE_HOSTING_OPTIONS.md) | 5 free hosting services (Hebrew) |
+| [QUICK_DEPLOY_GUIDE.md](docs/QUICK_DEPLOY_GUIDE.md) | Quick Docker/K8s setup (Hebrew) |
+| [ORACLE_CLOUD_QA_DEPLOYMENT.md](docs/ORACLE_CLOUD_QA_DEPLOYMENT.md) | Oracle Cloud QA deployment (Hebrew) |
+| [DOCKER_SETUP_WINDOWS.md](docs/DOCKER_SETUP_WINDOWS.md) | Docker setup for Windows |
+
+### Security (docs/)
+| Document | Description |
+|----------|-------------|
+| [SECURITY_PLAN.md](docs/SECURITY_PLAN.md) | Security hardening strategy |
+| [SECURITY_CHECKLIST.md](docs/SECURITY_CHECKLIST.md) | Pre-release security audit checklist |
+| [INCIDENT_RESPONSE.md](docs/INCIDENT_RESPONSE.md) | Incident response procedures (P1-P4) |
+
+### Development Status (docs/)
+| Document | Description |
+|----------|-------------|
+| [PHASE_1_COMPLETION.md](docs/PHASE_1_COMPLETION.md) | Phase 1 completion report |
+| [PHASE_1_FOUNDATION_COMPLETE.md](docs/PHASE_1_FOUNDATION_COMPLETE.md) | Foundation phase details |
+| [PHASE_2_COMPLETION.md](docs/PHASE_2_COMPLETION.md) | Phase 2 completion report |
+| [PHASE_3_STATUS.md](docs/PHASE_3_STATUS.md) | Phase 3 WebSocket status |
+| [PHASE_3_COMPLETION_STATUS.md](docs/PHASE_3_COMPLETION_STATUS.md) | Phase 3 completion details |
+| [PHASE_5_COMPLETION_STATUS.md](docs/PHASE_5_COMPLETION_STATUS.md) | Phase 5 Admin & Tools status |
+| [OPEN_ISSUES.md](docs/OPEN_ISSUES.md) | Bug tracking and testing status |
+
+### Base44 Migration (docs/)
+| Document | Description |
+|----------|-------------|
+| [BASE44_REMOVAL_CHECKLIST.md](docs/BASE44_REMOVAL_CHECKLIST.md) | Base44 removal checklist |
+| [BASE44_REMOVAL_TEST_RESULTS.md](docs/BASE44_REMOVAL_TEST_RESULTS.md) | Base44 removal test results |
+| [NEW_API_CLIENT.md](docs/NEW_API_CLIENT.md) | New API client documentation |
+| [SCHEMA_FIXES_REMAINING.md](docs/SCHEMA_FIXES_REMAINING.md) | TypeScript fixes completed |
+
+### Session Logs (docs/)
+| Document | Description |
+|----------|-------------|
+| [SESSION_SUMMARY.md](docs/SESSION_SUMMARY.md) | Session summary |
+| [CURRENT_SESSION_PROGRESS.md](docs/CURRENT_SESSION_PROGRESS.md) | Current session progress |
+| [PARALLEL_EXECUTION_LOG.md](docs/PARALLEL_EXECUTION_LOG.md) | Parallel execution log |
+
+### Design (Root)
+| Document | Description |
+|----------|-------------|
+| [DESIGN_ALIGNMENT_PLAN.md](DESIGN_ALIGNMENT_PLAN.md) | Design alignment plan |
+| [FIGMA_IMPLEMENTATION_PLAN.md](FIGMA_IMPLEMENTATION_PLAN.md) | Figma implementation plan |
 
 ---
 

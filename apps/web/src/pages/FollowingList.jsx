@@ -10,6 +10,7 @@ import { createPageUrl } from '@/utils';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import FollowButton from '../components/profile/FollowButton';
 import { ListSkeleton, EmptyState } from '@/components/states';
+import { getDemoFollows } from '@/data/demoData';
 
 export default function FollowingList() {
   const navigate = useNavigate();
@@ -19,24 +20,18 @@ export default function FollowingList() {
   const [activeTab, setActiveTab] = useState(defaultTab);
   const { currentUser, isLoading: loadingCurrentUser } = useCurrentUser();
 
-  const getDemoFollows = (type) => [
-    {
-      id: `demo-follow-${type}-1`,
-      follower_id: type === 'following' ? userId : `demo-follower-user-1`,
-      following_id: type === 'following' ? `demo-following-user-1` : userId,
-      created_date: new Date().toISOString()
-    }
-  ];
-
+  // followService now handles demo users automatically via centralized demoData
   const { data: following = [], isLoading: loadingFollowing } = useQuery({
     queryKey: ['following', userId],
     queryFn: async () => {
       try {
         const result = await followService.getUserFollowing(userId);
-        const follows = result.following || [];
-        return follows.length > 0 ? follows : getDemoFollows('following');
+        // Backend returns { following: [userId1, userId2, ...] } - array of user IDs
+        const userIds = result?.following || [];
+        return userIds.length > 0 ? userIds : getDemoFollows(userId, 'following');
       } catch (error) {
-        return getDemoFollows('following');
+        console.error('Error fetching following:', error);
+        return getDemoFollows(userId, 'following');
       }
     },
     enabled: !!userId && activeTab === 'following',
@@ -47,10 +42,12 @@ export default function FollowingList() {
     queryFn: async () => {
       try {
         const result = await followService.getUserFollowers(userId);
-        const follows = result.followers || [];
-        return follows.length > 0 ? follows : getDemoFollows('followers');
+        // Backend returns { followers: [userId1, userId2, ...] } - array of user IDs
+        const userIds = result?.followers || [];
+        return userIds.length > 0 ? userIds : getDemoFollows(userId, 'followers');
       } catch (error) {
-        return getDemoFollows('followers');
+        console.error('Error fetching followers:', error);
+        return getDemoFollows(userId, 'followers');
       }
     },
     enabled: !!userId && activeTab === 'followers',
@@ -121,17 +118,14 @@ export default function FollowingList() {
               </p>
             </Card>
           ) : (
-            list.map((item) => {
-              const targetUserId = activeTab === 'following' ? item.following_id : item.follower_id;
-              return (
-                <UserCard
-                  key={item.id}
-                  userId={targetUserId}
-                  currentUserId={currentUser?.id}
-                  navigate={navigate}
-                />
-              );
-            })
+            list.map((targetUserId) => (
+              <UserCard
+                key={targetUserId}
+                userId={targetUserId}
+                currentUserId={currentUser?.id}
+                navigate={navigate}
+              />
+            ))
           )}
         </div>
       </div>

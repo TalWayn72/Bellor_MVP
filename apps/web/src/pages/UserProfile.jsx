@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardImage } from '@/component
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ProfileSkeleton } from '@/components/states';
-import { createPageUrl } from '@/utils';
+import { createPageUrl, formatLocation, transformUser } from '@/utils';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import FollowButton from '../components/profile/FollowButton';
 
@@ -36,38 +36,35 @@ export default function UserProfile() {
     checkLiked();
   }, [currentUser, userId]);
 
-  // Fetch real viewed user data
+  // Fetch viewed user data (userService handles demo users automatically)
   const { data: viewedUser } = useQuery({
     queryKey: ['viewedUser', userId],
     queryFn: async () => {
       if (!userId) return null;
-      const result = await userService.getUserById(userId);
-      return result.user;
+      try {
+        const result = await userService.getUserById(userId);
+        const user = result?.user || result;
+        // Transform user to ensure consistent data format (nickname, age, location_display)
+        return user ? transformUser(user) : null;
+      } catch (error) {
+        console.error('Error fetching user:', error);
+        return null;
+      }
     },
     enabled: !!userId,
   });
 
-  const getDemoResponses = () => [
-    {
-      id: 'demo-user-resp-1',
-      user_id: userId,
-      response_type: 'text',
-      text_content: 'This user hasn\'t shared content yet. Be the first to connect!',
-      created_date: new Date().toISOString(),
-      likes_count: 0
-    }
-  ];
-
+  // Fetch user responses (responseService handles demo users automatically)
   const { data: responses = [] } = useQuery({
     queryKey: ['userResponses', userId],
     queryFn: async () => {
       if (!userId) return [];
       try {
-        const result = await responseService.listResponses({ userId, limit: 10 });
-        const dbResponses = result.data || [];
-        return dbResponses.length > 0 ? dbResponses : getDemoResponses();
+        const result = await responseService.getUserResponses(userId, { limit: 10 });
+        return result.responses || [];
       } catch (error) {
-        return getDemoResponses();
+        console.error('Error fetching responses:', error);
+        return [];
       }
     },
     enabled: !!userId,
@@ -286,7 +283,7 @@ export default function UserProfile() {
                 <CardContent className="space-y-3 pt-5">
                   <div className="flex items-center gap-3">
                     <MapPin className="w-5 h-5 text-muted-foreground" />
-                    <span className="text-sm text-foreground">{viewedUser.location}</span>
+                    <span className="text-sm text-foreground">{formatLocation(viewedUser.location)}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <User className="w-5 h-5 text-muted-foreground" />

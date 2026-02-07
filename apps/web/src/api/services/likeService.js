@@ -4,6 +4,7 @@
  */
 
 import { apiClient } from '../client/apiClient';
+import { validateUserId, validateRequiredId } from '../utils/validation';
 
 export const likeService = {
   /**
@@ -13,6 +14,13 @@ export const likeService = {
    * @returns {Promise<{like, isMatch?}>}
    */
   async likeUser(targetUserId, likeType = 'ROMANTIC') {
+    // Skip API call for demo users
+    if (targetUserId?.startsWith('demo-')) {
+      return { like: null, isMatch: false, demo: true };
+    }
+
+    validateUserId(targetUserId, 'likeUser');
+
     const response = await apiClient.post('/likes/user', { targetUserId, likeType });
     return response.data;
   },
@@ -23,6 +31,8 @@ export const likeService = {
    * @returns {Promise<{message}>}
    */
   async unlikeUser(targetUserId) {
+    validateUserId(targetUserId, 'unlikeUser');
+
     const response = await apiClient.delete(`/likes/user/${targetUserId}`);
     return response.data;
   },
@@ -34,6 +44,8 @@ export const likeService = {
    * @returns {Promise<{like}>}
    */
   async likeResponse(responseId, likeType = 'POSITIVE') {
+    validateRequiredId(responseId, 'responseId', 'likeResponse');
+
     const response = await apiClient.post('/likes/response', { responseId, likeType });
     return response.data;
   },
@@ -44,6 +56,8 @@ export const likeService = {
    * @returns {Promise<{message}>}
    */
   async unlikeResponse(responseId) {
+    validateRequiredId(responseId, 'responseId', 'unlikeResponse');
+
     const response = await apiClient.delete(`/likes/response/${responseId}`);
     return response.data;
   },
@@ -71,11 +85,24 @@ export const likeService = {
   /**
    * Check if I liked a user
    * @param {string} targetUserId
-   * @returns {Promise<{liked, like?}>}
+   * @returns {Promise<{liked, like?, isMatch?}>}
    */
   async checkLiked(targetUserId) {
+    // Skip API call for demo users
+    if (targetUserId?.startsWith('demo-')) {
+      return { liked: false, hasLiked: false, isMatch: false };
+    }
+
+    validateUserId(targetUserId, 'checkLiked');
+
     const response = await apiClient.get(`/likes/check/${targetUserId}`);
-    return response.data;
+    // Normalize response - backend returns hasLiked, frontend expects liked
+    const data = response.data;
+    return {
+      ...data,
+      liked: data.hasLiked ?? data.liked ?? false,
+      hasLiked: data.hasLiked ?? data.liked ?? false,
+    };
   },
 
   /**
@@ -85,6 +112,8 @@ export const likeService = {
    * @returns {Promise<{likes, total}>}
    */
   async getResponseLikes(responseId, params = {}) {
+    validateRequiredId(responseId, 'responseId', 'getResponseLikes');
+
     const response = await apiClient.get(`/likes/response/${responseId}`, { params });
     return response.data;
   }

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CardsSkeleton, EmptyState } from '@/components/states';
+import { getDemoStories } from '@/data/demoData';
 
 function StoryUserAvatar({ userId }) {
   const [user, setUser] = React.useState(null);
@@ -42,27 +43,6 @@ function StoryUserAvatar({ userId }) {
 export default function Stories() {
   const navigate = useNavigate();
   const { currentUser, isLoading } = useCurrentUser();
-
-  const getDemoStories = () => [
-    {
-      id: 'demo-story-1',
-      user_id: 'demo-story-user-1',
-      media_type: 'text',
-      text_content: '🌟 Beautiful day ahead!',
-      created_date: new Date().toISOString(),
-      expires_at: new Date(Date.now() + 20 * 60 * 60 * 1000).toISOString(),
-      views_count: 12
-    },
-    {
-      id: 'demo-story-2',
-      user_id: 'demo-story-user-2',
-      media_type: 'text',
-      text_content: '☕ Coffee time',
-      created_date: new Date(Date.now() - 3600000).toISOString(),
-      expires_at: new Date(Date.now() + 19 * 60 * 60 * 1000).toISOString(),
-      views_count: 8
-    }
-  ];
 
   const { data: stories = [] } = useQuery({
     queryKey: ['stories'],

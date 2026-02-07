@@ -157,6 +157,16 @@ export const chatService = {
    * Create or get existing chat
    */
   async createOrGetChat(userId: string, otherUserId: string, isTemporary = true) {
+    // Verify the other user exists
+    const otherUser = await prisma.user.findUnique({
+      where: { id: otherUserId },
+      select: { id: true },
+    });
+
+    if (!otherUser) {
+      throw new Error('Target user not found');
+    }
+
     // Check if chat already exists
     const existingChat = await prisma.chat.findFirst({
       where: {

@@ -16,61 +16,13 @@
       "src": "/bellor-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-72x72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-128x128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-144x144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-152x152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-384x384.png",
-      "sizes": "384x384",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-512x512.png",
+      "src": "/bellor-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
-    },
-    {
-      "src": "/icons/maskable-icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
     }
   ],
   "shortcuts": [
@@ -78,61 +30,28 @@
       "name": "Discover",
       "short_name": "Discover",
       "description": "Find new connections",
-      "url": "/discover",
-      "icons": [{ "src": "/icons/shortcut-discover.png", "sizes": "96x96" }]
+      "url": "/discover"
     },
     {
       "name": "Messages",
       "short_name": "Chat",
       "description": "View your conversations",
-      "url": "/chats",
-      "icons": [{ "src": "/icons/shortcut-chat.png", "sizes": "96x96" }]
+      "url": "/chats"
     },
     {
       "name": "Daily Mission",
       "short_name": "Mission",
       "description": "Complete today's challenge",
-      "url": "/missions/today",
-      "icons": [{ "src": "/icons/shortcut-mission.png", "sizes": "96x96" }]
+      "url": "/missions/today"
     },
     {
       "name": "My Profile",
       "short_name": "Profile",
       "description": "Edit your profile",
-      "url": "/profile",
-      "icons": [{ "src": "/icons/shortcut-profile.png", "sizes": "96x96" }]
+      "url": "/profile"
     }
   ],
-  "screenshots": [
-    {
-      "src": "/screenshots/discover-wide.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Discover new connections"
-    },
-    {
-      "src": "/screenshots/chat-wide.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Real-time messaging"
-    },
-    {
-      "src": "/screenshots/discover-narrow.png",
-      "sizes": "750x1334",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Discover new connections"
-    },
-    {
-      "src": "/screenshots/chat-narrow.png",
-      "sizes": "750x1334",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Real-time messaging"
-    }
-  ],
+  "screenshots": [],
   "prefer_related_applications": false,
   "related_applications": [
     {

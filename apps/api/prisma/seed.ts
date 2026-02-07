@@ -8,8 +8,99 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+// ==================== ADMIN USER ====================
+const adminUser = {
+  id: 'admin-user-1',
+  email: 'admin@bellor.app',
+  firstName: 'Admin',
+  lastName: 'User',
+  gender: Gender.MALE,
+  preferredLanguage: Language.ENGLISH,
+  bio: 'System administrator',
+  birthDate: new Date('1990-01-01'),
+  lookingFor: [Gender.FEMALE],
+  profileImages: ['https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400'],
+  isAdmin: true,
+  isVerified: true,
+};
+
 // ==================== DEMO USERS ====================
 const demoUsers = [
+  // Admin user for testing admin functionality
+  adminUser,
+  // Special demo users used by frontend components (demo-user-1, demo-user-2)
+  {
+    id: 'demo-user-1',
+    email: 'demo_sarah_special@bellor.app',
+    firstName: 'Sarah',
+    lastName: 'Cohen',
+    gender: Gender.FEMALE,
+    preferredLanguage: Language.ENGLISH,
+    bio: 'Adventure seeker and coffee enthusiast. Love hiking and trying new cuisines! 🏔️☕',
+    birthDate: new Date('1995-03-15'),
+    lookingFor: [Gender.MALE],
+    profileImages: [
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+    ],
+  },
+  {
+    id: 'demo-user-2',
+    email: 'demo_david_special@bellor.app',
+    firstName: 'David',
+    lastName: 'Levy',
+    gender: Gender.MALE,
+    preferredLanguage: Language.ENGLISH,
+    bio: 'Software engineer by day, guitarist by night. Always up for a spontaneous road trip! 🎸🚗',
+    birthDate: new Date('1992-07-22'),
+    lookingFor: [Gender.FEMALE],
+    profileImages: [
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+    ],
+  },
+  // Match users (used by UserProfile for demo matches)
+  {
+    id: 'demo-match-user-1-romantic',
+    email: 'demo_maya@bellor.app',
+    firstName: 'Demo_Maya',
+    lastName: 'Levi',
+    gender: Gender.FEMALE,
+    preferredLanguage: Language.HEBREW,
+    bio: 'Creative soul who loves art and music. Looking for meaningful connections! 🎨🎵',
+    birthDate: new Date('1999-06-15'),
+    lookingFor: [Gender.MALE],
+    profileImages: [
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+      'https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=400',
+    ],
+  },
+  {
+    id: 'demo-match-user-2-positive',
+    email: 'demo_noam@bellor.app',
+    firstName: 'Demo_Noam',
+    lastName: 'Shapiro',
+    gender: Gender.MALE,
+    preferredLanguage: Language.HEBREW,
+    bio: 'Tech enthusiast and nature lover. Always up for a hike! 🏔️💻',
+    birthDate: new Date('1996-03-22'),
+    lookingFor: [Gender.FEMALE],
+    profileImages: [
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
+    ],
+  },
+  {
+    id: 'demo-match-user-3-super',
+    email: 'demo_shira@bellor.app',
+    firstName: 'Demo_Shira',
+    lastName: 'Katz',
+    gender: Gender.FEMALE,
+    preferredLanguage: Language.HEBREW,
+    bio: 'Dance is my language. Yoga, cooking, and good vibes! 💃🧘‍♀️',
+    birthDate: new Date('2001-09-08'),
+    lookingFor: [Gender.MALE],
+    profileImages: [
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    ],
+  },
   {
     email: 'demo_sarah@bellor.app',
     firstName: 'Demo_Sarah',
@@ -20,7 +111,7 @@ const demoUsers = [
     birthDate: new Date('1995-03-15'),
     lookingFor: [Gender.MALE],
     profileImages: [
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
       'https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=400',
     ],
   },
@@ -34,7 +125,7 @@ const demoUsers = [
     birthDate: new Date('1992-07-22'),
     lookingFor: [Gender.FEMALE],
     profileImages: [
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
     ],
   },
   {
@@ -47,7 +138,7 @@ const demoUsers = [
     birthDate: new Date('1996-11-08'),
     lookingFor: [Gender.MALE],
     profileImages: [
-      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+      'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400',
     ],
   },
   {
@@ -60,7 +151,7 @@ const demoUsers = [
     birthDate: new Date('1990-05-12'),
     lookingFor: [Gender.FEMALE],
     profileImages: [
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
     ],
   },
   {
@@ -73,7 +164,7 @@ const demoUsers = [
     birthDate: new Date('1994-09-28'),
     lookingFor: [Gender.MALE, Gender.FEMALE],
     profileImages: [
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400',
     ],
   },
   {
@@ -86,7 +177,7 @@ const demoUsers = [
     birthDate: new Date('1991-12-03'),
     lookingFor: [Gender.FEMALE],
     profileImages: [
-      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+      'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400',
     ],
   },
   {
@@ -99,7 +190,7 @@ const demoUsers = [
     birthDate: new Date('1993-04-17'),
     lookingFor: [Gender.MALE],
     profileImages: [
-      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400',
+      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400',
     ],
   },
   {
@@ -112,7 +203,7 @@ const demoUsers = [
     birthDate: new Date('1989-08-25'),
     lookingFor: [Gender.FEMALE],
     profileImages: [
-      'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400',
+      'https://images.unsplash.com/photo-1463453091185-61582044d556?w=400',
     ],
   },
   {
@@ -125,7 +216,7 @@ const demoUsers = [
     birthDate: new Date('1997-02-14'),
     lookingFor: [Gender.MALE],
     profileImages: [
-      'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400',
+      'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400',
     ],
   },
   {
@@ -138,7 +229,33 @@ const demoUsers = [
     birthDate: new Date('1988-10-30'),
     lookingFor: [Gender.FEMALE],
     profileImages: [
-      'https://images.unsplash.com/photo-1463453091185-61582044d556?w=400',
+      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+    ],
+  },
+  {
+    email: 'demo_noa@bellor.app',
+    firstName: 'Demo_Noa',
+    lastName: 'Avraham',
+    gender: Gender.FEMALE,
+    preferredLanguage: Language.HEBREW,
+    bio: 'סטודנטית לפסיכולוגיה, אוהבת קפה טוב ושיחות עמוקות. 🎓☕',
+    birthDate: new Date('2000-01-20'),
+    lookingFor: [Gender.MALE],
+    profileImages: [
+      'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+    ],
+  },
+  {
+    email: 'demo_omer@bellor.app',
+    firstName: 'Demo_Omer',
+    lastName: 'Ben-David',
+    gender: Gender.MALE,
+    preferredLanguage: Language.HEBREW,
+    bio: 'מוזיקאי ויוצר. משחק גיטרה ופסנתר. אוהב לבשל ולהתנסות. 🎹🍳',
+    birthDate: new Date('1997-07-04'),
+    lookingFor: [Gender.FEMALE],
+    profileImages: [
+      'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400',
     ],
   },
 ];
@@ -208,6 +325,33 @@ const demoMissions = [
     activeFrom: new Date(),
     activeUntil: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
   },
+  {
+    title: 'Draw Your Mood',
+    description: 'Draw or sketch how you feel today. Let your creativity flow!',
+    missionType: MissionType.DAILY,
+    difficulty: 1,
+    xpReward: 15,
+    activeFrom: new Date(),
+    activeUntil: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+  },
+  {
+    title: 'Two Truths and a Lie',
+    description: 'Share two truths and one lie about yourself. Let others guess!',
+    missionType: MissionType.ICE_BREAKER,
+    difficulty: 1,
+    xpReward: 10,
+    activeFrom: new Date(),
+    activeUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+  },
+  {
+    title: 'Weekly: Bucket List',
+    description: 'Share the top 3 things on your bucket list and why.',
+    missionType: MissionType.WEEKLY,
+    difficulty: 2,
+    xpReward: 25,
+    activeFrom: new Date(),
+    activeUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  },
 ];
 
 // ==================== DEMO ACHIEVEMENTS ====================
@@ -220,6 +364,9 @@ const demoAchievements = [
   { name: 'Popular', description: 'Get 50 likes on your responses', requirement: { type: 'total_likes', value: 50 }, xpReward: 200, iconUrl: '⭐' },
   { name: 'Consistent', description: 'Complete 7 daily missions in a row', requirement: { type: 'streak', value: 7 }, xpReward: 250, iconUrl: '🔥' },
   { name: 'Premium Member', description: 'Upgrade to Premium', requirement: { type: 'premium', value: 1 }, xpReward: 100, iconUrl: '💎' },
+  { name: 'Artist', description: 'Submit 5 drawing responses', requirement: { type: 'drawing_count', value: 5 }, xpReward: 120, iconUrl: '🎨' },
+  { name: 'Connector', description: 'Match with 3 people', requirement: { type: 'match_count', value: 3 }, xpReward: 150, iconUrl: '🤝' },
+  { name: 'Heart Breaker', description: 'Receive 100 likes', requirement: { type: 'received_likes', value: 100 }, xpReward: 300, iconUrl: '💘' },
 ];
 
 // ==================== DEMO CONVERSATION TEMPLATES ====================
@@ -257,6 +404,22 @@ const demoConversations = [
       { sender: 0, content: 'Perfect! Let me know when you\'re free 🎸', delay: 28 },
     ]
   },
+  {
+    messages: [
+      { sender: 0, content: 'היי! ראיתי שאת גם לומדת פסיכולוגיה. באיזו שנה את?', delay: 0 },
+      { sender: 1, content: 'שנה שלישית! את גם? 😊', delay: 6 },
+      { sender: 0, content: 'שנייה, ממש נהנית. מה הנושא האהוב עליך?', delay: 14 },
+      { sender: 1, content: 'פסיכולוגיה חיובית, ממש מרתק. נפגש לקפה ונדבר על זה?', delay: 20 },
+      { sender: 0, content: 'בטח! אשמח מאוד ☕', delay: 24 },
+    ]
+  },
+  {
+    messages: [
+      { sender: 0, content: 'Your sunset photos are incredible! Where were they taken?', delay: 0 },
+      { sender: 1, content: 'Thank you! Most were taken in Santorini, Greece. Best sunsets I have ever seen!', delay: 9 },
+      { sender: 0, content: 'Greece is on my list! Any tips for first-time visitors?', delay: 16 },
+    ]
+  },
 ];
 
 // ==================== DEMO RESPONSES TEMPLATES ====================
@@ -271,6 +434,11 @@ const demoResponseTexts = [
   '¡Mi día perfecto incluye tapas con amigos, música en vivo, y un buen libro en la playa! 🎶📖',
   "Captured this amazing sunset during my trip to Santorini. The colors were unreal! 🌅",
   'Morning routine: 5am wake up, cold shower, 30 min run, healthy smoothie. Changed my life! 🏃‍♂️💪',
+  'Two truths and a lie: I can speak 4 languages, I have a pilot license, I once swam with sharks. Guess which is the lie! 🤔',
+  'Bucket list top 3: 1) Northern lights in Norway, 2) Hike the Inca trail, 3) Learn to surf in Bali 🌍',
+  'Today I feel like a calm ocean - peaceful but full of depth. Drew a watercolor to express it 🎨🌊',
+  'הדבר שהכי חסר לי הוא שיחות ארוכות לילה עם חברים אמיתיים. אלה הרגעים הכי יפים 💫',
+  'Mon plat préféré: un risotto aux champignons fait maison. La recette de ma grand-mère! 👨‍🍳',
 ];
 
 // ==================== DEMO STORY TEMPLATES ====================
@@ -283,6 +451,22 @@ const demoStoryImages = [
   { url: 'https://images.unsplash.com/photo-1552733407-5d5c46c3bb3b?w=600', caption: 'Beach day 🏖️' },
   { url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600', caption: 'Night sky magic ✨' },
   { url: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=600', caption: 'Coffee time ☕' },
+  { url: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600', caption: 'Road trip vibes 🚗' },
+  { url: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=600', caption: 'Golden hour 🌅' },
+];
+
+// ==================== CITY DATA ====================
+const cities = [
+  { city: 'Tel Aviv', country: 'Israel', lat: 32.0853, lng: 34.7818 },
+  { city: 'Jerusalem', country: 'Israel', lat: 31.7683, lng: 35.2137 },
+  { city: 'Haifa', country: 'Israel', lat: 32.7940, lng: 34.9896 },
+  { city: 'Beer Sheva', country: 'Israel', lat: 31.2518, lng: 34.7913 },
+  { city: 'New York', country: 'USA', lat: 40.7128, lng: -74.0060 },
+  { city: 'London', country: 'UK', lat: 51.5074, lng: -0.1278 },
+  { city: 'Berlin', country: 'Germany', lat: 52.5200, lng: 13.4050 },
+  { city: 'Paris', country: 'France', lat: 48.8566, lng: 2.3522 },
+  { city: 'Madrid', country: 'Spain', lat: 40.4168, lng: -3.7038 },
+  { city: 'Barcelona', country: 'Spain', lat: 41.3874, lng: 2.1686 },
 ];
 
 async function main() {
@@ -293,39 +477,64 @@ async function main() {
 
   // ==================== CREATE USERS ====================
   console.log('👥 Creating demo users...');
-  for (const userData of demoUsers) {
+  for (let i = 0; i < demoUsers.length; i++) {
+    const userData = demoUsers[i];
+    const cityData = cities[i % cities.length];
+
+    const createData: any = {
+      ...userData,
+      passwordHash: hashedPassword,
+      isVerified: (userData as any).isVerified ?? Math.random() > 0.3,
+      isPremium: (userData as any).isPremium ?? Math.random() > 0.7,
+      isAdmin: (userData as any).isAdmin ?? false,
+      lastActiveAt: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000),
+      location: {
+        lat: cityData.lat + (Math.random() - 0.5) * 0.1,
+        lng: cityData.lng + (Math.random() - 0.5) * 0.1,
+        city: cityData.city,
+        country: cityData.country,
+      },
+      ageRangeMin: 20,
+      ageRangeMax: 40,
+      maxDistance: 50 + Math.floor(Math.random() * 100),
+      responseCount: 0,
+      chatCount: 0,
+      missionCompletedCount: 0,
+    };
+
+    // Use specific ID if provided
+    if (userData.id) {
+      createData.id = userData.id;
+    }
+
     const user = await prisma.user.upsert({
       where: { email: userData.email },
       update: {
-        ...userData,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        gender: userData.gender,
+        bio: userData.bio,
+        profileImages: userData.profileImages,
+        lookingFor: userData.lookingFor,
+        isAdmin: (userData as any).isAdmin ?? undefined,
         lastActiveAt: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000),
       },
-      create: {
-        ...userData,
-        passwordHash: hashedPassword,
-        isVerified: true,
-        lastActiveAt: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000),
-        location: {
-          lat: 32.0853 + (Math.random() - 0.5) * 0.5,
-          lng: 34.7818 + (Math.random() - 0.5) * 0.5,
-          city: 'Tel Aviv',
-          country: 'Israel',
-        },
-      },
+      create: createData,
     });
     createdUsers.push(user);
-    console.log(`  ✅ ${user.firstName} ${user.lastName}`);
+    console.log(`  ✅ ${user.firstName} ${user.lastName} (${user.id.substring(0, 20)}...)`);
   }
 
   // ==================== CREATE MISSIONS ====================
   console.log('\n🎯 Creating demo missions...');
   const createdMissions: any[] = [];
   for (const missionData of demoMissions) {
+    const missionId = missionData.title.slice(0, 25).replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
     const mission = await prisma.mission.upsert({
-      where: { id: missionData.title.slice(0, 20).replace(/\s/g, '-').toLowerCase() },
+      where: { id: missionId },
       update: missionData,
       create: {
-        id: missionData.title.slice(0, 20).replace(/\s/g, '-').toLowerCase(),
+        id: missionId,
         ...missionData,
       },
     });
@@ -352,13 +561,16 @@ async function main() {
   // ==================== CREATE CHATS & MESSAGES ====================
   console.log('\n💬 Creating demo chats and messages...');
   const chatPairs = [
-    [0, 1], // Sarah & Michael
-    [2, 3], // Yael & David
-    [4, 5], // Maria & Carlos
-    [6, 7], // Anna & Thomas
-    [8, 9], // Sophie & Pierre
-    [0, 2], // Sarah & Yael
-    [1, 3], // Michael & David
+    [0, 1], // Maya & Noam
+    [2, 4], // Shira & Michael
+    [3, 1], // Sarah & Noam
+    [5, 6], // Yael & David
+    [7, 8], // Maria & Carlos
+    [9, 10], // Anna & Thomas
+    [11, 12], // Sophie & Pierre
+    [0, 6], // Maya & David
+    [13, 14], // Noa & Omer
+    [3, 4], // Sarah & Michael
   ];
 
   for (let i = 0; i < chatPairs.length; i++) {
@@ -418,7 +630,7 @@ async function main() {
   console.log('\n📝 Creating demo mission responses...');
   for (let i = 0; i < createdUsers.length; i++) {
     const user = createdUsers[i];
-    const numResponses = 1 + Math.floor(Math.random() * 3);
+    const numResponses = 2 + Math.floor(Math.random() * 3);
 
     for (let j = 0; j < numResponses; j++) {
       const mission = createdMissions[Math.floor(Math.random() * createdMissions.length)];
@@ -434,9 +646,9 @@ async function main() {
           responseType: ResponseType.TEXT,
           content: responseText,
           isPublic: true,
-          viewCount: Math.floor(Math.random() * 50) + 10,
-          likeCount: Math.floor(Math.random() * 20) + 5,
-          createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
+          viewCount: Math.floor(Math.random() * 80) + 10,
+          likeCount: Math.floor(Math.random() * 30) + 5,
+          createdAt: new Date(Date.now() - Math.random() * 14 * 24 * 60 * 60 * 1000),
         },
       });
     }
@@ -454,7 +666,7 @@ async function main() {
 
   // ==================== CREATE STORIES ====================
   console.log('\n📸 Creating demo stories...');
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < Math.min(10, createdUsers.length); i++) {
     const user = createdUsers[i];
     const storyData = demoStoryImages[i % demoStoryImages.length];
     const expiresAt = new Date(Date.now() + (12 + Math.random() * 12) * 60 * 60 * 1000);
@@ -472,7 +684,7 @@ async function main() {
         mediaType: MediaType.IMAGE,
         mediaUrl: storyData.url,
         caption: storyData.caption,
-        viewCount: Math.floor(Math.random() * 30) + 5,
+        viewCount: Math.floor(Math.random() * 50) + 5,
         createdAt: new Date(Date.now() - Math.random() * 12 * 60 * 60 * 1000),
         expiresAt,
       },
@@ -480,13 +692,125 @@ async function main() {
     console.log(`  ✅ ${user.firstName}'s story: "${storyData.caption}"`);
   }
 
+  // ==================== CREATE LIKES ====================
+  console.log('\n❤️ Creating demo likes...');
+  const likePairs = [
+    [0, 1, 'ROMANTIC'], [1, 0, 'ROMANTIC'], // Maya & Noam - mutual
+    [2, 1, 'ROMANTIC'], // Shira -> Noam
+    [3, 4, 'POSITIVE'], // Sarah -> Michael
+    [4, 3, 'ROMANTIC'], // Michael -> Sarah
+    [5, 6, 'ROMANTIC'], [6, 5, 'ROMANTIC'], // Yael & David - mutual
+    [7, 8, 'POSITIVE'], // Maria -> Carlos
+    [9, 10, 'ROMANTIC'], // Anna -> Thomas
+    [13, 14, 'ROMANTIC'], [14, 13, 'ROMANTIC'], // Noa & Omer - mutual
+    [0, 4, 'POSITIVE'], // Maya -> Michael
+    [11, 12, 'ROMANTIC'], // Sophie -> Pierre
+    [3, 6, 'POSITIVE'], // Sarah -> David
+  ];
+
+  for (const [fromIdx, toIdx, likeType] of likePairs) {
+    const fromUser = createdUsers[fromIdx as number];
+    const toUser = createdUsers[toIdx as number];
+
+    // Check if like already exists
+    const existing = await prisma.like.findFirst({
+      where: { userId: fromUser.id, targetUserId: toUser.id },
+    });
+
+    if (!existing) {
+      await prisma.like.create({
+        data: {
+          userId: fromUser.id,
+          targetUserId: toUser.id,
+          likeType: likeType as any,
+          createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
+        },
+      });
+      console.log(`  ✅ ${fromUser.firstName} ❤️ ${toUser.firstName} (${likeType})`);
+    }
+  }
+
+  // ==================== CREATE FOLLOWS ====================
+  console.log('\n👥 Creating demo follows...');
+  const followPairs = [
+    [0, 1], [1, 0], // Maya & Noam mutual follow
+    [2, 0], [2, 1], // Shira follows Maya & Noam
+    [3, 4], [4, 3], // Sarah & Michael mutual follow
+    [5, 6], [6, 5], // Yael & David mutual follow
+    [7, 8], // Maria follows Carlos
+    [9, 10], [10, 9], // Anna & Thomas mutual follow
+    [13, 14], [14, 13], // Noa & Omer mutual follow
+    [0, 3], // Maya follows Sarah
+    [11, 0], // Sophie follows Maya
+    [1, 4], // Noam follows Michael
+  ];
+
+  for (const [fromIdx, toIdx] of followPairs) {
+    const follower = createdUsers[fromIdx];
+    const following = createdUsers[toIdx];
+
+    const existing = await prisma.follow.findFirst({
+      where: { followerId: follower.id, followingId: following.id },
+    });
+
+    if (!existing) {
+      await prisma.follow.create({
+        data: {
+          followerId: follower.id,
+          followingId: following.id,
+          createdAt: new Date(Date.now() - Math.random() * 14 * 24 * 60 * 60 * 1000),
+        },
+      });
+      console.log(`  ✅ ${follower.firstName} → ${following.firstName}`);
+    }
+  }
+
+  // ==================== CREATE NOTIFICATIONS ====================
+  console.log('\n🔔 Creating demo notifications...');
+  const notificationTemplates = [
+    { type: 'NEW_LIKE', title: 'New Like!', message: '{name} liked your profile' },
+    { type: 'NEW_MATCH', title: 'New Match!', message: "You and {name} matched!" },
+    { type: 'NEW_MESSAGE', title: 'New Message', message: '{name} sent you a message' },
+    { type: 'MISSION_REMINDER', title: 'New Mission!', message: 'A new daily mission is available' },
+    { type: 'ACHIEVEMENT_UNLOCKED', title: 'Achievement Unlocked!', message: 'You earned the {achievement} badge' },
+    { type: 'NEW_FOLLOW', title: 'New Follower!', message: '{name} started following you' },
+  ];
+
+  for (let i = 0; i < Math.min(8, createdUsers.length); i++) {
+    const user = createdUsers[i];
+    const numNotifs = 1 + Math.floor(Math.random() * 3);
+
+    for (let j = 0; j < numNotifs; j++) {
+      const template = notificationTemplates[(i + j) % notificationTemplates.length];
+      const otherUser = createdUsers[(i + j + 1) % createdUsers.length];
+      const message = template.message
+        .replace('{name}', otherUser.firstName.replace('Demo_', ''))
+        .replace('{achievement}', 'First Response');
+
+      await prisma.notification.upsert({
+        where: { id: `demo-notif-${user.id}-${j}` },
+        update: {},
+        create: {
+          id: `demo-notif-${user.id}-${j}`,
+          userId: user.id,
+          type: template.type as any,
+          title: template.title,
+          message,
+          isRead: Math.random() > 0.5,
+          createdAt: new Date(Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000),
+        },
+      });
+    }
+    console.log(`  ✅ ${user.firstName}: ${numNotifs} notifications`);
+  }
+
   // ==================== UNLOCK ACHIEVEMENTS ====================
   console.log('\n🎖️ Unlocking demo achievements...');
   for (let i = 0; i < createdUsers.length; i++) {
     const user = createdUsers[i];
-    const numAchievements = 1 + Math.floor(Math.random() * 3);
+    const numAchievements = 1 + Math.floor(Math.random() * 4);
 
-    for (let j = 0; j < numAchievements; j++) {
+    for (let j = 0; j < numAchievements && j < createdAchievements.length; j++) {
       const achievement = createdAchievements[j];
       await prisma.userAchievement.upsert({
         where: {
@@ -506,6 +830,23 @@ async function main() {
     console.log(`  ✅ ${user.firstName}: ${numAchievements} achievements`);
   }
 
+  // ==================== UPDATE CHAT & MISSION COUNTS ====================
+  console.log('\n📊 Updating user statistics...');
+  for (const user of createdUsers) {
+    const chatCount = await prisma.chat.count({
+      where: { OR: [{ user1Id: user.id }, { user2Id: user.id }] },
+    });
+    const missionCount = await prisma.response.count({ where: { userId: user.id } });
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        chatCount,
+        missionCompletedCount: missionCount,
+      },
+    });
+  }
+
   // ==================== SUMMARY ====================
   console.log('\n' + '='.repeat(50));
   console.log('🎉 SEED COMPLETED SUCCESSFULLY!');
@@ -515,16 +856,29 @@ async function main() {
   console.log(`   🎯 Missions: ${createdMissions.length}`);
   console.log(`   🏆 Achievements: ${createdAchievements.length}`);
   console.log(`   💬 Chats: ${chatPairs.length}`);
-  console.log(`   📸 Stories: 6`);
-  console.log(`   📝 Responses: ~${createdUsers.length * 2}`);
+  console.log(`   📸 Stories: ${Math.min(10, createdUsers.length)}`);
+  console.log(`   📝 Responses: ~${createdUsers.length * 3}`);
+  console.log(`   ❤️ Likes: ${likePairs.length}`);
+  console.log(`   👥 Follows: ${followPairs.length}`);
+  console.log(`   🔔 Notifications: ~${8 * 2}`);
 
-  console.log('\n📝 Demo Login Credentials:');
+  console.log('\n🔑 Demo Login Credentials:');
   console.log('   Password for all: Demo123!');
   console.log('   Emails:');
-  for (const user of demoUsers.slice(0, 5)) {
-    console.log(`   - ${user.email}`);
+  for (const user of demoUsers.slice(0, 8)) {
+    console.log(`   - ${user.email} (${user.firstName})`);
   }
-  console.log('   ... and 5 more\n');
+  console.log(`   ... and ${demoUsers.length - 8} more`);
+
+  console.log('\n🔐 ADMIN LOGIN:');
+  console.log('   Email: admin@bellor.app');
+  console.log('   Password: Demo123!');
+
+  console.log('\n🆔 Special demo user IDs (used by frontend):');
+  console.log('   - admin-user-1 (Admin - has full access)');
+  console.log('   - demo-match-user-1-romantic (Maya)');
+  console.log('   - demo-match-user-2-positive (Noam)');
+  console.log('   - demo-match-user-3-super (Shira)\n');
 }
 
 main()

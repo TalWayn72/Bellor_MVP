@@ -11,8 +11,7 @@
 | אפשרות | זמן | עלות/חודש | מתאים ל | קושי |
 |--------|-----|-----------|---------|------|
 | **A. Docker Compose** | 15 דקות | $16-50 | MVP, Staging | ⭐ קל |
-| **B. Kubernetes (DO)** | 30 דקות | $72-150 | Production | ⭐⭐ בינוני |
-| **C. Kubernetes (AWS)** | 60 דקות | $200+ | Enterprise | ⭐⭐⭐ מתקדם |
+| **B. Kubernetes** | 30 דקות | $72-150 | Production | ⭐⭐ בינוני |
 
 ---
 
@@ -366,13 +365,13 @@ Domain:            $5/month
 Total:             ~$15-20/month
 ```
 
-### Kubernetes (DigitalOcean):
+### Kubernetes (VPS/Cloud):
 ```
-DOKS (3 nodes):    $72/month
+K8s Nodes (3):     $72/month
 Load Balancer:     $12/month
-Managed DB:        $15/month
+PostgreSQL (container): $0 (included)
 Domain:            $5/month
-Total:             ~$104/month
+Total:             ~$89/month
 ```
 
 ---

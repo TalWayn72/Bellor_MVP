@@ -18,8 +18,37 @@ vi.mock('../lib/prisma.js', () => ({
       findMany: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      delete: vi.fn(),
       count: vi.fn(),
     },
+    message: {
+      deleteMany: vi.fn(),
+    },
+    response: {
+      deleteMany: vi.fn(),
+    },
+    story: {
+      deleteMany: vi.fn(),
+    },
+    userAchievement: {
+      deleteMany: vi.fn(),
+    },
+    notification: {
+      deleteMany: vi.fn(),
+    },
+    chat: {
+      deleteMany: vi.fn(),
+    },
+    report: {
+      deleteMany: vi.fn(),
+    },
+    like: {
+      deleteMany: vi.fn(),
+    },
+    follow: {
+      deleteMany: vi.fn(),
+    },
+    $transaction: vi.fn(),
   },
 }));
 
@@ -403,7 +432,133 @@ describe('UsersService', () => {
 
       expect(prisma.user.update).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: updateInput,
+          data: expect.objectContaining(updateInput),
+        })
+      );
+    });
+
+    it('should always set lastActiveAt when updating profile', async () => {
+      const mockUser = createMockUser();
+
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+      vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+
+      await UsersService.updateUserProfile('test-user-id', { firstName: 'Test' });
+
+      expect(prisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            lastActiveAt: expect.any(Date),
+          }),
+        })
+      );
+    });
+
+    it('should map nickname to firstName', async () => {
+      const mockUser = createMockUser();
+
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+      vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+
+      await UsersService.updateUserProfile('test-user-id', { nickname: 'NickName' });
+
+      expect(prisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            firstName: 'NickName',
+          }),
+        })
+      );
+    });
+
+    it('should map profile_images to profileImages', async () => {
+      const mockUser = createMockUser();
+      const images = ['https://example.com/img1.jpg', 'https://example.com/img2.jpg'];
+
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+      vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+
+      await UsersService.updateUserProfile('test-user-id', { profile_images: images });
+
+      expect(prisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            profileImages: images,
+          }),
+        })
+      );
+    });
+
+    it('should convert gender to uppercase', async () => {
+      const mockUser = createMockUser();
+
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+      vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+
+      await UsersService.updateUserProfile('test-user-id', { gender: 'male' });
+
+      expect(prisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            gender: 'MALE',
+          }),
+        })
+      );
+    });
+
+    it('should convert age to birthDate', async () => {
+      const mockUser = createMockUser();
+
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+      vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+
+      await UsersService.updateUserProfile('test-user-id', { age: 25 });
+
+      expect(prisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            birthDate: expect.any(Date),
+          }),
+        })
+      );
+    });
+
+    it('should convert string location to object', async () => {
+      const mockUser = createMockUser();
+
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+      vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+
+      await UsersService.updateUserProfile('test-user-id', { location: 'Tel Aviv' });
+
+      expect(prisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            location: { city: 'Tel Aviv' },
+          }),
+        })
+      );
+    });
+
+    it('should include expanded select fields', async () => {
+      const mockUser = createMockUser();
+
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+      vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+
+      await UsersService.updateUserProfile('test-user-id', { bio: 'test' });
+
+      expect(prisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          select: expect.objectContaining({
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            location: true,
+            lookingFor: true,
+            lastActiveAt: true,
+          }),
         })
       );
     });
@@ -808,6 +963,300 @@ describe('UsersService', () => {
       const result = await UsersService.getUserStats('test-user-id');
 
       expect(result.lastLogin).toBeNull();
+    });
+  });
+
+  // ============================================
+  // EXPORT USER DATA TESTS (GDPR Article 20)
+  // ============================================
+  describe('exportUserData', () => {
+    const createFullMockUser = (overrides = {}) => ({
+      ...createMockUser(),
+      location: { city: 'Tel Aviv', country: 'Israel' },
+      lookingFor: ['FEMALE'],
+      ageRangeMin: 18,
+      ageRangeMax: 35,
+      maxDistance: 50,
+      isVerified: true,
+      premiumExpiresAt: null,
+      responseCount: 5,
+      chatCount: 3,
+      missionCompletedCount: 2,
+      sentMessages: [
+        { id: 'msg-1', content: 'Hello', createdAt: new Date('2024-03-01') },
+        { id: 'msg-2', content: 'Hi there', createdAt: new Date('2024-03-02') },
+      ],
+      responses: [
+        { id: 'resp-1', content: 'My response', responseType: 'TEXT', createdAt: new Date('2024-03-01') },
+      ],
+      stories: [
+        { id: 'story-1', mediaUrl: 'https://example.com/story.jpg', caption: 'My story', createdAt: new Date('2024-04-01') },
+      ],
+      achievements: [
+        {
+          achievement: { name: 'First Match', description: 'Got your first match' },
+          unlockedAt: new Date('2024-02-01'),
+        },
+      ],
+      ...overrides,
+    });
+
+    it('should export all user data successfully', async () => {
+      const mockUser = createFullMockUser();
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+
+      const result = await UsersService.exportUserData('test-user-id');
+
+      expect(result).toHaveProperty('personalInformation');
+      expect(result).toHaveProperty('preferences');
+      expect(result).toHaveProperty('accountStatus');
+      expect(result).toHaveProperty('content');
+      expect(result).toHaveProperty('achievements');
+      expect(result).toHaveProperty('statistics');
+    });
+
+    it('should include personal information in export', async () => {
+      const mockUser = createFullMockUser();
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+
+      const result = await UsersService.exportUserData('test-user-id');
+
+      expect(result.personalInformation).toEqual({
+        id: 'test-user-id',
+        email: 'test@example.com',
+        firstName: 'John',
+        lastName: 'Doe',
+        birthDate: new Date('1990-01-01'),
+        gender: 'MALE',
+        bio: 'Test bio',
+        location: { city: 'Tel Aviv', country: 'Israel' },
+        preferredLanguage: 'ENGLISH',
+        profileImages: ['https://example.com/image.jpg'],
+        createdAt: new Date('2024-01-01'),
+        lastActiveAt: new Date('2024-06-01'),
+      });
+    });
+
+    it('should include messages in export', async () => {
+      const mockUser = createFullMockUser();
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+
+      const result = await UsersService.exportUserData('test-user-id');
+
+      expect(result.content.messages).toHaveLength(2);
+      expect(result.content.messages[0].content).toBe('Hello');
+    });
+
+    it('should include achievements in export', async () => {
+      const mockUser = createFullMockUser();
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+
+      const result = await UsersService.exportUserData('test-user-id');
+
+      expect(result.achievements).toHaveLength(1);
+      expect(result.achievements[0].name).toBe('First Match');
+      expect(result.achievements[0]).toHaveProperty('unlockedAt');
+    });
+
+    it('should include statistics in export', async () => {
+      const mockUser = createFullMockUser();
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+
+      const result = await UsersService.exportUserData('test-user-id');
+
+      expect(result.statistics).toEqual({
+        responseCount: 5,
+        chatCount: 3,
+        missionCompletedCount: 2,
+      });
+    });
+
+    it('should throw error when user not found', async () => {
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+
+      await expect(UsersService.exportUserData('non-existent-id')).rejects.toThrow('User not found');
+    });
+
+    it('should query with include for related data', async () => {
+      const mockUser = createFullMockUser();
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+
+      await UsersService.exportUserData('test-user-id');
+
+      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+        where: { id: 'test-user-id' },
+        include: expect.objectContaining({
+          sentMessages: expect.any(Object),
+          responses: expect.any(Object),
+          stories: expect.any(Object),
+          achievements: expect.any(Object),
+        }),
+      });
+    });
+
+    it('should handle user with no content', async () => {
+      const mockUser = createFullMockUser({
+        sentMessages: [],
+        responses: [],
+        stories: [],
+        achievements: [],
+      });
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+
+      const result = await UsersService.exportUserData('test-user-id');
+
+      expect(result.content.messages).toHaveLength(0);
+      expect(result.content.responses).toHaveLength(0);
+      expect(result.content.stories).toHaveLength(0);
+      expect(result.achievements).toHaveLength(0);
+    });
+  });
+
+  // ============================================
+  // DELETE USER GDPR TESTS (GDPR Article 17)
+  // ============================================
+  describe('deleteUserGDPR', () => {
+    it('should delete user and all related data', async () => {
+      const mockUser = createMockUser();
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+
+      // Mock $transaction to execute the callback
+      vi.mocked(prisma.$transaction).mockImplementation(async (cb: any) => {
+        const tx = {
+          message: { deleteMany: vi.fn().mockResolvedValue({ count: 5 }) },
+          response: { deleteMany: vi.fn().mockResolvedValue({ count: 3 }) },
+          story: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
+          userAchievement: { deleteMany: vi.fn().mockResolvedValue({ count: 2 }) },
+          notification: { deleteMany: vi.fn().mockResolvedValue({ count: 10 }) },
+          chat: { deleteMany: vi.fn().mockResolvedValue({ count: 4 }) },
+          report: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          like: { deleteMany: vi.fn().mockResolvedValue({ count: 8 }) },
+          follow: { deleteMany: vi.fn().mockResolvedValue({ count: 6 }) },
+          user: { delete: vi.fn().mockResolvedValue(mockUser) },
+        };
+        return cb(tx);
+      });
+
+      const result = await UsersService.deleteUserGDPR('test-user-id');
+
+      expect(result.message).toBe('User and all related data permanently deleted');
+    });
+
+    it('should throw error when user not found', async () => {
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+
+      await expect(UsersService.deleteUserGDPR('non-existent-id')).rejects.toThrow('User not found');
+    });
+
+    it('should not call transaction when user not found', async () => {
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+
+      try {
+        await UsersService.deleteUserGDPR('non-existent-id');
+      } catch (e) {
+        // Expected
+      }
+
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('should use a transaction for data deletion', async () => {
+      const mockUser = createMockUser();
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+
+      vi.mocked(prisma.$transaction).mockImplementation(async (cb: any) => {
+        const tx = {
+          message: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          response: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          story: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          userAchievement: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          notification: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          chat: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          report: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          like: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          follow: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          user: { delete: vi.fn().mockResolvedValue(mockUser) },
+        };
+        return cb(tx);
+      });
+
+      await UsersService.deleteUserGDPR('test-user-id');
+
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    });
+
+    it('should delete all related entity types in transaction', async () => {
+      const mockUser = createMockUser();
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+
+      const deleteMocks: Record<string, ReturnType<typeof vi.fn>> = {};
+
+      vi.mocked(prisma.$transaction).mockImplementation(async (cb: any) => {
+        const tx = {
+          message: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          response: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          story: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          userAchievement: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          notification: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          chat: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          report: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          like: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          follow: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          user: { delete: vi.fn().mockResolvedValue(mockUser) },
+        };
+
+        // Capture mocks for assertions
+        Object.entries(tx).forEach(([key, value]) => {
+          const method = (value as any).deleteMany || (value as any).delete;
+          if (method) deleteMocks[key] = method;
+        });
+
+        return cb(tx);
+      });
+
+      await UsersService.deleteUserGDPR('test-user-id');
+
+      // Verify all entity types were deleted
+      expect(deleteMocks['message']).toHaveBeenCalledWith({ where: { senderId: 'test-user-id' } });
+      expect(deleteMocks['response']).toHaveBeenCalledWith({ where: { userId: 'test-user-id' } });
+      expect(deleteMocks['story']).toHaveBeenCalledWith({ where: { userId: 'test-user-id' } });
+      expect(deleteMocks['userAchievement']).toHaveBeenCalledWith({ where: { userId: 'test-user-id' } });
+      expect(deleteMocks['notification']).toHaveBeenCalledWith({ where: { userId: 'test-user-id' } });
+      expect(deleteMocks['user']).toHaveBeenCalledWith({ where: { id: 'test-user-id' } });
+    });
+
+    it('should delete chats where user is either participant', async () => {
+      const mockUser = createMockUser();
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+
+      let chatDeleteArgs: any;
+
+      vi.mocked(prisma.$transaction).mockImplementation(async (cb: any) => {
+        const tx = {
+          message: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          response: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          story: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          userAchievement: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          notification: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          chat: { deleteMany: vi.fn().mockImplementation((args: any) => { chatDeleteArgs = args; return { count: 0 }; }) },
+          report: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          like: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          follow: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+          user: { delete: vi.fn().mockResolvedValue(mockUser) },
+        };
+        return cb(tx);
+      });
+
+      await UsersService.deleteUserGDPR('test-user-id');
+
+      expect(chatDeleteArgs).toEqual({
+        where: {
+          OR: [
+            { user1Id: 'test-user-id' },
+            { user2Id: 'test-user-id' },
+          ],
+        },
+      });
     });
   });
 });

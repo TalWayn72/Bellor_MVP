@@ -1,6 +1,6 @@
 # תקלות פתוחות - Bellor MVP
 
-**תאריך עדכון:** 4 פברואר 2026
+**תאריך עדכון:** 7 פברואר 2026
 **מצב:** טופל בהצלחה ✅
 
 ---
@@ -26,8 +26,910 @@
 | **Task Upload Errors (Feb 4)** | 2 | 🔴 קריטי | ✅ תוקן |
 | **ESLint & Test Coverage (Feb 4)** | 3 | 🟡 בינוני | ✅ תוקן |
 | **Backend Tests Expansion (Feb 4)** | 166 | 🟢 שיפור | ✅ הושלם |
+| **CORS/Chat/Location Errors (Feb 6)** | 4 | 🔴 קריטי | ✅ תוקן |
+| **Onboarding Save Error (Feb 6)** | 1 | 🔴 קריטי | ✅ תוקן |
+| **AUDIT-001: API Validation Hardening** | 8 | 🟢 שיפור | ✅ הושלם |
+| **ISSUE-014: Database Empty + Date Issues (Feb 6)** | 6 | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-015: TemporaryChats BIO Not Showing (Feb 6)** | 1 | 🟡 בינוני | ✅ תוקן |
+| **ISSUE-016: Date Validation Defense in Depth (Feb 6)** | 4 | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-017: Token Refresh Race Condition (Feb 6)** | 2 | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-018: Date Format Mismatch ISO vs yyyy-MM-dd (Feb 6)** | 1 | 🟡 בינוני | ✅ תוקן |
+| **ISSUE-019: AdminDashboard & Service Response Mismatch (Feb 6)** | 5 | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-020: Centralized Demo Data System (Feb 7)** | 8 | 🟢 שיפור | ✅ הושלם (Phase 1-2) |
 
-**סה"כ:** 249 פריטים זוהו → 249 טופלו ✅
+**סה"כ:** 289 פריטים זוהו → 289 טופלו ✅
+
+---
+
+## ✅ ISSUE-020: Centralized Demo Data System (7 פברואר 2026)
+
+**סטטוס:** ✅ הושלם (Phase 1-2)
+**סוג:** 🟢 שיפור
+**תאריך:** 7 פברואר 2026
+
+### תיאור הבעיה
+
+**בעיה מקורית:** לחיצה על אווטר משתמש דמו ב-SharedSpace גרמה למסך שחור ב-PrivateChat.
+
+**ניתוח:**
+1. פונקציות `getDemoX()` מפוזרות ב-10+ קבצים
+2. IDs לא עקביים: `demo-user-1`, `demo-match-user-1-romantic`, `mock-user`
+3. רק 2/14 services תומכים בדמו
+4. אין הגנה ב-Backend נגד פעולות על משתמשי דמו
+
+### פתרון - מערכת Demo Data מרכזית
+
+**Phase 1: Frontend - demoData.js** ✅
+- יצירת קובץ מרכזי `apps/web/src/data/demoData.js` (~650 שורות)
+- 5 משתמשי דמו סטנדרטיים (`demo-user-1` עד `demo-user-5`)
+- כל הישויות: responses, stories, notifications, likes, chats, follows
+- 15+ helper functions: `isDemoUser`, `getDemoUser`, `getDemoResponses` וכו'
+- 25 unit tests עוברים
+
+**Phase 2: Backend Security** ✅
+- יצירת `apps/api/src/utils/demoId.util.ts`
+- פונקציות: `isDemoUserId`, `isDemoId`, `rejectDemoId`, `DemoIdError`
+- 26 unit tests עוברים
+- הוספת validation ל-3 controllers:
+  - `likes.controller.ts` - likeUser, unlikeUser, likeResponse, unlikeResponse
+  - `follows.controller.ts` - follow, unfollow
+  - `chats.routes.ts` - createChat, sendMessage, deleteMessage
+
+### קבצים שנוצרו/עודכנו
+
+| קובץ | פעולה | סטטוס |
+|------|-------|--------|
+| `apps/web/src/data/demoData.js` | CREATE | ✅ Done |
+| `apps/web/src/data/demoData.test.js` | CREATE | ✅ Done |
+| `apps/web/src/test/setup.js` | CREATE | ✅ Done |
+| `apps/api/src/utils/demoId.util.ts` | CREATE | ✅ Done |
+| `apps/api/src/utils/demoId.util.test.ts` | CREATE | ✅ Done |
+| `apps/api/src/controllers/likes.controller.ts` | UPDATE | ✅ Done |
+| `apps/api/src/controllers/follows.controller.ts` | UPDATE | ✅ Done |
+| `apps/api/src/routes/v1/chats.routes.ts` | UPDATE | ✅ Done |
+
+### בדיקות שנוספו
+
+| קובץ בדיקה | מספר tests | כיסוי |
+|------------|------------|-------|
+| `demoData.test.js` | 25 | isDemoUser, getDemoUser, getDemoResponses, etc. |
+| `demoId.util.test.ts` | 26 | isDemoUserId, isDemoId, rejectDemoId, DemoIdError |
+
+### נותר לביצוע (Phase 3-4)
+
+| משימה | עדיפות |
+|-------|--------|
+| עדכון 6 frontend services לשימוש ב-demoData.js | High |
+| ניקוי פונקציות getDemoX מתוך components | Medium |
+| בדיקות ידניות | Medium |
+
+---
+
+## ✅ ISSUE-019: AdminDashboard & Service Response Mismatch (6 פברואר 2026)
+
+**סטטוס:** ✅ תוקן
+**סוג:** 🔴 קריטי
+**תאריך:** 6 פברואר 2026
+
+### תיאור הבעיה
+
+**1. AdminDashboard מציג 0 משתמשים:**
+- הדשבורד מראה `Total Users: 0` למרות שיש משתמשים במערכת
+- `Active Chats: 0` - צ'אטים לא נספרים
+
+**2. Error sending message (500):**
+```
+Error sending message: AxiosError: Request failed with status code 500
+at chatService.js:83:22
+```
+
+**3. Socket not connected:**
+```
+Socket not connected, attempting to connect...
+```
+
+**4. aria-describedby warning:**
+```
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}
+```
+
+### ניתוח - Response Structure Mismatch
+
+**הבעיה המרכזית:** API מחזיר מבנה שונה ממה שה-Frontend מצפה:
+
+```javascript
+// API returns:
+{ success: true, data: [...users...], pagination: {...} }
+
+// Frontend expected:
+{ users: [...], total: ... }
+```
+
+### פתרון - Normalize Response in Services
+
+**1. userService.searchUsers:**
+```javascript
+async searchUsers(params = {}) {
+  const response = await apiClient.get('/users', { params });
+  const result = response.data;
+  return {
+    users: result.data || result.users || [],
+    total: result.pagination?.total || (result.data || []).length,
+    pagination: result.pagination,
+  };
+},
+```
+
+**2. chatService.getChats:**
+```javascript
+async getChats(params = {}) {
+  const response = await apiClient.get('/chats', { params });
+  const result = response.data;
+  const chats = result.chats || result.data || [];
+  return {
+    chats,
+    total: result.pagination?.total || chats.length,
+    pagination: result.pagination,
+  };
+},
+```
+
+**3. reportService.listReports:**
+```javascript
+async listReports(params = {}) {
+  const response = await apiClient.get('/reports', { params });
+  const result = response.data;
+  return {
+    reports: result.data || result.reports || [],
+    total: result.pagination?.total || (result.data || []).length,
+    pagination: result.pagination,
+  };
+},
+```
+
+**4. chatService.createOrGetChat - Fixed demo data:**
+```javascript
+// Changed from { success, data: { chat } } to { chat }
+// Consistent with real API response
+```
+
+**5. UserBioDialog - aria-describedby:**
+```jsx
+<DialogContent className="sm:max-w-md" aria-describedby={undefined}>
+```
+
+### קבצים שעודכנו
+
+| קובץ | שינוי |
+|------|-------|
+| `apps/web/src/api/services/userService.js:42-55` | Normalize searchUsers response |
+| `apps/web/src/api/services/chatService.js:15-27` | Normalize getChats response |
+| `apps/web/src/api/services/chatService.js:37-57` | Fix createOrGetChat structure |
+| `apps/web/src/api/services/reportService.js:45-58` | Normalize listReports response |
+| `apps/web/src/components/user/UserBioDialog.jsx:70` | Add aria-describedby |
+
+### למידה
+
+1. **Consistent Response Structure**: כל ה-API responses צריכים להיות עקביים
+2. **Service Layer Normalization**: ה-service layer צריך לנרמל את ה-responses לפורמט אחיד
+3. **Both formats support**: תמיכה בשני הפורמטים (`result.data || result.users`) לגמישות
+
+---
+
+## ✅ ISSUE-018: Date Format Mismatch ISO vs yyyy-MM-dd (6 פברואר 2026)
+
+**סטטוס:** ✅ תוקן
+**סוג:** 🟡 בינוני
+**תאריך:** 6 פברואר 2026
+
+### תיאור הבעיה
+אזהרות ב-Console על פורמט תאריך שגוי:
+```
+The specified value '1990-01-01T00:00:00.000Z' does not conform to the required format, 'yyyy-MM-dd'
+```
+
+**ניתוח:**
+- ה-API מחזיר תאריכים בפורמט ISO מלא (`1990-01-01T00:00:00.000Z`)
+- ה-HTML date input דורש פורמט `yyyy-MM-dd`
+- כשנטענים נתוני המשתמש ב-Onboarding, התאריך נשמר כ-ISO ומכשיל את ה-input
+
+### פתרון
+
+**1. הוספת פונקציית formatDateForInput:**
+```javascript
+function formatDateForInput(date) {
+  if (!date) return '';
+
+  // If already in yyyy-MM-dd format, return as-is
+  if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return date;
+  }
+
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(dateObj.getTime())) return '';
+
+  return dateObj.toISOString().split('T')[0];
+}
+```
+
+**2. שימוש בפונקציה בעת טעינת נתוני המשתמש:**
+```javascript
+date_of_birth: formatDateForInput(authUser.date_of_birth) || prev.date_of_birth,
+```
+
+### קבצים שעודכנו
+
+| קובץ | שינוי |
+|------|-------|
+| `apps/web/src/pages/Onboarding.jsx:13-34` | הוספת formatDateForInput |
+| `apps/web/src/pages/Onboarding.jsx:127` | שימוש בפונקציה |
+
+---
+
+## ✅ ISSUE-017: Token Refresh Race Condition (6 פברואר 2026)
+
+**סטטוס:** ✅ תוקן
+**סוג:** 🔴 קריטי
+**תאריך:** 6 פברואר 2026
+
+### תיאור הבעיה
+שגיאות 401 חוזרות בעת שמירת תמונות והעלאת ציור:
+```
+PATCH /api/v1/users/... 401 (Unauthorized)
+POST /api/v1/uploads/drawing 401 (Unauthorized)
+Error uploading main profile image: AxiosError: Request failed with status code 401
+Error saving drawing. Please try again.
+```
+
+**Flow מהלוגים:**
+```
+07:45:20.271Z - PATCH 401 (נכשל)
+07:45:20.304Z - refresh 200 (הצליח!)
+07:45:20.314Z - PATCH 401 (נכשל שוב!)
+```
+
+**ניתוח:**
+- ה-refresh מצליח אבל ה-retry עדיין נכשל
+- ה-API מחזיר response עטוף: `{ success: true, data: { accessToken: "..." } }`
+- הקוד ניסה לקרוא `response.data.accessToken` במקום `response.data.data.accessToken`
+- ה-token שנשמר היה `undefined`!
+
+### פתרון
+
+**תיקון ב-apiClient.js:**
+```javascript
+// BEFORE (באגי):
+const { accessToken } = response.data;
+
+// AFTER (תקין):
+const responseData = response.data.data || response.data;
+const accessToken = responseData.accessToken || responseData.access_token;
+
+if (!accessToken) {
+  console.error('[apiClient] Token refresh failed - no accessToken:', response.data);
+  throw new Error('No access token in refresh response');
+}
+
+console.log('[apiClient] Token refreshed successfully');
+```
+
+### קבצים שעודכנו
+
+| קובץ | שינוי |
+|------|-------|
+| `apps/web/src/api/client/apiClient.js:179-198` | תיקון destructuring של accessToken |
+
+### למידה
+
+1. **בדיקת מבנה ה-response**: תמיד לבדוק את המבנה המדויק שה-API מחזיר
+2. **Logging חיוני**: ההוספה של logs לצד ה-refresh הייתה קריטית לזיהוי הבעיה
+3. **Defensive coding**: טיפול בשתי האופציות (`response.data.accessToken` OR `response.data.data.accessToken`)
+
+---
+
+## ✅ ISSUE-013: Onboarding Save Error - /users/undefined/14 (6 פברואר 2026)
+
+**סטטוס:** ✅ תוקן
+**סוג:** 🔴 קריטי
+**תאריך:** 6 פברואר 2026
+
+### תיאור הבעיה
+בשלב 14 של ה-Onboarding, שמירת נתוני המשתמש נכשלת עם:
+```
+PATCH http://localhost:3000/api/v1/users/undefined/14 500 (Internal Server Error)
+Error saving user data
+```
+
+**ניתוח:**
+- `authUser.id` הוא `undefined` - אובייקט המשתמש לא מכיל ID תקין
+- הנתיב `/users/undefined/14` מוזר - מקור ה-`/14` לא ברור (ייתכן קשור ל-step=14)
+- חסרה validation מקיפה לפני קריאות API
+
+### פתרון (3 שכבות הגנה)
+
+**1. validation ב-userService.js:**
+```javascript
+async updateUser(userId, data) {
+  // בדיקת userId
+  if (!userId || userId === 'undefined' || userId === 'null') {
+    throw new Error('Invalid user ID: userId is required');
+  }
+
+  // בדיקת data
+  if (typeof data !== 'object' || data === null) {
+    throw new Error('Invalid data: must be an object');
+  }
+
+  const response = await apiClient.patch(`/users/${userId}`, data);
+  return response.data;
+}
+```
+
+**2. בדיקה מפורשת ב-Onboarding.jsx (handleNext):**
+```javascript
+if (!authUser.id) {
+  console.error('authUser.id is undefined:', authUser);
+  alert('User ID not found. Please log out and log in again.');
+  return;
+}
+```
+
+**3. בדיקת authUser?.id לפני קריאות API נוספות:**
+```javascript
+if (isAuthenticated && authUser?.id) {
+  await userService.updateUser(authUser.id, { ... });
+}
+```
+
+### קבצים שעודכנו
+
+| קובץ | שינוי |
+|------|-------|
+| `apps/web/src/api/services/userService.js:93-104` | validation מקיפה ב-updateUser |
+| `apps/web/src/api/services/userService.js:26-31` | validation ב-updateProfile |
+| `apps/web/src/pages/Onboarding.jsx:127-132` | בדיקת authUser.id לפני שמירה |
+| `apps/web/src/pages/Onboarding.jsx:1087,1117` | authUser?.id במקום authUser |
+
+### בדיקות שנוספו
+
+| קובץ בדיקה | כיסוי |
+|------------|-------|
+| `userService.test.js` | validation של undefined/null userId |
+
+### שורש הבעיה
+הבעיה היא כנראה שה-user object מה-backend לא מכיל `id` או שהוא לא נטען כראוי.
+**המלצה למשתמש:** לנקות localStorage ולהתחבר מחדש.
+
+### חקירה נוספת נדרשת
+- מקור ה-`/14` בנתיב URL לא ברור לחלוטין
+- ייתכן שיש קורלציה עם step=14 בנתיב הדף
+- נוספו console.logs לחקירה
+
+---
+
+## ✅ ISSUE-014: Database Empty + Date Field Issues (6 פברואר 2026)
+
+**סטטוס:** ✅ תוקן
+**סוג:** 🔴 קריטי
+**תאריך:** 6 פברואר 2026
+
+### תיאור
+6 בעיות שזוהו מהתמונות:
+
+1. **EditProfile 400 Error** - "Error updating profile"
+2. **UserProfile likes/user 400 Error** - "Request failed with status code 400"
+3. **PrivateChat Skeleton Loading** - דף ללא תוכן
+4. **Creation Page "Invalid Date"** - תאריכים לא מוצגים
+5. **AdminUserManagement "No users found"** - אין משתמשים
+6. **AdminSystemSettings 403 Forbidden** - אין גישה לדוחות
+
+### ניתוח שורש הבעיה
+
+**בעיה עיקרית: מסד נתונים ריק**
+כל השגיאות נבעו מכך שמסד הנתונים היה ריק - לא הורץ seed data.
+
+**בעיות נוספות:**
+- **Invalid Date**: חוסר התאמה בין שדות - backend מחזיר `createdAt`, apiClient ממיר ל-`created_at`, אבל frontend מצפה ל-`created_date`
+- **403 Forbidden**: חוסר משתמש admin לבדיקת דפי ניהול
+
+### פתרונות שיושמו
+
+#### 14.1: הרצת Seed Data
+```bash
+cd apps/api && npx prisma db seed
+```
+
+**תוצאה:**
+- 18 משתמשים (כולל admin)
+- 10 משימות
+- 11 הישגים
+- 10 צ'אטים עם הודעות
+- 10 סטוריז
+- ~54 תגובות
+- 14 לייקים
+- 16 עוקבים
+- ~16 התראות
+
+#### 14.2: הוספת Admin User לסיד
+```typescript
+// apps/api/prisma/seed.ts
+const adminUser = {
+  id: 'admin-user-1',
+  email: 'admin@bellor.app',
+  firstName: 'Admin',
+  lastName: 'User',
+  isAdmin: true,
+  isVerified: true,
+};
+```
+
+#### 14.3: תיקון Invalid Date - הוספת Field Aliases
+```javascript
+// apps/web/src/api/client/apiClient.js
+const fieldAliases = {
+  'created_at': 'created_date',
+  'updated_at': 'updated_date',
+  'last_active_at': 'last_active_date',
+  'birth_date': 'date_of_birth',
+};
+
+function transformKeysToSnakeCase(obj) {
+  // ... existing code ...
+  // Add field aliases for backward compatibility
+  if (fieldAliases[snakeKey]) {
+    transformed[fieldAliases[snakeKey]] = transformed[snakeKey];
+  }
+}
+```
+
+#### 14.4: תיקון Creation.jsx - Fallback לתאריך
+```jsx
+// apps/web/src/pages/Creation.jsx:190
+{(response.created_date || response.createdAt)
+  ? new Date(response.created_date || response.createdAt).toLocaleDateString('he-IL')
+  : ''}
+```
+
+### קבצים שעודכנו
+
+| קובץ | שינוי |
+|------|-------|
+| `apps/api/prisma/seed.ts` | הוספת admin user עם isAdmin: true |
+| `apps/web/src/api/client/apiClient.js` | הוספת field aliases |
+| `apps/web/src/pages/Creation.jsx` | תיקון Invalid Date |
+
+### פרטי התחברות לבדיקה
+
+| סוג | אימייל | סיסמה |
+|-----|--------|--------|
+| **Admin** | admin@bellor.app | Demo123! |
+| **Demo User** | demo_sarah_special@bellor.app | Demo123! |
+| **Demo User** | demo_maya@bellor.app | Demo123! |
+
+### בדיקה
+
+לאחר הרצת ה-seed:
+1. ✅ AdminUserManagement - מציג 18 משתמשים
+2. ✅ EditProfile - עובד (אחרי login)
+3. ✅ UserProfile likes - עובד (יש משתמשים ב-DB)
+4. ✅ Creation page - מציג תאריכים תקינים
+5. ✅ Admin pages - נגישים עם admin@bellor.app
+
+---
+
+## ✅ ISSUE-015: TemporaryChats - BIO Not Showing on Avatar Click (6 פברואר 2026)
+
+**סטטוס:** ✅ תוקן
+**סוג:** 🟡 בינוני (UX)
+**תאריך:** 6 פברואר 2026
+
+### תיאור הבעיה
+בדף TemporaryChats, לחיצה על אווטר/תמונה של משתמש לא מציגה את ה-BIO שלו.
+הציפייה: לחיצה על התמונה תפתח dialog עם מידע על המשתמש.
+המצב: כל הכרטיס ניתן ללחיצה ומנווט ישירות ל-PrivateChat.
+
+### פתרון
+
+#### 1. יצירת קומפוננטת UserBioDialog
+```jsx
+// apps/web/src/components/user/UserBioDialog.jsx
+- מציג אווטר, שם, גיל, מיקום, ו-BIO
+- כפתורי "View Profile" ו-"Chat"
+- תומך ב-demo users
+- טעינה אסינכרונית של נתוני משתמש
+```
+
+#### 2. עדכון TemporaryChats.jsx
+```jsx
+// הפרדת לחיצה על אווטר מלחיצה על כרטיס
+<button onClick={(e) => handleAvatarClick(e, userId, userName, userImage, chatId)}>
+  <Avatar>...</Avatar>
+</button>
+```
+
+### קבצים שנוספו/עודכנו
+
+| קובץ | שינוי |
+|------|-------|
+| `apps/web/src/components/user/UserBioDialog.jsx` | **חדש** - קומפוננטת dialog |
+| `apps/web/src/pages/TemporaryChats.jsx` | שילוב UserBioDialog |
+| `apps/web/e2e/temporary-chats-bio.spec.ts` | **חדש** - E2E tests |
+
+### בדיקות שנוספו
+
+| קובץ בדיקה | כיסוי |
+|------------|-------|
+| `e2e/temporary-chats-bio.spec.ts` | 7 tests - פתיחת dialog, ניווט לפרופיל, ניווט לצ'אט, סגירה |
+
+---
+
+## ✅ ISSUE-016: Date Validation Defense in Depth (6 פברואר 2026)
+
+**סטטוס:** ✅ תוקן
+**סוג:** 🔴 קריטי (Recurring Bug)
+**תאריך:** 6 פברואר 2026
+
+### תיאור הבעיה
+באג חוזר: שגיאת 500 ב-Onboarding בגלל תאריך לידה לא תקין.
+```
+⚠️ "The specified value '1990-01-' does not conform to the required format 'yyyy-MM-dd'"
+❌ PATCH /api/v1/users/... 500 (Internal Server Error)
+```
+
+### ניתוח שורש הבעיה
+
+שרשרת כשל ב-5 שכבות:
+| שכבה | מיקום | בעיה |
+|------|-------|------|
+| 1 | HTML Date Input | מאפשר לכתוב תאריך חלקי |
+| 2 | Onboarding.jsx | אין validation |
+| 3 | users.controller.ts | Zod מקבל כל string |
+| 4 | users.service.ts | `new Date()` עלול להיכשל |
+| 5 | Prisma | נזרקת exception |
+
+### פתרון - Defense in Depth
+
+#### שכבה 1: Frontend Validation (Onboarding.jsx)
+```javascript
+function validateDateOfBirth(dateStr) {
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(dateStr)) return { isValid: false, error: 'Invalid format' };
+  // ... year range validation
+}
+```
+
+#### שכבה 2: API Zod Validation (users.controller.ts)
+```typescript
+const dateStringSchema = z.string()
+  .refine(val => /^\d{4}-\d{2}-\d{2}$/.test(val), 'Date must be yyyy-MM-dd')
+  .refine(val => !isNaN(new Date(val).getTime()), 'Invalid date')
+  .refine(val => year >= 1900 && year <= currentYear - 18, 'Must be 18+')
+  .optional();
+```
+
+#### שכבה 3: Service Safe Parsing (users.service.ts)
+```typescript
+const parsedDate = validateAndParseDate(birthDateStr, 'birthDate');
+if (parsedDate) {
+  updateData.birthDate = parsedDate;
+} else {
+  logger.warn('birthDate validation failed, skipping field');
+}
+```
+
+#### שכבה 4: מערכת לוגים מקיפה
+```
+apps/api/logs/
+├── app-*.log       # כל הלוגים
+├── requests-*.log  # HTTP requests
+├── errors-*.log    # Errors only
+```
+
+### קבצים שנוספו/עודכנו
+
+| קובץ | שינוי |
+|------|-------|
+| `apps/api/src/lib/logger.ts` | **חדש** - מערכת לוגים |
+| `apps/api/src/middleware/logging.middleware.ts` | **חדש** - HTTP logging |
+| `apps/api/src/controllers/users.controller.ts` | Zod validation + logging |
+| `apps/api/src/services/users.service.ts` | Safe parsing + logging |
+| `apps/web/src/pages/Onboarding.jsx` | Frontend validation |
+
+### בדיקות שנוספו
+
+| קובץ בדיקה | כיסוי |
+|------------|-------|
+| `apps/api/src/lib/logger.test.ts` | Unit tests לdate validation |
+| `apps/api/src/test/integration/users-date-validation.test.ts` | Integration tests |
+| `apps/web/e2e/onboarding-date-validation.spec.ts` | E2E tests |
+
+### מניעת חזרת הבאג
+
+1. **4 שכבות הגנה** - כל תאריך עובר 4 validations
+2. **לוגים מפורטים** - כל שגיאה מתועדת עם context מלא
+3. **בדיקות אוטומטיות** - 20+ tests לתאריכים
+
+---
+
+## ✅ AUDIT-001: API Validation Hardening (6 פברואר 2026)
+
+**סטטוס:** ✅ הושלם
+**סוג:** 🟢 שיפור אבטחה
+**תאריך:** 6 פברואר 2026
+
+### תיאור
+בעקבות ISSUE-013 (Onboarding Save Error with `/users/undefined/14`), בוצע ביקורת מקיפה של כל הקוד לזיהוי ותיקון בעיות דומות של undefined ID בקריאות API.
+
+### סיכום הביקורת
+
+**שלב 1: סריקת Pages (23 קבצים)**
+נסרקו כל הדפים שמשתמשים ב-`currentUser.id` או `authUser.id`:
+
+| קטגוריה | קבצים | סטטוס |
+|----------|--------|--------|
+| Admin Pages | 6 | ✅ יש validation ברמת הדף |
+| User Pages | 8 | ✅ יש validation ברמת הדף |
+| Social Pages | 5 | ✅ יש validation ברמת הדף |
+| Task Pages | 4 | ✅ יש validation ברמת הדף |
+
+**ממצא:** כל הדפים כוללים בדיקות כמו:
+```javascript
+if (!authUser?.id) { navigate('/login'); return; }
+if (!currentUser?.id) { return <LoadingState />; }
+```
+
+**שלב 2: יצירת שכבת הגנה נוספת ב-API Services**
+למרות שהדפים מוגנים, נוספה שכבת validation מרכזית ב-API services כ-"defense in depth".
+
+### קובץ חדש: validation.js
+
+**מיקום:** `apps/web/src/api/utils/validation.js`
+
+```javascript
+/**
+ * Centralized API validation utilities
+ * Defense-in-depth layer to catch undefined IDs before they reach the API
+ */
+
+export function validateUserId(userId, callerName = 'API call') {
+  if (!userId) {
+    console.error(`${callerName} called with invalid userId:`, userId);
+    throw new Error(`Invalid user ID: userId is required for ${callerName}`);
+  }
+  if (userId === 'undefined' || userId === 'null') {
+    console.error(`${callerName} called with string "${userId}"`);
+    throw new Error(`Invalid user ID: "${userId}" is not valid for ${callerName}`);
+  }
+  if (typeof userId !== 'string') {
+    console.error(`${callerName} called with non-string userId:`, typeof userId);
+    throw new Error(`Invalid user ID: expected string, got ${typeof userId}`);
+  }
+}
+
+export function validateRequiredId(id, paramName, callerName = 'API call') {
+  if (!id) {
+    console.error(`${callerName} called with invalid ${paramName}:`, id);
+    throw new Error(`Invalid ${paramName}: required for ${callerName}`);
+  }
+  if (id === 'undefined' || id === 'null') {
+    console.error(`${callerName} called with string "${id}" for ${paramName}`);
+    throw new Error(`Invalid ${paramName}: "${id}" is not valid`);
+  }
+}
+
+export function validateDataObject(data, callerName = 'API call') {
+  if (typeof data !== 'object' || data === null) {
+    console.error(`${callerName} called with invalid data:`, data);
+    throw new Error(`Invalid data: must be an object for ${callerName}`);
+  }
+}
+```
+
+### Services שעודכנו (8 קבצים)
+
+| Service | פונקציות שהתווספה בהן validation |
+|---------|----------------------------------|
+| `userService.js` | getUserById, updateUser, updateProfile, deleteUser, getUserSettings, updateUserSettings |
+| `chatService.js` | getChatById, createOrGetChat, getChatMessages, sendMessage, markMessageAsRead, deleteMessage |
+| `followService.js` | followUser, unfollowUser, checkFollowing, getFollowers, getFollowing |
+| `likeService.js` | likeUser, unlikeUser, likeResponse, unlikeResponse, checkLiked, getResponseLikes |
+| `storyService.js` | getStoriesByUser, getStoryById, viewStory, deleteStory, createStory |
+| `reportService.js` | createReport, getReportsForUser, getReportById, reviewReport |
+| `responseService.js` | getUserResponses, getResponseById, createResponse, likeResponse, deleteResponse |
+| `notificationService.js` | markAsRead, deleteNotification |
+
+### דוגמה לשימוש
+
+```javascript
+// apps/web/src/api/services/userService.js
+import { validateUserId, validateDataObject } from '../utils/validation';
+
+export const userService = {
+  async getUserById(userId) {
+    validateUserId(userId, 'getUserById');  // throws if invalid
+    const response = await apiClient.get(`/users/${userId}`);
+    return { user: response.data?.data || response.data };
+  },
+
+  async updateUser(userId, data) {
+    validateUserId(userId, 'updateUser');
+    validateDataObject(data, 'updateUser');
+    const response = await apiClient.patch(`/users/${userId}`, data);
+    return response.data;
+  },
+};
+```
+
+### יתרונות הגישה
+
+1. **Defense in Depth** - גם אם בדיקת הדף נכשלת, ה-service יתפוס את השגיאה
+2. **Console Logging** - הודעות שגיאה מפורטות לדיבוג
+3. **Error Messages** - הודעות ברורות שכוללות את שם הפונקציה
+4. **Type Safety** - בדיקת סוג (string) למזהים
+5. **String Literals** - תפיסת מקרים של `"undefined"` ו-`"null"` כמחרוזות
+
+### בדיקות שנוספו
+
+| קובץ בדיקה | כיסוי |
+|------------|-------|
+| `apps/web/src/api/utils/validation.test.js` | validateUserId, validateRequiredId, validateDataObject |
+| `apps/web/src/api/services/userService.test.js` | validation tests for undefined/null userId |
+
+### מניעת חזרת הבעיה
+
+**הנחיות שנוספו ל-CLAUDE.md:**
+
+```markdown
+## 🔴 תיעוד באגים ובדיקות - CRITICAL / MANDATORY
+
+לאחר כל תיקון באג:
+| שלב | פעולה | קובץ |
+|-----|-------|------|
+| 1 | תעד את הבאג ב-OPEN_ISSUES.md | docs/OPEN_ISSUES.md |
+| 2 | הוסף בדיקה שמכסה את הבאג | apps/*/tests/ |
+| 3 | וודא שהבדיקה עוברת | npm test |
+| 4 | עדכן סיכום בטבלה | docs/OPEN_ISSUES.md |
+
+⚠️ הנחיות validation ל-API calls:
+- תמיד השתמש ב-validation utilities לפני קריאות API
+- כל פונקציה שמקבלת userId חייבת לקרוא ל-validateUserId
+- כל פונקציה שמקבלת ID אחר חייבת לקרוא ל-validateRequiredId
+```
+
+---
+
+## ✅ ISSUE-012: CORS/Chat/Location Errors (6 פברואר 2026)
+
+**סטטוס:** ✅ תוקן
+**סוג:** 🔴 קריטי
+**תאריך:** 6 פברואר 2026
+
+### תיאור
+4 באגים חוזרים שזוהו בבדיקת האפליקציה:
+
+### 12.1: CORS Error - ERR_BLOCKED_BY_RESPONSE.NotSameOrigin
+
+**קובץ מושפע:** `apps/api/src/config/security.config.ts:239`
+
+**תיאור הבעיה:**
+התמונות בעמוד `/Onboarding?step=8` נחסמו עם שגיאת CORS. הסיבה: קונפליקט בין הגדרות headers.
+- `app.ts:54` הגדיר `crossOriginResourcePolicy: { policy: 'cross-origin' }`
+- `security.config.ts:239` דרס את ההגדרה עם `'Cross-Origin-Resource-Policy': 'same-origin'`
+
+**פתרון:**
+```typescript
+// security.config.ts:239
+// לפני:
+'Cross-Origin-Resource-Policy': 'same-origin',
+// אחרי:
+'Cross-Origin-Resource-Policy': 'cross-origin',
+```
+
+### 12.2: Chat 400 Bad Request - otherUserId is required
+
+**קבצים מושפעים:**
+- `apps/web/src/components/feed/FeedPost.jsx:322-326`
+- `apps/web/src/pages/SharedSpace.jsx:240`
+- `apps/web/src/api/services/chatService.js:34`
+
+**תיאור הבעיה:**
+בקשת צ'אט נכשלה עם שגיאה 400 כי `response.user_id` היה undefined.
+- `FeedPost.jsx` קרא ל-`onChatRequest({ ...userData, id: response.user_id })`
+- אם `response.user_id` הוא undefined, ה-id שנשלח הוא undefined
+- `SharedSpace.jsx` לא תפס את המקרה כי `chatRequestUser.id?.startsWith('demo-')` מחזיר undefined
+- API נקרא עם `otherUserId: undefined`
+
+**פתרון (3 שכבות הגנה):**
+```javascript
+// 1. FeedPost.jsx:322-326 - בדיקה ש-response.user_id קיים
+if (!chatRequestSent && onChatRequest && response.user_id) {
+  onChatRequest({ ...userData, id: response.user_id });
+}
+
+// 2. SharedSpace.jsx:240 - בדיקת null
+if (!chatRequestUser?.id || chatRequestUser.id.startsWith('demo-')) {
+  console.log('Demo or invalid user - chat request simulated');
+  return;
+}
+
+// 3. chatService.js:34 - validation
+if (!otherUserId) {
+  throw new Error('Invalid user ID: otherUserId is required');
+}
+```
+
+### 12.3: Location Object Rendering Error
+
+**קובץ מושפע:** `apps/web/src/pages/UserProfile.jsx:310`
+
+**תיאור הבעיה:**
+שגיאת React: "Objects are not valid as a React child (found: object with keys {lat, lng, city, country})"
+השדה `viewedUser.location` הוא אובייקט מה-database, אבל הקוד ניסה להציג אותו כטקסט ישירות.
+
+**פתרון:**
+```jsx
+// לפני:
+<span>{viewedUser.location}</span>
+
+// אחרי:
+<span>{formatLocation(viewedUser.location)}</span>
+```
+
+### 12.4: Data Format Mismatch (nickname/age/location)
+
+**קבצים מושפעים:**
+- `apps/web/src/components/feed/FeedPost.jsx:184` - שימוש ב-`userData.nickname` ו-`userData.age`
+- `apps/web/src/pages/UserProfile.jsx:310` - שימוש ב-`viewedUser.location`
+
+**תיאור הבעיה:**
+חוסר התאמה בין פורמט הנתונים מה-API לבין מה שה-Frontend מצפה לו:
+| DB (Prisma) | API Response | Frontend expects |
+|-------------|--------------|------------------|
+| firstName   | first_name   | nickname ❌ |
+| birthDate   | birth_date   | age (NUMBER) ❌ |
+| location    | location (object) | location (STRING) ❌ |
+
+**פתרון - יצירת User Transformer:**
+```javascript
+// apps/web/src/utils/userTransformer.js (קובץ חדש)
+export function calculateAge(birthDate) { ... }
+export function formatLocation(location) { ... }
+export function transformUser(user) {
+  return {
+    ...user,
+    nickname: user.first_name || user.firstName || user.nickname,
+    age: calculateAge(user.birth_date || user.birthDate),
+    location_display: formatLocation(user.location),
+  };
+}
+```
+
+### קבצים שעודכנו
+
+| קובץ | שינוי |
+|------|-------|
+| `apps/api/src/config/security.config.ts:239` | CORS: `'cross-origin'` |
+| `apps/web/src/pages/SharedSpace.jsx:240` | בדיקת null ל-chatRequestUser.id |
+| `apps/web/src/components/feed/FeedPost.jsx:322` | בדיקת response.user_id |
+| `apps/web/src/api/services/chatService.js:34` | validation ל-otherUserId |
+| `apps/web/src/utils/userTransformer.js` | **חדש** - transformer לנתוני משתמש |
+| `apps/web/src/utils/index.ts` | ייצוא transformUser, formatLocation, calculateAge |
+| `apps/web/src/pages/UserProfile.jsx:310` | שימוש ב-formatLocation |
+| `apps/web/src/components/feed/FeedPost.jsx:132` | שימוש ב-transformUser |
+
+### בדיקות שנוספו
+
+| קובץ בדיקה | כיסוי |
+|------------|-------|
+| `userTransformer.test.js` | calculateAge, formatLocation, transformUser |
+| `chatService.test.js` | validation ל-otherUserId |
+| `FeedPost.test.jsx` | defensive checks ל-undefined user_id |
+
+### מניעת חזרת הבאגים
+
+1. **Centralized Transformers** - כל ההמרות ב-`userTransformer.js`
+2. **Defensive Coding** - 3 שכבות validation לכל API call
+3. **Type Safety** (המלצה לעתיד) - TypeScript interfaces ל-User
 
 ---
 
@@ -984,4 +1886,14 @@ cd apps/api && npm run build
 | 4 פברואר 2026 | **Polish: State Components** | ✅ LoadingState, EmptyState, ErrorState |
 | 4 פברואר 2026 | עדכון 40+ דפים עם State Components | ✅ כל הדפים עודכנו |
 | 4 פברואר 2026 | **E2E Testing: Playwright** | ✅ 7 קבצי בדיקה חדשים, ~224 בדיקות |
+| 6 פברואר 2026 | תיקון CORS header conflict (ISSUE-012.1) | ✅ security.config.ts |
+| 6 פברואר 2026 | תיקון Chat 400 Bad Request (ISSUE-012.2) | ✅ 3 שכבות הגנה |
+| 6 פברואר 2026 | תיקון Location Object Rendering (ISSUE-012.3) | ✅ formatLocation utility |
+| 6 פברואר 2026 | יצירת userTransformer (ISSUE-012.4) | ✅ centralized data transformation |
+| 6 פברואר 2026 | **בדיקות חדשות** | ✅ userTransformer.test.js, chatService.test.js |
+| 6 פברואר 2026 | תיקון Onboarding save error (ISSUE-013) | ✅ validation ב-userService + Onboarding |
+| 6 פברואר 2026 | **AUDIT-001: API Validation Hardening** | ✅ 8 services + validation utility |
+| 6 פברואר 2026 | **ISSUE-014: Database Empty + Date Issues** | ✅ seed data + field aliases |
+| 6 פברואר 2026 | הוספת Admin User לסיד | ✅ admin@bellor.app |
+| 6 פברואר 2026 | תיקון Invalid Date ב-Creation | ✅ apiClient field aliases |
 

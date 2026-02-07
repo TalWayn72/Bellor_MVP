@@ -94,11 +94,9 @@ docker compose -f docker-compose.prod.yml up -d
 - רוצה auto-scaling
 
 ### תמיכה ב-Kubernetes:
-- **AWS** → EKS (Elastic Kubernetes Service)
-- **Google Cloud** → GKE (Google Kubernetes Engine)
-- **Azure** → AKS (Azure Kubernetes Service)
-- **DigitalOcean** → DOKS (DigitalOcean Kubernetes)
-- **Self-hosted** → k3s / kubeadm
+- **VPS providers** → k3s / kubeadm על כל VPS
+- **Managed K8s** → DigitalOcean, Linode, Vultr
+- **On-premises** → k3s / kubeadm על שרתים מקומיים
 
 ---
 
@@ -106,39 +104,36 @@ docker compose -f docker-compose.prod.yml up -d
 
 ### תרחיש 1: Startup (100-1K משתמשים)
 ```
-Option A: Docker Compose על DigitalOcean
+Option A: Docker Compose על VPS
 ├── VM 4GB RAM, 2 CPUs              $24/month
-├── Managed PostgreSQL              $15/month
-├── Redis (בתוך VM)                  $0/month
+├── PostgreSQL (container)           $0/month
+├── Redis (container)                $0/month
 ├── Domain + SSL                     $5/month
-└── Total                           $44/month
+└── Total                           $29/month
 ```
 
 ### תרחיש 2: Growing (1K-10K משתמשים)
 ```
 Option B: Docker Compose על Hetzner
 ├── VM 8GB RAM, 4 CPUs (Hetzner)   €15/month (~$16)
-├── Managed PostgreSQL (DO)         $15/month
-├── Redis (Upstash)                 $10/month
+├── PostgreSQL (container)           $0/month
+├── Redis (container)                $0/month
 ├── CDN (Cloudflare R2)              $5/month
-└── Total                           $46/month
+└── Total                           $21/month
 ```
 
 ### תרחיש 3: Scale (10K+ משתמשים)
 ```
-Option C: Kubernetes על DigitalOcean
-├── DOKS Cluster (3 nodes)         $72/month
-├── Managed PostgreSQL (HA)        $60/month
-├── Managed Redis                  $15/month
+Option C: Kubernetes על VPS Cluster
+├── K8s Cluster (3 nodes)          $72/month
+├── PostgreSQL (container/HA)       $0/month
+├── Redis (container)               $0/month
 ├── Load Balancer                  $12/month
 ├── CDN + Storage                  $20/month
-└── Total                         $179/month
+└── Total                         $104/month
 ```
 
-**השוואה לPaaS:**
-- AWS ECS + RDS + ElastiCache = ~$300-500/month
-- Heroku + add-ons = ~$200-400/month
-- **חיסכון: 40-60%**
+**יתרון:** הכל בקונטיינרים, ללא תלות בשירותים מנוהלים
 
 ---
 
@@ -256,10 +251,10 @@ kubectl rollout status deployment/bellor-api
 - **Setup:** 1-2 שעות
 
 #### שלב 3: Scale / Enterprise (שנה 2+)
-**AWS EKS או GCP GKE** - Kubernetes
-- **עלות:** $200-1000+/month
-- **סיבה:** שירותים מתקדמים, global reach, compliance
-- **Setup:** 1-2 ימים
+**Kubernetes על VPS Cluster או On-premises**
+- **עלות:** $100-500+/month
+- **סיבה:** שליטה מלאה, ללא נעילת ספק, הכל בקונטיינרים
+- **Setup:** כמה שעות
 
 ---
 
@@ -300,10 +295,10 @@ kubectl rollout status deployment/bellor-api
    - **יתרונות:** זול, פשוט, זהה לפרודקשן
 
 2. **שלב ה-Launch (בעוד 3-6 חודשים):**
-   - Docker Compose על DigitalOcean
-   - **עלות:** $50-100/חודש
+   - Docker Compose על VPS גדול יותר
+   - **עלות:** $30-60/חודש
    - **זמן setup:** 1 שעה
-   - **יתרונות:** backup אוטומטי, managed DB
+   - **יתרונות:** backup אוטומטי, הכל בקונטיינרים
 
 3. **שלב ה-Scale (בעוד שנה):**
    - Kubernetes על DigitalOcean (DOKS)

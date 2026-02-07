@@ -33,6 +33,7 @@ lerna-debug.log*
 # IDE
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea/
 *.swp
 *.swo
@@ -48,6 +49,8 @@ lerna-debug.log*
 coverage/
 .nyc_output/
 *.local
+apps/web/test-results/
+apps/web/playwright-report/
 
 # Misc
 .cache/
@@ -72,6 +75,15 @@ Thumbs.db
 *.temp
 tmp/
 temp/
+
+# User uploads (generated at runtime)
+apps/api/public/uploads/
+
+# Security scan artifacts
+.zap/
+
+# Windows artifacts
+nul
 
 # Build logs
 *.tsbuildinfo

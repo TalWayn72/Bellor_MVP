@@ -5,6 +5,7 @@
 
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { FollowsService } from '../services/follows.service.js';
+import { isDemoUserId } from '../utils/demoId.util.js';
 
 interface FollowBody {
   userId: string;
@@ -31,6 +32,11 @@ export const FollowsController = {
       return reply.status(400).send({ error: 'userId is required' });
     }
 
+    // Reject operations on demo users
+    if (isDemoUserId(followingId)) {
+      return reply.status(400).send({ error: 'Cannot perform operations on demo users' });
+    }
+
     try {
       const follow = await FollowsService.followUser(followerId, followingId);
       return reply.send({ follow });
@@ -49,6 +55,11 @@ export const FollowsController = {
   ) {
     const followerId = (request.user as any).id;
     const { userId: followingId } = request.params;
+
+    // Reject operations on demo users
+    if (isDemoUserId(followingId)) {
+      return reply.status(400).send({ error: 'Cannot perform operations on demo users' });
+    }
 
     try {
       const result = await FollowsService.unfollowUser(followerId, followingId);

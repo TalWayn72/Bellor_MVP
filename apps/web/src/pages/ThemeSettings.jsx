@@ -41,7 +41,7 @@ export default function ThemeSettings() {
   }
 
   // Check if user is admin
-  if (currentUser?.role !== 'admin') {
+  if (!currentUser?.is_admin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
         <div className="text-center">

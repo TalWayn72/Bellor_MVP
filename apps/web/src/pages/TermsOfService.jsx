@@ -55,7 +55,11 @@ export default function TermsOfService() {
       content: 'We may update these terms from time to time. Continued use of Bellør after changes constitutes acceptance of the new terms. We will notify you of significant changes.'
     },
     {
-      title: '12. Contact',
+      title: '12. Data Protection',
+      content: 'We comply with GDPR, CCPA, and other applicable data protection regulations. You have the right to access, export, correct, and delete your personal data at any time. For details, see our Privacy Policy.'
+    },
+    {
+      title: '13. Contact',
       content: 'If you have questions about these Terms of Service, please contact us at legal@bellor.com'
     }
   ];

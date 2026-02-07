@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Bellor</string>
+    <string name="title_activity_main">Bellor</string>
+    <string name="package_name">com.bellor.app</string>
+    <string name="custom_url_scheme">com.bellor.app</string>
+</resources>

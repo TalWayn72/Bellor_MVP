@@ -4,6 +4,13 @@
 **Migration from Base44:** All phases through Phase 6 Complete ✅
 **Current Phase:** Phase 7 - Deployment
 
+## ⛔ Old Projects - DO NOT ACCESS
+The following are OLD projects that are **no longer active**. Do NOT access, read, or modify any files in them:
+- **`C:\Users\talwa\bellor`** - Old Bellor project (Base44-based)
+- **`C:\Users\talwa\bellor_OLD.zip`** - Archived old Bellor project
+
+The **only active project** is **Bellor_MVP** at `C:\Users\talwa\.claude\projects\Bellor_MVP`.
+
 ## הנחיות עבודה חשובות
 - **תמיד לקרוא את ההגדרות לפני עבודה** - לקרוא את CLAUDE.md בתחילת כל שיחה
 - **טען את החוקים ל-Context Window** - בכל שיחה חדשה, לטעון את כל חוקי העבודה מקובץ זה
@@ -35,6 +42,13 @@ npm run dev:api
 # שלב 3 (אופציונלי): הפעלת Frontend (port 5173)
 npm run dev
 ```
+
+### ⚠️ חשוב: אם מסד הנתונים ריק
+אם אין משתמשים/נתונים במערכת (למשל אחרי התקנה חדשה), יש להריץ את ה-seed:
+```bash
+cd apps/api && npx prisma db seed
+```
+זה יוסיף 20 משתמשי דמו, משימות, תגובות, צ'אטים ועוד.
 
 ### בדיקת שירותים פעילים:
 ```bash
@@ -75,9 +89,13 @@ docker ps && netstat -ano | findstr ":3000 :5173"
 3. ✅ וודא ש-Frontend רץ על פורט 5173
 4. ✅ בדוק שאין שגיאות ב-Console של הדפדפן
 5. ✅ הרץ בדיקות: `npm run test` (אם רלוונטי)
-6. ✅ תעד שינויים ב-OPEN_ISSUES.md (אם נדרש)
+6. ✅ **אם תוקנו באגים:** תעד ב-OPEN_ISSUES.md + צור בדיקות (ראה סעיף "תיעוד באגים")
+7. ✅ עדכן תיעוד (CLAUDE.md, README.md) אם נדרש
 
-**אין לסיים משימה ללא אישור שכל השירותים פועלים!**
+**⚠️ אין לסיים משימה ללא:**
+- אישור שכל השירותים פועלים
+- **תיעוד באגים שתוקנו ב-OPEN_ISSUES.md**
+- **יצירת בדיקות לכל באג שתוקן**
 
 ## 📦 Git Sync - סנכרון קוד
 
@@ -107,21 +125,89 @@ git add -A && git commit -m "הודעה" && git push
 
 **⚠️ אסור לעשות commit אוטומטי ללא אישור המשתמש!**
 
-## תיעוד באגים ובדיקות
-- **תעד כל באג ב-OPEN_ISSUES.md** - כאשר מזהים באג, לתעד אותו מיד במסמך `docs/OPEN_ISSUES.md`
-- **צור בדיקה לכל באג** - לכל באג שמתוקן, ליצור בדיקה אוטומטית שמוודאת שהתיקון עובד
-- **עדכן סטטוס בדיקה ותיקון** - לעדכן את הסטטוס במסמך (🔴 פתוח / 🟡 בטיפול / ✅ תוקן)
-- **הוסף לטבלת היסטוריה** - להוסיף את התיקון לטבלת היסטוריית העדכונים
-- **פורמט תיעוד באג:**
-  ```markdown
-  ### ISSUE-XXX: תיאור קצר
-  **סטטוס:** 🔴/🟡/✅
-  **חומרה:** קריטי/בינוני/נמוך
-  **קבצים מושפעים:** רשימת קבצים
-  **תיאור הבעיה:** מה קורה
-  **פתרון:** מה תוקן
-  **בדיקה:** שם קובץ הבדיקה
-  ```
+## 🔴 תיעוד באגים ובדיקות - CRITICAL / MANDATORY
+
+**⚠️ חובה לבצע לאחר כל תיקון באג! אין לסיים משימת תיקון באג ללא ביצוע כל הצעדים!**
+
+### תהליך חובה לאחר תיקון באג:
+| # | צעד | תיאור |
+|---|-----|-------|
+| 1 | ✅ תעד ב-OPEN_ISSUES.md | מיד לאחר זיהוי ותיקון |
+| 2 | ✅ צור בדיקות אוטומטיות | unit test / integration test לכל באג |
+| 3 | ✅ עדכן סטטוס | 🔴 פתוח → 🟡 בטיפול → ✅ תוקן |
+| 4 | ✅ עדכן טבלת סיכום | בראש המסמך |
+| 5 | ✅ הוסף להיסטוריה | בסוף המסמך |
+
+### פורמט תיעוד באג:
+```markdown
+### ISSUE-XXX: תיאור קצר
+
+**סטטוס:** ✅ תוקן
+**חומרה:** 🔴 קריטי / 🟡 בינוני / 🟢 נמוך
+**תאריך:** DD Month YYYY
+
+**קבצים מושפעים:**
+- `path/to/file.ts:line`
+
+**תיאור הבעיה:** מה קרה ולמה
+
+**פתרון:** מה תוקן ואיך
+
+**בדיקות שנוספו:**
+| קובץ בדיקה | כיסוי |
+|------------|-------|
+| `file.test.ts` | תיאור |
+```
+
+### למה זה חשוב?
+- **מניעת חזרה** - תיעוד מונע באגים חוזרים
+- **מעקב** - מאפשר לראות היסטוריית תיקונים
+- **בדיקות** - מוודאות שהתיקון עובד לאורך זמן
+- **למידה** - מאפשר להבין דפוסים של באגים
+
+## ⚠️ חובת בדיקות (Mandatory Testing)
+
+**כל פיתוח חדש מחייב יצירת בדיקות מקיפות!**
+
+### חוקי בדיקות
+| סוג שינוי | דרישת בדיקות |
+|-----------|---------------|
+| **פיצ'ר חדש** | בדיקות Unit + Integration |
+| **תיקון באג** | בדיקת רגרסיה שמוודאת שהבאג לא חוזר |
+| **שינוי API** | בדיקות אינטגרציה לכל endpoint שהשתנה |
+| **שינוי UI** | בדיקות קומפוננטות + E2E במידת הצורך |
+| **שינוי Configuration** | בדיקות שמוודאות שההגדרות תקינות |
+
+### תהליך פיתוח עם בדיקות
+1. **לפני פיתוח** - זהה אילו בדיקות נדרשות
+2. **במהלך פיתוח** - כתוב בדיקות לכל פונקציונליות חדשה
+3. **אחרי פיתוח** - הרץ את כל הבדיקות לפני commit
+4. **ב-PR** - ודא שכל הבדיקות עוברות
+
+### מיקום קבצי בדיקות
+| סוג | מיקום | סיומת |
+|-----|-------|--------|
+| Backend Unit | `apps/api/src/services/*.test.ts` | `.test.ts` |
+| Backend Integration | `apps/api/src/test/integration/*.test.ts` | `.test.ts` |
+| Frontend Unit | `apps/web/src/**/*.test.{ts,tsx}` | `.test.ts/tsx` |
+| E2E | `apps/web/e2e/*.spec.ts` | `.spec.ts` |
+
+### פקודות בדיקה
+```bash
+# הרצת כל הבדיקות
+npm run test
+
+# בדיקות Backend בלבד
+npm run test:api
+
+# בדיקות Frontend בלבד
+npm run test:web
+
+# בדיקות E2E
+npm run test:e2e
+```
+
+**⚠️ אין לבצע merge או deploy ללא בדיקות מלאות!**
 
 ## Permissions
 - All Bash commands are allowed in this project
@@ -240,15 +326,36 @@ Priority tasks:
 - [x] E2E Tests - 11 קבצי בדיקה, ~224 בדיקות Playwright
 - [x] **100% Backend Services Coverage** - כל 14 services מכוסים בבדיקות
 
-### 📋 Phase 7: Deployment (Upcoming)
+### ✅ Phase 7: Deployment (COMPLETE)
 - Infrastructure setup
 - CI/CD configuration
 - Production deployment
+
+### ⏳ Phase 10: Mobile App (IN PROGRESS - 30%)
+- [x] Capacitor installed and configured
+- [x] Android platform added (`apps/web/android/`)
+- [x] iOS platform added (`apps/web/ios/`)
+- [x] capacitor.config.ts created
+- [x] npm scripts added for Capacitor
+- [ ] Upload Keystore (Android)
+- [ ] AAB build
+- [ ] Store listing (pending account setup)
+
+**Capacitor Commands:**
+```bash
+npm run cap:sync        # Sync web assets to native projects
+npm run cap:open:android # Open in Android Studio
+npm run cap:open:ios     # Open in Xcode (macOS only)
+npm run cap:build       # Build web + sync
+```
 
 ## Important Files
 - `docs/MIGRATION_PLAN.md` - Complete migration strategy
 - `docs/PHASE_1_FOUNDATION_COMPLETE.md` - Phase 1 summary
 - `docs/OPEN_ISSUES.md` - Bug tracking and testing status
+- `docs/SECURITY_PLAN.md` - Comprehensive security hardening plan
+- `docs/SECURITY_CHECKLIST.md` - Pre-release security audit checklist
+- `docs/INCIDENT_RESPONSE.md` - Incident response procedures (P1-P4)
 - `docs/plans/` - Implementation plans archive
 - `README.md` - Project overview
 - `WORK_INSTRUCTIONS.md` - Task tracking
@@ -349,8 +456,21 @@ All Base44 dependencies have been removed (Phase 4 complete).
 
 ---
 
-**Last Updated:** February 4, 2026
+**Last Updated:** February 7, 2026
 **Current Phase:** Phase 7 - Deployment (Phase 1-6 Complete)
+
+## Security Hardening Status
+- ✅ **Input Sanitization** - Multi-layer (client + server), injection detection, field-level rules
+- ✅ **File Upload Security** - Magic bytes validation, EXIF stripping, re-encoding, filename sanitization
+- ✅ **Auth Hardening** - Brute force protection, security logging, password strength validation
+- ✅ **HTTP Security** - CSP, HSTS, CORS, X-Frame-Options, COEP/COOP/CORP
+- ✅ **Container Security** - Non-root, read-only FS, capability dropping, resource limits
+- ✅ **Client-side Security** - SecureTextInput, SecureImageUpload, paste guards, useSecureInput/useSecureUpload
+- ✅ **Monitoring** - Security event logging, incident response plan
+- **Files:** `apps/api/src/security/`, `apps/api/src/config/security.config.ts`, `apps/web/src/security/`, `apps/web/src/hooks/useSecure*.ts`, `apps/web/src/components/secure/`
 
 ## Important Documentation
 - `docs/OPEN_ISSUES.md` - Bug tracking and testing status
+- `docs/SECURITY_PLAN.md` - Security hardening plan
+- `docs/SECURITY_CHECKLIST.md` - Pre-release security audit
+- `docs/INCIDENT_RESPONSE.md` - Incident response procedures

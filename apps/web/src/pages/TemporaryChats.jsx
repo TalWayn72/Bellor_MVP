@@ -11,60 +11,41 @@ import { Avatar, AvatarImage, AvatarFallback, AvatarStatus } from '@/components/
 import { createPageUrl } from '@/utils';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import { ListSkeleton, EmptyState } from '@/components/states';
+import UserBioDialog from '../components/user/UserBioDialog';
+import { getDemoTempChats } from '@/data/demoData';
 
 export default function TemporaryChats() {
   const navigate = useNavigate();
   const { currentUser, isLoading } = useCurrentUser();
   const [filterStatus, setFilterStatus] = useState('all');
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isBioDialogOpen, setIsBioDialogOpen] = useState(false);
 
-  // Demo temporary chats for new users
-  const getDemoTemporaryChats = () => [
-    {
-      id: 'demo-temp-chat-1',
-      user1_id: currentUser?.id || 'demo',
-      user2_id: 'demo-user-1',
-      user2_name: 'Sarah',
-      user2_image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
-      is_temporary: true,
-      status: 'active',
-      expires_at: new Date(Date.now() + 18 * 60 * 60 * 1000).toISOString(),
-      created_date: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'demo-temp-chat-2',
-      user1_id: 'demo-user-2',
-      user2_id: currentUser?.id || 'demo',
-      user1_name: 'David',
-      user1_image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
-      is_temporary: true,
-      status: 'pending',
-      expires_at: new Date(Date.now() + 22 * 60 * 60 * 1000).toISOString(),
-      created_date: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'demo-temp-chat-3',
-      user1_id: currentUser?.id || 'demo',
-      user2_id: 'demo-user-3',
-      user2_name: 'Michael',
-      user2_image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100',
-      is_temporary: true,
-      status: 'active',
-      expires_at: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(),
-      created_date: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()
+  const handleAvatarClick = (e, userId, userName, userImage, chatId) => {
+    e.stopPropagation(); // Prevent card click
+    console.log('[TemporaryChats] Avatar clicked, showing bio for:', { userId, userName });
+    setSelectedUser({ userId, userName, userImage, chatId });
+    setIsBioDialogOpen(true);
+  };
+
+  const handleStartChatFromDialog = () => {
+    if (selectedUser?.chatId) {
+      navigate(createPageUrl(`PrivateChat?chatId=${selectedUser.chatId}`));
     }
-  ];
+  };
 
+  // chatService and getDemoTempChats handle demo users via centralized demoData
   const { data: temporaryChats = [], isLoading: chatsLoading } = useQuery({
     queryKey: ['temporaryChats', currentUser?.id],
     queryFn: async () => {
-      if (!currentUser) return getDemoTemporaryChats();
+      if (!currentUser) return getDemoTempChats(currentUser?.id);
       try {
         const result = await chatService.getChats({ is_temporary: true, limit: 50 });
         const chats = result.chats || [];
         // Return demo data if no real chats
-        return chats.length > 0 ? chats : getDemoTemporaryChats();
+        return chats.length > 0 ? chats : getDemoTempChats(currentUser?.id);
       } catch (error) {
-        return getDemoTemporaryChats();
+        return getDemoTempChats(currentUser?.id);
       }
     },
     enabled: !!currentUser,
@@ -182,7 +163,11 @@ export default function TemporaryChats() {
                   className={`cursor-pointer ${isExpired ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <div className="p-4 flex items-center gap-4">
-                    <div className="relative">
+                    <button
+                      className="relative cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={(e) => handleAvatarClick(e, otherUserId, otherUserName, otherUserImage, chat.id)}
+                      title="Click to view bio"
+                    >
                       <Avatar size="lg">
                         <AvatarImage
                           src={otherUserImage || `https://i.pravatar.cc/150?u=${otherUserId}`}
@@ -193,7 +178,7 @@ export default function TemporaryChats() {
                       {chat.status === 'active' && !isExpired && (
                         <AvatarStatus status="online" size="lg" />
                       )}
-                    </div>
+                    </button>
 
                     <div className="flex-1 text-right">
                       <h3 className="font-semibold text-foreground mb-1">
@@ -233,6 +218,20 @@ export default function TemporaryChats() {
           </div>
         )}
       </div>
+
+      {/* User Bio Dialog */}
+      <UserBioDialog
+        isOpen={isBioDialogOpen}
+        onClose={() => {
+          setIsBioDialogOpen(false);
+          setSelectedUser(null);
+        }}
+        userId={selectedUser?.userId}
+        userName={selectedUser?.userName}
+        userImage={selectedUser?.userImage}
+        onStartChat={handleStartChatFromDialog}
+        showChatButton={true}
+      />
     </div>
   );
 }

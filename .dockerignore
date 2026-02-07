@@ -1,0 +1,85 @@
+# ==================================
+# Bellor MVP - Docker Ignore
+# ==================================
+# Prevents sensitive and unnecessary files
+# from being included in Docker build context
+
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Environment files (NEVER include in images)
+.env
+.env.*
+!.env.example
+
+# Node modules (rebuilt in Docker)
+node_modules
+**/node_modules
+
+# Build outputs
+dist
+**/dist
+build
+**/build
+
+# Test files
+coverage
+**/coverage
+**/*.test.*
+**/*.spec.*
+**/e2e
+**/__tests__
+
+# Documentation
+docs
+*.md
+!README.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs
+
+# Temporary files
+tmp
+temp
+*.tmp
+*.temp
+
+# CI/CD
+.github
+
+# Development configs
+docker-compose.yml
+docker-compose.override.yml
+docker-compose.monitoring.yml
+docker-compose.all-in-one.yml
+
+# Design files
+*.json.bak
+figma_design_system.json
+FIGMA_IMPLEMENTATION_PLAN.md
+DESIGN_ALIGNMENT_PLAN.md
+
+# Scripts (not needed in runtime)
+scripts
+
+# Claude config
+.claude
+
+# Infrastructure (Terraform, K8s - not needed in app images)
+infrastructure/terraform
+infrastructure/kubernetes
+infrastructure/k6
+infrastructure/monitoring

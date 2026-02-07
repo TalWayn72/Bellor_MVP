@@ -18,6 +18,23 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    # Security hardening (CIS Docker Benchmark)
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 256M
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -78,6 +95,23 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=50m
+      - /var/cache/nginx:size=50m
+      - /var/run:size=10m
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
     networks:
       - bellor-network
     depends_on:
@@ -93,6 +127,14 @@ services:
     image: postgres:16-alpine
     container_name: bellor-postgres
     restart: unless-stopped
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-bellor}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -121,6 +163,14 @@ services:
     image: redis:7-alpine
     container_name: bellor-redis
     restart: unless-stopped
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis-data:/data

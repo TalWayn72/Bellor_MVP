@@ -66,4 +66,22 @@ export default async function usersRoutes(app: FastifyInstance) {
     preHandler: authMiddleware,
     handler: UsersController.deactivateUser,
   });
+
+  /**
+   * GET /users/:id/export
+   * GDPR Data Export - Export all user data
+   */
+  app.get('/:id/export', {
+    preHandler: authMiddleware,
+    handler: UsersController.exportUserData,
+  });
+
+  /**
+   * DELETE /users/:id/gdpr
+   * GDPR Right to Erasure - Permanently delete all user data
+   */
+  app.delete('/:id/gdpr', {
+    preHandler: authMiddleware,
+    handler: UsersController.deleteUserGDPR,
+  });
 }

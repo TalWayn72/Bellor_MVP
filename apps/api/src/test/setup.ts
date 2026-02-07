@@ -16,6 +16,28 @@ process.env.JWT_REFRESH_SECRET = 'test-refresh-secret-min-32-chars-for-testing-8
 process.env.REDIS_URL = 'redis://localhost:6379';
 process.env.FRONTEND_URL = 'http://localhost:5173';
 
+// Mock email service (no emails sent in tests)
+vi.mock('../lib/email.js', () => ({
+  sendEmail: vi.fn().mockResolvedValue(true),
+  sendPasswordResetEmail: vi.fn().mockResolvedValue(true),
+}));
+
+// Mock cache utility (all cache operations are no-ops in tests)
+vi.mock('../lib/cache.js', () => ({
+  CacheTTL: { USER: 600, MISSION: 1800, MISSION_TODAY: 3600, ACHIEVEMENT: 3600, SHORT: 300 },
+  CacheKey: {
+    user: (id: string) => `cache:user:${id}`,
+    mission: (id: string) => `cache:mission:${id}`,
+    missionToday: () => `cache:mission:today`,
+    achievement: (id: string) => `cache:achievement:${id}`,
+    achievementsList: () => `cache:achievements:list`,
+  },
+  cacheGet: vi.fn().mockResolvedValue(null),
+  cacheSet: vi.fn().mockResolvedValue(undefined),
+  cacheDel: vi.fn().mockResolvedValue(undefined),
+  cacheDelMany: vi.fn().mockResolvedValue(undefined),
+}));
+
 // Mock Prisma before any imports
 vi.mock('../lib/prisma.js', () => ({
   prisma: {
@@ -52,6 +74,7 @@ vi.mock('../lib/prisma.js', () => ({
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+      count: vi.fn(),
     },
     response: {
       findUnique: vi.fn(),
@@ -159,6 +182,7 @@ vi.mock('../lib/redis.js', () => ({
     zrange: vi.fn(),
     publish: vi.fn(),
     subscribe: vi.fn(),
+    keys: vi.fn().mockResolvedValue([]),
     ping: vi.fn().mockResolvedValue('PONG'),
     quit: vi.fn().mockResolvedValue('OK'),
   },

@@ -17,6 +17,16 @@ export const LikesService = {
    * Like a user
    */
   async likeUser(userId: string, targetUserId: string, likeType: LikeType = 'ROMANTIC') {
+    // Verify target user exists
+    const targetUser = await prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: { id: true },
+    });
+
+    if (!targetUser) {
+      throw new Error('Target user not found');
+    }
+
     // Check if like already exists
     const existing = await prisma.like.findUnique({
       where: {

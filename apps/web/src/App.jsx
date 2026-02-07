@@ -4,13 +4,14 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { SocketProvider } from '@/components/providers/SocketProvider';
 import { NavigationProvider } from '@/contexts/NavigationContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import OAuthCallback from './pages/OAuthCallback';
+import BackendStatus from '@/components/BackendStatus';
 
 // Loading spinner for lazy-loaded pages
 const PageLoader = () => (
@@ -85,19 +86,22 @@ const AuthenticatedApp = () => {
 function App() {
 
   return (
+    <>
+    <BackendStatus />
     <AuthProvider>
       <SocketProvider>
         <QueryClientProvider client={queryClientInstance}>
-          <Router>
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <NavigationProvider>
               <NavigationTracker />
               <AuthenticatedApp />
             </NavigationProvider>
-          </Router>
+          </BrowserRouter>
           <Toaster />
         </QueryClientProvider>
       </SocketProvider>
     </AuthProvider>
+    </>
   )
 }
 

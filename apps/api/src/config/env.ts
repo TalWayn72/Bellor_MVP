@@ -26,9 +26,9 @@ const envSchema = z.object({
   R2_BUCKET: z.string().optional(),
   CDN_URL: z.string().url().optional(),
 
-  // Email (SendGrid / AWS SES)
-  SENDGRID_API_KEY: z.string().optional(),
-  EMAIL_FROM: z.string().email().optional(),
+  // Email (Resend)
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().default('Bellor <noreply@bellor.com>'),
 
   // SMS (Twilio)
   TWILIO_ACCOUNT_SID: z.string().optional(),

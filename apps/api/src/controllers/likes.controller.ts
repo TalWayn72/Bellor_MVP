@@ -6,6 +6,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { LikesService } from '../services/likes.service.js';
 import { LikeType } from '@prisma/client';
+import { isDemoUserId, isDemoId } from '../utils/demoId.util.js';
 
 interface LikeUserBody {
   targetUserId: string;
@@ -42,10 +43,18 @@ export const LikesController = {
       return reply.status(400).send({ error: 'Cannot like yourself' });
     }
 
+    // Reject operations on demo users
+    if (isDemoUserId(targetUserId)) {
+      return reply.status(400).send({ error: 'Cannot perform operations on demo users' });
+    }
+
     try {
       const result = await LikesService.likeUser(userId, targetUserId, likeType);
       return reply.send(result);
     } catch (error: any) {
+      if (error.message === 'Target user not found') {
+        return reply.status(404).send({ error: 'Target user not found' });
+      }
       return reply.status(500).send({ error: error.message });
     }
   },
@@ -60,6 +69,11 @@ export const LikesController = {
   ) {
     const userId = (request.user as any).id;
     const { targetUserId } = request.params;
+
+    // Reject operations on demo users
+    if (isDemoUserId(targetUserId)) {
+      return reply.status(400).send({ error: 'Cannot perform operations on demo users' });
+    }
 
     try {
       const result = await LikesService.unlikeUser(userId, targetUserId);
@@ -84,6 +98,11 @@ export const LikesController = {
       return reply.status(400).send({ error: 'responseId is required' });
     }
 
+    // Reject operations on demo responses
+    if (isDemoId(responseId)) {
+      return reply.status(400).send({ error: 'Cannot perform operations on demo content' });
+    }
+
     try {
       const like = await LikesService.likeResponse(userId, responseId);
       return reply.send({ like });
@@ -102,6 +121,11 @@ export const LikesController = {
   ) {
     const userId = (request.user as any).id;
     const { responseId } = request.params;
+
+    // Reject operations on demo responses
+    if (isDemoId(responseId)) {
+      return reply.status(400).send({ error: 'Cannot perform operations on demo content' });
+    }
 
     try {
       const result = await LikesService.unlikeResponse(userId, responseId);

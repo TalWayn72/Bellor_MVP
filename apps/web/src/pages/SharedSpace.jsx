@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { missionService, responseService, followService, chatService } from '@/api';
 import { useQuery } from '@tanstack/react-query';
+import { getDemoResponses, getDemoChatUsers } from '@/data/demoData';
 import { Menu, Bell, Heart, X } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import FeedPost from '../components/feed/FeedPost';
@@ -82,80 +83,17 @@ export default function SharedSpace() {
     queryKey: ['myFollowing', currentUser?.id],
     queryFn: async () => {
       if (!currentUser) return [];
-      const result = await followService.getMyFollowing();
-      return (result.following || []).map(f => f.id);
+      try {
+        const result = await followService.getMyFollowing();
+        // Backend returns { following: [userId1, userId2, ...] } - array of IDs
+        return result?.following || [];
+      } catch (error) {
+        console.error('Error fetching following list:', error);
+        return [];
+      }
     },
     enabled: !!currentUser,
   });
-
-  // Demo responses for new users
-  const getDemoResponses = () => [
-    {
-      id: 'demo-response-1',
-      user_id: 'demo-user-1',
-      mission_id: 'demo-mission-1',
-      text_content: 'My perfect day would start with sunrise yoga on the beach, followed by a homemade brunch. Then exploring a new hiking trail and ending with stargazing! 🌅🏔️✨',
-      response_type: 'text',
-      is_public: true,
-      created_date: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      likes_count: 24,
-      comments_count: 5,
-      hashtags: ['perfectday', 'adventure'],
-      user: { id: 'demo-user-1', nickname: 'Sarah', profile_images: ['https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200'] }
-    },
-    {
-      id: 'demo-response-2',
-      user_id: 'demo-user-2',
-      mission_id: 'demo-mission-1',
-      text_content: 'היום המושלם שלי: קפה בבוקר מול הים, יום בטבע עם חברים, וערב של משחקי קופסא! 🌊🌿🎲',
-      response_type: 'text',
-      is_public: true,
-      created_date: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-      likes_count: 18,
-      comments_count: 3,
-      hashtags: ['perfectday', 'friends'],
-      user: { id: 'demo-user-2', nickname: 'David', profile_images: ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200'] }
-    },
-    {
-      id: 'demo-response-3',
-      user_id: 'demo-user-3',
-      mission_id: 'demo-mission-2',
-      text_content: "Not many people know this, but I can solve a Rubik's cube in under 2 minutes! Started learning during quarantine. 🧩",
-      response_type: 'text',
-      is_public: true,
-      created_date: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-      likes_count: 31,
-      comments_count: 8,
-      hashtags: ['talent', 'skills'],
-      user: { id: 'demo-user-3', nickname: 'Michael', profile_images: ['https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200'] }
-    },
-    {
-      id: 'demo-response-4',
-      user_id: 'demo-user-4',
-      mission_id: 'demo-mission-2',
-      text_content: '¡Mi día perfecto incluye tapas con amigos, música en vivo, y un buen libro en la playa! 🎶📖',
-      response_type: 'text',
-      is_public: true,
-      created_date: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-      likes_count: 15,
-      comments_count: 2,
-      hashtags: ['perfectday', 'beach'],
-      user: { id: 'demo-user-4', nickname: 'Maria', profile_images: ['https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'] }
-    },
-    {
-      id: 'demo-response-5',
-      user_id: 'demo-user-5',
-      mission_id: 'demo-mission-3',
-      text_content: 'Morning routine: 5am wake up, cold shower, 30 min run, healthy smoothie. Changed my life! 🏃‍♂️💪',
-      response_type: 'text',
-      is_public: true,
-      created_date: new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString(),
-      likes_count: 42,
-      comments_count: 12,
-      hashtags: ['morningroutine', 'fitness'],
-      user: { id: 'demo-user-5', nickname: 'Alex', profile_images: ['https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200'] }
-    }
-  ];
 
   const { data: allResponses = [] } = useQuery({
     queryKey: ['responses'],
@@ -194,14 +132,6 @@ export default function SharedSpace() {
     enabled: !!currentUser,
   });
 
-  // Demo chat users for new users
-  const getDemoChatUsers = () => [
-    { chatId: 'demo-chat-1', userId: 'demo-user-1', name: 'Sarah', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100', isOnline: true },
-    { chatId: 'demo-chat-2', userId: 'demo-user-2', name: 'David', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100', isOnline: false },
-    { chatId: 'demo-chat-3', userId: 'demo-user-3', name: 'Michael', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100', isOnline: true },
-    { chatId: 'demo-chat-4', userId: 'demo-user-4', name: 'Maria', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', isOnline: false },
-  ];
-
   const activeChatUsers = React.useMemo(() => {
     if (!currentUser) return getDemoChatUsers();
 
@@ -230,9 +160,9 @@ export default function SharedSpace() {
   const handleSendChatRequest = async () => {
     if (!chatRequestUser) return;
 
-    // Don't try to create chats with demo users
-    if (chatRequestUser.id?.startsWith('demo-')) {
-      console.log('Demo user - chat request simulated');
+    // Don't try to create chats with demo users or invalid users
+    if (!chatRequestUser.id || chatRequestUser.id.startsWith('demo-')) {
+      console.log('Demo or invalid user - chat request simulated');
       setChatRequestUser(null);
       return;
     }
@@ -303,7 +233,7 @@ export default function SharedSpace() {
                 {activeChatUsers.map((user) => (
                   <button
                     key={user.chatId}
-                    onClick={() => navigate(createPageUrl(`PrivateChat?chatId=${user.chatId}`))}
+                    onClick={() => navigate(createPageUrl(`PrivateChat?chatId=${user.chatId}&userId=${user.userId}`))}
                     className="flex-shrink-0"
                   >
                     <div className="relative">

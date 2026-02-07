@@ -187,7 +187,9 @@ export default function Creation() {
                   </div>
                   <div className="p-2 flex items-center justify-between">
                     <p className="text-xs text-muted-foreground">
-                      {new Date(response.created_date).toLocaleDateString('he-IL')}
+                      {(response.created_date || response.createdAt)
+                        ? new Date(response.created_date || response.createdAt).toLocaleDateString('he-IL')
+                        : ''}
                     </p>
                     {response.likes_count > 0 && (
                       <Badge variant="ghost" className="gap-1 px-1">

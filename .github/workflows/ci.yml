@@ -98,9 +98,12 @@ jobs:
         uses: codecov/codecov-action@v4
         if: always()
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./apps/api/coverage/lcov.info
           flags: api
+          name: api-coverage
           fail_ci_if_error: false
+          verbose: true
 
   test-web:
     name: Test Web
@@ -128,9 +131,12 @@ jobs:
         uses: codecov/codecov-action@v4
         if: always()
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./apps/web/coverage/lcov.info
           flags: web
+          name: web-coverage
           fail_ci_if_error: false
+          verbose: true
 
   build-api:
     name: Build API
@@ -284,6 +290,107 @@ jobs:
           echo "## Docker Images" >> $GITHUB_STEP_SUMMARY
           docker images bellor/* --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}" >> $GITHUB_STEP_SUMMARY
 
+  owasp-zap-scan:
+    name: OWASP ZAP Security Scan
+    runs-on: ubuntu-latest
+    needs: [build-api]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup database
+        run: |
+          npm run prisma:generate --workspace=@bellor/api
+          npm run prisma:migrate:deploy --workspace=@bellor/api
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+
+      - name: Start API server for scanning
+        run: |
+          npm run build:api
+          npm run start:api &
+          sleep 15
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test_jwt_secret_min_32_chars_long_12345
+          JWT_REFRESH_SECRET: test_refresh_secret_min_32_chars_long
+          NODE_ENV: production
+          PORT: 3000
+
+      - name: Verify API is running
+        run: |
+          for i in {1..10}; do
+            if curl -s http://localhost:3000/health | grep -q "ok"; then
+              echo "API is healthy"
+              break
+            fi
+            echo "Waiting for API..."
+            sleep 2
+          done
+
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: 'http://localhost:3000/'
+          rules_file_name: '.zap/rules.tsv'
+          fail_action: false
+          allow_issue_writing: false
+        continue-on-error: true
+
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zap-report
+          path: |
+            report_html.html
+            report_json.json
+            report_md.md
+          retention-days: 30
+
+      - name: ZAP Report Summary
+        if: always()
+        run: |
+          echo "## OWASP ZAP Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f report_md.md ]; then
+            head -100 report_md.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ZAP scan completed. Check artifacts for detailed report." >> $GITHUB_STEP_SUMMARY
+          fi
+
   load-test:
     name: Load Test (Smoke)
     runs-on: ubuntu-latest
@@ -362,7 +469,7 @@ jobs:
   ci-status:
     name: CI Status
     runs-on: ubuntu-latest
-    needs: [lint, test-api, test-web, build-api, build-web, security-scan]
+    needs: [lint, test-api, test-web, build-api, build-web, security-scan, owasp-zap-scan]
     if: always()
 
     steps:
@@ -389,3 +496,4 @@ jobs:
           echo "| API Build | ${{ needs.build-api.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Web Build | ${{ needs.build-web.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Security | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| OWASP ZAP | ${{ needs.owasp-zap-scan.result }} |" >> $GITHUB_STEP_SUMMARY

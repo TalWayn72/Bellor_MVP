@@ -20,10 +20,19 @@ export default function FilterSettings() {
 
   useEffect(() => {
     if (currentUser) {
-      setAgeRange(currentUser.preferred_age_range || [18, 35]);
-      setMaxDistance(currentUser.max_distance || 50);
-      setPreferredGender(currentUser.preferred_gender || 'all');
-      setReligiousPreference(currentUser.religious_preference || 'all');
+      // Map from Prisma field names (snake_case after apiClient transform)
+      const minAge = currentUser.age_range_min || currentUser.ageRangeMin || 18;
+      const maxAge = currentUser.age_range_max || currentUser.ageRangeMax || 35;
+      setAgeRange([minAge, maxAge]);
+      setMaxDistance(currentUser.max_distance || currentUser.maxDistance || 50);
+      // lookingFor is array - convert to single preference for UI
+      const lookingFor = currentUser.looking_for || currentUser.lookingFor || [];
+      if (lookingFor.length === 0 || lookingFor.length >= 3) {
+        setPreferredGender('all');
+      } else {
+        setPreferredGender(lookingFor[0]?.toLowerCase() || 'all');
+      }
+      setReligiousPreference('all'); // Not in Prisma schema
     }
   }, [currentUser]);
 
@@ -32,12 +41,17 @@ export default function FilterSettings() {
 
     setSaving(true);
     try {
-      await userService.updateUser(currentUser.id, {
-        preferred_age_range: ageRange,
-        max_distance: maxDistance,
-        preferred_gender: preferredGender,
-        religious_preference: religiousPreference
-      });
+      // Map to Prisma field names
+      const updateData = {
+        ageRangeMin: ageRange[0],
+        ageRangeMax: ageRange[1],
+        maxDistance: maxDistance,
+        // lookingFor must be array of Gender enum values
+        lookingFor: preferredGender === 'all'
+          ? ['MALE', 'FEMALE', 'OTHER']
+          : [preferredGender.toUpperCase()]
+      };
+      await userService.updateUser(currentUser.id, updateData);
       alert('Preferences saved successfully!');
       navigate(createPageUrl('SharedSpace'));
     } catch (error) {

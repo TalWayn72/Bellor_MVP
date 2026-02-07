@@ -19,6 +19,7 @@ model User {
   googleId              String?   @unique
   firstName             String?
   lastName              String?
+  nickname              String?   // Display name / username
   bio                   String?
   birthDate             DateTime?
   gender                Gender?

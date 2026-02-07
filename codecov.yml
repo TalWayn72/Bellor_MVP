@@ -1,0 +1,156 @@
+# Codecov Configuration
+# https://docs.codecov.com/docs/codecov-yaml
+
+# Coverage reporting configuration
+coverage:
+  # Coverage calculation precision
+  precision: 2
+  round: down
+  range: "60...100"
+
+  # Status checks
+  status:
+    # Project-level coverage requirements
+    project:
+      default:
+        target: 75%  # Minimum coverage threshold
+        threshold: 2%  # Allow 2% drop before failing
+        informational: false
+
+      # API backend coverage (stricter requirements)
+      api:
+        target: 80%
+        threshold: 2%
+        paths:
+          - "apps/api/src/**"
+        flags:
+          - api
+          - api-unit
+
+      # Web frontend coverage (more lenient for UI code)
+      web:
+        target: 70%
+        threshold: 3%
+        paths:
+          - "apps/web/src/**"
+        flags:
+          - web
+
+    # Patch coverage (new code in PRs)
+    patch:
+      default:
+        target: 70%  # New code should have at least 70% coverage
+        threshold: 5%
+        informational: false
+
+# Flag definitions
+flags:
+  api:
+    paths:
+      - apps/api/src/
+    carryforward: true
+
+  api-unit:
+    paths:
+      - apps/api/src/
+    carryforward: true
+
+  web:
+    paths:
+      - apps/web/src/
+    carryforward: true
+
+# Ignore patterns
+ignore:
+  # Test files
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.ts"
+  - "**/*.spec.tsx"
+  - "**/test/**"
+  - "**/__tests__/**"
+  - "**/tests/**"
+
+  # Configuration files
+  - "**/*.config.ts"
+  - "**/*.config.js"
+  - "**/vite.config.*"
+  - "**/vitest.config.*"
+  - "**/playwright.config.*"
+
+  # Type definitions
+  - "**/*.d.ts"
+
+  # Build output
+  - "**/dist/**"
+  - "**/build/**"
+  - "**/coverage/**"
+
+  # Infrastructure
+  - "infrastructure/**"
+
+  # Migrations and seeds
+  - "**/prisma/migrations/**"
+  - "**/prisma/seed.ts"
+
+# Comment configuration for PRs
+comment:
+  # PR comment layout
+  layout: "reach,diff,flags,files"
+  behavior: default
+  require_changes: true
+  require_base: false
+  require_head: true
+
+  # Show files with changes
+  show_carryforward_flags: true
+
+# Component analysis (separate coverage for different areas)
+component_management:
+  default_rules:
+    statuses:
+      - type: project
+        target: auto
+        threshold: 2%
+      - type: patch
+        target: 70%
+
+  individual_components:
+    - component_id: api_services
+      name: API Services
+      paths:
+        - apps/api/src/services/**
+
+    - component_id: api_controllers
+      name: API Controllers
+      paths:
+        - apps/api/src/controllers/**
+
+    - component_id: api_routes
+      name: API Routes
+      paths:
+        - apps/api/src/routes/**
+
+    - component_id: api_security
+      name: Security Modules
+      paths:
+        - apps/api/src/security/**
+
+    - component_id: web_components
+      name: React Components
+      paths:
+        - apps/web/src/components/**
+
+    - component_id: web_pages
+      name: React Pages
+      paths:
+        - apps/web/src/pages/**
+
+    - component_id: web_hooks
+      name: React Hooks
+      paths:
+        - apps/web/src/hooks/**
+
+# GitHub checks integration
+github_checks:
+  annotations: true

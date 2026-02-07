@@ -130,7 +130,7 @@ export default function Settings() {
         </Card>
 
         {/* Admin Section */}
-        {currentUser?.role === 'admin' && (
+        {currentUser?.is_admin && (
           <Card className="border-secondary/30">
             <div className="px-6 py-3 border-b border-secondary/20 bg-secondary/5">
               <p className="text-xs font-semibold text-secondary uppercase tracking-wide">

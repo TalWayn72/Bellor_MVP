@@ -208,15 +208,11 @@ irm https://raw.githubusercontent.com/your-org/Bellor_MVP/main/scripts/install-a
 - ✅ Migration paths
 
 **Supported Platforms:**
-- AWS (EC2, ECS, EKS)
-- Google Cloud (Compute Engine, GKE)
-- Azure (VMs, AKS)
-- DigitalOcean (Droplets, Kubernetes)
-- Linode
-- Vultr
-- Hetzner
-- Oracle Cloud
-- Any VPS provider
+- כל שרת עם Docker
+- כל Kubernetes cluster
+- כל VPS provider (DigitalOcean, Linode, Vultr, Hetzner, etc.)
+- שרתים מקומיים (On-premises)
+- אירוח חינמי (Render, Railway, Fly.io, Oracle Cloud Free)
 
 ---
 
@@ -430,14 +426,11 @@ irm https://raw.githubusercontent.com/.../install-anywhere.ps1 | iex
 - ✅ macOS 13 (Ventura), 14 (Sonoma), 15 (Sequoia)
 - ✅ Windows 10, 11, Server 2022
 
-### Cloud Providers:
-- ✅ AWS EC2
-- ✅ Google Cloud Compute Engine
-- ✅ DigitalOcean Droplets
-- ✅ Oracle Cloud (Free Tier)
-- ✅ Render.com
-- ✅ Railway.app
-- ✅ Fly.io
+### Container Platforms:
+- ✅ Docker on any VPS
+- ✅ Kubernetes on any provider
+- ✅ Free hosting (Render, Railway, Fly.io, Oracle Cloud Free)
+- ✅ Local development environment
 
 ---
 
