@@ -6,15 +6,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { FollowsService } from '../services/follows.service.js';
 import { isDemoUserId } from '../utils/demoId.util.js';
-
-interface FollowBody {
-  userId: string;
-}
-
-interface ListFollowsQuery {
-  limit?: number;
-  offset?: number;
-}
+import { FollowBody, ListFollowsQuery, handleListFollows } from './follows/follows-schemas.js';
 
 export const FollowsController = {
   /**
@@ -32,7 +24,6 @@ export const FollowsController = {
       return reply.status(400).send({ error: 'userId is required' });
     }
 
-    // Reject operations on demo users
     if (isDemoUserId(followingId)) {
       return reply.status(400).send({ error: 'Cannot perform operations on demo users' });
     }
@@ -57,7 +48,6 @@ export const FollowsController = {
     const followerId = request.user!.id;
     const { userId: followingId } = request.params;
 
-    // Reject operations on demo users
     if (isDemoUserId(followingId)) {
       return reply.status(400).send({ error: 'Cannot perform operations on demo users' });
     }
@@ -79,19 +69,7 @@ export const FollowsController = {
     request: FastifyRequest<{ Querystring: ListFollowsQuery }>,
     reply: FastifyReply
   ) {
-    const userId = request.user!.id;
-    const { limit, offset } = request.query;
-
-    try {
-      const result = await FollowsService.getFollowers(userId, {
-        limit: limit ? Number(limit) : undefined,
-        offset: offset ? Number(offset) : undefined,
-      });
-      return reply.send(result);
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(500).send({ error: message });
-    }
+    return handleListFollows(request, reply, 'followers', request.user!.id);
   },
 
   /**
@@ -102,19 +80,7 @@ export const FollowsController = {
     request: FastifyRequest<{ Querystring: ListFollowsQuery }>,
     reply: FastifyReply
   ) {
-    const userId = request.user!.id;
-    const { limit, offset } = request.query;
-
-    try {
-      const result = await FollowsService.getFollowing(userId, {
-        limit: limit ? Number(limit) : undefined,
-        offset: offset ? Number(offset) : undefined,
-      });
-      return reply.send(result);
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(500).send({ error: message });
-    }
+    return handleListFollows(request, reply, 'following', request.user!.id);
   },
 
   /**
@@ -125,19 +91,7 @@ export const FollowsController = {
     request: FastifyRequest<{ Params: { userId: string }; Querystring: ListFollowsQuery }>,
     reply: FastifyReply
   ) {
-    const { userId } = request.params;
-    const { limit, offset } = request.query;
-
-    try {
-      const result = await FollowsService.getFollowers(userId, {
-        limit: limit ? Number(limit) : undefined,
-        offset: offset ? Number(offset) : undefined,
-      });
-      return reply.send(result);
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(500).send({ error: message });
-    }
+    return handleListFollows(request, reply, 'followers', request.params.userId);
   },
 
   /**
@@ -148,19 +102,7 @@ export const FollowsController = {
     request: FastifyRequest<{ Params: { userId: string }; Querystring: ListFollowsQuery }>,
     reply: FastifyReply
   ) {
-    const { userId } = request.params;
-    const { limit, offset } = request.query;
-
-    try {
-      const result = await FollowsService.getFollowing(userId, {
-        limit: limit ? Number(limit) : undefined,
-        offset: offset ? Number(offset) : undefined,
-      });
-      return reply.send(result);
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(500).send({ error: message });
-    }
+    return handleListFollows(request, reply, 'following', request.params.userId);
   },
 
   /**

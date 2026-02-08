@@ -4,6 +4,7 @@
 
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
+import { Prisma, ReportStatus, ReportReason } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import { StoriesService } from '../../services/stories.service.js';
 import { AchievementsService } from '../../services/achievements.service.js';
@@ -16,9 +17,9 @@ export async function listReports(
 ) {
   try {
     const { limit = '20', offset = '0', status, reason } = request.query;
-    const where: any = {};
-    if (status) where.status = status;
-    if (reason) where.reason = reason;
+    const where: Prisma.ReportWhereInput = {};
+    if (status) where.status = status as ReportStatus;
+    if (reason) where.reason = reason as ReportReason;
 
     const [reports, total] = await Promise.all([
       prisma.report.findMany({

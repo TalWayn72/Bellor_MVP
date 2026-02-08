@@ -6,30 +6,16 @@
 
 import sharp from 'sharp';
 import { FILE_SECURITY } from '../config/security.config.js';
+import {
+  ProcessedImage,
+  ImageProcessingOptions,
+  DEFAULT_OPTIONS,
+  PROFILE_IMAGE_OPTIONS,
+  STORY_IMAGE_OPTIONS,
+  THUMBNAIL_DEFAULTS,
+} from './processor-config.js';
 
-export interface ProcessedImage {
-  buffer: Buffer;
-  width: number;
-  height: number;
-  format: string;
-  size: number;
-}
-
-export interface ImageProcessingOptions {
-  maxWidth?: number;
-  maxHeight?: number;
-  quality?: number;
-  format?: 'jpeg' | 'png' | 'webp';
-  stripMetadata?: boolean;
-}
-
-const DEFAULT_OPTIONS: Required<ImageProcessingOptions> = {
-  maxWidth: FILE_SECURITY.image.maxWidth,
-  maxHeight: FILE_SECURITY.image.maxHeight,
-  quality: 85,
-  format: 'webp',
-  stripMetadata: true,
-};
+export type { ProcessedImage, ImageProcessingOptions };
 
 /**
  * Validate image dimensions without fully decoding
@@ -87,27 +73,22 @@ export async function processImage(
 ): Promise<ProcessedImage> {
   const opts = { ...DEFAULT_OPTIONS, ...options };
 
-  // Step 1: Validate dimensions
   const dimCheck = await validateImageDimensions(buffer);
   if (!dimCheck.valid) {
     throw new Error(dimCheck.error);
   }
 
-  // Step 2-4: Process with sharp
   let pipeline = sharp(buffer);
 
-  // Strip all metadata (EXIF, IPTC, XMP, GPS, etc.)
   if (opts.stripMetadata) {
-    pipeline = pipeline.rotate(); // Auto-rotate based on EXIF, then strip
+    pipeline = pipeline.rotate();
   }
 
-  // Resize if needed (fit within bounds, don't enlarge)
   pipeline = pipeline.resize(opts.maxWidth, opts.maxHeight, {
     fit: 'inside',
     withoutEnlargement: true,
   });
 
-  // Re-encode to target format (this neutralizes any hidden payloads)
   switch (opts.format) {
     case 'jpeg':
       pipeline = pipeline.jpeg({ quality: opts.quality, mozjpeg: true });
@@ -133,45 +114,27 @@ export async function processImage(
   };
 }
 
-/**
- * Process a profile image with standard settings
- */
+/** Process a profile image with standard settings */
 export async function processProfileImage(buffer: Buffer): Promise<ProcessedImage> {
-  return processImage(buffer, {
-    maxWidth: 800,
-    maxHeight: 800,
-    quality: 85,
-    format: 'webp',
-    stripMetadata: true,
-  });
+  return processImage(buffer, PROFILE_IMAGE_OPTIONS);
 }
 
-/**
- * Process a story image with standard settings
- */
+/** Process a story image with standard settings */
 export async function processStoryImage(buffer: Buffer): Promise<ProcessedImage> {
-  return processImage(buffer, {
-    maxWidth: 1080,
-    maxHeight: 1920,
-    quality: 85,
-    format: 'webp',
-    stripMetadata: true,
-  });
+  return processImage(buffer, STORY_IMAGE_OPTIONS);
 }
 
-/**
- * Generate a thumbnail from an image
- */
+/** Generate a thumbnail from an image */
 export async function generateThumbnail(
   buffer: Buffer,
-  width = 200,
-  height = 200
+  width = THUMBNAIL_DEFAULTS.width,
+  height = THUMBNAIL_DEFAULTS.height
 ): Promise<ProcessedImage> {
   return processImage(buffer, {
     maxWidth: width,
     maxHeight: height,
-    quality: 70,
-    format: 'webp',
+    quality: THUMBNAIL_DEFAULTS.quality,
+    format: THUMBNAIL_DEFAULTS.format,
     stripMetadata: true,
   });
 }

@@ -6,6 +6,7 @@
 
 import { AchievementsService } from '../services/achievements.service.js';
 import { prisma } from '../lib/prisma.js';
+import { logger } from '../lib/logger.js';
 import {
   storyCleanupJob,
   chatCleanupJob,
@@ -52,10 +53,10 @@ async function inactiveUserReminderJob(): Promise<void> {
     }
 
     if (inactiveUsers.length > 0) {
-      console.log(`[Job] Inactive reminder: notified ${inactiveUsers.length} users`);
+      logger.info('JOBS', `Inactive reminder: notified ${inactiveUsers.length} users`);
     }
   } catch (error) {
-    console.error('[Job] Inactive user reminder failed:', error);
+    logger.error('JOBS', 'Inactive user reminder failed', error instanceof Error ? error : undefined);
   }
 }
 
@@ -79,10 +80,10 @@ async function achievementCheckJob(): Promise<void> {
     }
 
     if (totalUnlocked > 0) {
-      console.log(`[Job] Achievement check: unlocked ${totalUnlocked} achievements for ${activeUsers.length} users`);
+      logger.info('JOBS', `Achievement check: unlocked ${totalUnlocked} achievements for ${activeUsers.length} users`);
     }
   } catch (error) {
-    console.error('[Job] Achievement check failed:', error);
+    logger.error('JOBS', 'Achievement check failed', error instanceof Error ? error : undefined);
   }
 }
 
@@ -97,22 +98,22 @@ const jobs: JobConfig[] = [
 ];
 
 export function startBackgroundJobs(): void {
-  console.log('[Jobs] Starting background job scheduler...');
+  logger.info('JOBS', 'Starting background job scheduler...');
   for (const job of jobs) {
-    if (!job.enabled) { console.log(`[Jobs] ${job.name} is disabled, skipping`); continue; }
-    job.handler().catch(err => console.error(`[Jobs] ${job.name} initial run failed:`, err));
+    if (!job.enabled) { logger.info('JOBS', `${job.name} is disabled, skipping`); continue; }
+    job.handler().catch(err => logger.error('JOBS', `${job.name} initial run failed`, err instanceof Error ? err : undefined));
     const interval = setInterval(job.handler, job.intervalMs);
     intervals.push(interval);
-    console.log(`[Jobs] ${job.name} scheduled every ${Math.round(job.intervalMs / 60000)} minutes`);
+    logger.info('JOBS', `${job.name} scheduled every ${Math.round(job.intervalMs / 60000)} minutes`);
   }
-  console.log(`[Jobs] Started ${jobs.filter(j => j.enabled).length} background jobs`);
+  logger.info('JOBS', `Started ${jobs.filter(j => j.enabled).length} background jobs`);
 }
 
 export function stopBackgroundJobs(): void {
-  console.log('[Jobs] Stopping background jobs...');
+  logger.info('JOBS', 'Stopping background jobs...');
   for (const interval of intervals) { clearInterval(interval); }
   intervals.length = 0;
-  console.log('[Jobs] All background jobs stopped');
+  logger.info('JOBS', 'All background jobs stopped');
 }
 
 export async function runJobManually(jobName: string): Promise<{ success: boolean; message: string }> {

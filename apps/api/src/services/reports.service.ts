@@ -5,7 +5,7 @@
  */
 
 import { prisma } from '../lib/prisma.js';
-import { ReportReason, ReportStatus, ContentType } from '@prisma/client';
+import { ReportReason, ReportStatus, ContentType, Prisma } from '@prisma/client';
 import {
   calculatePriority,
   checkAutoBlock,
@@ -94,7 +94,7 @@ export const ReportsService = {
   async listReports(params: ListReportsParams) {
     const { status, reason, limit = 20, offset = 0 } = params;
 
-    const where: any = {};
+    const where: Prisma.ReportWhereInput = {};
     if (status) where.status = status;
     if (reason) where.reason = reason;
 

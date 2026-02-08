@@ -4,6 +4,7 @@
 
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import { userActionSchema } from './admin-schemas.js';
 
@@ -19,7 +20,7 @@ export async function listUsers(
 ) {
   try {
     const { limit = '20', offset = '0', search, isBlocked, isPremium, isAdmin, sortBy = 'createdAt', sortOrder = 'desc' } = request.query;
-    const where: any = {};
+    const where: Prisma.UserWhereInput = {};
 
     if (search) {
       where.OR = [
@@ -71,7 +72,7 @@ export async function userAction(
       return reply.code(404).send({ success: false, error: { code: 'USER_NOT_FOUND', message: 'User not found' } });
     }
 
-    const updateData: any = {};
+    const updateData: Prisma.UserUpdateInput = {};
     switch (data.action) {
       case 'block': updateData.isBlocked = true; break;
       case 'unblock': updateData.isBlocked = false; break;

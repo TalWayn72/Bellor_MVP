@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { followService, userService } from '@/api';
+import { followService } from '@/api';
 import { useQuery } from '@tanstack/react-query';
 import BackButton from '@/components/navigation/BackButton';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { createPageUrl } from '@/utils';
+import { Card } from '@/components/ui/card';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
-import FollowButton from '../components/profile/FollowButton';
-import { ListSkeleton, EmptyState } from '@/components/states';
+import { ListSkeleton } from '@/components/states';
 import { getDemoFollows } from '@/data/demoData';
+import FollowingCard from '@/components/profile/FollowingCard';
 
 export default function FollowingList() {
   const navigate = useNavigate();
@@ -20,19 +18,14 @@ export default function FollowingList() {
   const [activeTab, setActiveTab] = useState(defaultTab);
   const { currentUser, isLoading: loadingCurrentUser } = useCurrentUser();
 
-  // followService now handles demo users automatically via centralized demoData
   const { data: following = [], isLoading: loadingFollowing } = useQuery({
     queryKey: ['following', userId],
     queryFn: async () => {
       try {
         const result = await followService.getUserFollowing(userId);
-        // Backend returns { following: [userId1, userId2, ...] } - array of user IDs
         const userIds = result?.following || [];
         return userIds.length > 0 ? userIds : getDemoFollows(userId, 'following');
-      } catch (error) {
-        console.error('Error fetching following:', error);
-        return getDemoFollows(userId, 'following');
-      }
+      } catch { return getDemoFollows(userId, 'following'); }
     },
     enabled: !!userId && activeTab === 'following',
   });
@@ -42,13 +35,9 @@ export default function FollowingList() {
     queryFn: async () => {
       try {
         const result = await followService.getUserFollowers(userId);
-        // Backend returns { followers: [userId1, userId2, ...] } - array of user IDs
         const userIds = result?.followers || [];
         return userIds.length > 0 ? userIds : getDemoFollows(userId, 'followers');
-      } catch (error) {
-        console.error('Error fetching followers:', error);
-        return getDemoFollows(userId, 'followers');
-      }
+      } catch { return getDemoFollows(userId, 'followers'); }
     },
     enabled: !!userId && activeTab === 'followers',
   });
@@ -56,9 +45,7 @@ export default function FollowingList() {
   if (loadingCurrentUser) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="max-w-2xl mx-auto px-4 py-6">
-          <ListSkeleton count={8} />
-        </div>
+        <div className="max-w-2xl mx-auto px-4 py-6"><ListSkeleton count={8} /></div>
       </div>
     );
   }
@@ -69,12 +56,9 @@ export default function FollowingList() {
 
   return (
     <div className="min-h-screen bg-background" dir="ltr">
-      {/* Header */}
       <header className="bg-card sticky top-0 z-10 shadow-sm border-b border-border">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center">
-          <div className="min-w-[24px]">
-            <div className="w-6"></div>
-          </div>
+          <div className="min-w-[24px]"><div className="w-6"></div></div>
           <div className="flex-1 text-center">
             <h1 className="text-lg font-semibold text-foreground">{isOwnProfile ? 'Connections' : 'User Connections'}</h1>
           </div>
@@ -83,29 +67,23 @@ export default function FollowingList() {
       </header>
 
       <div className="max-w-2xl mx-auto">
-        {/* Tabs */}
         <div className="bg-card px-4 pt-4">
           <Card className="p-1">
             <div className="flex">
-              <Button
-                onClick={() => setActiveTab('following')}
+              <Button onClick={() => setActiveTab('following')}
                 variant={activeTab === 'following' ? 'default' : 'ghost'}
-                className={`flex-1 rounded-xl ${activeTab === 'following' ? 'bg-foreground text-background' : ''}`}
-              >
+                className={`flex-1 rounded-xl ${activeTab === 'following' ? 'bg-foreground text-background' : ''}`}>
                 Following ({following.length})
               </Button>
-              <Button
-                onClick={() => setActiveTab('followers')}
+              <Button onClick={() => setActiveTab('followers')}
                 variant={activeTab === 'followers' ? 'default' : 'ghost'}
-                className={`flex-1 rounded-xl ${activeTab === 'followers' ? 'bg-foreground text-background' : ''}`}
-              >
+                className={`flex-1 rounded-xl ${activeTab === 'followers' ? 'bg-foreground text-background' : ''}`}>
                 Followers ({followers.length})
               </Button>
             </div>
           </Card>
         </div>
 
-        {/* List */}
         <div className="p-4 space-y-3">
           {isLoading ? (
             <div className="py-8 text-center">
@@ -119,78 +97,11 @@ export default function FollowingList() {
             </Card>
           ) : (
             list.map((targetUserId) => (
-              <UserCard
-                key={targetUserId}
-                userId={targetUserId}
-                currentUserId={currentUser?.id}
-                navigate={navigate}
-              />
+              <FollowingCard key={targetUserId} userId={targetUserId} currentUserId={currentUser?.id} />
             ))
           )}
         </div>
       </div>
     </div>
-  );
-}
-
-function UserCard({ userId, currentUserId, navigate }) {
-  const [userData, setUserData] = React.useState(null);
-
-  React.useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const result = await userService.getUserById(userId);
-        if (result.user) {
-          setUserData(result.user);
-        } else {
-          setUserData({
-            id: userId,
-            nickname: 'User',
-            age: 25,
-            location: 'Israel',
-            bio: '',
-            profile_images: [`https://i.pravatar.cc/150?u=${userId}`]
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching user:', error);
-        setUserData({
-          id: userId,
-          nickname: 'User',
-          age: 25,
-          location: 'Israel',
-          bio: '',
-          profile_images: [`https://i.pravatar.cc/150?u=${userId}`]
-        });
-      }
-    };
-    fetchUser();
-  }, [userId]);
-
-  if (!userData) return null;
-
-  return (
-    <Card variant="interactive">
-      <CardContent className="p-4 flex items-center gap-3">
-        <button
-          onClick={() => navigate(createPageUrl(`UserProfile?id=${userId}`))}
-          className="flex items-center gap-3 flex-1"
-        >
-          <Avatar size="md">
-            <AvatarImage src={userData.profile_images?.[0]} alt={userData.nickname} />
-            <AvatarFallback>{userData.nickname?.[0]?.toUpperCase()}</AvatarFallback>
-          </Avatar>
-          <div className="flex-1 text-left">
-            <h3 className="font-semibold text-sm text-foreground">{userData.nickname}, {userData.age}</h3>
-            <p className="text-xs text-muted-foreground">{userData.location}</p>
-          </div>
-        </button>
-        <FollowButton
-          targetUserId={userId}
-          currentUserId={currentUserId}
-          variant="default"
-        />
-      </CardContent>
-    </Card>
   );
 }

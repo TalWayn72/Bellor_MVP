@@ -4,42 +4,21 @@
  */
 
 import { prisma } from '../lib/prisma.js';
-import { NotificationType, ContentType } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import {
+  CreateNotificationInput,
+  ListNotificationsParams,
+  createNotification,
+  createSystemNotification,
+  deleteReadNotifications,
+} from './notifications/notification-builders.js';
 
-interface CreateNotificationInput {
-  userId: string;
-  type: NotificationType;
-  title: string;
-  message: string;
-  relatedUserId?: string;
-  relatedContentType?: ContentType;
-  relatedContentId?: string;
-}
-
-interface ListNotificationsParams {
-  limit?: number;
-  offset?: number;
-  isRead?: boolean;
-  type?: NotificationType;
-}
+export type { CreateNotificationInput, ListNotificationsParams };
 
 export const NotificationsService = {
-  /**
-   * Create a notification
-   */
-  async createNotification(data: CreateNotificationInput) {
-    return prisma.notification.create({
-      data: {
-        userId: data.userId,
-        type: data.type,
-        title: data.title,
-        message: data.message,
-        relatedUserId: data.relatedUserId,
-        relatedContentType: data.relatedContentType,
-        relatedContentId: data.relatedContentId,
-      },
-    });
-  },
+  createNotification,
+  createSystemNotification,
+  deleteReadNotifications,
 
   /**
    * Get user's notifications
@@ -47,7 +26,7 @@ export const NotificationsService = {
   async getNotifications(userId: string, params: ListNotificationsParams = {}) {
     const { limit = 50, offset = 0, isRead, type } = params;
 
-    const where: any = { userId };
+    const where: Prisma.NotificationWhereInput = { userId };
     if (isRead !== undefined) {
       where.isRead = isRead;
     }
@@ -152,42 +131,5 @@ export const NotificationsService = {
     });
 
     return { success: true };
-  },
-
-  /**
-   * Delete all read notifications
-   */
-  async deleteReadNotifications(userId: string) {
-    const result = await prisma.notification.deleteMany({
-      where: {
-        userId,
-        isRead: true,
-      },
-    });
-
-    return { deletedCount: result.count };
-  },
-
-  /**
-   * Create system notification for all users
-   */
-  async createSystemNotification(title: string, message: string) {
-    const users = await prisma.user.findMany({
-      where: { isBlocked: false },
-      select: { id: true },
-    });
-
-    const notifications = users.map(user => ({
-      userId: user.id,
-      type: 'SYSTEM' as NotificationType,
-      title,
-      message,
-    }));
-
-    await prisma.notification.createMany({
-      data: notifications,
-    });
-
-    return { sentCount: users.length };
   },
 };

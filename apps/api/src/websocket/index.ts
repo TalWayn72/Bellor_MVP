@@ -3,6 +3,7 @@ import { Server, Socket } from 'socket.io';
 import { verifyAccessToken } from '../utils/jwt.util.js';
 import { redis } from '../lib/redis.js';
 import { env } from '../config/env.js';
+import { logger } from '../lib/logger.js';
 import { setupPresenceHandlers } from './handlers/presence.handler.js';
 import { setupChatHandlers } from './handlers/chat.handler.js';
 
@@ -49,7 +50,7 @@ export function setupWebSocket(httpServer: HttpServer): Server {
 
   // Connection handler
   io.on('connection', async (socket: AuthenticatedSocket) => {
-    console.log(`User connected: ${socket.userId} (${socket.id})`);
+    logger.info('WEBSOCKET', `User connected: ${socket.userId} (${socket.id})`);
 
     // Join user-specific room
     if (socket.userId) {
@@ -66,7 +67,7 @@ export function setupWebSocket(httpServer: HttpServer): Server {
 
     // Handle disconnection
     socket.on('disconnect', async () => {
-      console.log(`User disconnected: ${socket.userId} (${socket.id})`);
+      logger.info('WEBSOCKET', `User disconnected: ${socket.userId} (${socket.id})`);
 
       if (socket.userId) {
         // Remove from Redis
@@ -83,7 +84,7 @@ export function setupWebSocket(httpServer: HttpServer): Server {
 
     // Error handling
     socket.on('error', (error) => {
-      console.error(`Socket error for user ${socket.userId}:`, error);
+      logger.error('WEBSOCKET', `Socket error for user ${socket.userId}`, error instanceof Error ? error : undefined);
     });
   });
 
@@ -109,7 +110,7 @@ export async function sendToUser(
 
     return false; // User not online
   } catch (error) {
-    console.error('Error sending message to user:', error);
+    logger.error('WEBSOCKET', 'Error sending message to user', error instanceof Error ? error : undefined);
     return false;
   }
 }
@@ -122,7 +123,7 @@ export async function isUserOnline(userId: string): Promise<boolean> {
     const online = await redis.get(`online:${userId}`);
     return !!online;
   } catch (error) {
-    console.error('Error checking user online status:', error);
+    logger.error('WEBSOCKET', 'Error checking user online status', error instanceof Error ? error : undefined);
     return false;
   }
 }
@@ -135,7 +136,7 @@ export async function getOnlineUsers(): Promise<string[]> {
     const keys = await redis.keys('online:*');
     return keys.map((key: string) => key.replace('online:', ''));
   } catch (error) {
-    console.error('Error getting online users:', error);
+    logger.error('WEBSOCKET', 'Error getting online users', error instanceof Error ? error : undefined);
     return [];
   }
 }

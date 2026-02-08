@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma.js';
 import { MissionType, Prisma } from '@prisma/client';
 import { cacheGet, cacheSet, cacheDel, CacheKey, CacheTTL } from '../lib/cache.js';
+import { getTodaysMission, MISSION_INCLUDE } from './missions/mission-generator.js';
 
 interface CreateMissionInput {
   title: string;
@@ -34,11 +35,7 @@ export class MissionsService {
         activeFrom: data.activeFrom,
         activeUntil: data.activeUntil,
       },
-      include: {
-        _count: {
-          select: { responses: true },
-        },
-      },
+      include: MISSION_INCLUDE,
     });
 
     return mission;
@@ -53,11 +50,7 @@ export class MissionsService {
 
     const mission = await prisma.mission.findUnique({
       where: { id },
-      include: {
-        _count: {
-          select: { responses: true },
-        },
-      },
+      include: MISSION_INCLUDE,
     });
 
     if (!mission) {
@@ -65,7 +58,6 @@ export class MissionsService {
     }
 
     await cacheSet(CacheKey.mission(id), mission, CacheTTL.MISSION);
-
     return mission;
   }
 
@@ -74,12 +66,9 @@ export class MissionsService {
    */
   static async listMissions(params: ListMissionsParams) {
     const { limit, offset, type, isActive } = params;
-
     const where: Prisma.MissionWhereInput = {};
 
-    if (type) {
-      where.missionType = type;
-    }
+    if (type) where.missionType = type;
 
     if (isActive !== undefined) {
       const now = new Date();
@@ -91,87 +80,27 @@ export class MissionsService {
           { activeFrom: null, activeUntil: { gte: now } },
         ];
       } else {
-        where.OR = [
-          { activeUntil: { lt: now } },
-        ];
+        where.OR = [{ activeUntil: { lt: now } }];
       }
     }
 
     const [missions, total] = await Promise.all([
       prisma.mission.findMany({
-        where,
-        skip: offset,
-        take: limit,
+        where, skip: offset, take: limit,
         orderBy: { createdAt: 'desc' },
-        include: {
-          _count: {
-            select: { responses: true },
-          },
-        },
+        include: MISSION_INCLUDE,
       }),
       prisma.mission.count({ where }),
     ]);
 
     return {
       missions,
-      pagination: {
-        total,
-        limit,
-        offset,
-        hasMore: offset + missions.length < total,
-      },
+      pagination: { total, limit, offset, hasMore: offset + missions.length < total },
     };
   }
 
-  /**
-   * Get today's active mission (or create a daily one)
-   */
-  static async getTodaysMission() {
-    const cached = await cacheGet<any>(CacheKey.missionToday());
-    if (cached) return cached;
-
-    const now = new Date();
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
-
-    // Find today's daily mission
-    let mission = await prisma.mission.findFirst({
-      where: {
-        missionType: 'DAILY',
-        activeFrom: { gte: startOfDay },
-        activeUntil: { lte: endOfDay },
-      },
-      include: {
-        _count: {
-          select: { responses: true },
-        },
-      },
-    });
-
-    // If no daily mission exists, find any active mission
-    if (!mission) {
-      mission = await prisma.mission.findFirst({
-        where: {
-          OR: [
-            { activeFrom: null, activeUntil: null },
-            { activeFrom: { lte: now }, activeUntil: { gte: now } },
-          ],
-        },
-        orderBy: { createdAt: 'desc' },
-        include: {
-          _count: {
-            select: { responses: true },
-          },
-        },
-      });
-    }
-
-    if (mission) {
-      await cacheSet(CacheKey.missionToday(), mission, CacheTTL.MISSION_TODAY);
-    }
-
-    return mission;
-  }
+  /** Get today's active mission - delegated to mission-generator */
+  static getTodaysMission = getTodaysMission;
 
   /**
    * Update a mission
@@ -180,24 +109,16 @@ export class MissionsService {
     const mission = await prisma.mission.update({
       where: { id },
       data: {
-        title: data.title,
-        description: data.description,
-        missionType: data.missionType,
-        difficulty: data.difficulty,
-        xpReward: data.xpReward,
-        activeFrom: data.activeFrom,
+        title: data.title, description: data.description,
+        missionType: data.missionType, difficulty: data.difficulty,
+        xpReward: data.xpReward, activeFrom: data.activeFrom,
         activeUntil: data.activeUntil,
       },
-      include: {
-        _count: {
-          select: { responses: true },
-        },
-      },
+      include: MISSION_INCLUDE,
     });
 
     await cacheDel(CacheKey.mission(id));
     await cacheDel(CacheKey.missionToday());
-
     return mission;
   }
 
@@ -205,10 +126,7 @@ export class MissionsService {
    * Delete a mission
    */
   static async deleteMission(id: string) {
-    await prisma.mission.delete({
-      where: { id },
-    });
-
+    await prisma.mission.delete({ where: { id } });
     await cacheDel(CacheKey.mission(id));
     await cacheDel(CacheKey.missionToday());
   }

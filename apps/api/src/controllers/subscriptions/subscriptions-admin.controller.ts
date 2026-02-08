@@ -6,6 +6,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { SubscriptionsService } from '../../services/subscriptions.service.js';
 import Stripe from 'stripe';
+import { logger } from '../../lib/logger.js';
 
 interface CreatePlanBody {
   name: string;
@@ -91,12 +92,12 @@ export const SubscriptionsAdminController = {
           await SubscriptionsService.handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
           break;
         default:
-          console.log(`Unhandled Stripe event type: ${event.type}`);
+          logger.warn('STRIPE', `Unhandled Stripe event type: ${event.type}`);
       }
 
       return reply.send({ received: true });
     } catch (error: unknown) {
-      console.error('Stripe webhook error:', error);
+      logger.error('STRIPE', 'Stripe webhook error', error instanceof Error ? error : undefined);
       const message = error instanceof Error ? error.message : 'Unknown error';
       return reply.status(400).send({ error: message });
     }

@@ -1,83 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { userService, likeService, chatService } from '@/api';
+import { likeService, chatService } from '@/api';
 import { useQuery } from '@tanstack/react-query';
 import { Heart, Sparkles } from 'lucide-react';
 import BackButton from '@/components/navigation/BackButton';
 import { createPageUrl } from '@/utils';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { CardsSkeleton, EmptyState } from '@/components/states';
 import { getDemoLikes } from '@/data/demoData';
-
-// UserCard uses userService which now handles demo users automatically
-function UserCard({ userId }) {
-  const [user, setUser] = React.useState(null);
-
-  React.useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const result = await userService.getUserById(userId);
-        if (result.user) {
-          setUser(result.user);
-        }
-      } catch (error) {
-        setUser({
-          id: userId,
-          profile_images: [`https://i.pravatar.cc/300?u=${userId}`]
-        });
-      }
-    };
-    if (userId) fetchUser();
-  }, [userId]);
-
-  return (
-    <img
-      src={user?.profile_images?.[0] || `https://i.pravatar.cc/300?u=${userId}`}
-      alt="User"
-      className="w-full h-full object-cover"
-    />
-  );
-}
-
-// UserInfo uses userService which now handles demo users automatically
-function UserInfo({ userId, type }) {
-  const [user, setUser] = React.useState(null);
-
-  React.useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const result = await userService.getUserById(userId);
-        if (result.user) {
-          setUser(result.user);
-        }
-      } catch (error) {
-        setUser({
-          id: userId,
-          nickname: 'User'
-        });
-      }
-    };
-    if (userId) fetchUser();
-  }, [userId]);
-
-  return (
-    <div>
-      <h3 className="text-white font-semibold text-sm">{user?.nickname || 'User'}</h3>
-      <p className="text-white/80 text-xs">
-        {type === 'romantic' ? 'Showed romantic interest' : 'Gave positive feedback'}
-      </p>
-    </div>
-  );
-}
+import MatchCard from '@/components/matches/MatchCard';
 
 export default function Matches() {
   const navigate = useNavigate();
   const { currentUser, isLoading } = useCurrentUser();
   const [activeTab, setActiveTab] = useState('romantic');
-  const [filterType, setFilterType] = useState('all');
 
   const { data: romanticInterest = [] } = useQuery({
     queryKey: ['romanticInterest', currentUser?.id],
@@ -108,16 +45,6 @@ export default function Matches() {
     },
     enabled: !!currentUser,
   });
-
-  const startChat = async (matchUserId) => {
-    try {
-      const result = await chatService.createOrGetChat(matchUserId);
-      const chatId = result.chat.id;
-      navigate(createPageUrl(`PrivateChat?id=${chatId}&userId=${matchUserId}`));
-    } catch (error) {
-      console.error('Error starting chat:', error);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -158,7 +85,6 @@ export default function Matches() {
             </TabsList>
           </div>
 
-          {/* Content */}
           <div className="p-4">
             <TabsContent value="romantic" className="mt-0">
               <div className="grid grid-cols-2 gap-4">
@@ -174,49 +100,7 @@ export default function Matches() {
                   </div>
                 ) : (
                   romanticInterest.map((like) => (
-                    <Card key={like.id} variant="interactive" className="overflow-hidden">
-                      <div
-                        onClick={() => navigate(createPageUrl(`UserProfile?id=${like.user_id}`))}
-                        className="w-full cursor-pointer"
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => e.key === 'Enter' && navigate(createPageUrl(`UserProfile?id=${like.user_id}`))}
-                      >
-                        <div className="relative aspect-[3/4]">
-                          <UserCard userId={like.user_id} />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                          <div className="absolute top-3 right-3">
-                            <div className="w-10 h-10 rounded-full bg-love flex items-center justify-center shadow-lg">
-                              <Heart className="w-5 h-5 text-white fill-white" />
-                            </div>
-                          </div>
-                          <div className="absolute bottom-3 left-3 right-3 flex justify-between items-end">
-                            <UserInfo userId={like.user_id} type="romantic" />
-                            <Button
-                              variant="glass"
-                              size="sm"
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                // Skip liking demo users
-                                if (like.user_id?.startsWith('demo-')) {
-                                  alert('Demo user - cannot send interest');
-                                  return;
-                                }
-                                try {
-                                  await likeService.likeUser(like.user_id, 'ROMANTIC');
-                                  alert('You sent romantic interest back!');
-                                } catch (error) {
-                                  console.error('Error:', error);
-                                }
-                              }}
-                              className="text-love"
-                            >
-                              Reply ❤️
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
+                    <MatchCard key={like.id} like={like} type="romantic" />
                   ))
                 )}
               </div>
@@ -236,49 +120,7 @@ export default function Matches() {
                   </div>
                 ) : (
                   positiveFeedback.map((like) => (
-                    <Card key={like.id} variant="interactive" className="overflow-hidden">
-                      <div
-                        onClick={() => navigate(createPageUrl(`UserProfile?id=${like.user_id}`))}
-                        className="w-full cursor-pointer"
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => e.key === 'Enter' && navigate(createPageUrl(`UserProfile?id=${like.user_id}`))}
-                      >
-                        <div className="relative aspect-[3/4]">
-                          <UserCard userId={like.user_id} />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                          <div className="absolute top-3 right-3">
-                            <div className="w-10 h-10 rounded-full bg-superlike flex items-center justify-center shadow-lg">
-                              <Sparkles className="w-5 h-5 text-white fill-white" />
-                            </div>
-                          </div>
-                          <div className="absolute bottom-3 left-3 right-3 flex justify-between items-end">
-                            <UserInfo userId={like.user_id} type="positive" />
-                            <Button
-                              variant="glass"
-                              size="sm"
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                // Skip liking demo users
-                                if (like.user_id?.startsWith('demo-')) {
-                                  alert('Demo user - cannot send feedback');
-                                  return;
-                                }
-                                try {
-                                  await likeService.likeUser(like.user_id, 'POSITIVE');
-                                  alert('You sent positive feedback back!');
-                                } catch (error) {
-                                  console.error('Error:', error);
-                                }
-                              }}
-                              className="text-superlike"
-                            >
-                              Reply ⭐
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
+                    <MatchCard key={like.id} like={like} type="positive" />
                   ))
                 )}
               </div>

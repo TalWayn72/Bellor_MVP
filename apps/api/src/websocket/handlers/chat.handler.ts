@@ -8,6 +8,7 @@ import { Server } from 'socket.io';
 import { AuthenticatedSocket } from '../index.js';
 import { prisma } from '../../lib/prisma.js';
 import { setupChatMessagingHandlers } from './chat-messaging.handler.js';
+import { logger } from '../../lib/logger.js';
 
 /**
  * Setup chat handlers for real-time messaging
@@ -46,7 +47,7 @@ export function setupChatHandlers(io: Server, socket: AuthenticatedSocket) {
       // Join room
       await socket.join(`conversation:${chatId}`);
 
-      console.log(`User ${socket.userId} joined conversation ${chatId}`);
+      logger.debug('CHAT', `User ${socket.userId} joined conversation ${chatId}`);
 
       callback?.({
         success: true,
@@ -55,7 +56,7 @@ export function setupChatHandlers(io: Server, socket: AuthenticatedSocket) {
         },
       });
     } catch (error) {
-      console.error('Error joining conversation:', error);
+      logger.error('CHAT', 'Error joining conversation', error instanceof Error ? error : undefined);
       callback?.({
         error: 'Failed to join conversation',
       });
@@ -78,13 +79,13 @@ export function setupChatHandlers(io: Server, socket: AuthenticatedSocket) {
       // Leave room
       await socket.leave(`conversation:${chatId}`);
 
-      console.log(`User ${socket.userId} left conversation ${chatId}`);
+      logger.debug('CHAT', `User ${socket.userId} left conversation ${chatId}`);
 
       callback?.({
         success: true,
       });
     } catch (error) {
-      console.error('Error leaving conversation:', error);
+      logger.error('CHAT', 'Error leaving conversation', error instanceof Error ? error : undefined);
       callback?.({
         error: 'Failed to leave conversation',
       });

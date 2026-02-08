@@ -29,9 +29,7 @@ spec:
       # - name: ghcr-secret
       containers:
       - name: api
-        # Replace YOUR_GITHUB_ORG with your GitHub organization/username
-        # Example: ghcr.io/mycompany/bellor_mvp/api:v1.0.0
-        image: ghcr.io/YOUR_GITHUB_ORG/bellor_mvp/api:latest
+        image: ghcr.io/TalWayn72/bellor_mvp/api:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 3000

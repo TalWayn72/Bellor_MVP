@@ -29,9 +29,7 @@ spec:
       # - name: ghcr-secret
       containers:
       - name: web
-        # Replace YOUR_GITHUB_ORG with your GitHub organization/username
-        # Example: ghcr.io/mycompany/bellor_mvp/web:v1.0.0
-        image: ghcr.io/YOUR_GITHUB_ORG/bellor_mvp/web:latest
+        image: ghcr.io/TalWayn72/bellor_mvp/web:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80

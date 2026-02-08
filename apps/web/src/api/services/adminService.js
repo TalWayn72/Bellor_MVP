@@ -1,69 +1,15 @@
 /**
  * Admin Service
  * Handles admin-specific API calls
+ * Analytics methods are in ./admin/adminAnalytics.js
  */
 
 import { apiClient } from '../client/apiClient';
+import { adminAnalyticsService } from './admin/adminAnalytics';
 
 export const adminService = {
-  // ============ Dashboard & Analytics ============
-
-  /**
-   * Get dashboard overview
-   * @returns {Promise<{data: object}>}
-   */
-  async getDashboard() {
-    const response = await apiClient.get('/admin/dashboard');
-    return response.data;
-  },
-
-  /**
-   * Get user analytics
-   * @param {object} params - { startDate, endDate }
-   * @returns {Promise<{data: object}>}
-   */
-  async getUserAnalytics(params = {}) {
-    const response = await apiClient.get('/admin/analytics/users', { params });
-    return response.data;
-  },
-
-  /**
-   * Get content analytics
-   * @param {object} params - { startDate, endDate }
-   * @returns {Promise<{data: object}>}
-   */
-  async getContentAnalytics(params = {}) {
-    const response = await apiClient.get('/admin/analytics/content', { params });
-    return response.data;
-  },
-
-  /**
-   * Get moderation analytics
-   * @returns {Promise<{data: object}>}
-   */
-  async getModerationAnalytics() {
-    const response = await apiClient.get('/admin/analytics/moderation');
-    return response.data;
-  },
-
-  /**
-   * Get top users
-   * @param {number} limit
-   * @returns {Promise<{data: object}>}
-   */
-  async getTopUsers(limit = 10) {
-    const response = await apiClient.get('/admin/analytics/top-users', { params: { limit } });
-    return response.data;
-  },
-
-  /**
-   * Get system health
-   * @returns {Promise<{data: object}>}
-   */
-  async getSystemHealth() {
-    const response = await apiClient.get('/admin/health');
-    return response.data;
-  },
+  // ============ Re-export Analytics ============
+  ...adminAnalyticsService,
 
   // ============ User Management ============
 
@@ -87,57 +33,32 @@ export const adminService = {
     return response.data;
   },
 
-  /**
-   * Block user
-   * @param {string} userId
-   * @param {string} reason
-   * @returns {Promise<{data: object}>}
-   */
+  /** Block user */
   async blockUser(userId, reason) {
     return this.userAction({ userId, action: 'block', reason });
   },
 
-  /**
-   * Unblock user
-   * @param {string} userId
-   * @returns {Promise<{data: object}>}
-   */
+  /** Unblock user */
   async unblockUser(userId) {
     return this.userAction({ userId, action: 'unblock' });
   },
 
-  /**
-   * Make user admin
-   * @param {string} userId
-   * @returns {Promise<{data: object}>}
-   */
+  /** Make user admin */
   async makeAdmin(userId) {
     return this.userAction({ userId, action: 'make_admin' });
   },
 
-  /**
-   * Remove admin role
-   * @param {string} userId
-   * @returns {Promise<{data: object}>}
-   */
+  /** Remove admin role */
   async removeAdmin(userId) {
     return this.userAction({ userId, action: 'remove_admin' });
   },
 
-  /**
-   * Make user premium
-   * @param {string} userId
-   * @returns {Promise<{data: object}>}
-   */
+  /** Make user premium */
   async makePremium(userId) {
     return this.userAction({ userId, action: 'make_premium' });
   },
 
-  /**
-   * Remove premium
-   * @param {string} userId
-   * @returns {Promise<{data: object}>}
-   */
+  /** Remove premium */
   async removePremium(userId) {
     return this.userAction({ userId, action: 'remove_premium' });
   },
@@ -164,43 +85,24 @@ export const adminService = {
     return response.data;
   },
 
-  /**
-   * Review report
-   * @param {string} reportId
-   * @param {string} notes
-   * @returns {Promise<{data: object}>}
-   */
+  /** Review report */
   async reviewReport(reportId, notes) {
     return this.reportAction({ reportId, action: 'review', notes });
   },
 
-  /**
-   * Mark report as action taken
-   * @param {string} reportId
-   * @param {string} notes
-   * @returns {Promise<{data: object}>}
-   */
+  /** Mark report as action taken */
   async actionTakenReport(reportId, notes) {
     return this.reportAction({ reportId, action: 'action_taken', notes });
   },
 
-  /**
-   * Dismiss report
-   * @param {string} reportId
-   * @param {string} notes
-   * @returns {Promise<{data: object}>}
-   */
+  /** Dismiss report */
   async dismissReport(reportId, notes) {
     return this.reportAction({ reportId, action: 'dismiss', notes });
   },
 
   // ============ Achievements ============
 
-  /**
-   * Create achievement
-   * @param {object} data - { name, description, iconUrl, requirement, xpReward }
-   * @returns {Promise<{data: object}>}
-   */
+  /** Create achievement */
   async createAchievement(data) {
     const response = await apiClient.post('/admin/achievements', data);
     return response.data;
@@ -208,43 +110,9 @@ export const adminService = {
 
   // ============ Maintenance ============
 
-  /**
-   * Cleanup expired stories
-   * @returns {Promise<{data: object}>}
-   */
+  /** Cleanup expired stories */
   async cleanupStories() {
     const response = await apiClient.post('/admin/cleanup/stories');
-    return response.data;
-  },
-
-  /**
-   * Export users
-   * @param {object} params - { startDate, endDate, format }
-   * @returns {Promise<{data: object}>}
-   */
-  async exportUsers(params = {}) {
-    const response = await apiClient.get('/admin/export/users', { params });
-    return response.data;
-  },
-
-  // ============ Jobs ============
-
-  /**
-   * Get jobs status
-   * @returns {Promise<{data: object}>}
-   */
-  async getJobs() {
-    const response = await apiClient.get('/admin/jobs');
-    return response.data;
-  },
-
-  /**
-   * Run job manually
-   * @param {string} jobName
-   * @returns {Promise<{data: object}>}
-   */
-  async runJob(jobName) {
-    const response = await apiClient.post('/admin/jobs/run', { jobName });
     return response.data;
   },
 };

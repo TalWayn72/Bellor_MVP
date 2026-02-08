@@ -1,10 +1,17 @@
 /**
  * Stories Service
- * Handles 24-hour ephemeral content (Stories)
+ * Handles 24-hour ephemeral content (Stories) - CRUD operations
  */
 
 import { prisma } from '../lib/prisma.js';
 import { MediaType } from '@prisma/client';
+import {
+  getStoriesByUser,
+  getStoriesFeed,
+  getUserStoryStats,
+  userHasActiveStories,
+  STORY_USER_SELECT,
+} from './stories/stories-queries.service.js';
 
 interface CreateStoryInput {
   userId: string;
@@ -12,12 +19,6 @@ interface CreateStoryInput {
   mediaUrl: string;
   thumbnailUrl?: string;
   caption?: string;
-}
-
-interface ListStoriesParams {
-  userId?: string;
-  limit?: number;
-  offset?: number;
 }
 
 // Story duration in hours
@@ -43,14 +44,7 @@ export const StoriesService = {
         expiresAt,
       },
       include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profileImages: true,
-          },
-        },
+        user: { select: STORY_USER_SELECT },
       },
     });
 
@@ -64,14 +58,7 @@ export const StoriesService = {
     const story = await prisma.story.findUnique({
       where: { id: storyId },
       include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profileImages: true,
-          },
-        },
+        user: { select: STORY_USER_SELECT },
       },
     });
 
@@ -85,86 +72,6 @@ export const StoriesService = {
     }
 
     return story;
-  },
-
-  /**
-   * Get stories by user ID (active stories only)
-   */
-  async getStoriesByUser(userId: string) {
-    const stories = await prisma.story.findMany({
-      where: {
-        userId,
-        expiresAt: { gt: new Date() },
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profileImages: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return stories;
-  },
-
-  /**
-   * Get stories feed (from all users, grouped by user)
-   */
-  async getStoriesFeed(currentUserId: string, params: ListStoriesParams = {}) {
-    const { limit = 50, offset = 0 } = params;
-
-    // Get all active stories
-    const stories = await prisma.story.findMany({
-      where: {
-        expiresAt: { gt: new Date() },
-        user: {
-          isBlocked: false,
-        },
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profileImages: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-      skip: offset,
-      take: limit,
-    });
-
-    // Group stories by user
-    const groupedByUser = stories.reduce((acc, story) => {
-      const userId = story.userId;
-      if (!acc[userId]) {
-        acc[userId] = {
-          user: story.user,
-          stories: [],
-          hasUnviewed: false,
-        };
-      }
-      acc[userId].stories.push(story);
-      return acc;
-    }, {} as Record<string, { user: typeof stories[number]['user']; stories: typeof stories; hasUnviewed: boolean }>);
-
-    // Convert to array and sort (current user's stories first, then by most recent)
-    const feedArray = Object.values(groupedByUser).sort((a, b) => {
-      if (a.user.id === currentUserId) return -1;
-      if (b.user.id === currentUserId) return 1;
-      const aLatest = Math.max(...a.stories.map((s: { createdAt: Date }) => s.createdAt.getTime()));
-      const bLatest = Math.max(...b.stories.map((s: { createdAt: Date }) => s.createdAt.getTime()));
-      return bLatest - aLatest;
-    });
-
-    return feedArray;
   },
 
   /**
@@ -187,9 +94,7 @@ export const StoriesService = {
     // Increment view count
     const updatedStory = await prisma.story.update({
       where: { id: storyId },
-      data: {
-        viewCount: { increment: 1 },
-      },
+      data: { viewCount: { increment: 1 } },
     });
 
     return updatedStory;
@@ -223,48 +128,15 @@ export const StoriesService = {
    */
   async cleanupExpiredStories() {
     const result = await prisma.story.deleteMany({
-      where: {
-        expiresAt: { lt: new Date() },
-      },
+      where: { expiresAt: { lt: new Date() } },
     });
 
     return { deletedCount: result.count };
   },
 
-  /**
-   * Get story statistics for a user
-   */
-  async getUserStoryStats(userId: string) {
-    const [activeCount, totalViews] = await Promise.all([
-      prisma.story.count({
-        where: {
-          userId,
-          expiresAt: { gt: new Date() },
-        },
-      }),
-      prisma.story.aggregate({
-        where: { userId },
-        _sum: { viewCount: true },
-      }),
-    ]);
-
-    return {
-      activeStories: activeCount,
-      totalViews: totalViews._sum.viewCount || 0,
-    };
-  },
-
-  /**
-   * Check if user has any active stories
-   */
-  async userHasActiveStories(userId: string): Promise<boolean> {
-    const count = await prisma.story.count({
-      where: {
-        userId,
-        expiresAt: { gt: new Date() },
-      },
-    });
-
-    return count > 0;
-  },
+  // Re-export query functions
+  getStoriesByUser,
+  getStoriesFeed,
+  getUserStoryStats,
+  userHasActiveStories,
 };

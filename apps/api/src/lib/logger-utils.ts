@@ -9,7 +9,7 @@ import { LogLevel, type LogEntry } from './logger.js';
 export { LogLevel };
 
 // Helper to sanitize sensitive data from logs
-export function sanitizeForLog(obj: any): any {
+export function sanitizeForLog(obj: unknown): unknown {
   if (!obj || typeof obj !== 'object') return obj;
 
   const sensitiveFields = [
@@ -35,8 +35,8 @@ export function validateAndParseDate(
   dateStr: string | undefined,
   fieldName: string,
   logFn: {
-    debug: (cat: string, msg: string, data?: any) => void;
-    warn: (cat: string, msg: string, data?: any) => void;
+    debug: (cat: string, msg: string, data?: Record<string, unknown>) => void;
+    warn: (cat: string, msg: string, data?: Record<string, unknown>) => void;
   }
 ): Date | null {
   if (!dateStr) {

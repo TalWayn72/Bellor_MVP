@@ -63,7 +63,7 @@ export async function loggingMiddleware(app: FastifyInstance) {
         url: request.url,
         params: request.params as Record<string, string>,
         query: request.query as Record<string, string>,
-        body: sanitizeForLog(request.body),
+        body: sanitizeForLog(request.body) as Record<string, unknown> | undefined,
         userId: request.user?.userId,
       },
       response: {
@@ -88,7 +88,7 @@ export async function loggingMiddleware(app: FastifyInstance) {
         url: request.url,
         params: request.params as Record<string, string>,
         query: request.query as Record<string, string>,
-        body: sanitizeForLog(request.body),
+        body: sanitizeForLog(request.body) as Record<string, unknown> | undefined,
         userId: request.user?.userId,
       },
       response: {

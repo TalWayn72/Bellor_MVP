@@ -1,25 +1,10 @@
 import { prisma } from '../lib/prisma.js';
-import { ResponseType, Prisma } from '@prisma/client';
-
-interface CreateResponseInput {
-  userId: string;
-  missionId?: string;
-  responseType: ResponseType;
-  content: string;
-  textContent?: string;
-  thumbnailUrl?: string;
-  duration?: number;
-  isPublic?: boolean;
-}
-
-interface ListResponsesParams {
-  limit: number;
-  offset: number;
-  userId?: string;
-  missionId?: string;
-  responseType?: ResponseType;
-  isPublic?: boolean;
-}
+import { Prisma } from '@prisma/client';
+import {
+  CreateResponseInput,
+  ListResponsesParams,
+  RESPONSE_INCLUDE,
+} from './responses/response-utils.js';
 
 export class ResponsesService {
   /**
@@ -37,23 +22,7 @@ export class ResponsesService {
         duration: data.duration,
         isPublic: data.isPublic ?? true,
       },
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profileImages: true,
-          },
-        },
-        mission: {
-          select: {
-            id: true,
-            title: true,
-            missionType: true,
-          },
-        },
-      },
+      include: RESPONSE_INCLUDE,
     });
 
     // Update user's response count
@@ -74,23 +43,7 @@ export class ResponsesService {
   static async getResponseById(id: string) {
     const response = await prisma.response.findUnique({
       where: { id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profileImages: true,
-          },
-        },
-        mission: {
-          select: {
-            id: true,
-            title: true,
-            missionType: true,
-          },
-        },
-      },
+      include: RESPONSE_INCLUDE,
     });
 
     if (!response) {
@@ -107,22 +60,10 @@ export class ResponsesService {
     const { limit, offset, userId, missionId, responseType, isPublic } = params;
 
     const where: Prisma.ResponseWhereInput = {};
-
-    if (userId) {
-      where.userId = userId;
-    }
-
-    if (missionId) {
-      where.missionId = missionId;
-    }
-
-    if (responseType) {
-      where.responseType = responseType;
-    }
-
-    if (isPublic !== undefined) {
-      where.isPublic = isPublic;
-    }
+    if (userId) where.userId = userId;
+    if (missionId) where.missionId = missionId;
+    if (responseType) where.responseType = responseType;
+    if (isPublic !== undefined) where.isPublic = isPublic;
 
     const [responses, total] = await Promise.all([
       prisma.response.findMany({
@@ -130,23 +71,7 @@ export class ResponsesService {
         skip: offset,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        include: {
-          user: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImages: true,
-            },
-          },
-          mission: {
-            select: {
-              id: true,
-              title: true,
-              missionType: true,
-            },
-          },
-        },
+        include: RESPONSE_INCLUDE,
       }),
       prisma.response.count({ where }),
     ]);
@@ -166,21 +91,14 @@ export class ResponsesService {
    * Get responses for a mission (feed)
    */
   static async getMissionResponses(missionId: string, params: { limit: number; offset: number }) {
-    return this.listResponses({
-      ...params,
-      missionId,
-      isPublic: true,
-    });
+    return this.listResponses({ ...params, missionId, isPublic: true });
   }
 
   /**
    * Get user's responses
    */
   static async getUserResponses(userId: string, params: { limit: number; offset: number }) {
-    return this.listResponses({
-      ...params,
-      userId,
-    });
+    return this.listResponses({ ...params, userId });
   }
 
   /**
@@ -189,9 +107,7 @@ export class ResponsesService {
   static async incrementViewCount(id: string) {
     return prisma.response.update({
       where: { id },
-      data: {
-        viewCount: { increment: 1 },
-      },
+      data: { viewCount: { increment: 1 } },
     });
   }
 
@@ -201,9 +117,7 @@ export class ResponsesService {
   static async incrementLikeCount(id: string) {
     return prisma.response.update({
       where: { id },
-      data: {
-        likeCount: { increment: 1 },
-      },
+      data: { likeCount: { increment: 1 } },
     });
   }
 
@@ -211,28 +125,21 @@ export class ResponsesService {
    * Delete a response
    */
   static async deleteResponse(id: string, userId: string) {
-    const response = await prisma.response.findUnique({
-      where: { id },
-    });
+    const response = await prisma.response.findUnique({ where: { id } });
 
     if (!response) {
       throw new Error('Response not found');
     }
-
     if (response.userId !== userId) {
       throw new Error('Unauthorized');
     }
 
-    await prisma.response.delete({
-      where: { id },
-    });
+    await prisma.response.delete({ where: { id } });
 
     // Decrement user's response count
     await prisma.user.update({
       where: { id: userId },
-      data: {
-        responseCount: { decrement: 1 },
-      },
+      data: { responseCount: { decrement: 1 } },
     });
   }
 }

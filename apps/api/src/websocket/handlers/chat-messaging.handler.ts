@@ -8,6 +8,7 @@ import { AuthenticatedSocket } from '../index.js';
 import { prisma } from '../../lib/prisma.js';
 import { redis } from '../../lib/redis.js';
 import { PushNotificationsService } from '../../services/push-notifications.service.js';
+import { logger } from '../../lib/logger.js';
 
 /**
  * Setup message-related chat handlers
@@ -72,13 +73,13 @@ export function setupChatMessagingHandlers(io: Server, socket: AuthenticatedSock
             recipientId, senderName, chatId, content.substring(0, 100)
           );
         } catch (pushError) {
-          console.error('Failed to send push notification:', pushError);
+          logger.error('CHAT', 'Failed to send push notification', pushError instanceof Error ? pushError : undefined);
         }
       }
 
       callback?.({ success: true, data: message });
     } catch (error) {
-      console.error('Error sending message:', error);
+      logger.error('CHAT', 'Error sending message', error instanceof Error ? error : undefined);
       callback?.({ error: 'Failed to send message' });
     }
   });
@@ -114,7 +115,7 @@ export function setupChatMessagingHandlers(io: Server, socket: AuthenticatedSock
 
       callback?.({ success: true });
     } catch (error) {
-      console.error('Error marking message as read:', error);
+      logger.error('CHAT', 'Error marking message as read', error instanceof Error ? error : undefined);
       callback?.({ error: 'Failed to mark message as read' });
     }
   });
@@ -130,7 +131,7 @@ export function setupChatMessagingHandlers(io: Server, socket: AuthenticatedSock
         userId: socket.userId, chatId, isTyping, timestamp: new Date().toISOString(),
       });
     } catch (error) {
-      console.error('Error handling typing indicator:', error);
+      logger.error('CHAT', 'Error handling typing indicator', error instanceof Error ? error : undefined);
     }
   });
 
@@ -153,7 +154,7 @@ export function setupChatMessagingHandlers(io: Server, socket: AuthenticatedSock
       });
       callback?.({ success: true, data: { unreadCount } });
     } catch (error) {
-      console.error('Error getting unread count:', error);
+      logger.error('CHAT', 'Error getting unread count', error instanceof Error ? error : undefined);
       callback?.({ error: 'Failed to get unread count' });
     }
   });
@@ -182,7 +183,7 @@ export function setupChatMessagingHandlers(io: Server, socket: AuthenticatedSock
 
       callback?.({ success: true });
     } catch (error) {
-      console.error('Error deleting message:', error);
+      logger.error('CHAT', 'Error deleting message', error instanceof Error ? error : undefined);
       callback?.({ error: 'Failed to delete message' });
     }
   });

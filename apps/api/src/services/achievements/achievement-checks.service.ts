@@ -78,7 +78,7 @@ export async function checkAndUnlockAchievements(userId: string) {
   if (!user) return [];
 
   const achievements = await prisma.achievement.findMany();
-  const unlockedAchievements: any[] = [];
+  const unlockedAchievements: { id: string; name: string; xpReward: number }[] = [];
 
   for (const achievement of achievements) {
     const requirement = achievement.requirement as { type: string; value: number };

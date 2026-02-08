@@ -260,7 +260,7 @@ sudo mkdir -p bellor
 sudo chown ubuntu:ubuntu bellor
 cd bellor
 
-git clone git@github.com:<YOUR_ORG>/Bellor_MVP.git .
+git clone git@github.com:TalWayn72/Bellor_MVP.git .
 ```
 
 #### 6.2 יצירת קובץ Environment

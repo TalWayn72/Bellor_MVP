@@ -5,6 +5,7 @@
 
 import { Resend } from 'resend';
 import { env } from '../config/env.js';
+import { logger } from './logger.js';
 
 let resend: Resend | null = null;
 
@@ -35,7 +36,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
 
   if (!client) {
     // Email not configured - log and return false (non-blocking in dev)
-    console.warn('[Email] Resend API key not configured. Email not sent:', options.subject);
+    logger.warn('EMAIL', `Resend API key not configured. Email not sent: ${options.subject}`);
     return false;
   }
 

@@ -8,7 +8,7 @@ version: '3.8'
 services:
   # ======== API Service ========
   api:
-    # For GHCR: ghcr.io/YOUR_GITHUB_ORG/bellor_mvp/api:latest
+    # For GHCR: ghcr.io/TalWayn72/bellor_mvp/api:latest
     # For local build: bellor/api:latest
     image: ${API_IMAGE:-bellor/api:latest}
     build:
@@ -81,7 +81,7 @@ services:
 
   # ======== Frontend Service ========
   web:
-    # For GHCR: ghcr.io/YOUR_GITHUB_ORG/bellor_mvp/web:latest
+    # For GHCR: ghcr.io/TalWayn72/bellor_mvp/web:latest
     # For local build: bellor/web:latest
     image: ${WEB_IMAGE:-bellor/web:latest}
     build:

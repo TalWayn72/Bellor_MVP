@@ -4,12 +4,12 @@
  */
 
 import { prisma } from '../../lib/prisma.js';
-import { Prisma } from '@prisma/client';
+import { Prisma, LikeType } from '@prisma/client';
 
 interface ListLikesParams {
   limit?: number;
   offset?: number;
-  likeType?: string;
+  likeType?: LikeType;
 }
 
 /**

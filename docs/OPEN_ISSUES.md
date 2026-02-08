@@ -1,6 +1,6 @@
 # תקלות פתוחות - Bellor MVP
 
-**תאריך עדכון:** 7 פברואר 2026
+**תאריך עדכון:** 8 פברואר 2026
 **מצב:** טופל בהצלחה ✅
 
 ---
@@ -38,8 +38,15 @@
 | **ISSUE-020: Centralized Demo Data System (Feb 7)** | 8 | 🟢 שיפור | ✅ הושלם (Phase 1-2) |
 | **ISSUE-021: Chat Data Mapping Mismatch - userId=undefined (Feb 7)** | 6 | 🔴 קריטי | ✅ תוקן |
 | **TASK-001: File Size Enforcement - 150 Line Max (Feb 7)** | ~80 | 🟢 שיפור | 🔄 בביצוע |
+| **TASK-002: Code Quality - any types cleanup (Feb 8)** | 136 | 🟢 שיפור | ✅ הושלם |
+| **TASK-003: Code Quality - console.log → Logger (Feb 8)** | 43 | 🟢 שיפור | ✅ הושלם |
+| **TASK-004: Feature - Push Notification in Chat (Feb 8)** | 1 | 🟡 בינוני | ✅ הושלם |
+| **TASK-005: Feature - Audio Playback in Feed (Feb 8)** | 1 | 🟡 בינוני | ✅ הושלם |
+| **TASK-006: Feature - Story Viewer Modal (Feb 8)** | 1 | 🟡 בינוני | ✅ הושלם |
+| **TASK-007: Production Deployment Prep (Feb 8)** | 5 | 🟢 שיפור | ✅ הושלם |
+| **TASK-008: Performance Baseline Documentation (Feb 8)** | 1 | 🟢 שיפור | ✅ הושלם |
 
-**סה"כ:** 295 פריטים זוהו → 295 טופלו ✅ | +1 משימת שיפור בביצוע
+**סה"כ:** 296+ פריטים זוהו → 296+ טופלו ✅ | +1 משימת שיפור בביצוע (TASK-001)
 
 ---
 

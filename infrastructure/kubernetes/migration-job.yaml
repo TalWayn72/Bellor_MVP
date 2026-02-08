@@ -1,0 +1,40 @@
+---
+# Bellor Database Migration Job
+# Run before deployments to apply pending Prisma migrations
+# Usage: kubectl apply -f migration-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bellor-db-migrate
+  namespace: bellor
+  labels:
+    app: bellor-api
+    component: migration
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        app: bellor-api
+        component: migration
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: migrate
+        image: ghcr.io/TalWayn72/bellor_mvp/api:latest
+        imagePullPolicy: Always
+        command: ["npx", "prisma", "migrate", "deploy"]
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: bellor-secrets
+              key: database-url
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi

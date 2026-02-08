@@ -160,6 +160,60 @@ app.get('/health/ready', async (_req, reply) => {
   }
 });
 
+// Prometheus metrics endpoint (text/plain exposition format)
+// Tracks: process uptime, memory usage, request count, active connections
+let requestCount = 0;
+app.addHook('onRequest', async () => { requestCount++; });
+
+app.get('/metrics', async (_req, reply) => {
+  const mem = process.memoryUsage();
+  const uptime = process.uptime();
+  const cpuUsage = process.cpuUsage();
+
+  const lines = [
+    '# HELP process_uptime_seconds Total uptime of the Node.js process in seconds',
+    '# TYPE process_uptime_seconds gauge',
+    `process_uptime_seconds ${uptime.toFixed(2)}`,
+    '',
+    '# HELP process_resident_memory_bytes Resident memory size in bytes (RSS)',
+    '# TYPE process_resident_memory_bytes gauge',
+    `process_resident_memory_bytes ${mem.rss}`,
+    '',
+    '# HELP process_heap_bytes_total Total heap memory in bytes',
+    '# TYPE process_heap_bytes_total gauge',
+    `process_heap_bytes_total ${mem.heapTotal}`,
+    '',
+    '# HELP process_heap_bytes_used Used heap memory in bytes',
+    '# TYPE process_heap_bytes_used gauge',
+    `process_heap_bytes_used ${mem.heapUsed}`,
+    '',
+    '# HELP process_external_memory_bytes External memory usage in bytes (C++ objects bound to JS)',
+    '# TYPE process_external_memory_bytes gauge',
+    `process_external_memory_bytes ${mem.external}`,
+    '',
+    '# HELP http_requests_total Total number of HTTP requests received',
+    '# TYPE http_requests_total counter',
+    `http_requests_total ${requestCount}`,
+    '',
+    '# HELP process_cpu_user_microseconds Total user CPU time in microseconds',
+    '# TYPE process_cpu_user_microseconds counter',
+    `process_cpu_user_microseconds ${cpuUsage.user}`,
+    '',
+    '# HELP process_cpu_system_microseconds Total system CPU time in microseconds',
+    '# TYPE process_cpu_system_microseconds counter',
+    `process_cpu_system_microseconds ${cpuUsage.system}`,
+    '',
+    '# HELP nodejs_active_connections Number of active server connections',
+    '# TYPE nodejs_active_connections gauge',
+    `nodejs_active_connections ${app.server?.connections ?? 0}`,
+    '',
+  ];
+
+  return reply
+    .type('text/plain; version=0.0.4; charset=utf-8')
+    .send(lines.join('\n'));
+});
+
 // Register API routes
 await app.register(import('./routes/v1/index.js'), { prefix: '/api/v1' });
 

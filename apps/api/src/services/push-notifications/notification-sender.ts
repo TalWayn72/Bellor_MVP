@@ -6,6 +6,7 @@
 import admin from 'firebase-admin';
 import { prisma } from '../../lib/prisma.js';
 import { NotificationType } from '@prisma/client';
+import { logger } from '../../lib/logger.js';
 
 // Initialize Firebase Admin SDK
 let firebaseApp: admin.app.App | null = null;
@@ -72,7 +73,7 @@ export async function sendToTokens(
     response.responses.forEach((resp, idx) => {
       if (!resp.success) {
         failedTokens.push(tokens[idx]);
-        console.error(`Failed to send to token: ${resp.error?.message}`);
+        logger.error('FCM', `Failed to send to token: ${resp.error?.message}`);
       }
     });
 
@@ -85,7 +86,7 @@ export async function sendToTokens(
 
     return { sent: response.successCount, failed: response.failureCount };
   } catch (error) {
-    console.error('FCM send error:', error);
+    logger.error('FCM', 'FCM send error', error instanceof Error ? error : undefined);
     throw error;
   }
 }

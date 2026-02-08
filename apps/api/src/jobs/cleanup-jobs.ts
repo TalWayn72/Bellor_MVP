@@ -5,6 +5,7 @@
 
 import { StoriesService } from '../services/stories.service.js';
 import { prisma } from '../lib/prisma.js';
+import { logger } from '../lib/logger.js';
 
 /**
  * Story Cleanup Job
@@ -14,10 +15,10 @@ export async function storyCleanupJob(): Promise<void> {
   try {
     const result = await StoriesService.cleanupExpiredStories();
     if (result.deletedCount > 0) {
-      console.log(`[Job] Story cleanup: removed ${result.deletedCount} expired stories`);
+      logger.info('JOBS', `Story cleanup: removed ${result.deletedCount} expired stories`);
     }
   } catch (error) {
-    console.error('[Job] Story cleanup failed:', error);
+    logger.error('JOBS', 'Story cleanup failed', error instanceof Error ? error : undefined);
   }
 }
 
@@ -39,10 +40,10 @@ export async function chatCleanupJob(): Promise<void> {
     });
 
     if (result.count > 0) {
-      console.log(`[Job] Chat cleanup: expired ${result.count} temporary chats`);
+      logger.info('JOBS', `Chat cleanup: expired ${result.count} temporary chats`);
     }
   } catch (error) {
-    console.error('[Job] Chat cleanup failed:', error);
+    logger.error('JOBS', 'Chat cleanup failed', error instanceof Error ? error : undefined);
   }
 }
 
@@ -63,7 +64,7 @@ export async function premiumExpirationJob(): Promise<void> {
     });
 
     if (result.count > 0) {
-      console.log(`[Job] Premium expiration: removed premium from ${result.count} users`);
+      logger.info('JOBS', `Premium expiration: removed premium from ${result.count} users`);
 
       const expiredUsers = await prisma.user.findMany({
         where: {
@@ -88,7 +89,7 @@ export async function premiumExpirationJob(): Promise<void> {
       }
     }
   } catch (error) {
-    console.error('[Job] Premium expiration failed:', error);
+    logger.error('JOBS', 'Premium expiration failed', error instanceof Error ? error : undefined);
   }
 }
 
@@ -103,9 +104,9 @@ export async function databaseHealthJob(): Promise<void> {
     const latency = Date.now() - start;
 
     if (latency > 1000) {
-      console.warn(`[Job] Database health: high latency detected (${latency}ms)`);
+      logger.warn('JOBS', `Database health: high latency detected (${latency}ms)`);
     }
   } catch (error) {
-    console.error('[Job] Database health check failed:', error);
+    logger.error('JOBS', 'Database health check failed', error instanceof Error ? error : undefined);
   }
 }
