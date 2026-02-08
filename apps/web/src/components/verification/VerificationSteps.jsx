@@ -27,6 +27,7 @@ export function CameraView({ verificationStream, videoRef, onCapture, onStartCam
             <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
               <button
                 onClick={onCapture}
+                aria-label="Capture verification photo"
                 className="w-20 h-20 rounded-full border-4 border-card bg-card flex items-center justify-center hover:bg-muted"
               >
                 <div className="w-16 h-16 rounded-full bg-primary"></div>
@@ -54,7 +55,7 @@ export function VerificationPreview({
   return (
     <>
       <Card className="rounded-3xl overflow-hidden mb-6">
-        <img src={verificationPhoto} alt="Verification" className="w-full" />
+        <img src={verificationPhoto} alt="Verification" className="w-full" loading="lazy" />
       </Card>
 
       {verificationStatus === 'success' && (

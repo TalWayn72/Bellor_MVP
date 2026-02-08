@@ -24,6 +24,7 @@ spec:
         app: bellor-api
         tier: backend
     spec:
+      serviceAccountName: bellor-api
       # Uncomment if using private GHCR repository
       # imagePullSecrets:
       # - name: ghcr-secret

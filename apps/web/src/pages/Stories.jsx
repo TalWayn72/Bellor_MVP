@@ -83,7 +83,7 @@ export default function Stories() {
       <header className="bg-card sticky top-0 z-10 shadow-sm border-b border-border">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center">
           <div className="min-w-[24px]">
-            <Button variant="default" size="icon" onClick={() => navigate(createPageUrl('CreateStory'))} className="w-8 h-8 rounded-full">
+            <Button variant="default" size="icon" onClick={() => navigate(createPageUrl('CreateStory'))} aria-label="Create new story" className="w-8 h-8 rounded-full">
               <Plus className="w-5 h-5" />
             </Button>
           </div>
@@ -110,7 +110,7 @@ export default function Stories() {
                 <Card key={story.id} className="relative flex-shrink-0 w-24 h-32 rounded-2xl overflow-hidden border-0 p-0">
                   <CardContent className="p-0 h-full">
                     {story.media_type === 'image' && story.media_url && (
-                      <img src={story.media_url} alt="Story" className="w-full h-full object-cover" />
+                      <img src={story.media_url} alt="Story" className="w-full h-full object-cover" loading="lazy" />
                     )}
                     {story.media_type === 'text' && (
                       <div className="w-full h-full bg-gradient-to-br from-secondary-500 to-primary-500 flex items-center justify-center p-3">
@@ -140,7 +140,7 @@ export default function Stories() {
                 <Card className="w-full h-full border-0 rounded-2xl overflow-hidden">
                   <CardContent className="p-0 h-full">
                     {story.media_type === 'image' && story.media_url && (
-                      <img src={story.media_url} alt="Story" className="w-full h-full object-cover" />
+                      <img src={story.media_url} alt="Story" className="w-full h-full object-cover" loading="lazy" />
                     )}
                     {story.media_type === 'text' && (
                       <div className="w-full h-full bg-gradient-to-br from-info-500 to-success-500 flex items-center justify-center p-3">

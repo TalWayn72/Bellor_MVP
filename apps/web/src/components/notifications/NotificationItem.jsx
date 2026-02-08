@@ -11,18 +11,20 @@ export default function NotificationItem({ notification }) {
   const [relatedUser, setRelatedUser] = React.useState(null);
 
   React.useEffect(() => {
+    let isMounted = true;
     const fetchUser = async () => {
       if (!notification.related_id) return;
       try {
         const result = await userService.getUserById(notification.related_id);
-        if (result.user) {
+        if (isMounted && result.user) {
           setRelatedUser(result.user);
         }
       } catch (error) {
-        console.error('Error fetching user:', error);
+        // User fetch failed - use fallback avatar
       }
     };
     fetchUser();
+    return () => { isMounted = false; };
   }, [notification.related_id]);
 
   return (
@@ -65,6 +67,7 @@ export default function NotificationItem({ notification }) {
           </Badge>
           <button
             onClick={() => setShowActions(!showActions)}
+            aria-label={showActions ? 'Hide actions' : 'Show actions'}
             className="text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronDown className={`w-5 h-5 transition-transform ${showActions ? 'rotate-180' : ''}`} />

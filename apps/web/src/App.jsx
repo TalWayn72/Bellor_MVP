@@ -12,6 +12,7 @@ import { NavigationProvider } from '@/contexts/NavigationContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import OAuthCallback from './pages/OAuthCallback';
 import BackendStatus from '@/components/BackendStatus';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 // Loading spinner for lazy-loaded pages
 const PageLoader = () => (
@@ -27,18 +28,43 @@ const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 
+// Routes that don't require authentication
+const PUBLIC_ROUTES = new Set([
+  'Login', 'Welcome', 'Splash', 'Onboarding',
+  'PrivacyPolicy', 'TermsOfService',
+]);
+
+// Routes that require admin privileges
+const ADMIN_ROUTES = new Set([
+  'AdminDashboard', 'AdminUserManagement', 'AdminReportManagement',
+  'AdminChatMonitoring', 'AdminActivityMonitoring', 'AdminPreRegistration',
+  'AdminSystemSettings',
+]);
+
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
   : <>{children}</>;
 
+/** Wraps a page with the correct route guard based on its name */
+function wrapWithGuard(pageName, element) {
+  if (PUBLIC_ROUTES.has(pageName)) return element;
+  if (ADMIN_ROUTES.has(pageName)) {
+    return <ProtectedRoute requireAdmin>{element}</ProtectedRoute>;
+  }
+  return <ProtectedRoute>{element}</ProtectedRoute>;
+}
+
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
-  // Show loading spinner while checking app public settings or auth
+  // Show branded loading screen while checking auth state
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+          <span className="text-sm text-muted-foreground">Loading...</span>
+        </div>
       </div>
     );
   }
@@ -48,7 +74,6 @@ const AuthenticatedApp = () => {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
       navigateToLogin();
       return null;
     }
@@ -59,22 +84,26 @@ const AuthenticatedApp = () => {
     <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/" element={
-          <LayoutWrapper currentPageName={mainPageKey}>
-            <MainPage />
-          </LayoutWrapper>
+          wrapWithGuard(mainPageKey, (
+            <LayoutWrapper currentPageName={mainPageKey}>
+              <MainPage />
+            </LayoutWrapper>
+          ))
         } />
         {Object.entries(Pages).map(([path, Page]) => (
           <Route
             key={path}
             path={`/${path}`}
             element={
-              <LayoutWrapper currentPageName={path}>
-                <Page />
-              </LayoutWrapper>
+              wrapWithGuard(path, (
+                <LayoutWrapper currentPageName={path}>
+                  <Page />
+                </LayoutWrapper>
+              ))
             }
           />
         ))}
-        {/* OAuth callback route - no layout wrapper */}
+        {/* OAuth callback route - no layout wrapper, no guard */}
         <Route path="/oauth/callback" element={<OAuthCallback />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>

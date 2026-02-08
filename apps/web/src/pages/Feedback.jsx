@@ -25,7 +25,7 @@ export default function Feedback() {
         status: 'pending',
         created_date: new Date().toISOString()
       };
-      console.log('Feedback submitted:', feedbackData);
+      // Feedback service integration pending
       return feedbackData;
     },
     onSuccess: () => {

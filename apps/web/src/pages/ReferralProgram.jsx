@@ -32,7 +32,7 @@ export default function ReferralProgram() {
         referred_email: referredEmail, status: 'pending',
         reward_type: 'free_month', created_date: new Date().toISOString()
       };
-      console.log('Referral created:', newReferral);
+      // Referral service integration pending
       return newReferral;
     },
     onSuccess: (newReferral) => {

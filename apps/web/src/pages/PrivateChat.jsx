@@ -3,33 +3,13 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { chatService, userService, socketService } from '@/api';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useChatRoom, usePresence } from '@/api/hooks/useSocket';
-import { Button } from '@/components/ui/button';
 import { ChatSkeleton } from '@/components/states';
 import { createPageUrl } from '@/utils';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import PrivateChatHeader from '@/components/chat/PrivateChatHeader';
 import MessageList from '@/components/chat/MessageList';
 import ChatInput from '@/components/chat/ChatInput';
-
-const ICE_BREAKERS = [
-  { text: "What's your favorite way to spend a weekend?", category: "casual" },
-  { text: "If you could have dinner with anyone, who would it be?", category: "fun" },
-  { text: "What's something you're passionate about?", category: "deep" },
-  { text: "What's your most memorable travel experience?", category: "casual" },
-  { text: "Do you prefer coffee or tea?", category: "casual" },
-];
-
-function ErrorScreen({ title, description, onBack }) {
-  return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-      <div className="text-center">
-        <h2 className="text-lg font-semibold text-foreground mb-2">{title}</h2>
-        <p className="text-muted-foreground mb-4">{description}</p>
-        <Button onClick={onBack}>Back to Feed</Button>
-      </div>
-    </div>
-  );
-}
+import { ICE_BREAKERS, ErrorScreen } from '@/components/chat/PrivateChatConstants';
 
 export default function PrivateChat() {
   const navigate = useNavigate(), location = useLocation();

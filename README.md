@@ -97,11 +97,21 @@ For detailed architecture diagrams (Mermaid): [docs/ARCHITECTURE.md](docs/ARCHIT
 ### Internationalization
 - 5 languages: English, Hebrew, Spanish, German, French
 
+### Reliability & Performance
+- DB transaction safety (atomic operations via `prisma.$transaction()`)
+- Circuit breaker pattern for external APIs (Stripe, Firebase, Resend)
+- Redis cache-aside for profiles, stories, missions, achievements
+- Endpoint-specific rate limiting (login, register, chat, upload, search)
+- Global error handler with standardized AppError class
+- WebSocket heartbeat with stale connection cleanup
+- 40+ optimized database indexes including compound indexes
+
 ### Security (Multi-layer)
 - Input sanitization (client + server), Zod validation on every endpoint
 - File upload security (magic bytes, EXIF stripping, re-encoding)
 - Security headers (CSP, HSTS, CORS, X-Frame-Options)
 - Container hardening (non-root, read-only FS, capability dropping)
+- K8s NetworkPolicy + RBAC for pod-to-pod traffic restriction
 - Full audit: [docs/SECURITY_CHECKLIST.md](docs/SECURITY_CHECKLIST.md) (71/75 items verified)
 
 ---
@@ -255,7 +265,7 @@ VITE_WS_URL=ws://localhost:3000
 | **Performance** | [docs/PERFORMANCE_BASELINE.md](docs/PERFORMANCE_BASELINE.md) -- k6 load test results and scripts |
 | **Privacy** | [docs/DATA_RETENTION_POLICY.md](docs/DATA_RETENTION_POLICY.md) -- GDPR-compliant PII retention policy |
 | **Mobile** | [docs/GOOGLE_PLAY_DEPLOYMENT.md](docs/GOOGLE_PLAY_DEPLOYMENT.md) / [docs/MOBILE_RELEASE_CHECKLIST.md](docs/MOBILE_RELEASE_CHECKLIST.md) / [docs/MOBILE_APP_REQUIREMENTS.md](docs/MOBILE_APP_REQUIREMENTS.md) |
-| **Tracking** | [docs/OPEN_ISSUES.md](docs/OPEN_ISSUES.md) -- 500+ items tracked, all resolved |
+| **Tracking** | [docs/OPEN_ISSUES.md](docs/OPEN_ISSUES.md) -- 523+ items tracked, all resolved |
 
 ---
 

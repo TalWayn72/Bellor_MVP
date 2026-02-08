@@ -26,14 +26,15 @@ export async function likeResponse(userId: string, responseId: string) {
     return existing;
   }
 
-  const like = await prisma.like.create({
-    data: { userId, targetResponseId: responseId, likeType: 'POSITIVE' },
-  });
-
-  await prisma.response.update({
-    where: { id: responseId },
-    data: { likeCount: { increment: 1 } },
-  });
+  const [like] = await prisma.$transaction([
+    prisma.like.create({
+      data: { userId, targetResponseId: responseId, likeType: 'POSITIVE' },
+    }),
+    prisma.response.update({
+      where: { id: responseId },
+      data: { likeCount: { increment: 1 } },
+    }),
+  ]);
 
   return like;
 }
@@ -52,12 +53,13 @@ export async function unlikeResponse(userId: string, responseId: string) {
     throw new Error('Like not found');
   }
 
-  await prisma.like.delete({ where: { id: like.id } });
-
-  await prisma.response.update({
-    where: { id: responseId },
-    data: { likeCount: { decrement: 1 } },
-  });
+  await prisma.$transaction([
+    prisma.like.delete({ where: { id: like.id } }),
+    prisma.response.update({
+      where: { id: responseId },
+      data: { likeCount: { decrement: 1 } },
+    }),
+  ]);
 
   return { success: true };
 }

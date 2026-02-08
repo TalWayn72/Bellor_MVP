@@ -18,7 +18,7 @@ export const useTheme = () => {
   const context = useContext(ThemeContext);
 
   if (context === undefined) {
-    console.warn('useTheme must be used within a ThemeProvider');
+    if (import.meta.env.DEV) console.debug('useTheme must be used within a ThemeProvider');
     return {
       theme: ThemeModes.LIGHT,
       colorTheme: 'rose',

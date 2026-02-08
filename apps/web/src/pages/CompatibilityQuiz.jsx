@@ -38,7 +38,7 @@ export default function CompatibilityQuiz() {
         answer,
         importance
       };
-      console.log('Compatibility answer saved:', answerData);
+      // Compatibility answer persistence - backend integration pending
       return answerData;
     },
     onSuccess: (answerData) => {

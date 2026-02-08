@@ -25,7 +25,7 @@ export default function Premium() {
         end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         amount: 29.99
       };
-      console.log('Subscription created:', subscriptionData);
+      // Subscription service integration pending
       await userService.updateUser(currentUser.id, {
         is_premium: true, last_active_date: new Date().toISOString()
       });

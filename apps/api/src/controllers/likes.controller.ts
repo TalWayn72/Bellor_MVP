@@ -7,6 +7,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { LikesService } from '../services/likes.service.js';
 import { isDemoUserId, isDemoId } from '../utils/demoId.util.js';
+import { AppError } from '../lib/app-error.js';
 import {
   likeUserBodySchema,
   likeResponseBodySchema,
@@ -25,6 +26,8 @@ function zodError(reply: FastifyReply, error: z.ZodError) {
   });
 }
 
+const NOT_FOUND_MESSAGES = ['Target user not found', 'Like not found', 'Response not found', 'Not found'];
+
 export const LikesController = {
   /** POST /likes/user */
   async likeUser(request: FastifyRequest<{ Body: LikeUserBody }>, reply: FastifyReply) {
@@ -39,9 +42,10 @@ export const LikesController = {
       return reply.send(result);
     } catch (error: unknown) {
       if (error instanceof z.ZodError) return zodError(reply, error);
+      if (error instanceof AppError) return reply.status(error.statusCode).send({ error: error.message });
       const message = error instanceof Error ? error.message : 'Unknown error';
-      if (message === 'Target user not found') return reply.status(404).send({ error: message });
-      return reply.status(500).send({ error: message });
+      const status = NOT_FOUND_MESSAGES.includes(message) ? 404 : 500;
+      return reply.status(status).send({ error: message });
     }
   },
 
@@ -72,8 +76,10 @@ export const LikesController = {
       return reply.send({ like });
     } catch (error: unknown) {
       if (error instanceof z.ZodError) return zodError(reply, error);
+      if (error instanceof AppError) return reply.status(error.statusCode).send({ error: error.message });
       const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(500).send({ error: message });
+      const status = NOT_FOUND_MESSAGES.includes(message) ? 404 : 500;
+      return reply.status(status).send({ error: message });
     }
   },
 
@@ -104,6 +110,7 @@ export const LikesController = {
       return reply.send(result);
     } catch (error: unknown) {
       if (error instanceof z.ZodError) return zodError(reply, error);
+      if (error instanceof AppError) return reply.status(error.statusCode).send({ error: error.message });
       const message = error instanceof Error ? error.message : 'Unknown error';
       return reply.status(500).send({ error: message });
     }
@@ -120,6 +127,7 @@ export const LikesController = {
       return reply.send(result);
     } catch (error: unknown) {
       if (error instanceof z.ZodError) return zodError(reply, error);
+      if (error instanceof AppError) return reply.status(error.statusCode).send({ error: error.message });
       const message = error instanceof Error ? error.message : 'Unknown error';
       return reply.status(500).send({ error: message });
     }
@@ -135,6 +143,7 @@ export const LikesController = {
       return reply.send({ hasLiked, isMatch });
     } catch (error: unknown) {
       if (error instanceof z.ZodError) return zodError(reply, error);
+      if (error instanceof AppError) return reply.status(error.statusCode).send({ error: error.message });
       const message = error instanceof Error ? error.message : 'Unknown error';
       return reply.status(500).send({ error: message });
     }
@@ -154,6 +163,7 @@ export const LikesController = {
       return reply.send(result);
     } catch (error: unknown) {
       if (error instanceof z.ZodError) return zodError(reply, error);
+      if (error instanceof AppError) return reply.status(error.statusCode).send({ error: error.message });
       const message = error instanceof Error ? error.message : 'Unknown error';
       return reply.status(500).send({ error: message });
     }

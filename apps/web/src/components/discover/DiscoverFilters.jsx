@@ -39,18 +39,18 @@ export default function DiscoverFilters({ filters, setFilters, onClose }) {
         <div className="space-y-6">
           {/* Age Range */}
           <div>
-            <label className="block text-sm font-semibold text-foreground mb-2">Age Range</label>
+            <label htmlFor="filter-min-age" className="block text-sm font-semibold text-foreground mb-2">Age Range</label>
             <div className="flex items-center gap-4">
-              <input type="number" value={filters.minAge} onChange={(e) => setFilters({ ...filters, minAge: parseInt(e.target.value) })} className="w-20 px-3 py-2 border-2 border-border rounded-lg bg-background text-foreground" />
+              <input id="filter-min-age" type="number" aria-label="Minimum age" value={filters.minAge} onChange={(e) => setFilters({ ...filters, minAge: parseInt(e.target.value) })} className="w-20 px-3 py-2 border-2 border-border rounded-lg bg-background text-foreground" />
               <span className="text-foreground">-</span>
-              <input type="number" value={filters.maxAge} onChange={(e) => setFilters({ ...filters, maxAge: parseInt(e.target.value) })} className="w-20 px-3 py-2 border-2 border-border rounded-lg bg-background text-foreground" />
+              <input id="filter-max-age" type="number" aria-label="Maximum age" value={filters.maxAge} onChange={(e) => setFilters({ ...filters, maxAge: parseInt(e.target.value) })} className="w-20 px-3 py-2 border-2 border-border rounded-lg bg-background text-foreground" />
             </div>
           </div>
 
           {/* Distance */}
           <div>
-            <label className="block text-sm font-semibold text-foreground mb-2">Distance: {filters.distance} km</label>
-            <input type="range" min="1" max="100" value={filters.distance} onChange={(e) => setFilters({ ...filters, distance: parseInt(e.target.value) })} className="w-full" />
+            <label htmlFor="filter-distance" className="block text-sm font-semibold text-foreground mb-2">Distance: {filters.distance} km</label>
+            <input id="filter-distance" type="range" min="1" max="100" value={filters.distance} onChange={(e) => setFilters({ ...filters, distance: parseInt(e.target.value) })} className="w-full" />
           </div>
 
           {/* Gender */}
@@ -79,8 +79,8 @@ export default function DiscoverFilters({ filters, setFilters, onClose }) {
 
           {/* Location */}
           <div>
-            <label className="block text-sm font-semibold text-foreground mb-2">Location</label>
-            <input type="text" value={filters.location} onChange={(e) => setFilters({ ...filters, location: e.target.value })} placeholder="Enter city or area" className="w-full px-4 py-3 border-2 border-border rounded-xl bg-background text-foreground" />
+            <label htmlFor="filter-location" className="block text-sm font-semibold text-foreground mb-2">Location</label>
+            <input id="filter-location" type="text" value={filters.location} onChange={(e) => setFilters({ ...filters, location: e.target.value })} placeholder="Enter city or area" className="w-full px-4 py-3 border-2 border-border rounded-xl bg-background text-foreground" />
           </div>
 
           {/* Interests */}

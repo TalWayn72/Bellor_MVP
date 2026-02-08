@@ -11,28 +11,28 @@ export class ResponsesService {
    * Create a new response
    */
   static async createResponse(data: CreateResponseInput) {
-    const response = await prisma.response.create({
-      data: {
-        userId: data.userId,
-        missionId: data.missionId,
-        responseType: data.responseType,
-        content: data.content,
-        textContent: data.textContent,
-        thumbnailUrl: data.thumbnailUrl,
-        duration: data.duration,
-        isPublic: data.isPublic ?? true,
-      },
-      include: RESPONSE_INCLUDE,
-    });
-
-    // Update user's response count
-    await prisma.user.update({
-      where: { id: data.userId },
-      data: {
-        responseCount: { increment: 1 },
-        missionCompletedCount: data.missionId ? { increment: 1 } : undefined,
-      },
-    });
+    const [response] = await prisma.$transaction([
+      prisma.response.create({
+        data: {
+          userId: data.userId,
+          missionId: data.missionId,
+          responseType: data.responseType,
+          content: data.content,
+          textContent: data.textContent,
+          thumbnailUrl: data.thumbnailUrl,
+          duration: data.duration,
+          isPublic: data.isPublic ?? true,
+        },
+        include: RESPONSE_INCLUDE,
+      }),
+      prisma.user.update({
+        where: { id: data.userId },
+        data: {
+          responseCount: { increment: 1 },
+          missionCompletedCount: data.missionId ? { increment: 1 } : undefined,
+        },
+      }),
+    ]);
 
     return response;
   }
@@ -134,12 +134,12 @@ export class ResponsesService {
       throw new Error('Unauthorized');
     }
 
-    await prisma.response.delete({ where: { id } });
-
-    // Decrement user's response count
-    await prisma.user.update({
-      where: { id: userId },
-      data: { responseCount: { decrement: 1 } },
-    });
+    await prisma.$transaction([
+      prisma.response.delete({ where: { id } }),
+      prisma.user.update({
+        where: { id: userId },
+        data: { responseCount: { decrement: 1 } },
+      }),
+    ]);
   }
 }

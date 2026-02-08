@@ -7,6 +7,7 @@ import admin from 'firebase-admin';
 import { prisma } from '../../lib/prisma.js';
 import { NotificationType } from '@prisma/client';
 import { logger } from '../../lib/logger.js';
+import { firebaseBreaker } from '../../lib/external-services.js';
 
 // Initialize Firebase Admin SDK
 let firebaseApp: admin.app.App | null = null;
@@ -67,7 +68,9 @@ export async function sendToTokens(
   };
 
   try {
-    const response = await messaging.sendEachForMulticast(message);
+    const response = await firebaseBreaker.execute(() =>
+      messaging.sendEachForMulticast(message),
+    );
 
     const failedTokens: string[] = [];
     response.responses.forEach((resp, idx) => {

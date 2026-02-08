@@ -17,7 +17,7 @@ export function formatDateForInput(date) {
 
   // Check if valid date
   if (isNaN(dateObj.getTime())) {
-    console.warn('[DATE_FORMAT] Invalid date:', date);
+    if (import.meta.env.DEV) console.debug('[DATE_FORMAT] Invalid date:', date);
     return '';
   }
 
@@ -37,28 +37,28 @@ export function validateDateOfBirth(dateStr) {
 
   const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
   if (!dateRegex.test(dateStr)) {
-    console.error('[DATE_VALIDATION] Invalid format:', dateStr, 'Expected: yyyy-MM-dd');
+    if (import.meta.env.DEV) console.debug('[DATE_VALIDATION] Invalid format:', dateStr, 'Expected: yyyy-MM-dd');
     return { isValid: false, error: 'Date must be in yyyy-MM-dd format' };
   }
 
   const parsed = new Date(dateStr);
   if (isNaN(parsed.getTime())) {
-    console.error('[DATE_VALIDATION] Invalid date:', dateStr);
+    if (import.meta.env.DEV) console.debug('[DATE_VALIDATION] Invalid date:', dateStr);
     return { isValid: false, error: 'Invalid date' };
   }
 
   const year = parsed.getFullYear();
   const currentYear = new Date().getFullYear();
   if (year < 1900) {
-    console.error('[DATE_VALIDATION] Year too old:', year);
+    if (import.meta.env.DEV) console.debug('[DATE_VALIDATION] Year too old:', year);
     return { isValid: false, error: 'Please enter a valid birth year' };
   }
   if (year > currentYear - 18) {
-    console.error('[DATE_VALIDATION] User must be 18+:', year);
+    if (import.meta.env.DEV) console.debug('[DATE_VALIDATION] User must be 18+:', year);
     return { isValid: false, error: 'You must be at least 18 years old' };
   }
 
-  console.log('[DATE_VALIDATION] Valid date:', dateStr, '\u2192', parsed.toISOString());
+  if (import.meta.env.DEV) console.debug('[DATE_VALIDATION] Valid date:', dateStr);
   return { isValid: true, date: parsed };
 }
 

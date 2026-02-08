@@ -5,14 +5,19 @@ export interface JWTPayload {
   userId: string;
   id: string; // Alias for userId for backward compatibility
   email: string;
+  isAdmin: boolean;
 }
 
 export interface RefreshTokenPayload {
   userId: string;
 }
 
-export const generateAccessToken = (userId: string, email: string): string => {
-  const payload: JWTPayload = { userId, id: userId, email };
+export const generateAccessToken = (
+  userId: string,
+  email: string,
+  isAdmin = false,
+): string => {
+  const payload: JWTPayload = { userId, id: userId, email, isAdmin };
 
   return jwt.sign(payload, env.JWT_SECRET, {
     expiresIn: env.JWT_EXPIRES_IN,

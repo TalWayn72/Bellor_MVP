@@ -24,7 +24,7 @@ export default function ProfileBoost() {
         user_id: currentUser.id, boost_type: boostType,
         started_at: now.toISOString(), expires_at: expiresAt.toISOString(), views_gained: 0
       };
-      console.log('Boost activated:', boostData);
+      // Boost service integration pending
       return boostData;
     },
     onSuccess: (data) => {

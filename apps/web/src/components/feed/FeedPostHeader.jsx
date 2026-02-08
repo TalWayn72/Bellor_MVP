@@ -13,9 +13,7 @@ export default function FeedPostHeader({ userData, response, isPlaying, onPlayVo
       <button
         onClick={() => {
           const uid = response.user_id || response.userId || userData?.id;
-          console.log('[FeedPostHeader] Avatar clicked', { uid, response_user_id: response.user_id, response_userId: response.userId, userData_id: userData?.id });
           if (!uid || uid === 'undefined') {
-            console.warn('[FeedPostHeader] No valid user ID found, response:', response.id, 'userData:', userData);
             return;
           }
           navigate(createPageUrl(`UserProfile?id=${uid}`));
@@ -46,7 +44,7 @@ export default function FeedPostHeader({ userData, response, isPlaying, onPlayVo
         </div>
       </button>
       {response.response_type === 'voice' && (
-        <button onClick={onPlayVoice} className="p-1.5 rounded-lg bg-muted">
+        <button onClick={onPlayVoice} aria-label={isPlaying ? 'Pause voice message' : 'Play voice message'} className="p-1.5 rounded-lg bg-muted">
           <Volume2 className={`w-5 h-5 ${isPlaying ? 'text-info' : 'text-muted-foreground'}`} />
         </button>
       )}

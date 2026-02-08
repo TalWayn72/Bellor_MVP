@@ -27,7 +27,7 @@ export default function EmailSupport() {
         subject: `[${data.category}] ${data.subject}`,
         body: `From: ${currentUser?.full_name} (${currentUser?.email})\n\nCategory: ${data.category}\n\n${data.message}`
       };
-      console.log('Support email sent:', emailData);
+      // Email service integration pending
       return emailData;
     },
     onSuccess: () => {

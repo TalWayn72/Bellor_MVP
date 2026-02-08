@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { chatService } from './chatService.js';
-import { apiClient } from '../client/apiClient.js';
+import { chatService } from './chatService';
+import { apiClient } from '../client/apiClient';
 
 // Mock apiClient
-vi.mock('../client/apiClient.js', () => ({
+vi.mock('../client/apiClient', () => ({
   apiClient: {
     get: vi.fn(),
     post: vi.fn(),

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
 import { authService } from '@/api/services/authService';
 import { tokenStorage } from '@/api/client/tokenStorage';
 
@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = async (credentials) => {
+  const login = useCallback(async (credentials) => {
     try {
       setIsLoadingAuth(true);
       setAuthError(null);
@@ -66,9 +66,9 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingAuth(false);
       throw error;
     }
-  };
+  }, []);
 
-  const register = async (data) => {
+  const register = useCallback(async (data) => {
     try {
       setIsLoadingAuth(true);
       setAuthError(null);
@@ -87,9 +87,9 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingAuth(false);
       throw error;
     }
-  };
+  }, []);
 
-  const logout = async (shouldRedirect = true) => {
+  const logout = useCallback(async (shouldRedirect = true) => {
     try {
       await authService.logout();
     } finally {
@@ -100,25 +100,27 @@ export const AuthProvider = ({ children }) => {
         window.location.href = '/Login';
       }
     }
-  };
+  }, []);
 
-  const navigateToLogin = () => {
+  const navigateToLogin = useCallback(() => {
     window.location.href = '/Login';
-  };
+  }, []);
+
+  const value = useMemo(() => ({
+    user,
+    isAuthenticated,
+    isLoadingAuth,
+    isLoadingPublicSettings: false,
+    authError,
+    login,
+    register,
+    logout,
+    navigateToLogin,
+    checkUserAuth,
+  }), [user, isAuthenticated, isLoadingAuth, authError, login, register, logout, checkUserAuth]);
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      isAuthenticated,
-      isLoadingAuth,
-      isLoadingPublicSettings: false, // No public settings to load
-      authError,
-      login,
-      register,
-      logout,
-      navigateToLogin,
-      checkUserAuth
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

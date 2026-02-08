@@ -32,7 +32,7 @@ export default function VirtualEvents() {
         event_id: eventId, user_id: currentUser.id,
         status: 'registered', registered_at: new Date().toISOString()
       };
-      console.log('Event registration:', registration);
+      // Event registration service integration pending
       return registration;
     },
     onSuccess: (registration) => {

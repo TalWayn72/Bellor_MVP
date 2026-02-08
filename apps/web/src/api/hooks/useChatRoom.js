@@ -16,20 +16,22 @@ export function useChatRoom(chatId) {
   // Join chat room
   useEffect(() => {
     if (!chatId) return;
+    let isMounted = true;
 
     setLoading(true);
     socketService.connect()
       .then(() => socketService.joinChat(chatId))
       .then((response) => {
-        if (response.success) {
+        if (isMounted && response.success) {
           setIsJoined(true);
         }
       })
       .catch(console.error)
-      .finally(() => setLoading(false));
+      .finally(() => { if (isMounted) setLoading(false); });
 
     // Cleanup: leave chat room
     return () => {
+      isMounted = false;
       socketService.leaveChat(chatId);
       setIsJoined(false);
       setMessages([]);

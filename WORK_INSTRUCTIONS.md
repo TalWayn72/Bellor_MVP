@@ -216,7 +216,7 @@ Location: `apps/web/src/components/states/`
 
 ## Current Open Items
 
-Tracking: `docs/OPEN_ISSUES.md` (451+ items documented, all resolved)
+Tracking: `docs/OPEN_ISSUES.md` (523+ items documented, all resolved)
 
 **Pending:** Phase 10 Mobile (30%), beta testing (100 users), production cloud deployment.
 
@@ -224,12 +224,29 @@ Tracking: `docs/OPEN_ISSUES.md` (451+ items documented, all resolved)
 
 | Addition | Description |
 |----------|-------------|
-| Zod Validation | Schemas added to all API controllers (achievements, follows, likes, notifications, reports, stories, device-tokens) |
+| DB Transaction Safety | `prisma.$transaction()` in responses, likes, chat. `upsert()` for likes |
+| AppError Class | Standardized error handling with code+status across all services |
+| Circuit Breaker | Fault tolerance for Stripe, Firebase, Resend external API calls |
+| Redis Cache-Aside | `CacheService.getOrSet()` for profiles (5min), stories (2min), missions (5min) |
+| Endpoint Rate Limits | Per-route config: login 5/15min, register 3/hr, chat 30/min, upload 10/min |
+| Global Error Handler | `app.setErrorHandler()` + unhandled rejection/exception handlers |
+| JWT Admin Caching | `isAdmin` in JWT payload - eliminates N+1 DB query on admin endpoints |
+| WebSocket Heartbeat | Ping 25s/timeout 20s, TTL 3600s→300s, stale socket cleanup |
+| DB Indexes | 6+ new indexes: birthDate, gender, preferredLanguage, createdAt, compounds |
+| Frontend .js→.ts | 14 API services converted to TypeScript with typed interfaces |
+| Auth Route Guards | ProtectedRoute component with splash screen during auth loading |
+| Context Optimization | useMemo on AuthContext and SocketProvider to prevent re-renders |
+| Image Lazy Loading | `loading="lazy"` across 15+ components (chat, feed, discover, profile) |
+| Accessibility | aria-labels, htmlFor, focus management across interactive components |
+| useEffect Cleanup | Proper cleanup returns in useChatRoom, isMounted in MatchCard |
+| E2E in CI | Playwright tests with PostgreSQL+Redis services in GitHub Actions |
+| K8s Security | NetworkPolicy (pod-to-pod restriction) + RBAC (service accounts) |
+| Prometheus Metrics | Business counters: chat_messages, matches, payments, registrations |
+| PgBouncer Scaling | Pool size 50→100/replica, MAX_CLIENT_CONN 1000→2000 |
+| Zod Validation | Schemas on all API controllers (7 controller groups) |
 | Prometheus Alerts | P1-P4 severity tiers, WebSocket, DB alerts (3 rule files) |
 | Data Retention Policy | `docs/DATA_RETENTION_POLICY.md` - GDPR-compliant PII handling |
 | Admin Message Deletion | `DELETE /api/v1/admin/messages/:id` + UI in AdminReportManagement |
-| Mobile Release Checklist | `docs/MOBILE_RELEASE_CHECKLIST.md` - Android/iOS deployment guide |
 | PRD Rewrite | `docs/PRD.md` - Comprehensive product requirements (388 lines) |
-| Frontend Unit Tests | 54 page test files (from 18) covering all pages |
+| Frontend Unit Tests | 54 page test files covering all pages |
 | Response Transformer | `responseTransformer.js` - snake_case normalization layer |
-| Historical Doc Markers | DESIGN_ALIGNMENT_PLAN, FIGMA_IMPLEMENTATION_PLAN + 4 docs marked historical |

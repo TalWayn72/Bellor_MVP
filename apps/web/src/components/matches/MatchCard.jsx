@@ -10,20 +10,24 @@ function UserCard({ userId }) {
   const [user, setUser] = React.useState(null);
 
   React.useEffect(() => {
+    let isMounted = true;
     const fetchUser = async () => {
       try {
         const result = await userService.getUserById(userId);
-        if (result.user) {
+        if (isMounted && result.user) {
           setUser(result.user);
         }
       } catch (error) {
-        setUser({
-          id: userId,
-          profile_images: [`https://i.pravatar.cc/300?u=${userId}`]
-        });
+        if (isMounted) {
+          setUser({
+            id: userId,
+            profile_images: [`https://i.pravatar.cc/300?u=${userId}`]
+          });
+        }
       }
     };
     if (userId) fetchUser();
+    return () => { isMounted = false; };
   }, [userId]);
 
   return (
@@ -31,6 +35,7 @@ function UserCard({ userId }) {
       src={user?.profile_images?.[0] || `https://i.pravatar.cc/300?u=${userId}`}
       alt="User"
       className="w-full h-full object-cover"
+      loading="lazy"
     />
   );
 }
@@ -39,17 +44,19 @@ function UserInfo({ userId, type }) {
   const [user, setUser] = React.useState(null);
 
   React.useEffect(() => {
+    let isMounted = true;
     const fetchUser = async () => {
       try {
         const result = await userService.getUserById(userId);
-        if (result.user) {
+        if (isMounted && result.user) {
           setUser(result.user);
         }
       } catch (error) {
-        setUser({ id: userId, nickname: 'User' });
+        if (isMounted) setUser({ id: userId, nickname: 'User' });
       }
     };
     if (userId) fetchUser();
+    return () => { isMounted = false; };
   }, [userId]);
 
   return (

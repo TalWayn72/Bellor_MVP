@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { authMiddleware } from '../../middleware/auth.middleware.js';
 import { bruteForceProtection } from '../../security/auth-hardening.js';
+import { RATE_LIMITS } from '../../config/rate-limits.js';
 import {
   handleRegister, handleLogin, handleRefresh, handleLogout,
   handleGetMe, handleChangePassword, handleForgotPassword, handleResetPassword,
@@ -9,11 +10,13 @@ import {
 export default async function authRoutes(app: FastifyInstance) {
   /** POST /auth/register */
   app.post('/register', {
+    config: { rateLimit: RATE_LIMITS.auth.register },
     schema: { tags: ['Auth'], summary: 'Register a new user', description: 'Creates a new user account and returns access/refresh tokens' },
   }, handleRegister);
 
   /** POST /auth/login */
   app.post('/login', {
+    config: { rateLimit: RATE_LIMITS.auth.login },
     preHandler: bruteForceProtection,
     schema: { tags: ['Auth'], summary: 'Login with email and password', description: 'Authenticates user and returns access/refresh tokens' },
   }, handleLogin);
@@ -34,11 +37,13 @@ export default async function authRoutes(app: FastifyInstance) {
 
   /** POST /auth/forgot-password */
   app.post('/forgot-password', {
+    config: { rateLimit: RATE_LIMITS.auth.passwordReset },
     schema: { tags: ['Auth'], summary: 'Request password reset email', description: 'Sends a password reset link to the provided email address' },
   }, handleForgotPassword);
 
   /** POST /auth/reset-password */
   app.post('/reset-password', {
+    config: { rateLimit: RATE_LIMITS.auth.passwordReset },
     schema: { tags: ['Auth'], summary: 'Reset password with token', description: 'Reset password using the token received via email' },
   }, handleResetPassword);
 }

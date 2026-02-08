@@ -31,7 +31,7 @@ export default function UserProfileAbout({ viewedUser, responses }) {
                 .map((response) => (
                   <div key={response.id} className="aspect-square rounded-xl overflow-hidden bg-muted">
                     {response.response_type === 'drawing' && response.content && (
-                      <img src={response.content} alt="Response" className="w-full h-full object-cover" />
+                      <img src={response.content} alt="Response" className="w-full h-full object-cover" loading="lazy" />
                     )}
                     {response.response_type === 'video' && response.content && (
                       <video src={response.content} className="w-full h-full object-cover" />

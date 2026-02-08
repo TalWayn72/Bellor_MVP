@@ -30,7 +30,7 @@ export default function AdminSystemSettings() {
 
   const updateSettingMutation = useMutation({
     mutationFn: async ({ settingId, value }) => {
-      console.log('Setting updated:', { settingId, value });
+      // Setting update - backend integration pending
       return { settingId, value };
     },
     onSuccess: ({ settingId, value }) => {

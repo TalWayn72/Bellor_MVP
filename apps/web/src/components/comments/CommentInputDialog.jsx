@@ -17,11 +17,7 @@ export default function CommentInputDialog({ isOpen, onClose, response, currentU
   const createCommentMutation = useMutation({
     mutationFn: async (text) => {
       // Log comment creation (Comment service can be added in future)
-      console.log('Comment created:', {
-        response_id: response.id,
-        user_id: currentUser.id,
-        text: text
-      });
+      // Comment creation - backend service can be added later
     },
     onSuccess: () => {
       setCommentText('');

@@ -10,7 +10,7 @@ export default function MessageReactionPicker({ message, currentUserId, onReact 
   const reactMutation = useMutation({
     mutationFn: async (reaction) => {
       // Log reaction (MessageReaction service can be added in future)
-      console.log('Message reaction:', { message_id: message.id, user_id: currentUserId, reaction });
+      // MessageReaction tracking - backend service can be added later
       if (onReact) onReact(reaction);
     },
     onSuccess: () => {

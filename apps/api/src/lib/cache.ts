@@ -1,9 +1,10 @@
 /**
  * Cache utility for Redis-based data caching
- * Provides get/set/invalidate helpers with JSON serialization
+ * Provides get/set/invalidate/getOrSet helpers with JSON serialization
  */
 
 import { redis } from './redis.js';
+import { logger } from './logger.js';
 
 /** Default TTL values in seconds */
 export const CacheTTL = {
@@ -12,6 +13,8 @@ export const CacheTTL = {
   MISSION_TODAY: 3600,  // 1 hour (refreshed daily)
   ACHIEVEMENT: 3600,    // 1 hour
   SHORT: 300,           // 5 minutes
+  STORIES_FEED: 120,    // 2 minutes
+  STORIES_USER: 120,    // 2 minutes
 } as const;
 
 /** Cache key prefixes */
@@ -21,6 +24,8 @@ export const CacheKey = {
   missionToday: () => `cache:mission:today`,
   achievement: (id: string) => `cache:achievement:${id}`,
   achievementsList: () => `cache:achievements:list`,
+  storiesFeed: (userId: string) => `cache:stories:feed:${userId}`,
+  storiesUser: (userId: string) => `cache:stories:user:${userId}`,
 } as const;
 
 /**
@@ -69,4 +74,37 @@ export async function cacheDelMany(...keys: string[]): Promise<void> {
   } catch {
     // Cache delete failures are non-critical
   }
+}
+
+/**
+ * Invalidate cache entries matching a glob pattern.
+ * Use sparingly - KEYS command is O(N).
+ */
+export async function cacheInvalidatePattern(pattern: string): Promise<void> {
+  try {
+    const keys = await redis.keys(pattern);
+    if (keys.length > 0) {
+      await redis.del(...keys);
+      logger.debug('CACHE', `Invalidated ${keys.length} keys matching ${pattern}`);
+    }
+  } catch {
+    // Cache invalidation failures are non-critical
+  }
+}
+
+/**
+ * Get a cached value or fetch and cache it.
+ * Avoids cache stampede by fetching only once.
+ */
+export async function cacheGetOrSet<T>(
+  key: string,
+  ttlSeconds: number,
+  fetcher: () => Promise<T>,
+): Promise<T> {
+  const cached = await cacheGet<T>(key);
+  if (cached !== null) return cached;
+
+  const fresh = await fetcher();
+  await cacheSet(key, fresh, ttlSeconds);
+  return fresh;
 }

@@ -84,11 +84,7 @@ export default function VideoDate() {
       videoRef.current.srcObject.getTracks().forEach(track => track.stop());
     }
     if (chatId) {
-      console.log('Video call ended:', {
-        chat_id: chatId, caller_id: currentUser.id, receiver_id: otherUser?.id,
-        status: 'ended', started_at: new Date(Date.now() - callDuration * 1000).toISOString(),
-        ended_at: new Date().toISOString(), duration: callDuration,
-      });
+      // Video call tracking - backend integration pending
     }
     navigate(createPageUrl('PrivateChat?chatId=' + chatId));
   };

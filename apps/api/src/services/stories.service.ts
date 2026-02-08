@@ -5,6 +5,7 @@
 
 import { prisma } from '../lib/prisma.js';
 import { MediaType } from '@prisma/client';
+import { cacheDel, cacheInvalidatePattern, CacheKey } from '../lib/cache.js';
 import {
   getStoriesByUser,
   getStoriesFeed,
@@ -47,6 +48,10 @@ export const StoriesService = {
         user: { select: STORY_USER_SELECT },
       },
     });
+
+    // Invalidate story caches for this user and all feeds
+    await cacheDel(CacheKey.storiesUser(userId));
+    await cacheInvalidatePattern('cache:stories:feed:*');
 
     return story;
   },
@@ -119,6 +124,10 @@ export const StoriesService = {
     await prisma.story.delete({
       where: { id: storyId },
     });
+
+    // Invalidate story caches for this user and all feeds
+    await cacheDel(CacheKey.storiesUser(userId));
+    await cacheInvalidatePattern('cache:stories:feed:*');
 
     return { success: true };
   },

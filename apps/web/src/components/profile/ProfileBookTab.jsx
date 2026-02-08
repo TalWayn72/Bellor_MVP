@@ -63,7 +63,7 @@ export default function ProfileBookTab({ responses, onSelectResponse }) {
                   </div>
                 )}
                 {response.response_type === 'drawing' && response.content && (
-                  <img src={response.content} alt="Drawing" className="w-full h-full object-cover" />
+                  <img src={response.content} alt="Drawing" className="w-full h-full object-cover" loading="lazy" />
                 )}
                 {response.response_type === 'video' && response.content && (
                   <video src={response.content} className="w-full h-full object-cover" />
@@ -77,6 +77,7 @@ export default function ProfileBookTab({ responses, onSelectResponse }) {
                 )}
                 <button
                   onClick={() => onSelectResponse(response)}
+                  aria-label="More options for this post"
                   className="absolute top-2 right-2 w-8 h-8 bg-card/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <MoreVertical className="w-4 h-4 text-foreground" />

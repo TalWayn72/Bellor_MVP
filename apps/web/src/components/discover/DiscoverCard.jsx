@@ -23,6 +23,7 @@ export default function DiscoverCard({
             src={profile.profile_images?.[0] || `https://i.pravatar.cc/600?u=${profile.id}`}
             alt={profile.nickname}
             className="w-full h-full object-cover"
+            loading="lazy"
           />
 
           {/* Gradient Overlay */}
@@ -56,24 +57,28 @@ export default function DiscoverCard({
       <div className="flex items-center justify-center gap-6">
         <button
           onClick={onPass}
+          aria-label="Pass on this profile"
           className="w-16 h-16 rounded-full bg-card shadow-lg flex items-center justify-center hover:scale-110 transition-transform border border-border"
         >
           <X className="w-8 h-8 text-muted-foreground" />
         </button>
         <button
           onClick={onSuperLike}
+          aria-label="Super like this profile"
           className="w-14 h-14 rounded-full bg-gradient-to-r from-superlike to-info shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
         >
           <Star className="w-7 h-7 text-white fill-white" />
         </button>
         <button
           onClick={() => profile.id && profile.id !== 'undefined' && navigate(createPageUrl(`UserProfile?id=${profile.id}`))}
+          aria-label="View profile details"
           className="w-14 h-14 rounded-full bg-card shadow-lg flex items-center justify-center hover:scale-110 transition-transform border border-border"
         >
           <span className="text-2xl">&#8505;&#65039;</span>
         </button>
         <button
           onClick={onLike}
+          aria-label="Like this profile"
           className="w-16 h-16 rounded-full bg-gradient-to-br from-love to-destructive shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
         >
           <Heart className="w-8 h-8 text-white fill-white" />

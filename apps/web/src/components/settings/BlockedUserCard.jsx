@@ -8,17 +8,19 @@ export default function BlockedUserCard({ block, onUnblock, isPending }) {
   const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
+    let isMounted = true;
     const fetchUser = async () => {
       try {
         const result = await userService.getUserById(block.blocked_id);
-        if (result.user) setUser(result.user);
+        if (isMounted && result.user) setUser(result.user);
       } catch (error) {
-        console.error('Error fetching user:', error);
+        // User fetch failed - use fallback
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     };
     fetchUser();
+    return () => { isMounted = false; };
   }, [block.blocked_id]);
 
   return (
@@ -29,6 +31,7 @@ export default function BlockedUserCard({ block, onUnblock, isPending }) {
             src={user?.profile_images?.[0] || `https://i.pravatar.cc/80?u=${block.blocked_id}`}
             alt="User"
             className="w-12 h-12 rounded-full object-cover border-2 border-border"
+            loading="lazy"
           />
           <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-destructive rounded-full flex items-center justify-center border-2 border-white">
             <Ban className="w-2.5 h-2.5 text-white" />

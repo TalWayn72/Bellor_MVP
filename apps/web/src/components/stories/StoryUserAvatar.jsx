@@ -5,15 +5,17 @@ export default function StoryUserAvatar({ userId }) {
   const [user, setUser] = React.useState(null);
 
   React.useEffect(() => {
+    let isMounted = true;
     const fetchUser = async () => {
       try {
         const result = await userService.getUserById(userId);
-        if (result.user) setUser(result.user);
+        if (isMounted && result.user) setUser(result.user);
       } catch (error) {
-        console.error('Error fetching user:', error);
+        // User fetch failed - use fallback avatar
       }
     };
     fetchUser();
+    return () => { isMounted = false; };
   }, [userId]);
 
   return (
@@ -22,6 +24,7 @@ export default function StoryUserAvatar({ userId }) {
         src={user?.profile_images?.[0] || `https://i.pravatar.cc/50?u=${userId}`}
         alt="User"
         className="w-8 h-8 rounded-full border-2 border-white"
+        loading="lazy"
       />
     </div>
   );

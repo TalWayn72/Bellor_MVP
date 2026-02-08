@@ -46,22 +46,23 @@ export function setupChatMessagingHandlers(io: Server, socket: AuthenticatedSock
 
       const recipientId = chat.user1Id === socket.userId ? chat.user2Id : chat.user1Id;
 
-      const message = await prisma.message.create({
-        data: {
-          chatId, senderId: socket.userId, content,
-          messageType: 'TEXT', isRead: false,
-        },
-        include: {
-          sender: {
-            select: { id: true, firstName: true, lastName: true, profileImages: true },
+      const [message] = await prisma.$transaction([
+        prisma.message.create({
+          data: {
+            chatId, senderId: socket.userId, content,
+            messageType: 'TEXT', isRead: false,
           },
-        },
-      });
-
-      await prisma.chat.update({
-        where: { id: chatId },
-        data: { lastMessageAt: new Date() },
-      });
+          include: {
+            sender: {
+              select: { id: true, firstName: true, lastName: true, profileImages: true },
+            },
+          },
+        }),
+        prisma.chat.update({
+          where: { id: chatId },
+          data: { lastMessageAt: new Date() },
+        }),
+      ]);
 
       io.to(`conversation:${chatId}`).emit('chat:message:new', { message, metadata });
 

@@ -54,12 +54,7 @@ export default function StarSendersModal({ isOpen, onClose, response, currentUse
     mutationFn: async () => {
       if (!response?.id || !currentUser?.id) return;
 
-      // StarReadReceipt tracking - log action (backend service can be added later)
-      console.log('Star read receipt:', {
-        user_id: currentUser.id,
-        response_id: response.id,
-        last_viewed_at: new Date().toISOString()
-      });
+      // StarReadReceipt tracking - backend service can be added later
     },
     onSuccess: () => {
       // Invalidate queries to refresh new badge
@@ -110,6 +105,7 @@ export default function StarSendersModal({ isOpen, onClose, response, currentUse
                   src={sender.profile_images?.[0] || `https://i.pravatar.cc/150?u=${sender.id}`}
                   alt={sender.full_name}
                   className="w-12 h-12 rounded-full object-cover"
+                  loading="lazy"
                 />
                 <div className="flex-1">
                   <p className="font-medium text-sm">{sender.full_name || sender.nickname}</p>

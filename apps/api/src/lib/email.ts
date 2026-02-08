@@ -6,6 +6,7 @@
 import { Resend } from 'resend';
 import { env } from '../config/env.js';
 import { logger } from './logger.js';
+import { emailBreaker } from './external-services.js';
 
 let resend: Resend | null = null;
 
@@ -40,19 +41,22 @@ export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
     return false;
   }
 
-  const { error } = await client.emails.send({
-    from: env.EMAIL_FROM,
-    to: options.to,
-    subject: options.subject,
-    html: options.html,
-    text: options.text,
+  const result = await emailBreaker.execute(async () => {
+    const { error: sendError } = await client.emails.send({
+      from: env.EMAIL_FROM,
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      text: options.text,
+    });
+
+    if (sendError) {
+      throw new Error(`Failed to send email: ${sendError.message}`);
+    }
+    return true;
   });
 
-  if (error) {
-    throw new Error(`Failed to send email: ${error.message}`);
-  }
-
-  return true;
+  return result;
 }
 
 /**

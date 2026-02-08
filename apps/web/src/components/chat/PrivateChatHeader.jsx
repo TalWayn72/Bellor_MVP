@@ -53,11 +53,12 @@ export default function PrivateChatHeader({
             variant="ghost"
             size="icon"
             onClick={() => onNavigate(createPageUrl(`VideoDate?chatId=${chatId}`))}
+            aria-label="Start video call"
           >
             <Video className="w-5 h-5" />
           </Button>
           <div className="relative">
-            <Button variant="ghost" size="icon" onClick={onToggleActions}>
+            <Button variant="ghost" size="icon" onClick={onToggleActions} aria-label="More actions">
               <MoreVertical className="w-5 h-5" />
             </Button>
             {showActions && (

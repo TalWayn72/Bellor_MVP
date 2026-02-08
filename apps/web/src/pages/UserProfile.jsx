@@ -28,7 +28,9 @@ export default function UserProfile() {
 
   useEffect(() => {
     if (!currentUser || !userId) return;
-    likeService.checkLiked(userId).then(r => setIsLiked(r.liked)).catch(() => {});
+    let isMounted = true;
+    likeService.checkLiked(userId).then(r => { if (isMounted) setIsLiked(r.liked); }).catch(() => {});
+    return () => { isMounted = false; };
   }, [currentUser, userId]);
 
   const { data: viewedUser } = useQuery({

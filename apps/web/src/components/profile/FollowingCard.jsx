@@ -11,34 +11,23 @@ export default function FollowingCard({ userId, currentUserId }) {
   const [userData, setUserData] = React.useState(null);
 
   React.useEffect(() => {
+    let isMounted = true;
+    const fallback = {
+      id: userId, nickname: 'User', age: 25,
+      location: 'Israel', bio: '',
+      profile_images: [`https://i.pravatar.cc/150?u=${userId}`]
+    };
     const fetchUser = async () => {
       try {
         const result = await userService.getUserById(userId);
-        if (result.user) {
-          setUserData(result.user);
-        } else {
-          setUserData({
-            id: userId,
-            nickname: 'User',
-            age: 25,
-            location: 'Israel',
-            bio: '',
-            profile_images: [`https://i.pravatar.cc/150?u=${userId}`]
-          });
-        }
+        if (!isMounted) return;
+        setUserData(result.user || fallback);
       } catch (error) {
-        console.error('Error fetching user:', error);
-        setUserData({
-          id: userId,
-          nickname: 'User',
-          age: 25,
-          location: 'Israel',
-          bio: '',
-          profile_images: [`https://i.pravatar.cc/150?u=${userId}`]
-        });
+        if (isMounted) setUserData(fallback);
       }
     };
     fetchUser();
+    return () => { isMounted = false; };
   }, [userId]);
 
   if (!userData) return null;

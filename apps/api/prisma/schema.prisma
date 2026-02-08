@@ -84,6 +84,10 @@ model User {
 
   @@index([email])
   @@index([lastActiveAt])
+  @@index([birthDate])
+  @@index([gender])
+  @@index([preferredLanguage])
+  @@index([createdAt])
   @@index([location(ops: JsonbPathOps)], type: Gin)
 }
 
@@ -173,6 +177,7 @@ model Message {
   @@index([chatId])
   @@index([senderId])
   @@index([createdAt])
+  @@index([chatId, createdAt])
 }
 
 enum MessageType {
@@ -214,6 +219,7 @@ model Response {
   @@index([userId])
   @@index([missionId])
   @@index([createdAt])
+  @@index([missionId, createdAt])
 }
 
 enum ResponseType {
@@ -281,6 +287,7 @@ model Story {
 
   @@index([userId])
   @@index([expiresAt])
+  @@index([userId, createdAt])
 }
 
 enum MediaType {

@@ -4,6 +4,7 @@
  */
 
 import { prisma } from '../../lib/prisma.js';
+import { cacheGetOrSet, cacheDel, CacheKey, CacheTTL } from '../../lib/cache.js';
 
 interface ListStoriesParams {
   userId?: string;
@@ -23,18 +24,19 @@ export const STORY_USER_SELECT = {
  * Get stories by user ID (active stories only)
  */
 export async function getStoriesByUser(userId: string) {
-  const stories = await prisma.story.findMany({
-    where: {
-      userId,
-      expiresAt: { gt: new Date() },
-    },
-    include: {
-      user: { select: STORY_USER_SELECT },
-    },
-    orderBy: { createdAt: 'desc' },
+  return cacheGetOrSet(CacheKey.storiesUser(userId), CacheTTL.STORIES_USER, async () => {
+    const stories = await prisma.story.findMany({
+      where: {
+        userId,
+        expiresAt: { gt: new Date() },
+      },
+      include: {
+        user: { select: STORY_USER_SELECT },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    return stories;
   });
-
-  return stories;
 }
 
 /**

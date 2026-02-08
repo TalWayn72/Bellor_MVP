@@ -35,15 +35,17 @@ export default function FeedPost({ response, currentUser, theme, onChatRequest, 
   });
 
   React.useEffect(() => {
+    let isMounted = true;
     const checkStarSent = async () => {
       if (!currentUser || !response.id) return;
       try {
         const result = await likeService.getResponseLikes(response.id, 'POSITIVE');
         const existingLikes = result.likes || [];
-        setStarSent(existingLikes.some(like => like.user_id === currentUser.id));
+        if (isMounted) setStarSent(existingLikes.some(like => like.user_id === currentUser.id));
       } catch (error) { /* Ignore */ }
     };
     checkStarSent();
+    return () => { isMounted = false; };
   }, [currentUser, response.id]);
 
   const { data: hasNewStars = false } = useQuery({
@@ -74,16 +76,18 @@ export default function FeedPost({ response, currentUser, theme, onChatRequest, 
   });
 
   React.useEffect(() => {
+    let isMounted = true;
     const fetchUser = async () => {
       const fallback = { id: response.user_id, nickname: '\u05DE\u05E9\u05EA\u05DE\u05E9', age: 25, location: '\u05D9\u05E9\u05E8\u05D0\u05DC', is_verified: false, profile_images: [`https://i.pravatar.cc/150?u=${response.user_id || 'unknown'}`] };
-      if (!response.user_id || response.user_id.startsWith('demo')) { setUserData(fallback); return; }
+      if (!response.user_id || response.user_id.startsWith('demo')) { if (isMounted) setUserData(fallback); return; }
       try {
         const result = await userService.getUserById(response.user_id);
         const user = result?.user || result;
-        setUserData(user ? transformUser(user) : fallback);
-      } catch { setUserData(fallback); }
+        if (isMounted) setUserData(user ? transformUser(user) : fallback);
+      } catch { if (isMounted) setUserData(fallback); }
     };
     fetchUser();
+    return () => { isMounted = false; };
   }, [response.user_id]);
 
   // Cleanup audio on unmount - must be before early return to respect Rules of Hooks
@@ -111,7 +115,7 @@ export default function FeedPost({ response, currentUser, theme, onChatRequest, 
       )}
 
       {response.response_type === 'drawing' && response.content && (
-        <div className="px-3 pb-3"><div className="bg-muted rounded-xl p-3 border border-border"><img src={response.content} alt="Drawing" className="w-full h-auto rounded-lg" /></div></div>
+        <div className="px-3 pb-3"><div className="bg-muted rounded-xl p-3 border border-border"><img src={response.content} alt="Drawing" className="w-full h-auto rounded-lg" loading="lazy" /></div></div>
       )}
       {response.response_type === 'video' && response.content && (
         <div className="px-3 pb-3"><video src={response.content} controls className="w-full rounded-xl" /></div>

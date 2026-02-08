@@ -141,8 +141,8 @@ export class GoogleOAuthService {
       throw new Error('Account is deactivated');
     }
 
-    // Generate JWT tokens
-    const accessToken = generateAccessToken(user.id, user.email);
+    // Generate JWT tokens with admin status cached in JWT
+    const accessToken = generateAccessToken(user.id, user.email, user.isAdmin);
     const refreshToken = generateRefreshToken(user.id);
 
     // Store refresh token in Redis

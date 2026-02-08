@@ -46,14 +46,14 @@ class SocketService {
       });
 
       this.socket.on('connect', () => {
-        console.log('Socket connected:', this.socket.id);
+        if (import.meta.env.DEV) console.debug('[Socket] connected:', this.socket.id);
         this.reconnectAttempts = 0;
         this.connectionPromise = null;
         resolve(this.socket);
       });
 
       this.socket.on('connect_error', (error) => {
-        console.error('Socket connection error:', error.message);
+        if (import.meta.env.DEV) console.debug('[Socket] connection error:', error.message);
         this.reconnectAttempts++;
         if (this.reconnectAttempts >= this.maxReconnectAttempts) {
           this.connectionPromise = null;
@@ -62,7 +62,7 @@ class SocketService {
       });
 
       this.socket.on('disconnect', (reason) => {
-        console.log('Socket disconnected:', reason);
+        if (import.meta.env.DEV) console.debug('[Socket] disconnected:', reason);
         if (reason === 'io server disconnect') this.socket.connect();
       });
 
@@ -94,7 +94,7 @@ class SocketService {
 
   emit(event, data, callback) {
     if (!this.socket?.connected) {
-      console.warn('Socket not connected, attempting to connect...');
+      if (import.meta.env.DEV) console.debug('[Socket] not connected, attempting to connect...');
       this.connect().then(() => { this.socket.emit(event, data, callback); });
       return;
     }

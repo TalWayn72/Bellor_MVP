@@ -17,6 +17,7 @@ export default function SharedSpaceHeader({
             variant="ghost"
             size="icon"
             onClick={onOpenDrawer}
+            aria-label="Open navigation menu"
           >
             <Menu className="w-5 h-5" />
           </Button>
@@ -31,6 +32,7 @@ export default function SharedSpaceHeader({
             variant="ghost"
             size="icon"
             onClick={() => onNavigate(createPageUrl('Notifications'))}
+            aria-label="View notifications"
             className="relative"
           >
             <Bell className="w-5 h-5" />

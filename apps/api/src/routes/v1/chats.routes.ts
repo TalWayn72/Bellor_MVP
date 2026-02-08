@@ -8,6 +8,7 @@ import { MessageType } from '@prisma/client';
 import { chatService } from '../../services/chat.service.js';
 import { authMiddleware } from '../../middleware/auth.middleware.js';
 import { isDemoUserId, isDemoId } from '../../utils/demoId.util.js';
+import { RATE_LIMITS } from '../../config/rate-limits.js';
 
 export default async function chatsRoutes(app: FastifyInstance) {
   // Apply auth middleware to all routes
@@ -112,7 +113,7 @@ export default async function chatsRoutes(app: FastifyInstance) {
   /**
    * POST /chats/:chatId/messages - Send a message
    */
-  app.post('/:chatId/messages', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/:chatId/messages', { config: { rateLimit: RATE_LIMITS.chat.sendMessage } }, async (request: FastifyRequest, reply: FastifyReply) => {
     const userId = request.user!.id;
     const { chatId } = request.params as { chatId: string };
     const { content, messageType, message_type, type } = request.body as {

@@ -24,7 +24,7 @@ export default function AdminPreRegistration() {
 
   const sendEmailMutation = useMutation({
     mutationFn: async ({ email, referralId }) => {
-      console.log('Email sent to:', email, 'Subject: Welcome to Bellor - Early Access');
+      // Email sending - backend integration pending
       return { email, referralId };
     },
     onSuccess: ({ referralId }) => {

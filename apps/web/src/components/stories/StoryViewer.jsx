@@ -40,7 +40,7 @@ export default function StoryViewer({
             {/* User info */}
             <div className="absolute top-6 left-3 right-3 z-10 flex items-center justify-between">
               <StoryUserAvatar userId={currentStory.user_id} />
-              <button onClick={() => setViewerOpen(false)} className="p-1.5 rounded-full bg-black/40 text-white">
+              <button onClick={() => setViewerOpen(false)} aria-label="Close story viewer" className="p-1.5 rounded-full bg-black/40 text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -48,7 +48,7 @@ export default function StoryViewer({
             {/* Story content */}
             <div className="flex-1 flex items-center justify-center">
               {currentStory.media_type === 'image' && currentStory.media_url && (
-                <img src={currentStory.media_url} alt="Story" className="w-full h-full object-contain" />
+                <img src={currentStory.media_url} alt="Story" className="w-full h-full object-contain" loading="lazy" />
               )}
               {currentStory.media_type === 'text' && (
                 <div className="w-full h-full bg-gradient-to-br from-info-500 to-success-500 flex items-center justify-center p-8">
@@ -67,17 +67,17 @@ export default function StoryViewer({
             )}
 
             {/* Navigation areas */}
-            <button className="absolute left-0 top-16 bottom-16 w-1/3" onClick={() => goToStory(-1)} />
-            <button className="absolute right-0 top-16 bottom-16 w-1/3" onClick={() => goToStory(1)} />
+            <button className="absolute left-0 top-16 bottom-16 w-1/3" onClick={() => goToStory(-1)} aria-label="Previous story" />
+            <button className="absolute right-0 top-16 bottom-16 w-1/3" onClick={() => goToStory(1)} aria-label="Next story" />
 
             {/* Navigation arrows */}
             {viewerIndex > 0 && (
-              <button onClick={() => goToStory(-1)} className="absolute left-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black/40 text-white">
+              <button onClick={() => goToStory(-1)} aria-label="Previous story" className="absolute left-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black/40 text-white">
                 <ChevronLeft className="w-5 h-5" />
               </button>
             )}
             {viewerIndex < stories.length - 1 && (
-              <button onClick={() => goToStory(1)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black/40 text-white">
+              <button onClick={() => goToStory(1)} aria-label="Next story" className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black/40 text-white">
                 <ChevronRight className="w-5 h-5" />
               </button>
             )}

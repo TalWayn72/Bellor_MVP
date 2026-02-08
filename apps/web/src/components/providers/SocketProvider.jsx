@@ -3,7 +3,7 @@
  * Manages WebSocket connection at the app level
  */
 
-import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback, useMemo } from 'react';
 import { socketService } from '@/api/services/socketService';
 import { tokenStorage } from '@/api/client/tokenStorage';
 
@@ -138,7 +138,7 @@ export function SocketProvider({ children }) {
     }
   }, []);
 
-  const value = {
+  const value = useMemo(() => ({
     isConnected,
     error,
     unreadChatCount,
@@ -146,7 +146,7 @@ export function SocketProvider({ children }) {
     reconnect,
     refreshUnreadCount,
     socketService,
-  };
+  }), [isConnected, error, unreadChatCount, disconnect, reconnect, refreshUnreadCount]);
 
   return (
     <SocketContext.Provider value={value}>

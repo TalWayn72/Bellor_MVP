@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { UsersController } from '../../controllers/users.controller.js';
 import { authMiddleware } from '../../middleware/auth.middleware.js';
+import { RATE_LIMITS } from '../../config/rate-limits.js';
 
 export default async function usersRoutes(app: FastifyInstance) {
   /**
@@ -18,6 +19,7 @@ export default async function usersRoutes(app: FastifyInstance) {
    * Note: This must come before /:id route to avoid path conflicts
    */
   app.get('/search', {
+    config: { rateLimit: RATE_LIMITS.search.users },
     preHandler: authMiddleware,
     handler: UsersController.searchUsers,
   });

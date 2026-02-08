@@ -11,11 +11,7 @@ export default function CommentsDialog({ isOpen, onClose, response, currentUser 
     mutationFn: async () => {
       if (!response?.id || !currentUser?.id) return;
       // Log read receipt (CommentReadReceipt service can be added in future)
-      console.log('Comments marked as read:', {
-        user_id: currentUser.id,
-        response_id: response.id,
-        last_viewed_at: new Date().toISOString()
-      });
+      // CommentReadReceipt tracking - backend service can be added later
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hasNewComments'] });

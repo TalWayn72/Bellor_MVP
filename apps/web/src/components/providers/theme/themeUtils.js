@@ -22,7 +22,7 @@ export const getInitialTheme = () => {
       return stored;
     }
   } catch (error) {
-    console.warn('Failed to read theme from localStorage:', error);
+    if (import.meta.env.DEV) console.debug('Failed to read theme from localStorage:', error);
   }
 
   return ThemeModes.SYSTEM;
@@ -41,7 +41,7 @@ export const getInitialColorTheme = () => {
       return stored;
     }
   } catch (error) {
-    console.warn('Failed to read color theme from localStorage:', error);
+    if (import.meta.env.DEV) console.debug('Failed to read color theme from localStorage:', error);
   }
 
   return 'rose';
@@ -82,7 +82,7 @@ export const saveTheme = (theme) => {
   try {
     localStorage.setItem(THEME_STORAGE_KEY, theme);
   } catch (error) {
-    console.warn('Failed to save theme to localStorage:', error);
+    if (import.meta.env.DEV) console.debug('Failed to save theme to localStorage:', error);
   }
 };
 
@@ -94,6 +94,6 @@ export const saveColorTheme = (colorTheme) => {
   try {
     localStorage.setItem(COLOR_THEME_STORAGE_KEY, colorTheme);
   } catch (error) {
-    console.warn('Failed to save color theme to localStorage:', error);
+    if (import.meta.env.DEV) console.debug('Failed to save color theme to localStorage:', error);
   }
 };

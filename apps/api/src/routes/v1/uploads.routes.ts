@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { storageService } from '../../services/storage.service.js';
 import { authMiddleware } from '../../middleware/auth.middleware.js';
+import { RATE_LIMITS } from '../../config/rate-limits.js';
 import {
   handleProfileImageUpload, handleStoryMediaUpload, handleAudioUpload,
   handleDrawingUpload, handleVideoUpload, handleResponseMediaUpload,
@@ -15,7 +16,7 @@ export default async function uploadsRoutes(app: FastifyInstance) {
   }));
 
   /** POST /uploads/profile-image */
-  app.post('/profile-image', { preHandler: authMiddleware }, handleProfileImageUpload);
+  app.post('/profile-image', { config: { rateLimit: RATE_LIMITS.upload.files }, preHandler: authMiddleware }, handleProfileImageUpload);
 
   /** DELETE /uploads/profile-image */
   app.delete('/profile-image', {
@@ -33,19 +34,19 @@ export default async function uploadsRoutes(app: FastifyInstance) {
   }, handleDeleteProfileImage);
 
   /** POST /uploads/story-media */
-  app.post('/story-media', { preHandler: authMiddleware }, handleStoryMediaUpload);
+  app.post('/story-media', { config: { rateLimit: RATE_LIMITS.upload.files }, preHandler: authMiddleware }, handleStoryMediaUpload);
 
   /** POST /uploads/audio */
-  app.post('/audio', { preHandler: authMiddleware }, handleAudioUpload);
+  app.post('/audio', { config: { rateLimit: RATE_LIMITS.upload.files }, preHandler: authMiddleware }, handleAudioUpload);
 
   /** POST /uploads/drawing */
-  app.post('/drawing', { preHandler: authMiddleware }, handleDrawingUpload);
+  app.post('/drawing', { config: { rateLimit: RATE_LIMITS.upload.files }, preHandler: authMiddleware }, handleDrawingUpload);
 
   /** POST /uploads/video */
-  app.post('/video', { preHandler: authMiddleware }, handleVideoUpload);
+  app.post('/video', { config: { rateLimit: RATE_LIMITS.upload.files }, preHandler: authMiddleware }, handleVideoUpload);
 
   /** POST /uploads/response-media */
-  app.post('/response-media', { preHandler: authMiddleware }, handleResponseMediaUpload);
+  app.post('/response-media', { config: { rateLimit: RATE_LIMITS.upload.files }, preHandler: authMiddleware }, handleResponseMediaUpload);
 
   /** GET /uploads/presigned-url */
   app.get('/presigned-url', {

@@ -17,6 +17,8 @@ export interface AuthenticatedSocket extends Socket {
  */
 export function setupWebSocket(httpServer: HttpServer): Server {
   const io = new Server(httpServer, {
+    pingInterval: 25000,
+    pingTimeout: 20000,
     cors: {
       origin: env.FRONTEND_URL || 'http://localhost:5173',
       methods: ['GET', 'POST'],
@@ -56,10 +58,22 @@ export function setupWebSocket(httpServer: HttpServer): Server {
     if (socket.userId) {
       await socket.join(`user:${socket.userId}`);
 
-      // Store socket ID in Redis for presence tracking
-      await redis.setex(`socket:${socket.userId}`, 3600, socket.id);
-      await redis.setex(`online:${socket.userId}`, 3600, new Date().toISOString());
+      // Store socket ID in Redis for presence tracking (5 min TTL)
+      await redis.setex(`socket:${socket.userId}`, 300, socket.id);
+      await redis.setex(`online:${socket.userId}`, 300, new Date().toISOString());
     }
+
+    // Periodic presence refresh every 2 minutes to keep TTL alive
+    const presenceInterval = setInterval(async () => {
+      if (socket.userId) {
+        try {
+          await redis.setex(`socket:${socket.userId}`, 300, socket.id);
+          await redis.setex(`online:${socket.userId}`, 300, new Date().toISOString());
+        } catch (error) {
+          logger.error('WEBSOCKET', 'Error refreshing presence', error instanceof Error ? error : undefined);
+        }
+      }
+    }, 120000);
 
     // Setup handlers
     setupPresenceHandlers(io, socket);
@@ -68,6 +82,8 @@ export function setupWebSocket(httpServer: HttpServer): Server {
     // Handle disconnection
     socket.on('disconnect', async () => {
       logger.info('WEBSOCKET', `User disconnected: ${socket.userId} (${socket.id})`);
+
+      clearInterval(presenceInterval);
 
       if (socket.userId) {
         // Remove from Redis
@@ -87,6 +103,9 @@ export function setupWebSocket(httpServer: HttpServer): Server {
       logger.error('WEBSOCKET', `Socket error for user ${socket.userId}`, error instanceof Error ? error : undefined);
     });
   });
+
+  // Start periodic cleanup of stale socket entries
+  startStaleSocketCleanup(io);
 
   return io;
 }
@@ -139,4 +158,42 @@ export async function getOnlineUsers(): Promise<string[]> {
     logger.error('WEBSOCKET', 'Error getting online users', error instanceof Error ? error : undefined);
     return [];
   }
+}
+
+/**
+ * Clean up stale socket entries in Redis.
+ * Removes socket:* and online:* keys that reference sockets
+ * no longer connected to the given Socket.io server.
+ * Runs periodically to prevent connection leaks.
+ */
+export function startStaleSocketCleanup(io: Server): NodeJS.Timeout {
+  const CLEANUP_INTERVAL = 60000; // Every 60 seconds
+
+  return setInterval(async () => {
+    try {
+      const socketKeys = await redis.keys('socket:*');
+      const connectedSocketIds = new Set<string>();
+
+      for (const [, socket] of io.sockets.sockets) {
+        connectedSocketIds.add(socket.id);
+      }
+
+      let cleaned = 0;
+      for (const key of socketKeys) {
+        const storedSocketId = await redis.get(key);
+        if (storedSocketId && !connectedSocketIds.has(storedSocketId)) {
+          const userId = key.replace('socket:', '');
+          await redis.del(key);
+          await redis.del(`online:${userId}`);
+          cleaned++;
+        }
+      }
+
+      if (cleaned > 0) {
+        logger.info('WEBSOCKET', `Stale socket cleanup: removed ${cleaned} stale entries`);
+      }
+    } catch (error) {
+      logger.error('WEBSOCKET', 'Error during stale socket cleanup', error instanceof Error ? error : undefined);
+    }
+  }, CLEANUP_INTERVAL);
 }

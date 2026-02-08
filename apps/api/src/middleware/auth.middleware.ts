@@ -59,7 +59,9 @@ export async function optionalAuthMiddleware(
 export const authenticate = authMiddleware;
 
 /**
- * Admin middleware - requires user to be an admin
+ * Admin middleware - requires user to be an admin.
+ * Uses the isAdmin flag cached in the JWT payload to avoid a DB query
+ * on every admin request. The flag is refreshed on login/token-refresh.
  */
 export async function adminMiddleware(
   request: FastifyRequest,
@@ -69,22 +71,9 @@ export async function adminMiddleware(
     return sendAuthError(reply, 'UNAUTHORIZED', 'Authentication required');
   }
 
-  const { prisma } = await import('../lib/prisma.js');
-
-  const user = await prisma.user.findUnique({
-    where: { id: request.user.id },
-    select: { isAdmin: true, isBlocked: true },
-  });
-
-  if (!user) {
-    return sendAuthError(reply, 'USER_NOT_FOUND', 'User not found');
-  }
-
-  if (user.isBlocked) {
-    return sendAuthError(reply, 'USER_BLOCKED', 'Your account has been blocked', 403);
-  }
-
-  if (!user.isAdmin) {
+  // isAdmin is cached in the JWT since C7 improvement.
+  // For tokens issued before this change, isAdmin may be undefined -> treat as false.
+  if (!request.user.isAdmin) {
     return sendAuthError(reply, 'FORBIDDEN', 'Admin access required', 403);
   }
 }

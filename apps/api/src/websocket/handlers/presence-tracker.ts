@@ -6,8 +6,8 @@
 import { redis } from '../../lib/redis.js';
 import { prisma } from '../../lib/prisma.js';
 
-/** TTL for online presence keys (1 hour) */
-const PRESENCE_TTL = 3600;
+/** TTL for online presence keys (5 minutes) */
+const PRESENCE_TTL = 300;
 /** TTL for activity keys (30 seconds) */
 const ACTIVITY_TTL = 30;
 

@@ -69,8 +69,8 @@ export class AuthService {
       },
     });
 
-    // Generate tokens
-    const accessToken = generateAccessToken(user.id, user.email);
+    // Generate tokens (new users are never admin)
+    const accessToken = generateAccessToken(user.id, user.email, false);
     const refreshToken = generateRefreshToken(user.id);
 
     // Store refresh token in Redis with expiry (7 days)
@@ -124,8 +124,8 @@ export class AuthService {
       data: { lastActiveAt: new Date() },
     });
 
-    // Generate tokens
-    const accessToken = generateAccessToken(user.id, user.email);
+    // Generate tokens with admin status cached in JWT
+    const accessToken = generateAccessToken(user.id, user.email, user.isAdmin);
     const refreshToken = generateRefreshToken(user.id);
 
     // Store refresh token in Redis
@@ -171,8 +171,8 @@ export class AuthService {
       throw new Error('User not found or inactive');
     }
 
-    // Generate new access token
-    const accessToken = generateAccessToken(user.id, user.email);
+    // Generate new access token with current admin status
+    const accessToken = generateAccessToken(user.id, user.email, user.isAdmin);
 
     return { accessToken };
   }

@@ -40,14 +40,15 @@ export default function ChatInput({
             variant="ghost"
             size="icon"
             onClick={onToggleIceBreakers}
+            aria-label="Toggle ice breakers"
             className={showIceBreakers ? 'text-primary' : ''}
           >
             <MessageCircle className="w-5 h-5" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" aria-label="Send image">
             <ImageIcon className="w-5 h-5" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" aria-label="Record voice message">
             <Mic className="w-5 h-5" />
           </Button>
           <Input
@@ -62,6 +63,7 @@ export default function ChatInput({
             onClick={onSend}
             disabled={!message.trim()}
             size="icon"
+            aria-label="Send message"
             className="rounded-full"
           >
             <Send className="w-4 h-4" />

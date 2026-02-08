@@ -43,23 +43,23 @@ function CommentItem({ comment, currentUser }) {
   const [userData, setUserData] = React.useState(null);
 
   React.useEffect(() => {
+    let isMounted = true;
+    const fallback = {
+      nickname: 'User',
+      profile_images: [`https://i.pravatar.cc/150?u=${comment.user_id}`]
+    };
     const fetchUser = async () => {
       try {
         const result = await userService.getUserById(comment.user_id);
+        if (!isMounted) return;
         const user = result?.user || result;
-        setUserData(user || {
-          nickname: 'User',
-          profile_images: [`https://i.pravatar.cc/150?u=${comment.user_id}`]
-        });
+        setUserData(user || fallback);
       } catch (error) {
-        console.error('Error fetching user:', error);
-        setUserData({
-          nickname: 'User',
-          profile_images: [`https://i.pravatar.cc/150?u=${comment.user_id}`]
-        });
+        if (isMounted) setUserData(fallback);
       }
     };
     fetchUser();
+    return () => { isMounted = false; };
   }, [comment.user_id]);
 
   if (!userData) return null;
@@ -70,6 +70,7 @@ function CommentItem({ comment, currentUser }) {
         src={userData.profile_images?.[0] || `https://i.pravatar.cc/150?u=${comment.user_id}`}
         alt={userData.nickname || 'User'}
         className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+        loading="lazy"
       />
       <div className="flex-1 min-w-0">
         <div className="bg-gray-50 rounded-2xl px-3 py-2">

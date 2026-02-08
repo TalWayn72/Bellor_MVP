@@ -39,6 +39,7 @@ export default function FeedSearch({ onSearch, onFilter }) {
             variant="outline"
             size="icon"
             onClick={() => setIsOpen(true)}
+            aria-label="Open filters"
             className="h-10 w-10"
           >
             <SlidersHorizontal className="w-4 h-4" />
@@ -52,15 +53,16 @@ export default function FeedSearch({ onSearch, onFilter }) {
     <div className="bg-white px-4 py-4 mb-2 border-b">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold text-base">סנן תוצאות</h3>
-        <button onClick={() => setIsOpen(false)}>
+        <button onClick={() => setIsOpen(false)} aria-label="Close filters">
           <X className="w-5 h-5" />
         </button>
       </div>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm text-gray-600 mb-2">סוג תוכן</label>
+          <label htmlFor="filter-response-type" className="block text-sm text-gray-600 mb-2">סוג תוכן</label>
           <select
+            id="filter-response-type"
             value={filters.responseType}
             onChange={(e) => setFilters({ ...filters, responseType: e.target.value })}
             className="w-full h-10 border-2 border-gray-200 rounded-lg px-3"
@@ -74,8 +76,9 @@ export default function FeedSearch({ onSearch, onFilter }) {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-600 mb-2">קטגוריה</label>
+          <label htmlFor="filter-category" className="block text-sm text-gray-600 mb-2">קטגוריה</label>
           <select
+            id="filter-category"
             value={filters.category}
             onChange={(e) => setFilters({ ...filters, category: e.target.value })}
             className="w-full h-10 border-2 border-gray-200 rounded-lg px-3"
@@ -90,8 +93,9 @@ export default function FeedSearch({ onSearch, onFilter }) {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-600 mb-2">תאריך</label>
+          <label htmlFor="filter-date-range" className="block text-sm text-gray-600 mb-2">תאריך</label>
           <select
+            id="filter-date-range"
             value={filters.dateRange}
             onChange={(e) => setFilters({ ...filters, dateRange: e.target.value })}
             className="w-full h-10 border-2 border-gray-200 rounded-lg px-3"

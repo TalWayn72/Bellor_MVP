@@ -70,7 +70,7 @@ export const ThemeProvider = ({
 
   const setColorTheme = useCallback((newColorTheme) => {
     if (!colorThemes[newColorTheme]) {
-      console.warn(`Invalid color theme: ${newColorTheme}`);
+      if (import.meta.env.DEV) console.debug(`Invalid color theme: ${newColorTheme}`);
       return;
     }
     setColorThemeState(newColorTheme);
