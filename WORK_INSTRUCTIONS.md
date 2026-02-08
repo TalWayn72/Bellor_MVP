@@ -122,7 +122,10 @@ Bellor_MVP/
 | `docs/SECURITY_CHECKLIST.md` | Pre-release security audit checklist |
 | `docs/INCIDENT_RESPONSE.md` | Incident response procedures (P1-P4) |
 | `docs/PERFORMANCE_BASELINE.md` | k6 load test results (p95: 23ms smoke, 230ms stress) |
-| `docs/PRD.md` | Product Requirements Document |
+| `docs/PRD.md` | Product Requirements Document (comprehensive, 388 lines) |
+| `docs/DATA_RETENTION_POLICY.md` | GDPR-compliant PII data retention policy |
+| `docs/MOBILE_RELEASE_CHECKLIST.md` | Android/iOS release checklist (316 lines) |
+| `docs/ARCHITECTURE.md` | 8 Mermaid architecture diagrams |
 | `docs/DEPLOYMENT_INFRASTRUCTURE_COMPLETE.md` | Universal deployment status |
 | `apps/api/prisma/schema.prisma` | Database schema (all entities) |
 
@@ -154,15 +157,18 @@ Images pushed to GHCR on version tags (`v*.*.*`): `ghcr.io/TalWayn72/bellor_mvp/
 
 ### Monitoring Stack
 Prometheus (metrics: request rates, p50/p95/p99, errors, WebSocket), Grafana (dashboards),
-Loki+Promtail (structured logs with correlation IDs), Alertmanager (downtime, errors, resources).
+Loki+Promtail (structured logs with correlation IDs), Alertmanager (P1-P4 severity tiers).
+Alert rules: `infrastructure/monitoring/prometheus/alert-rules*.yml` (3 files, 30+ rules).
 
 ## Testing Status
 
 | Category | Count | Framework | Files |
 |----------|-------|-----------|-------|
-| Backend Unit | 306 | Vitest | 14 test files |
+| Backend Unit | 306 | Vitest | 27 test files |
+| Frontend Unit | 54 pages | Vitest | 54 test files |
 | E2E | 224 | Playwright | 11 test files |
-| **Total** | **530** | | **25 test files** |
+| Load Testing | 5 scripts | k6 | smoke, stress, spike, WS, DB |
+| **Total** | **545+** | | **92+ test files** |
 
 ### E2E Test Files
 | File | Coverage |
@@ -210,6 +216,20 @@ Location: `apps/web/src/components/states/`
 
 ## Current Open Items
 
-Tracking: `docs/OPEN_ISSUES.md` (296+ items documented, 75+ bugs fixed)
+Tracking: `docs/OPEN_ISSUES.md` (451+ items documented, all resolved)
 
 **Pending:** Phase 10 Mobile (30%), beta testing (100 users), production cloud deployment.
+
+## Recent Additions (Feb 8, 2026)
+
+| Addition | Description |
+|----------|-------------|
+| Zod Validation | Schemas added to all API controllers (achievements, follows, likes, notifications, reports, stories, device-tokens) |
+| Prometheus Alerts | P1-P4 severity tiers, WebSocket, DB alerts (3 rule files) |
+| Data Retention Policy | `docs/DATA_RETENTION_POLICY.md` - GDPR-compliant PII handling |
+| Admin Message Deletion | `DELETE /api/v1/admin/messages/:id` + UI in AdminReportManagement |
+| Mobile Release Checklist | `docs/MOBILE_RELEASE_CHECKLIST.md` - Android/iOS deployment guide |
+| PRD Rewrite | `docs/PRD.md` - Comprehensive product requirements (388 lines) |
+| Frontend Unit Tests | 54 page test files (from 18) covering all pages |
+| Response Transformer | `responseTransformer.js` - snake_case normalization layer |
+| Historical Doc Markers | DESIGN_ALIGNMENT_PLAN, FIGMA_IMPLEMENTATION_PLAN + 4 docs marked historical |

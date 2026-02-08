@@ -54,8 +54,16 @@
 | **TASK-012: Prometheus Alert Rules - P1-P4 Severity Tiers (Feb 8)** | 6 | 🟢 שיפור | ✅ הושלם |
 | **TASK-013: PII Data Retention Policy Documentation (Feb 8)** | 1 | 🟢 שיפור | ✅ הושלם |
 | **ISSUE-025: getUserById Unwrap Bug + aria-describedby Warnings (Feb 8)** | 7 | 🔴 קריטי | ✅ תוקן |
+| **TASK-014: Zod Validation on All Remaining API Routes (Feb 8)** | 7 | 🟢 שיפור | ✅ הושלם |
+| **TASK-015: Frontend Page Unit Tests - Full Coverage (Feb 8)** | 36 | 🟢 שיפור | ✅ הושלם |
+| **TASK-016: Admin Message Deletion Feature (Feb 8)** | 1 | 🟡 בינוני | ✅ הושלם |
+| **TASK-017: PRD Comprehensive Rewrite (Feb 8)** | 1 | 🟢 שיפור | ✅ הושלם |
+| **TASK-018: Mobile Release Checklist (Feb 8)** | 1 | 🟢 שיפור | ✅ הושלם |
+| **TASK-019: Historical Documentation Cleanup (Feb 8)** | 6 | 🟢 שיפור | ✅ הושלם |
+| **TASK-020: Response Transformer Layer - camelCase Normalization (Feb 8)** | 4 | 🔴 קריטי | ✅ הושלם |
+| **TASK-021: README Professional Rewrite (Feb 8)** | 1 | 🟢 שיפור | ✅ הושלם |
 
-**סה"כ:** 451+ פריטים זוהו → 451+ טופלו ✅
+**סה"כ:** 500+ פריטים זוהו → 500+ טופלו ✅
 
 ---
 

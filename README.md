@@ -253,8 +253,9 @@ VITE_WS_URL=ws://localhost:3000
 | **Security** | [docs/SECURITY_PLAN.md](docs/SECURITY_PLAN.md) / [docs/SECURITY_CHECKLIST.md](docs/SECURITY_CHECKLIST.md) / [docs/INCIDENT_RESPONSE.md](docs/INCIDENT_RESPONSE.md) |
 | **Deployment** | [docs/DEPLOYMENT_INFRASTRUCTURE_COMPLETE.md](docs/DEPLOYMENT_INFRASTRUCTURE_COMPLETE.md) / [docs/CLOUD_AGNOSTIC_DEPLOYMENT.md](docs/CLOUD_AGNOSTIC_DEPLOYMENT.md) / [docs/FREE_HOSTING_OPTIONS.md](docs/FREE_HOSTING_OPTIONS.md) |
 | **Performance** | [docs/PERFORMANCE_BASELINE.md](docs/PERFORMANCE_BASELINE.md) -- k6 load test results and scripts |
-| **Mobile** | [docs/GOOGLE_PLAY_DEPLOYMENT.md](docs/GOOGLE_PLAY_DEPLOYMENT.md) / [docs/MOBILE_APP_REQUIREMENTS.md](docs/MOBILE_APP_REQUIREMENTS.md) |
-| **Tracking** | [docs/OPEN_ISSUES.md](docs/OPEN_ISSUES.md) -- 451+ items tracked, all resolved |
+| **Privacy** | [docs/DATA_RETENTION_POLICY.md](docs/DATA_RETENTION_POLICY.md) -- GDPR-compliant PII retention policy |
+| **Mobile** | [docs/GOOGLE_PLAY_DEPLOYMENT.md](docs/GOOGLE_PLAY_DEPLOYMENT.md) / [docs/MOBILE_RELEASE_CHECKLIST.md](docs/MOBILE_RELEASE_CHECKLIST.md) / [docs/MOBILE_APP_REQUIREMENTS.md](docs/MOBILE_APP_REQUIREMENTS.md) |
+| **Tracking** | [docs/OPEN_ISSUES.md](docs/OPEN_ISSUES.md) -- 500+ items tracked, all resolved |
 
 ---
 
