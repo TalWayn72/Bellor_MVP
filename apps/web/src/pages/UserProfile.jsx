@@ -23,15 +23,12 @@ export default function UserProfile() {
   const [showMessageDialog, setShowMessageDialog] = useState(false);
 
   useEffect(() => {
-    const checkLiked = async () => {
-      if (currentUser && userId) {
-        try {
-          const result = await likeService.checkLiked(userId);
-          setIsLiked(result.liked);
-        } catch (error) { /* Ignore */ }
-      }
-    };
-    checkLiked();
+    if (!userId || userId === 'undefined' || userId === 'null') navigate(createPageUrl('SharedSpace'), { replace: true });
+  }, [userId, navigate]);
+
+  useEffect(() => {
+    if (!currentUser || !userId) return;
+    likeService.checkLiked(userId).then(r => setIsLiked(r.liked)).catch(() => {});
   }, [currentUser, userId]);
 
   const { data: viewedUser } = useQuery({
@@ -44,7 +41,7 @@ export default function UserProfile() {
         return user ? transformUser(user) : null;
       } catch (error) { return null; }
     },
-    enabled: !!userId,
+    enabled: !!userId && userId !== 'undefined',
   });
 
   const { data: responses = [] } = useQuery({
@@ -56,35 +53,30 @@ export default function UserProfile() {
         return result.responses || [];
       } catch (error) { return []; }
     },
-    enabled: !!userId,
+    enabled: !!userId && userId !== 'undefined',
   });
 
   const { data: followersCount = 0 } = useQuery({
     queryKey: ['followersCount', userId],
     queryFn: async () => { const r = await followService.getUserFollowers(userId); return r.pagination?.total || 0; },
-    enabled: !!userId,
+    enabled: !!userId && userId !== 'undefined',
   });
 
   const { data: followingCount = 0 } = useQuery({
     queryKey: ['followingCount', userId],
     queryFn: async () => { const r = await followService.getUserFollowing(userId); return r.pagination?.total || 0; },
-    enabled: !!userId,
+    enabled: !!userId && userId !== 'undefined',
   });
 
-  const tabs = [
-    { id: 'about', label: 'About' },
-    { id: 'book', label: 'Book' },
-  ];
+  const tabs = [{ id: 'about', label: 'About' }, { id: 'book', label: 'Book' }];
+
+  const handleLike = async (type) => {
+    try { await likeService.likeUser(userId, type); alert(type === 'ROMANTIC' ? '\u05d4\u05e8\u05d0\u05ea \u05e2\u05e0\u05d9\u05d9\u05df \u05e8\u05d5\u05de\u05e0\u05d8\u05d9!' : '\u05e0\u05ea\u05ea \u05e4\u05d9\u05d3\u05d1\u05e7 \u05d7\u05d9\u05d5\u05d1\u05d9!'); } catch (e) { /* Ignore */ }
+  };
 
   const handleSendMessage = async (message) => {
-    try {
-      const result = await chatService.createOrGetChat(userId);
-      await chatService.sendMessage(result.chat.id, { content: message, type: 'text' });
-      setShowMessageDialog(false);
-      alert('Message sent successfully!');
-    } catch (error) {
-      alert('Error sending message');
-    }
+    try { const r = await chatService.createOrGetChat(userId); await chatService.sendMessage(r.chat.id, { content: message, type: 'text' }); setShowMessageDialog(false); alert('Message sent successfully!'); }
+    catch { alert('Error sending message'); }
   };
 
   if (isLoading || !viewedUser) return <ProfileSkeleton />;
@@ -119,10 +111,10 @@ export default function UserProfile() {
           <Button onClick={() => navigate(createPageUrl('SharedSpace'))} variant="outline" size="icon-lg" className="rounded-full">
             <X className="w-6 h-6" />
           </Button>
-          <Button onClick={async () => { try { await likeService.likeUser(userId, 'ROMANTIC'); alert('\u05d4\u05e8\u05d0\u05ea \u05e2\u05e0\u05d9\u05d9\u05df \u05e8\u05d5\u05de\u05e0\u05d8\u05d9!'); } catch (e) {} }} variant="love" size="xl" className="flex-1 gap-2">
+          <Button onClick={() => handleLike('ROMANTIC')} variant="love" size="xl" className="flex-1 gap-2">
             <Heart className="w-5 h-5" />{'\u05e2\u05e0\u05d9\u05d9\u05df \u05e8\u05d5\u05de\u05e0\u05d8\u05d9'}
           </Button>
-          <Button onClick={async () => { try { await likeService.likeUser(userId, 'POSITIVE'); alert('\u05e0\u05ea\u05ea \u05e4\u05d9\u05d3\u05d1\u05e7 \u05d7\u05d9\u05d5\u05d1\u05d9!'); } catch (e) {} }} variant="premium" size="xl" className="flex-1 gap-2">
+          <Button onClick={() => handleLike('POSITIVE')} variant="premium" size="xl" className="flex-1 gap-2">
             <Star className="w-5 h-5" />{'\u05e4\u05d9\u05d3\u05d1\u05e7 \u05d7\u05d9\u05d5\u05d1\u05d9'}
           </Button>
           <Button onClick={() => setShowMessageDialog(true)} variant="outline" size="icon-lg" className="rounded-full border-info text-info hover:bg-info/10">

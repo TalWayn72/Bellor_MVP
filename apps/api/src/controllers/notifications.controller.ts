@@ -1,55 +1,49 @@
 /**
  * Notifications Controller
- * HTTP handlers for notifications API
+ * HTTP handlers for notifications API with Zod validation
  */
 
 import { FastifyRequest, FastifyReply } from 'fastify';
+import { z } from 'zod';
 import { NotificationsService } from '../services/notifications.service.js';
-import { NotificationType } from '@prisma/client';
+import {
+  listNotificationsQuerySchema,
+  notificationIdParamsSchema,
+  ListNotificationsQuery,
+  NotificationIdParams,
+} from './notifications/notifications-schemas.js';
 
-interface ListNotificationsQuery {
-  limit?: number;
-  offset?: number;
-  isRead?: string;
-  type?: NotificationType;
+function zodError(reply: FastifyReply, error: z.ZodError) {
+  return reply.status(400).send({ error: 'Validation failed', details: error.errors });
 }
 
 export const NotificationsController = {
-  /**
-   * Get my notifications
-   * GET /notifications
-   */
+  /** GET /notifications */
   async getNotifications(
     request: FastifyRequest<{ Querystring: ListNotificationsQuery }>,
     reply: FastifyReply
   ) {
-    const userId = request.user!.id;
-    const { limit, offset, isRead, type } = request.query;
-
     try {
+      const userId = request.user!.id;
+      const query = listNotificationsQuerySchema.parse(request.query);
+
       const result = await NotificationsService.getNotifications(userId, {
-        limit: limit ? Number(limit) : undefined,
-        offset: offset ? Number(offset) : undefined,
-        isRead: isRead !== undefined ? isRead === 'true' : undefined,
-        type,
+        limit: query.limit,
+        offset: query.offset,
+        isRead: query.isRead !== undefined ? query.isRead === 'true' : undefined,
+        type: query.type,
       });
       return reply.send(result);
     } catch (error: unknown) {
+      if (error instanceof z.ZodError) return zodError(reply, error);
       const message = error instanceof Error ? error.message : 'Unknown error';
       return reply.status(500).send({ error: message });
     }
   },
 
-  /**
-   * Get unread count
-   * GET /notifications/unread-count
-   */
-  async getUnreadCount(
-    request: FastifyRequest,
-    reply: FastifyReply
-  ) {
+  /** GET /notifications/unread-count */
+  async getUnreadCount(request: FastifyRequest, reply: FastifyReply) {
     const userId = request.user!.id;
-
     try {
       const count = await NotificationsService.getUnreadCount(userId);
       return reply.send({ unreadCount: count });
@@ -59,36 +53,27 @@ export const NotificationsController = {
     }
   },
 
-  /**
-   * Mark notification as read
-   * PATCH /notifications/:id/read
-   */
+  /** PATCH /notifications/:id/read */
   async markAsRead(
-    request: FastifyRequest<{ Params: { id: string } }>,
+    request: FastifyRequest<{ Params: NotificationIdParams }>,
     reply: FastifyReply
   ) {
-    const userId = request.user!.id;
-    const { id } = request.params;
-
     try {
-      const notification = await NotificationsService.markAsRead(id, userId);
+      const userId = request.user!.id;
+      const params = notificationIdParamsSchema.parse(request.params);
+
+      const notification = await NotificationsService.markAsRead(params.id, userId);
       return reply.send({ notification });
     } catch (error: unknown) {
+      if (error instanceof z.ZodError) return zodError(reply, error);
       const message = error instanceof Error ? error.message : 'Unknown error';
       return reply.status(404).send({ error: message });
     }
   },
 
-  /**
-   * Mark all notifications as read
-   * POST /notifications/read-all
-   */
-  async markAllAsRead(
-    request: FastifyRequest,
-    reply: FastifyReply
-  ) {
+  /** POST /notifications/read-all */
+  async markAllAsRead(request: FastifyRequest, reply: FastifyReply) {
     const userId = request.user!.id;
-
     try {
       const result = await NotificationsService.markAllAsRead(userId);
       return reply.send(result);
@@ -98,36 +83,27 @@ export const NotificationsController = {
     }
   },
 
-  /**
-   * Delete a notification
-   * DELETE /notifications/:id
-   */
+  /** DELETE /notifications/:id */
   async deleteNotification(
-    request: FastifyRequest<{ Params: { id: string } }>,
+    request: FastifyRequest<{ Params: NotificationIdParams }>,
     reply: FastifyReply
   ) {
-    const userId = request.user!.id;
-    const { id } = request.params;
-
     try {
-      const result = await NotificationsService.deleteNotification(id, userId);
+      const userId = request.user!.id;
+      const params = notificationIdParamsSchema.parse(request.params);
+
+      const result = await NotificationsService.deleteNotification(params.id, userId);
       return reply.send(result);
     } catch (error: unknown) {
+      if (error instanceof z.ZodError) return zodError(reply, error);
       const message = error instanceof Error ? error.message : 'Unknown error';
       return reply.status(404).send({ error: message });
     }
   },
 
-  /**
-   * Delete all read notifications
-   * DELETE /notifications/read
-   */
-  async deleteReadNotifications(
-    request: FastifyRequest,
-    reply: FastifyReply
-  ) {
+  /** DELETE /notifications/read */
+  async deleteReadNotifications(request: FastifyRequest, reply: FastifyReply) {
     const userId = request.user!.id;
-
     try {
       const result = await NotificationsService.deleteReadNotifications(userId);
       return reply.send(result);

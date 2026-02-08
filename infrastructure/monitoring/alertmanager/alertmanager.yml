@@ -1,33 +1,60 @@
+# Bellor MVP - Alertmanager Configuration
+# Routes alerts by severity: P1 > P2 > P3 > P4
+
 global:
   resolve_timeout: 5m
-  # Slack webhook (add your webhook URL)
   slack_api_url: '${SLACK_WEBHOOK_URL}'
 
-# Templates for notifications
 templates:
   - '/etc/alertmanager/*.tmpl'
-
-# Route all alerts
 route:
-  group_by: ['alertname', 'cluster', 'service']
+  group_by: ['alertname', 'component']
   group_wait: 10s
-  group_interval: 10s
-  repeat_interval: 12h
+  group_interval: 5m
+  repeat_interval: 4h
   receiver: 'default'
 
   routes:
-    # Critical alerts go to Slack and email
+    # P1 Critical - immediate notification, short repeat
     - match:
-        severity: critical
-      receiver: 'critical-alerts'
+        severity: P1
+      receiver: 'p1-critical'
+      group_wait: 0s
+      repeat_interval: 15m
       continue: true
 
-    # Warning alerts go to Slack only
+    # P2 High - urgent, repeat every 1 hour
+    - match:
+        severity: P2
+      receiver: 'p2-high'
+      group_wait: 10s
+      repeat_interval: 1h
+      continue: true
+
+    # P3 Medium - business hours, repeat every 4 hours
+    - match:
+        severity: P3
+      receiver: 'p3-medium'
+      group_wait: 30s
+      repeat_interval: 4h
+
+    # P4 Low - informational, repeat daily
+    - match:
+        severity: P4
+      receiver: 'p4-low'
+      group_wait: 1m
+      repeat_interval: 24h
+
+    # Legacy severity labels (backward compatibility)
+    - match:
+        severity: critical
+      receiver: 'p1-critical'
+      continue: true
+
     - match:
         severity: warning
-      receiver: 'warning-alerts'
+      receiver: 'p3-medium'
 
-# Receivers
 receivers:
   - name: 'default'
     slack_configs:
@@ -36,49 +63,76 @@ receivers:
         text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
         send_resolved: true
 
-  - name: 'critical-alerts'
+  - name: 'p1-critical'
     slack_configs:
       - channel: '#bellor-critical'
-        title: '🚨 Critical Alert'
+        title: '[P1 CRITICAL] {{ .GroupLabels.alertname }}'
         text: |
           *Alert:* {{ .GroupLabels.alertname }}
-          *Severity:* {{ .CommonLabels.severity }}
+          *Severity:* P1 - Critical
+          *Component:* {{ .CommonLabels.component }}
+          *Summary:* {{ .CommonAnnotations.summary }}
+          *Description:* {{ .CommonAnnotations.description }}
+          *Runbook:* {{ .CommonAnnotations.runbook }}
+        send_resolved: true
+
+  - name: 'p2-high'
+    slack_configs:
+      - channel: '#bellor-critical'
+        title: '[P2 HIGH] {{ .GroupLabels.alertname }}'
+        text: |
+          *Alert:* {{ .GroupLabels.alertname }}
+          *Severity:* P2 - High
           *Component:* {{ .CommonLabels.component }}
           *Summary:* {{ .CommonAnnotations.summary }}
           *Description:* {{ .CommonAnnotations.description }}
         send_resolved: true
-    # Add email configuration here
-    # email_configs:
-    #   - to: 'oncall@bellor.app'
-    #     from: 'alerts@bellor.app'
-    #     smarthost: 'smtp.gmail.com:587'
-    #     auth_username: '${SMTP_USERNAME}'
-    #     auth_password: '${SMTP_PASSWORD}'
-    #     headers:
-    #       subject: '🚨 Critical Alert: {{ .GroupLabels.alertname }}'
 
-  - name: 'warning-alerts'
+  - name: 'p3-medium'
     slack_configs:
       - channel: '#bellor-warnings'
-        title: '⚠️ Warning'
+        title: '[P3 MEDIUM] {{ .GroupLabels.alertname }}'
         text: |
           *Alert:* {{ .GroupLabels.alertname }}
           *Component:* {{ .CommonLabels.component }}
           *Summary:* {{ .CommonAnnotations.summary }}
         send_resolved: true
 
-# Inhibition rules (prevent alert spam)
+  - name: 'p4-low'
+    slack_configs:
+      - channel: '#bellor-info'
+        title: '[P4 LOW] {{ .GroupLabels.alertname }}'
+        text: |
+          *Alert:* {{ .GroupLabels.alertname }}
+          *Component:* {{ .CommonLabels.component }}
+          *Summary:* {{ .CommonAnnotations.summary }}
+        send_resolved: true
+
 inhibit_rules:
-  # Inhibit warning alerts if critical alert is firing
+  # P1 inhibits P2/P3/P4 for same component
+  - source_match:
+      severity: P1
+    target_match_re:
+      severity: 'P[234]'
+    equal: ['component']
+
+  # P2 inhibits P3/P4 for same component
+  - source_match:
+      severity: P2
+    target_match_re:
+      severity: 'P[34]'
+    equal: ['component']
+
+  # ServiceDown inhibits all other alerts
+  - source_match:
+      alertname: 'ServiceDown'
+    target_match_re:
+      alertname: '.+'
+    equal: ['cluster']
+
+  # Legacy: critical inhibits warning
   - source_match:
       severity: 'critical'
     target_match:
       severity: 'warning'
-    equal: ['alertname', 'cluster', 'service']
-
-  # Inhibit any alert if the entire system is down
-  - source_match:
-      alertname: 'APIDown'
-    target_match_re:
-      alertname: '.*'
-    equal: ['cluster']
+    equal: ['alertname', 'cluster']

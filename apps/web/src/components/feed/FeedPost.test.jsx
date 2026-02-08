@@ -4,6 +4,14 @@ import FeedPost from './FeedPost';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+vi.mock('@/api', () => ({
+  userService: { getUserById: vi.fn().mockResolvedValue({ user: { id: 'user-2', nickname: 'User', profile_images: [] } }) },
+  likeService: { getResponseLikes: vi.fn().mockResolvedValue({ likes: [] }), checkLiked: vi.fn().mockResolvedValue({ liked: false }) },
+  responseService: {},
+  followService: {},
+  chatService: {},
+}));
+
 // Create a new QueryClient for each test
 const createTestQueryClient = () =>
   new QueryClient({

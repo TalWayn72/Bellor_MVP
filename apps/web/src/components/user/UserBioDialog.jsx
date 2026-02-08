@@ -55,7 +55,9 @@ export default function UserBioDialog({
 
   const handleViewProfile = () => {
     onClose();
-    navigate(createPageUrl(`UserProfile?id=${userId}`));
+    if (userId && userId !== 'undefined') {
+      navigate(createPageUrl(`UserProfile?id=${userId}`));
+    }
   };
 
   const handleStartChat = () => {
@@ -67,49 +69,34 @@ export default function UserBioDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
+      <DialogContent className="sm:max-w-md" aria-describedby="user-bio-description">
         <DialogHeader>
           <DialogTitle className="sr-only">User Profile</DialogTitle>
+          <p id="user-bio-description" className="sr-only">View user profile and bio information</p>
         </DialogHeader>
 
         <div className="flex flex-col items-center text-center py-4">
-          {/* Avatar */}
           <Avatar size="xl" className="mb-4">
-            <AvatarImage
-              src={userData?.profile_images?.[0] || userImage || `https://i.pravatar.cc/150?u=${userId}`}
-              alt={userData?.nickname || userName || 'User'}
-            />
-            <AvatarFallback className="text-2xl">
-              {(userData?.nickname || userName || '?').charAt(0)}
-            </AvatarFallback>
+            <AvatarImage src={userData?.profile_images?.[0] || userImage || `https://i.pravatar.cc/150?u=${userId}`} alt={userData?.nickname || userName || 'User'} />
+            <AvatarFallback className="text-2xl">{(userData?.nickname || userName || '?').charAt(0)}</AvatarFallback>
           </Avatar>
 
-          {/* Name and verification */}
           <div className="flex items-center gap-2 mb-2">
-            <h2 className="text-xl font-bold text-foreground">
-              {userData?.nickname || userName || 'Unknown User'}
-            </h2>
-            {userData?.age && (
-              <span className="text-lg text-muted-foreground">• {userData.age}</span>
-            )}
+            <h2 className="text-xl font-bold text-foreground">{userData?.nickname || userName || 'Unknown User'}</h2>
+            {userData?.age && <span className="text-lg text-muted-foreground">• {userData.age}</span>}
             {userData?.is_verified && (
               <Badge variant="verified" size="sm">
-                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                </svg>
+                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
               </Badge>
             )}
           </div>
 
-          {/* Location */}
           {userData?.location && (
             <div className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
-              <MapPin className="w-4 h-4" />
-              <span>{formatLocation(userData.location)}</span>
+              <MapPin className="w-4 h-4" /><span>{formatLocation(userData.location)}</span>
             </div>
           )}
 
-          {/* Bio */}
           {isLoading ? (
             <div className="w-full space-y-2 animate-pulse">
               <div className="h-4 bg-muted rounded w-full"></div>
@@ -126,25 +113,13 @@ export default function UserBioDialog({
             </p>
           )}
 
-          {/* Action buttons */}
           <div className="flex gap-3 w-full mt-2">
-            <Button
-              variant="outline"
-              onClick={handleViewProfile}
-              className="flex-1"
-            >
-              <ExternalLink className="w-4 h-4 mr-2" />
-              View Profile
+            <Button variant="outline" onClick={handleViewProfile} className="flex-1">
+              <ExternalLink className="w-4 h-4 mr-2" />View Profile
             </Button>
-
             {showChatButton && (
-              <Button
-                variant="default"
-                onClick={handleStartChat}
-                className="flex-1"
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Chat
+              <Button variant="default" onClick={handleStartChat} className="flex-1">
+                <MessageCircle className="w-4 h-4 mr-2" />Chat
               </Button>
             )}
           </div>

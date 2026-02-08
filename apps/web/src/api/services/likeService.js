@@ -5,6 +5,7 @@
 
 import { apiClient } from '../client/apiClient';
 import { validateUserId, validateRequiredId } from '../utils/validation';
+import { transformLikes } from '@/utils';
 
 export const likeService = {
   /**
@@ -69,7 +70,8 @@ export const likeService = {
    */
   async getReceivedLikes(params = {}) {
     const response = await apiClient.get('/likes/received', { params });
-    return response.data;
+    const result = response.data;
+    return { ...result, likes: transformLikes(result.likes || []) };
   },
 
   /**
@@ -79,7 +81,8 @@ export const likeService = {
    */
   async getSentLikes(params = {}) {
     const response = await apiClient.get('/likes/sent', { params });
-    return response.data;
+    const result = response.data;
+    return { ...result, likes: transformLikes(result.likes || []) };
   },
 
   /**
@@ -115,6 +118,7 @@ export const likeService = {
     validateRequiredId(responseId, 'responseId', 'getResponseLikes');
 
     const response = await apiClient.get(`/likes/response/${responseId}`, { params });
-    return response.data;
+    const result = response.data;
+    return { ...result, likes: transformLikes(result.likes || []) };
   }
 };

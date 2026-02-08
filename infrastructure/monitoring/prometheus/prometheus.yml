@@ -12,9 +12,12 @@ alerting:
         - targets:
             - alertmanager:9093
 
-# Load rules
+# Load rules (P1-P4 severity tiers, WebSocket, Database)
 rule_files:
   - /etc/prometheus/alerts.yml
+  - /etc/prometheus/alert-rules.yml
+  - /etc/prometheus/alert-rules-p3p4.yml
+  - /etc/prometheus/alert-rules-websocket-db.yml
 
 # Scrape configurations
 scrape_configs:

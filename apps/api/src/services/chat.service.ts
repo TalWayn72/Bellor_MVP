@@ -12,6 +12,7 @@ import {
   markMessageAsRead,
   deleteMessage,
 } from './chat/chat-messages.service.js';
+import { adminDeleteMessage } from './chat/chat-admin.service.js';
 
 export const chatService = {
   /**
@@ -133,4 +134,5 @@ export const chatService = {
   sendMessage,
   markMessageAsRead,
   deleteMessage,
+  adminDeleteMessage,
 };

@@ -16,6 +16,10 @@ export const reportActionSchema = z.object({
   notes: z.string().optional(),
 });
 
+export const adminDeleteMessageSchema = z.object({
+  messageId: z.string().cuid(),
+});
+
 export const createAchievementSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().min(1).max(500),

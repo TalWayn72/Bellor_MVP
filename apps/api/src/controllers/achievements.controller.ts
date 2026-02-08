@@ -1,114 +1,100 @@
 /**
  * Achievements Controller
- * HTTP handlers for achievements API
+ * HTTP handlers for achievements API with Zod validation
  */
 
 import { FastifyRequest, FastifyReply } from 'fastify';
+import { z } from 'zod';
 import { AchievementsService } from '../services/achievements.service.js';
+import {
+  listAchievementsQuerySchema,
+  achievementIdParamsSchema,
+  achievementUserParamsSchema,
+  ListAchievementsQuery,
+  AchievementIdParams,
+  AchievementUserParams,
+} from './achievements/achievements-schemas.js';
 
-interface ListAchievementsQuery {
-  limit?: number;
-  offset?: number;
+function zodError(reply: FastifyReply, error: z.ZodError) {
+  return reply.status(400).send({ error: 'Validation failed', details: error.errors });
 }
 
 export const AchievementsController = {
-  /**
-   * List all achievements
-   * GET /achievements
-   */
+  /** GET /achievements */
   async listAchievements(
     request: FastifyRequest<{ Querystring: ListAchievementsQuery }>,
     reply: FastifyReply
   ) {
-    const { limit, offset } = request.query;
-
     try {
+      const query = listAchievementsQuerySchema.parse(request.query);
       const result = await AchievementsService.listAchievements({
-        limit: limit ? Number(limit) : undefined,
-        offset: offset ? Number(offset) : undefined,
+        limit: query.limit, offset: query.offset,
       });
       return reply.send(result);
     } catch (error: unknown) {
+      if (error instanceof z.ZodError) return zodError(reply, error);
       const message = error instanceof Error ? error.message : 'Unknown error';
       return reply.status(500).send({ error: message });
     }
   },
 
-  /**
-   * Get my achievements
-   * GET /achievements/my
-   */
+  /** GET /achievements/my */
   async getMyAchievements(
     request: FastifyRequest<{ Querystring: ListAchievementsQuery }>,
     reply: FastifyReply
   ) {
-    const userId = request.user!.id;
-    const { limit, offset } = request.query;
-
     try {
+      const userId = request.user!.id;
+      const query = listAchievementsQuerySchema.parse(request.query);
       const result = await AchievementsService.getUserAchievements(userId, {
-        limit: limit ? Number(limit) : undefined,
-        offset: offset ? Number(offset) : undefined,
+        limit: query.limit, offset: query.offset,
       });
       return reply.send(result);
     } catch (error: unknown) {
+      if (error instanceof z.ZodError) return zodError(reply, error);
       const message = error instanceof Error ? error.message : 'Unknown error';
       return reply.status(500).send({ error: message });
     }
   },
 
-  /**
-   * Get user's achievements
-   * GET /achievements/user/:userId
-   */
+  /** GET /achievements/user/:userId */
   async getUserAchievements(
-    request: FastifyRequest<{ Params: { userId: string }; Querystring: ListAchievementsQuery }>,
+    request: FastifyRequest<{ Params: AchievementUserParams; Querystring: ListAchievementsQuery }>,
     reply: FastifyReply
   ) {
-    const { userId } = request.params;
-    const { limit, offset } = request.query;
-
     try {
-      const result = await AchievementsService.getUserAchievements(userId, {
-        limit: limit ? Number(limit) : undefined,
-        offset: offset ? Number(offset) : undefined,
+      const params = achievementUserParamsSchema.parse(request.params);
+      const query = listAchievementsQuerySchema.parse(request.query);
+      const result = await AchievementsService.getUserAchievements(params.userId, {
+        limit: query.limit, offset: query.offset,
       });
       return reply.send(result);
     } catch (error: unknown) {
+      if (error instanceof z.ZodError) return zodError(reply, error);
       const message = error instanceof Error ? error.message : 'Unknown error';
       return reply.status(500).send({ error: message });
     }
   },
 
-  /**
-   * Get achievement by ID
-   * GET /achievements/:id
-   */
+  /** GET /achievements/:id */
   async getAchievementById(
-    request: FastifyRequest<{ Params: { id: string } }>,
+    request: FastifyRequest<{ Params: AchievementIdParams }>,
     reply: FastifyReply
   ) {
-    const { id } = request.params;
-
     try {
-      const achievement = await AchievementsService.getAchievementById(id);
+      const params = achievementIdParamsSchema.parse(request.params);
+      const achievement = await AchievementsService.getAchievementById(params.id);
       return reply.send({ achievement });
     } catch (error: unknown) {
+      if (error instanceof z.ZodError) return zodError(reply, error);
       const message = error instanceof Error ? error.message : 'Unknown error';
       return reply.status(404).send({ error: message });
     }
   },
 
-  /**
-   * Check and unlock achievements
-   * POST /achievements/check
-   */
-  async checkAchievements(
-    request: FastifyRequest,
-    reply: FastifyReply
-  ) {
+  /** POST /achievements/check */
+  async checkAchievements(request: FastifyRequest, reply: FastifyReply) {
     const userId = request.user!.id;
-
     try {
       const unlocked = await AchievementsService.checkAndUnlockAchievements(userId);
       return reply.send({ unlockedAchievements: unlocked });
@@ -118,20 +104,17 @@ export const AchievementsController = {
     }
   },
 
-  /**
-   * Get achievement stats
-   * GET /achievements/:id/stats
-   */
+  /** GET /achievements/:id/stats */
   async getAchievementStats(
-    request: FastifyRequest<{ Params: { id: string } }>,
+    request: FastifyRequest<{ Params: AchievementIdParams }>,
     reply: FastifyReply
   ) {
-    const { id } = request.params;
-
     try {
-      const stats = await AchievementsService.getAchievementStats(id);
+      const params = achievementIdParamsSchema.parse(request.params);
+      const stats = await AchievementsService.getAchievementStats(params.id);
       return reply.send(stats);
     } catch (error: unknown) {
+      if (error instanceof z.ZodError) return zodError(reply, error);
       const message = error instanceof Error ? error.message : 'Unknown error';
       return reply.status(500).send({ error: message });
     }

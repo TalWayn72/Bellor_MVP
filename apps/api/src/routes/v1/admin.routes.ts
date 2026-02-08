@@ -59,6 +59,13 @@ export default async function adminRoutes(app: FastifyInstance) {
   app.post('/reports/action', AdminController.reportAction);
 
   // =====================
+  // Messages (Admin Moderation)
+  // =====================
+
+  // DELETE /admin/messages/:messageId - Soft-delete a message (admin moderation)
+  app.delete('/messages/:messageId', AdminController.deleteMessage);
+
+  // =====================
   // Achievements Management
   // =====================
 

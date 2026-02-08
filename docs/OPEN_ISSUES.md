@@ -48,8 +48,106 @@
 | **TASK-009: Architecture Diagrams Documentation (Feb 8)** | 8 | 🟢 שיפור | ✅ הושלם |
 | **TASK-010: Frontend Page Unit Tests (Feb 8)** | 98 | 🟢 שיפור | ✅ הושלם |
 | **TASK-011: Test File Refactoring - Split Large Files (Feb 8)** | 5 | 🟢 שיפור | ✅ הושלם |
+| **ISSUE-022: Profile Data Not Persisting (Feb 8)** | 14 | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-023: SharedSpace Blank Page - React Hooks Violation (Feb 8)** | 1 | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-024: UserProfile?id=undefined - camelCase/snake_case Mismatch (Feb 8)** | 15 | 🔴 קריטי | ✅ תוקן |
+| **TASK-012: Prometheus Alert Rules - P1-P4 Severity Tiers (Feb 8)** | 6 | 🟢 שיפור | ✅ הושלם |
+| **TASK-013: PII Data Retention Policy Documentation (Feb 8)** | 1 | 🟢 שיפור | ✅ הושלם |
+| **ISSUE-025: getUserById Unwrap Bug + aria-describedby Warnings (Feb 8)** | 7 | 🔴 קריטי | ✅ תוקן |
 
-**סה"כ:** 407+ פריטים זוהו → 407+ טופלו ✅
+**סה"כ:** 451+ פריטים זוהו → 451+ טופלו ✅
+
+---
+
+## ✅ ISSUE-025: getUserById Unwrap Bug + aria-describedby Warnings (8 פברואר 2026)
+
+**סטטוס:** ✅ תוקן
+**חומרה:** 🔴 קריטי
+**תאריך:** 8 February 2026
+
+**תיאור הבעיה:**
+1. **getUserById unwrap bug**: `userService.getUserById()` returns `{ user: {...} }` wrapper object. FeedPost, CommentsList, StarSendersModal, and FeedPost mentionedUsers passed the wrapper to `transformUser()` or used it directly, causing all user fields (id, nickname, age, profile_images) to be undefined. This caused: clicking avatar did nothing (no user ID for navigation), "User • 25" shown instead of real name/age, and missing profile images.
+2. **aria-describedby warnings**: UserBioDialog, StoryViewer had missing/invalid `aria-describedby` attributes causing Radix UI console warnings.
+
+**פתרון:**
+1. Fixed all 4 components to unwrap `result?.user || result` before using user data
+2. Added proper `aria-describedby` with matching description IDs to all dialog components
+3. Added `id` field to FeedPost fallback userData for demo users
+4. Added `userData?.id` as navigation fallback in FeedPostHeader
+
+**קבצים מושפעים:**
+- `apps/web/src/components/feed/FeedPost.jsx:68,78-82` - Unwrap getUserById + add id to fallback
+- `apps/web/src/components/feed/FeedPostHeader.jsx:14-22` - Add userData.id fallback + logging
+- `apps/web/src/components/comments/CommentsList.jsx:48` - Unwrap getUserById
+- `apps/web/src/components/feed/StarSendersModal.jsx:39` - Unwrap getUserById
+- `apps/web/src/components/user/UserBioDialog.jsx:72` - Fix aria-describedby
+- `apps/web/src/components/stories/StoryViewer.jsx:18` - Add aria-describedby
+
+---
+
+## ✅ ISSUE-024: UserProfile?id=undefined - camelCase/snake_case Mismatch (8 פברואר 2026)
+
+**סטטוס:** ✅ תוקן
+**חומרה:** 🔴 קריטי
+**תאריך:** 8 February 2026
+
+**תיאור הבעיה:** Clicking user avatars in SharedSpace navigated to `UserProfile?id=undefined`. Root cause: Prisma API returns camelCase fields (`userId`, `responseType`) but frontend components expect snake_case (`user_id`, `response_type`). Demo data worked because it already used snake_case.
+
+**פתרון:** Created data transformer layer at the API service boundary to normalize camelCase → snake_case. Added navigation guards to prevent `id=undefined` navigation in all 10 components.
+
+**קבצים מושפעים:**
+- `apps/web/src/utils/responseTransformer.js` - NEW: transformer functions for responses, likes, comments, stories, follows
+- `apps/web/src/utils/index.ts` - Added transformer exports
+- `apps/web/src/api/services/responseService.js` - Applied transformResponses/transformResponse
+- `apps/web/src/api/services/likeService.js` - Applied transformLikes in getReceivedLikes, getSentLikes, getResponseLikes
+- `apps/web/src/api/services/storyService.js` - Applied transformStory/transformStories in getFeed, getMyStories, getStoriesByUser, getStoryById
+- `apps/web/src/pages/UserProfile.jsx` - Added redirect guard for invalid userId
+- `apps/web/src/components/feed/FeedPostHeader.jsx` - Guard + fallback to userId
+- `apps/web/src/components/matches/MatchCard.jsx` - Guard + fallback to userId
+- `apps/web/src/components/feed/ChatCarousel.jsx` - Guard + fallback to user_id
+- `apps/web/src/components/chat/PrivateChatHeader.jsx` - Guard for undefined
+- `apps/web/src/components/user/UserBioDialog.jsx` - Guard for undefined
+- `apps/web/src/components/profile/FollowingCard.jsx` - Guard for undefined
+- `apps/web/src/components/feed/MentionExtractor.jsx` - Guard for undefined
+- `apps/web/src/components/discover/DiscoverCard.jsx` - Guard for undefined
+
+---
+
+## ✅ ISSUE-023: SharedSpace Blank Page - React Hooks Violation (8 פברואר 2026)
+
+**סטטוס:** ✅ תוקן
+**חומרה:** 🔴 קריטי
+**תאריך:** 8 February 2026
+
+**תיאור הבעיה:** SharedSpace page showed blank white screen. Error: "Rendered more hooks than during the previous render". In `FeedPost.jsx`, a `useEffect` hook was placed after a conditional `return null`, violating React's Rules of Hooks.
+
+**פתרון:** Moved the audio cleanup `useEffect` to before the early return guard.
+
+**קבצים מושפעים:**
+- `apps/web/src/components/feed/FeedPost.jsx:88-90` - Moved useEffect before conditional return
+
+---
+
+## ✅ ISSUE-022: Profile Data Not Persisting (8 פברואר 2026)
+
+**סטטוס:** ✅ תוקן
+**חומרה:** 🔴 קריטי
+**תאריך:** 8 February 2026
+
+**תיאור הבעיה:** User profile fields (phone, occupation, education, interests), privacy settings, and notification preferences were not being saved or loaded. Root causes: (1) DB missing columns, (2) backend service silently dropping unsupported fields, (3) frontend pages had no save/load logic.
+
+**פתרון:** Added 14 new fields to Prisma schema, updated backend service to handle all fields, rewrote PrivacySettings/NotificationSettings/EditProfile pages with auto-save and load-from-profile logic.
+
+**קבצים מושפעים:**
+- `apps/api/prisma/schema.prisma` - Added 14 fields (phone, occupation, education, interests, 5 privacy, 5 notification)
+- `apps/api/src/services/users/users-profile.service.ts` - Handle all new fields in buildUpdateData + USER_PROFILE_SELECT
+- `apps/api/src/services/users/users.types.ts` - Updated UpdateUserProfileInput interface
+- `apps/api/src/controllers/users/users-schemas.ts` - Added Zod validation for new boolean fields
+- `apps/api/src/routes/v1/auth/auth-handlers.ts` - Return new fields in handleGetMe
+- `apps/web/src/pages/PrivacySettings.jsx` - Load saved values, auto-save on toggle
+- `apps/web/src/pages/NotificationSettings.jsx` - Load saved values, auto-save with field mapping
+- `apps/web/src/pages/EditProfile.jsx` - Send all fields in handleSave, load defaults correctly
+- `apps/web/src/pages/FilterSettings.jsx` - Sync global state after save
 
 ---
 
@@ -2044,4 +2142,6 @@ cd apps/api && npm run build
 | 6 פברואר 2026 | הוספת Admin User לסיד | ✅ admin@bellor.app |
 | 6 פברואר 2026 | תיקון Invalid Date ב-Creation | ✅ apiClient field aliases |
 | 8 פברואר 2026 | **TASK-009: Architecture Diagrams (Mermaid)** | ✅ 8 diagrams in docs/ARCHITECTURE.md |
+| 8 פברואר 2026 | **TASK-012: Prometheus Alert Rules** | ✅ P1-P4 severity tiers, WebSocket, Database alerts |
+| 8 פברואר 2026 | **TASK-013: PII Data Retention Policy** | ✅ GDPR/CCPA compliance, retention schedule, deletion procedures |
 

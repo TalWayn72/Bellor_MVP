@@ -100,6 +100,17 @@ export const adminService = {
     return this.reportAction({ reportId, action: 'dismiss', notes });
   },
 
+  // ============ Message Moderation ============
+
+  /**
+   * Delete a message (admin moderation - soft delete)
+   * @param {string} messageId - The message ID to delete
+   * @returns {Promise<void>}
+   */
+  async deleteMessage(messageId) {
+    await apiClient.delete(`/admin/messages/${messageId}`);
+  },
+
   // ============ Achievements ============
 
   /** Create achievement */

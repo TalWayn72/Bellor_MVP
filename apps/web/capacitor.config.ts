@@ -13,8 +13,11 @@ const config: CapacitorConfig = {
   android: {
     // Build preferences
     buildOptions: {
-      keystorePath: undefined, // Set during release build
-      keystoreAlias: undefined,
+      // Uncomment and set these for release builds:
+      // keystorePath: '/path/to/bellor-release.keystore',
+      // keystoreAlias: 'bellor',
+      // keystorePassword: process.env.KEYSTORE_PASSWORD,
+      // keystoreAliasPassword: process.env.KEY_PASSWORD,
     },
     // Splash screen will show while app loads
     allowMixedContent: false,

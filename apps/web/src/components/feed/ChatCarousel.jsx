@@ -12,7 +12,10 @@ export default function ChatCarousel({ activeChatUsers, onNavigate }) {
             {activeChatUsers.map((user) => (
               <button
                 key={user.chatId}
-                onClick={() => onNavigate(createPageUrl(`UserProfile?id=${user.userId}`))}
+                onClick={() => {
+                  const uid = user.userId || user.user_id;
+                  if (uid && uid !== 'undefined') onNavigate(createPageUrl(`UserProfile?id=${uid}`));
+                }}
                 className="flex-shrink-0"
               >
                 <div className="relative">

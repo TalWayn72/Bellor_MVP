@@ -67,7 +67,7 @@ export default function DiscoverCard({
           <Star className="w-7 h-7 text-white fill-white" />
         </button>
         <button
-          onClick={() => navigate(createPageUrl(`UserProfile?id=${profile.id}`))}
+          onClick={() => profile.id && profile.id !== 'undefined' && navigate(createPageUrl(`UserProfile?id=${profile.id}`))}
           className="w-14 h-14 rounded-full bg-card shadow-lg flex items-center justify-center hover:scale-110 transition-transform border border-border"
         >
           <span className="text-2xl">&#8505;&#65039;</span>

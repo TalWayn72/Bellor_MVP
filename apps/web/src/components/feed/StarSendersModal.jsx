@@ -36,8 +36,8 @@ export default function StarSendersModal({ isOpen, onClose, response, currentUse
 
       const userPromises = starLikes.map(async (like) => {
         try {
-          const user = await userService.getUserById(like.user_id);
-          return user;
+          const result = await userService.getUserById(like.user_id);
+          return result?.user || result;
         } catch (error) {
           return null;
         }

@@ -34,7 +34,7 @@ export function MentionText({ text, mentionedUsers = [] }) {
               key={index}
               onClick={(e) => {
                 e.stopPropagation();
-                if (user) {
+                if (user?.id && user.id !== 'undefined') {
                   navigate(createPageUrl(`UserProfile?id=${user.id}`));
                 }
               }}
@@ -62,7 +62,7 @@ export function MentionList({ mentionedUsers, onMentionClick }) {
           key={index}
           onClick={(e) => {
             e.stopPropagation();
-            navigate(createPageUrl(`UserProfile?id=${user.id}`));
+            if (user.id && user.id !== 'undefined') navigate(createPageUrl(`UserProfile?id=${user.id}`));
           }}
           className="px-2 py-1 bg-purple-50 text-purple-600 text-xs rounded-full hover:bg-purple-100 transition-colors flex items-center gap-1"
         >

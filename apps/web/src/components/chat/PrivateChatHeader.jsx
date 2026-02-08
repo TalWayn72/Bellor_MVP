@@ -63,7 +63,7 @@ export default function PrivateChatHeader({
             {showActions && (
               <Card className="absolute right-0 top-full mt-2 py-1 w-48 z-20 shadow-lg border border-border">
                 <button
-                  onClick={() => onNavigate(createPageUrl(`UserProfile?id=${otherUserId}`))}
+                  onClick={() => otherUserId && otherUserId !== 'undefined' && onNavigate(createPageUrl(`UserProfile?id=${otherUserId}`))}
                   className="w-full px-4 py-2.5 text-left text-sm text-foreground hover:bg-muted transition-colors"
                 >
                   View Profile

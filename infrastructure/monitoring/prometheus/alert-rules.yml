@@ -1,0 +1,130 @@
+# ================================================
+# Bellor MVP - Prometheus Alert Rules
+# ================================================
+# Severity levels:
+#   P1 (critical) - Immediate action required, service down
+#   P2 (high)     - Urgent, degraded performance or payment issues
+#   P3 (medium)   - Needs attention within hours
+#   P4 (low)      - Informational, address during business hours
+# ================================================
+
+groups:
+  # ============================================
+  # P1 CRITICAL - Service Availability
+  # ============================================
+  - name: p1_critical_alerts
+    interval: 15s
+    rules:
+      - alert: ServiceDown
+        expr: up{job="bellor-api"} == 0
+        for: 1m
+        labels:
+          severity: P1
+          priority: critical
+          component: api
+        annotations:
+          summary: "Bellor API is DOWN"
+          description: "Health check for bellor-api has failed for >1 minute."
+          runbook: "Check container logs, restart if needed."
+
+      - alert: CriticalErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{job="bellor-api",status=~"5.."}[5m]))
+            / sum(rate(http_requests_total{job="bellor-api"}[5m]))
+          ) > 0.10
+        for: 5m
+        labels:
+          severity: P1
+          priority: critical
+          component: api
+        annotations:
+          summary: "Error rate exceeds 10%"
+          description: "API 5xx error rate is {{ $value | humanizePercentage }} (threshold: 10%)."
+
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: P1
+          priority: critical
+          component: redis
+        annotations:
+          summary: "Redis is DOWN"
+          description: "Redis has been unreachable for >1 minute."
+
+      - alert: PostgresDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: P1
+          priority: critical
+          component: database
+        annotations:
+          summary: "PostgreSQL is DOWN"
+          description: "PostgreSQL has been unreachable for >1 minute."
+
+      - alert: OutOfMemory
+        expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.05
+        for: 2m
+        labels:
+          severity: P1
+          priority: critical
+          component: system
+        annotations:
+          summary: "System critically low on memory"
+          description: "Available memory is below 5% on {{ $labels.instance }}."
+
+  # ============================================
+  # P2 HIGH - Performance & Payment
+  # ============================================
+  - name: p2_high_alerts
+    interval: 15s
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{job="bellor-api",status=~"5.."}[5m]))
+            / sum(rate(http_requests_total{job="bellor-api"}[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: P2
+          priority: high
+          component: api
+        annotations:
+          summary: "Error rate exceeds 5%"
+          description: "API 5xx error rate is {{ $value | humanizePercentage }} for 5 min."
+
+      - alert: HighP99Latency
+        expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job="bellor-api"}[5m])) by (le)) > 2
+        for: 5m
+        labels:
+          severity: P2
+          priority: high
+          component: api
+        annotations:
+          summary: "p99 latency exceeds 2 seconds"
+          description: "99th percentile response time is {{ $value }}s (threshold: 2s)."
+
+      - alert: PaymentFailures
+        expr: rate(payment_failures_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: P2
+          priority: high
+          component: payments
+        annotations:
+          summary: "Payment failure rate elevated"
+          description: "Payment failures detected at {{ $value }}/s for 5 minutes."
+
+      - alert: AuthBruteForce
+        expr: rate(auth_failed_attempts_total[5m]) > 1
+        for: 3m
+        labels:
+          severity: P2
+          priority: high
+          component: security
+        annotations:
+          summary: "Possible brute force attack"
+          description: "Failed auth attempts are at {{ $value }}/s for 3 min."

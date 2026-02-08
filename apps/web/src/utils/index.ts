@@ -3,3 +3,9 @@ export function createPageUrl(pageName: string) {
 }
 
 export { transformUser, formatLocation, calculateAge } from './userTransformer.js';
+export {
+  transformResponse, transformResponses,
+  transformLike, transformLikes,
+  transformComment, transformComments,
+  transformStory, transformFollow,
+} from './responseTransformer.js';

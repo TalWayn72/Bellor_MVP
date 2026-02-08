@@ -85,11 +85,17 @@ export default function MatchCard({ like, type }) {
   return (
     <Card variant="interactive" className="overflow-hidden">
       <div
-        onClick={() => navigate(createPageUrl(`UserProfile?id=${like.user_id}`))}
+        onClick={() => {
+          const uid = like.user_id || like.userId;
+          if (uid && uid !== 'undefined') navigate(createPageUrl(`UserProfile?id=${uid}`));
+        }}
         className="w-full cursor-pointer"
         role="button"
         tabIndex={0}
-        onKeyDown={(e) => e.key === 'Enter' && navigate(createPageUrl(`UserProfile?id=${like.user_id}`))}
+        onKeyDown={(e) => {
+          const uid = like.user_id || like.userId;
+          if (e.key === 'Enter' && uid && uid !== 'undefined') navigate(createPageUrl(`UserProfile?id=${uid}`));
+        }}
       >
         <div className="relative aspect-[3/4]">
           <UserCard userId={like.user_id} />

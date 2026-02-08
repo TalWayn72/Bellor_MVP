@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { reportService, userService, responseService } from '@/api';
+import { reportService, userService, responseService, adminService } from '@/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import LayoutAdmin from '../components/admin/LayoutAdmin';
@@ -42,9 +42,10 @@ export default function AdminReportManagement() {
   const deleteContentMutation = useMutation({
     mutationFn: async ({ contentType, contentId }) => {
       if (contentType === 'response') return await responseService.deleteResponse(contentId);
-      if (contentType === 'message') console.warn('Message deletion not implemented');
+      if (contentType === 'message') return await adminService.deleteMessage(contentId);
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-reports'] }); alert('Content deleted successfully'); },
+    onError: (error) => { alert(`Failed to delete content: ${error?.message || 'Unknown error'}`); },
   });
 
   const filteredReports = reports.filter(r => filterStatus === 'all' || r.status === filterStatus);

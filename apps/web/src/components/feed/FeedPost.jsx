@@ -65,7 +65,7 @@ export default function FeedPost({ response, currentUser, theme, onChatRequest, 
       if (!response.mentioned_user_ids?.length) return [];
       const users = await Promise.all(
         response.mentioned_user_ids.map(async (userId) => {
-          try { return await userService.getUserById(userId); } catch { return null; }
+          try { const r = await userService.getUserById(userId); return r?.user || r; } catch { return null; }
         })
       );
       return users.filter(u => u !== null);
@@ -75,10 +75,11 @@ export default function FeedPost({ response, currentUser, theme, onChatRequest, 
 
   React.useEffect(() => {
     const fetchUser = async () => {
-      const fallback = { nickname: '\u05DE\u05E9\u05EA\u05DE\u05E9', age: 25, location: '\u05D9\u05E9\u05E8\u05D0\u05DC', is_verified: false, profile_images: [`https://i.pravatar.cc/150?u=${response.user_id || 'unknown'}`] };
+      const fallback = { id: response.user_id, nickname: '\u05DE\u05E9\u05EA\u05DE\u05E9', age: 25, location: '\u05D9\u05E9\u05E8\u05D0\u05DC', is_verified: false, profile_images: [`https://i.pravatar.cc/150?u=${response.user_id || 'unknown'}`] };
       if (!response.user_id || response.user_id.startsWith('demo')) { setUserData(fallback); return; }
       try {
-        const user = await userService.getUserById(response.user_id);
+        const result = await userService.getUserById(response.user_id);
+        const user = result?.user || result;
         setUserData(user ? transformUser(user) : fallback);
       } catch { setUserData(fallback); }
     };

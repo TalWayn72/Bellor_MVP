@@ -23,6 +23,9 @@ services:
     volumes:
       - ./infrastructure/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - ./infrastructure/monitoring/prometheus/alerts.yml:/etc/prometheus/alerts.yml
+      - ./infrastructure/monitoring/prometheus/alert-rules.yml:/etc/prometheus/alert-rules.yml
+      - ./infrastructure/monitoring/prometheus/alert-rules-p3p4.yml:/etc/prometheus/alert-rules-p3p4.yml
+      - ./infrastructure/monitoring/prometheus/alert-rules-websocket-db.yml:/etc/prometheus/alert-rules-websocket-db.yml
       - prometheus-data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'

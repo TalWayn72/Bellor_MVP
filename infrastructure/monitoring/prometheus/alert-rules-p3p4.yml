@@ -1,0 +1,133 @@
+# ================================================
+# Bellor MVP - P3/P4 Alert Rules
+# ================================================
+# P3 (medium) - Needs attention within hours
+# P4 (low)    - Address during business hours
+# ================================================
+
+groups:
+  # ============================================
+  # P3 MEDIUM - Elevated Errors & Resources
+  # ============================================
+  - name: p3_medium_alerts
+    interval: 30s
+    rules:
+      - alert: ElevatedErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{job="bellor-api",status=~"5.."}[10m]))
+            / sum(rate(http_requests_total{job="bellor-api"}[10m]))
+          ) > 0.01
+        for: 10m
+        labels:
+          severity: P3
+          priority: medium
+          component: api
+        annotations:
+          summary: "Error rate exceeds 1%"
+          description: "API error rate is {{ $value | humanizePercentage }} for 10 min."
+
+      - alert: HighP95Latency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job="bellor-api"}[10m])) by (le)) > 0.5
+        for: 10m
+        labels:
+          severity: P3
+          priority: medium
+          component: api
+        annotations:
+          summary: "p95 latency exceeds 500ms"
+          description: "95th percentile response time is {{ $value }}s for 10 min."
+
+      - alert: HighMemoryUsage
+        expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) > 0.85
+        for: 10m
+        labels:
+          severity: P3
+          priority: medium
+          component: system
+        annotations:
+          summary: "Memory usage above 85%"
+          description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}."
+
+      - alert: APIHighMemory
+        expr: process_resident_memory_bytes{job="bellor-api"} / 1024 / 1024 > 500
+        for: 10m
+        labels:
+          severity: P3
+          priority: medium
+          component: api
+        annotations:
+          summary: "API process using >500MB RAM"
+          description: "API memory usage is {{ $value }}MB."
+
+      - alert: RedisHighMemory
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.85
+        for: 10m
+        labels:
+          severity: P3
+          priority: medium
+          component: redis
+        annotations:
+          summary: "Redis memory above 85%"
+          description: "Redis is using {{ $value | humanizePercentage }} of allocated memory."
+
+  # ============================================
+  # P4 LOW - Informational
+  # ============================================
+  - name: p4_low_alerts
+    interval: 60s
+    rules:
+      - alert: HighDiskUsage
+        expr: (1 - node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"}) > 0.80
+        for: 15m
+        labels:
+          severity: P4
+          priority: low
+          component: system
+        annotations:
+          summary: "Disk usage above 80%"
+          description: "Disk usage is {{ $value | humanizePercentage }} on {{ $labels.instance }} ({{ $labels.mountpoint }})."
+
+      - alert: CertificateExpiringSoon
+        expr: probe_ssl_earliest_cert_expiry - time() < 30 * 24 * 3600
+        for: 1h
+        labels:
+          severity: P4
+          priority: low
+          component: infrastructure
+        annotations:
+          summary: "TLS certificate expires within 30 days"
+          description: "Certificate for {{ $labels.instance }} expires in {{ $value | humanizeDuration }}."
+
+      - alert: HighCPUUsage
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+        for: 15m
+        labels:
+          severity: P4
+          priority: low
+          component: system
+        annotations:
+          summary: "CPU usage above 90%"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }} for 15 min."
+
+      - alert: HighOpenFileDescriptors
+        expr: process_open_fds / process_max_fds > 0.80
+        for: 10m
+        labels:
+          severity: P4
+          priority: low
+          component: api
+        annotations:
+          summary: "Open file descriptors above 80%"
+          description: "Process is using {{ $value | humanizePercentage }} of available FDs."
+
+      - alert: PrometheusStorageHigh
+        expr: prometheus_tsdb_storage_blocks_bytes / 1024 / 1024 / 1024 > 10
+        for: 1h
+        labels:
+          severity: P4
+          priority: low
+          component: monitoring
+        annotations:
+          summary: "Prometheus storage exceeds 10GB"
+          description: "TSDB storage is {{ $value }}GB. Consider adjusting retention."

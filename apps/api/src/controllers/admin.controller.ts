@@ -6,6 +6,7 @@
 import { getDashboard, getUserAnalytics, getContentAnalytics, getModerationAnalytics, getTopUsers, getSystemHealth, exportUsers } from './admin/admin-analytics.controller.js';
 import { listUsers, userAction } from './admin/admin-users.controller.js';
 import { listReports, reportAction, createAchievement, cleanupStories, getJobs, runJob } from './admin/admin-content.controller.js';
+import { deleteMessage } from './admin/admin-messages.controller.js';
 
 export const AdminController = {
   getDashboard,
@@ -19,6 +20,7 @@ export const AdminController = {
   userAction,
   listReports,
   reportAction,
+  deleteMessage,
   createAchievement,
   cleanupStories,
   getJobs,

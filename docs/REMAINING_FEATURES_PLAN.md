@@ -1,7 +1,14 @@
+> **HISTORICAL DOCUMENT** - Most features in this plan were completed by February 8, 2026 (Phases 2-9).
+> Completed: Stories, Push Notifications, Achievements, Reports & Moderation, Premium Subscriptions.
+> Deferred to future releases: Apple OAuth, Advanced Matching Algorithm, Video/Audio Calls.
+> Kept for reference only.
+
 # Bellor MVP - Remaining Features Plan
 
 **תאריך עדכון:** פברואר 2026
+**הושלם (חלקית):** 8 בפברואר 2026
 **גרסה:** 1.0.0
+**סטטוס:** ✅ רוב הפיצ'רים הושלמו
 
 ---
 

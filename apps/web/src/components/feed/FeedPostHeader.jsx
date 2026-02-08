@@ -11,7 +11,15 @@ export default function FeedPostHeader({ userData, response, isPlaying, onPlayVo
   return (
     <div className="p-3 flex items-center gap-3">
       <button
-        onClick={() => navigate(createPageUrl(`UserProfile?id=${response.user_id}`))}
+        onClick={() => {
+          const uid = response.user_id || response.userId || userData?.id;
+          console.log('[FeedPostHeader] Avatar clicked', { uid, response_user_id: response.user_id, response_userId: response.userId, userData_id: userData?.id });
+          if (!uid || uid === 'undefined') {
+            console.warn('[FeedPostHeader] No valid user ID found, response:', response.id, 'userData:', userData);
+            return;
+          }
+          navigate(createPageUrl(`UserProfile?id=${uid}`));
+        }}
         className="flex items-center gap-3 flex-1"
       >
         <div className="relative">

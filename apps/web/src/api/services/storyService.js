@@ -6,6 +6,12 @@
 import { apiClient } from '../client/apiClient';
 import { validateUserId, validateRequiredId, validateDataObject } from '../utils/validation';
 import { isDemoUser, getDemoStories } from '@/data/demoData';
+import { transformStory } from '@/utils';
+
+function transformStories(stories) {
+  if (!Array.isArray(stories)) return [];
+  return stories.map(transformStory);
+}
 
 export const storyService = {
   /**
@@ -15,7 +21,8 @@ export const storyService = {
    */
   async getFeed(params = {}) {
     const response = await apiClient.get('/stories/feed', { params });
-    return response.data;
+    const result = response.data;
+    return { ...result, stories: transformStories(result.stories || []) };
   },
 
   /**
@@ -24,7 +31,8 @@ export const storyService = {
    */
   async getMyStories() {
     const response = await apiClient.get('/stories/my');
-    return response.data;
+    const result = response.data;
+    return { ...result, stories: transformStories(result.stories || []) };
   },
 
   /**
@@ -63,7 +71,8 @@ export const storyService = {
     validateUserId(userId, 'getStoriesByUser');
 
     const response = await apiClient.get(`/stories/user/${userId}`);
-    return response.data;
+    const result = response.data;
+    return { ...result, stories: transformStories(result.stories || []) };
   },
 
   /**
@@ -75,7 +84,8 @@ export const storyService = {
     validateRequiredId(storyId, 'storyId', 'getStoryById');
 
     const response = await apiClient.get(`/stories/${storyId}`);
-    return response.data;
+    const result = response.data;
+    return { ...result, story: transformStory(result.story) };
   },
 
   /**

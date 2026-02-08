@@ -45,7 +45,8 @@ function CommentItem({ comment, currentUser }) {
   React.useEffect(() => {
     const fetchUser = async () => {
       try {
-        const user = await userService.getUserById(comment.user_id);
+        const result = await userService.getUserById(comment.user_id);
+        const user = result?.user || result;
         setUserData(user || {
           nickname: 'User',
           profile_images: [`https://i.pravatar.cc/150?u=${comment.user_id}`]

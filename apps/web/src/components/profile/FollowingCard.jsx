@@ -47,7 +47,7 @@ export default function FollowingCard({ userId, currentUserId }) {
     <Card variant="interactive">
       <CardContent className="p-4 flex items-center gap-3">
         <button
-          onClick={() => navigate(createPageUrl(`UserProfile?id=${userId}`))}
+          onClick={() => userId && userId !== 'undefined' && navigate(createPageUrl(`UserProfile?id=${userId}`))}
           className="flex items-center gap-3 flex-1"
         >
           <Avatar size="md">
