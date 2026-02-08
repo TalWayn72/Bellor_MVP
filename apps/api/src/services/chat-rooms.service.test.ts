@@ -180,6 +180,8 @@ describe('chatService - getChatById', () => {
 describe('chatService - createOrGetChat', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Mock target user lookup (validation added to createOrGetChat)
+    mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-2' });
   });
 
   it('should return existing chat if found', async () => {

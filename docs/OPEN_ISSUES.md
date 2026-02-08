@@ -90,6 +90,26 @@
 
 ---
 
+## 📋 DEFERRED: קטגוריות שנדחו לסבב הבא
+
+### Category F: Architecture Improvements (DEFERRED)
+| # | משימה | תיאור | עדיפות |
+|---|--------|-------|---------|
+| F1 | BullMQ Job Queue | Replace inline processing with BullMQ for email, push notifications, achievement checks | 🟡 בינוני |
+| F2 | Centralized Config | Move all env validation to single config module with typed exports | 🟢 נמוך |
+| F3 | Shared Packages | Extract shared types/utils from web+api to `packages/shared` | 🟢 נמוך |
+| F4 | CDN for Static Assets | Serve uploaded images/videos via CDN instead of direct API serving | 🟡 בינוני |
+
+### Category G: New Features (DEFERRED)
+| # | משימה | תיאור | עדיפות |
+|---|--------|-------|---------|
+| G1 | Feature Flags System | Runtime feature toggle system for gradual rollout | 🟡 בינוני |
+| G2 | GDPR Data Export/Deletion | User data export (JSON) and account deletion endpoints | 🔴 קריטי |
+| G3 | Discovery Algorithm | Weighted scoring for match suggestions (preferences, activity, compatibility) | 🟡 בינוני |
+| G4 | Notification Preferences | Per-category notification settings (chat, matches, likes, system) | 🟢 נמוך |
+
+---
+
 ## ✅ TASK-022 to TASK-044: Comprehensive Technical Review Implementation (8 פברואר 2026)
 
 **סטטוס:** ✅ הושלם

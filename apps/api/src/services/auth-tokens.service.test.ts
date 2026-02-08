@@ -64,12 +64,12 @@ describe('AuthService - refresh', () => {
   });
 
   it('should generate new access token on success', async () => {
-    const mockUser = { id: 'test-user-id', email: 'test@example.com', isBlocked: false };
+    const mockUser = { id: 'test-user-id', email: 'test@example.com', isBlocked: false, isAdmin: false };
     vi.mocked(redis.get).mockResolvedValue('mock-refresh-token');
     vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
     const result = await AuthService.refresh('mock-refresh-token');
     expect(result).toHaveProperty('accessToken');
-    expect(generateAccessToken).toHaveBeenCalledWith(mockUser.id, mockUser.email);
+    expect(generateAccessToken).toHaveBeenCalledWith(mockUser.id, mockUser.email, mockUser.isAdmin);
   });
 });
 

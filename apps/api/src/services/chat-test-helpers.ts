@@ -11,6 +11,9 @@ import { ChatStatus, MessageType } from '@prisma/client';
 
 // Type the mocked prisma
 export const mockPrisma = prisma as unknown as {
+  user: {
+    findUnique: ReturnType<typeof vi.fn>;
+  };
   chat: {
     findFirst: ReturnType<typeof vi.fn>;
     findMany: ReturnType<typeof vi.fn>;

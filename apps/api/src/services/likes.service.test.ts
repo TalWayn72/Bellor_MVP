@@ -10,6 +10,9 @@ import { LikeType } from '@prisma/client';
 
 // Type the mocked prisma
 const mockPrisma = prisma as unknown as {
+  user: {
+    findUnique: ReturnType<typeof vi.fn>;
+  };
   like: {
     findUnique: ReturnType<typeof vi.fn>;
     findFirst: ReturnType<typeof vi.fn>;
@@ -25,6 +28,7 @@ const mockPrisma = prisma as unknown as {
   response: {
     update: ReturnType<typeof vi.fn>;
   };
+  $transaction: ReturnType<typeof vi.fn>;
 };
 
 // Test data factories
@@ -41,6 +45,13 @@ const createMockLike = (overrides: Record<string, unknown> = {}) => ({
 describe('LikesService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Mock target user lookup (validation added to likeUser)
+    mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-2' });
+    // Mock $transaction to support both array and callback styles
+    mockPrisma.$transaction.mockImplementation(async (fn: unknown) => {
+      if (typeof fn === 'function') return (fn as (p: typeof mockPrisma) => unknown)(mockPrisma);
+      return Promise.all(fn as Promise<unknown>[]);
+    });
   });
 
   // ==================== likeUser ====================

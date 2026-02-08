@@ -147,7 +147,7 @@ describe('UsersService - updateUserProfile', () => {
     );
   });
 
-  it('should map nickname to firstName', async () => {
+  it('should store nickname in nickname field', async () => {
     const mockUser = createMockUser();
 
     vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
@@ -157,7 +157,7 @@ describe('UsersService - updateUserProfile', () => {
 
     expect(prisma.user.update).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ firstName: 'NickName' }),
+        data: expect.objectContaining({ nickname: 'NickName' }),
       })
     );
   });

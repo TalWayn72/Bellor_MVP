@@ -24,23 +24,35 @@ vi.mock('../lib/email.js', () => ({
 
 // Mock cache utility (all cache operations are no-ops in tests)
 vi.mock('../lib/cache.js', () => ({
-  CacheTTL: { USER: 600, MISSION: 1800, MISSION_TODAY: 3600, ACHIEVEMENT: 3600, SHORT: 300 },
+  CacheTTL: {
+    USER: 600,
+    MISSION: 1800,
+    MISSION_TODAY: 3600,
+    ACHIEVEMENT: 3600,
+    SHORT: 300,
+    STORIES_FEED: 120,
+    STORIES_USER: 120,
+  },
   CacheKey: {
     user: (id: string) => `cache:user:${id}`,
     mission: (id: string) => `cache:mission:${id}`,
     missionToday: () => `cache:mission:today`,
     achievement: (id: string) => `cache:achievement:${id}`,
     achievementsList: () => `cache:achievements:list`,
+    storiesFeed: (userId: string) => `cache:stories:feed:${userId}`,
+    storiesUser: (userId: string) => `cache:stories:user:${userId}`,
   },
   cacheGet: vi.fn().mockResolvedValue(null),
   cacheSet: vi.fn().mockResolvedValue(undefined),
   cacheDel: vi.fn().mockResolvedValue(undefined),
   cacheDelMany: vi.fn().mockResolvedValue(undefined),
+  cacheInvalidatePattern: vi.fn().mockResolvedValue(undefined),
+  cacheGetOrSet: vi.fn(async (_key: string, _ttl: number, fetcher: () => Promise<unknown>) => fetcher()),
 }));
 
 // Mock Prisma before any imports
-vi.mock('../lib/prisma.js', () => ({
-  prisma: {
+vi.mock('../lib/prisma.js', () => {
+  const mockPrismaObj = {
     user: {
       findUnique: vi.fn(),
       findMany: vi.fn(),
@@ -149,13 +161,17 @@ vi.mock('../lib/prisma.js', () => ({
       count: vi.fn(),
       groupBy: vi.fn(),
     },
-    $transaction: vi.fn((fn) => fn({
-      user: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
-    })),
+    $transaction: vi.fn(),
     $connect: vi.fn(),
     $disconnect: vi.fn(),
-  },
-}));
+  };
+  // $transaction supports both array and callback styles
+  mockPrismaObj.$transaction.mockImplementation(async (fn: unknown) => {
+    if (typeof fn === 'function') return (fn as (p: typeof mockPrismaObj) => unknown)(mockPrismaObj);
+    return Promise.all(fn as Promise<unknown>[]);
+  });
+  return { prisma: mockPrismaObj };
+});
 
 // Mock Redis
 vi.mock('../lib/redis.js', () => ({

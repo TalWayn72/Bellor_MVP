@@ -40,7 +40,10 @@ describe('Likes Endpoints', () => {
     });
 
     it('should like a user', async () => {
-      vi.mocked(prisma.like.findFirst).mockResolvedValue(null); // No existing like
+      // Mock target user lookup (likeUser validates user exists)
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'user-2' } as any);
+      vi.mocked(prisma.like.findUnique).mockResolvedValue(null); // No existing like
+      vi.mocked(prisma.like.findFirst).mockResolvedValue(null); // No mutual like
       vi.mocked(prisma.like.create).mockResolvedValue({
         id: 'like-1',
         userId: 'test-user-id',
@@ -48,7 +51,6 @@ describe('Likes Endpoints', () => {
         likeType: 'POSITIVE',
         createdAt: new Date(),
       } as any);
-      vi.mocked(prisma.like.findMany).mockResolvedValue([]); // No reverse like (no match)
       vi.mocked(prisma.notification.create).mockResolvedValue({} as any);
 
       const response = await app.inject({

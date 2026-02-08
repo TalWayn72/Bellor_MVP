@@ -119,7 +119,7 @@ describe('AuthService - register', () => {
 
     await AuthService.register(validInput);
 
-    expect(generateAccessToken).toHaveBeenCalledWith(mockUser.id, mockUser.email);
+    expect(generateAccessToken).toHaveBeenCalledWith(mockUser.id, mockUser.email, false);
     expect(generateRefreshToken).toHaveBeenCalledWith(mockUser.id);
     expect(redis.setex).toHaveBeenCalledWith(
       `refresh_token:${mockUser.id}`,

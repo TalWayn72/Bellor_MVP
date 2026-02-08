@@ -112,7 +112,7 @@ describe('userService', () => {
       const data = { profile_images: ['image1.jpg'] };
 
       await expect(userService.updateUser('undefined', data))
-        .rejects.toThrow('Invalid user ID: userId is required');
+        .rejects.toThrow('Invalid user ID: "undefined" is not a valid ID for updateUser');
     });
 
     it('should throw error when userId is empty string', async () => {

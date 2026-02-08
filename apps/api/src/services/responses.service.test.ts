@@ -3,8 +3,8 @@ import { ResponsesService } from './responses.service.js';
 import { prisma } from '../lib/prisma.js';
 
 // Mock Prisma
-vi.mock('../lib/prisma', () => ({
-  prisma: {
+vi.mock('../lib/prisma', () => {
+  const mockPrisma = {
     response: {
       create: vi.fn(),
       findUnique: vi.fn(),
@@ -16,8 +16,14 @@ vi.mock('../lib/prisma', () => ({
     user: {
       update: vi.fn(),
     },
-  },
-}));
+    $transaction: vi.fn(),
+  };
+  mockPrisma.$transaction.mockImplementation(async (fnOrArray: unknown) => {
+    if (typeof fnOrArray === 'function') return (fnOrArray as (p: typeof mockPrisma) => unknown)(mockPrisma);
+    return Promise.all(fnOrArray as Promise<unknown>[]);
+  });
+  return { prisma: mockPrisma };
+});
 
 describe('ResponsesService', () => {
   beforeEach(() => {

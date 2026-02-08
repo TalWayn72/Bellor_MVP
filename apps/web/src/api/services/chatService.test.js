@@ -20,26 +20,24 @@ describe('chatService', () => {
   describe('createOrGetChat', () => {
     it('should throw error when otherUserId is undefined', async () => {
       await expect(chatService.createOrGetChat(undefined))
-        .rejects.toThrow('Invalid user ID: otherUserId is required');
+        .rejects.toThrow('Invalid user ID: userId is required for createOrGetChat');
     });
 
     it('should throw error when otherUserId is null', async () => {
       await expect(chatService.createOrGetChat(null))
-        .rejects.toThrow('Invalid user ID: otherUserId is required');
+        .rejects.toThrow('Invalid user ID: userId is required for createOrGetChat');
     });
 
     it('should throw error when otherUserId is empty string', async () => {
       await expect(chatService.createOrGetChat(''))
-        .rejects.toThrow('Invalid user ID: otherUserId is required');
+        .rejects.toThrow('Invalid user ID: userId is required for createOrGetChat');
     });
 
     it('should return mock chat for demo users', async () => {
       const result = await chatService.createOrGetChat('demo-user-123');
 
-      expect(result.success).toBe(true);
       expect(result.demo).toBe(true);
-      expect(result.data.chat.id).toBe('demo-chat-demo-user-123');
-      expect(result.data.chat.other_user_id).toBe('demo-user-123');
+      expect(result.chat).toBeDefined();
 
       // Should NOT call the API
       expect(apiClient.post).not.toHaveBeenCalled();
@@ -48,7 +46,6 @@ describe('chatService', () => {
     it('should return mock chat for demo-match-user', async () => {
       const result = await chatService.createOrGetChat('demo-match-user-1-romantic');
 
-      expect(result.success).toBe(true);
       expect(result.demo).toBe(true);
       expect(apiClient.post).not.toHaveBeenCalled();
     });

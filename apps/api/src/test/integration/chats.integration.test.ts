@@ -148,7 +148,11 @@ describe('POST /api/v1/chats', () => {
   });
 
   it('should create a new chat', async () => {
-    vi.mocked(prisma.chat.findFirst).mockResolvedValue(null); // No existing chat
+    // Mock target user lookup (createOrGetChat validates user exists)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'other-user-id' } as any);
+    vi.mocked(prisma.chat.findFirst)
+      .mockResolvedValueOnce(null) // No existing chat
+      .mockResolvedValueOnce(mockChat as any); // getChatById after create
     vi.mocked(prisma.chat.create).mockResolvedValue(mockChat as any);
 
     const response = await app.inject({
@@ -165,6 +169,8 @@ describe('POST /api/v1/chats', () => {
   });
 
   it('should return existing chat if one exists', async () => {
+    // Mock target user lookup (createOrGetChat validates user exists)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'other-user-id' } as any);
     vi.mocked(prisma.chat.findFirst).mockResolvedValue(mockChat as any);
 
     const response = await app.inject({
