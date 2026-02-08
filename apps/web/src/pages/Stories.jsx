@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { storyService, userService } from '@/api';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Eye } from 'lucide-react';
+import { Plus, Eye, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import BackButton from '@/components/navigation/BackButton';
 import { createPageUrl } from '@/utils';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
@@ -11,6 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CardsSkeleton, EmptyState } from '@/components/states';
 import { getDemoStories } from '@/data/demoData';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 function StoryUserAvatar({ userId }) {
   const [user, setUser] = React.useState(null);

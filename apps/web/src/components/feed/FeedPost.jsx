@@ -26,6 +26,7 @@ export default function FeedPost({ response, currentUser, theme, onChatRequest, 
   const [isCommentInputOpen, setIsCommentInputOpen] = React.useState(false);
   const [isStarSendersOpen, setIsStarSendersOpen] = React.useState(false);
   const [starSent, setStarSent] = React.useState(false);
+  const audioRef = React.useRef(null);
 
   // Check if there are new comments (only for post owner)
   // Note: Comment service not implemented yet - returns false for now
@@ -157,9 +158,28 @@ export default function FeedPost({ response, currentUser, theme, onChatRequest, 
 
   if (!userData) return null;
 
+  // Cleanup audio on unmount
+  React.useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
   const handlePlayVoice = () => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio(response.content);
+      audioRef.current.onended = () => setIsPlaying(false);
+      audioRef.current.onerror = () => setIsPlaying(false);
+    }
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play().catch(() => setIsPlaying(false));
+    }
     setIsPlaying(!isPlaying);
-    // TODO: Implement audio playback
   };
 
   return (

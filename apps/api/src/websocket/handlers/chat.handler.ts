@@ -2,6 +2,7 @@ import { Server } from 'socket.io';
 import { AuthenticatedSocket } from '../index.js';
 import { prisma } from '../../lib/prisma.js';
 import { redis } from '../../lib/redis.js';
+import { PushNotificationsService } from '../../services/push-notifications.service.js';
 
 /**
  * Setup chat handlers for real-time messaging
@@ -168,8 +169,18 @@ export function setupChatHandlers(io: Server, socket: AuthenticatedSocket) {
       // Send push notification to offline recipient
       const isOnline = await redis.get(`online:${recipientId}`);
       if (!isOnline) {
-        // TODO: Send push notification
-        console.log(`Would send push notification to ${recipientId}`);
+        try {
+          const senderName = message.sender?.firstName || 'Someone';
+          await PushNotificationsService.sendNewMessageNotification(
+            recipientId,
+            senderName,
+            chatId,
+            content.substring(0, 100)
+          );
+        } catch (pushError) {
+          // Don't fail the message send if push notification fails
+          console.error('Failed to send push notification:', pushError);
+        }
       }
 
       callback?.({
