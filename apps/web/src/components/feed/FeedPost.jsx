@@ -85,9 +85,10 @@ export default function FeedPost({ response, currentUser, theme, onChatRequest, 
     fetchUser();
   }, [response.user_id]);
 
-  if (!userData) return null;
-
+  // Cleanup audio on unmount - must be before early return to respect Rules of Hooks
   React.useEffect(() => { return () => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }; }, []);
+
+  if (!userData) return null;
 
   const handlePlayVoice = () => {
     if (!audioRef.current) { audioRef.current = new Audio(response.content); audioRef.current.onended = () => setIsPlaying(false); audioRef.current.onerror = () => setIsPlaying(false); }

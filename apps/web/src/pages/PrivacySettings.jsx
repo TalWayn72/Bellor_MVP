@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { userService } from '@/api';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
@@ -9,7 +9,7 @@ import PrivacyToggles from '@/components/settings/PrivacyToggles';
 import GDPRSection from '@/components/settings/GDPRSection';
 
 export default function PrivacySettings() {
-  const { currentUser } = useCurrentUser();
+  const { currentUser, updateUser } = useCurrentUser();
   const [settings, setSettings] = useState({
     showOnline: true, showDistance: true, showAge: true,
     privateProfile: false, doNotSell: false,
@@ -18,6 +18,20 @@ export default function PrivacySettings() {
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Load saved settings from user profile
+  useEffect(() => {
+    if (currentUser) {
+      setSettings({
+        showOnline: currentUser.showOnline ?? true,
+        showDistance: currentUser.showDistance ?? true,
+        showAge: currentUser.showAge ?? true,
+        privateProfile: currentUser.privateProfile ?? false,
+        doNotSell: currentUser.doNotSell ?? false,
+      });
+    }
+  }, [currentUser]);
 
   const handleExportData = async () => {
     if (!currentUser) return;
@@ -53,7 +67,22 @@ export default function PrivacySettings() {
     } finally { setIsDeleting(false); setShowDeleteDialog(false); }
   };
 
-  const toggleSetting = (key) => setSettings({ ...settings, [key]: !settings[key] });
+  const toggleSetting = async (key) => {
+    const newSettings = { ...settings, [key]: !settings[key] };
+    setSettings(newSettings);
+
+    // Auto-save on toggle
+    if (!currentUser) return;
+    setIsSaving(true);
+    try {
+      await userService.updateUser(currentUser.id, { [key]: newSettings[key] });
+      updateUser({ [key]: newSettings[key] });
+    } catch (error) {
+      console.error('Error saving privacy setting:', error);
+      // Revert on failure
+      setSettings(settings);
+    } finally { setIsSaving(false); }
+  };
 
   return (
     <div className="min-h-screen bg-background" dir="ltr">
@@ -61,7 +90,9 @@ export default function PrivacySettings() {
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center">
           <BackButton variant="header" position="relative" fallback="/Settings" />
           <h1 className="flex-1 text-center text-lg font-semibold">Privacy & Security</h1>
-          <div className="w-9" />
+          <div className="w-9">
+            {isSaving && <span className="text-xs text-muted-foreground">Saving...</span>}
+          </div>
         </div>
       </header>
 

@@ -45,8 +45,75 @@
 | **TASK-006: Feature - Story Viewer Modal (Feb 8)** | 1 | 🟡 בינוני | ✅ הושלם |
 | **TASK-007: Production Deployment Prep (Feb 8)** | 5 | 🟢 שיפור | ✅ הושלם |
 | **TASK-008: Performance Baseline Documentation (Feb 8)** | 1 | 🟢 שיפור | ✅ הושלם |
+| **TASK-009: Architecture Diagrams Documentation (Feb 8)** | 8 | 🟢 שיפור | ✅ הושלם |
+| **TASK-010: Frontend Page Unit Tests (Feb 8)** | 98 | 🟢 שיפור | ✅ הושלם |
+| **TASK-011: Test File Refactoring - Split Large Files (Feb 8)** | 5 | 🟢 שיפור | ✅ הושלם |
 
-**סה"כ:** 296+ פריטים זוהו → 296+ טופלו ✅
+**סה"כ:** 407+ פריטים זוהו → 407+ טופלו ✅
+
+---
+
+## ✅ TASK-011: Test File Refactoring - Split Large Files (8 פברואר 2026)
+
+**סטטוס:** ✅ הושלם
+**חומרה:** 🟢 שיפור
+**תאריך:** 8 פברואר 2026
+
+**תיאור:** Split 5 large test files (607-1,262 lines each) into smaller modules under 300 lines each, following the project's 150-line max rule (with test file exception).
+
+**קבצים שפוצלו:**
+| Original File | Lines | Split Into | New File Count |
+|---|---|---|---|
+| `services/users.service.test.ts` | 1,262 | users-list, users-getby, users-profile, users-language, users-search, users-data, users-delete + helpers | 8 |
+| `services/auth.service.test.ts` | 826 | auth-register, auth-login, auth-tokens, auth-password + helpers | 5 |
+| `integration/websocket.integration.test.ts` | 815 | websocket-connection, websocket-presence, websocket-chat, websocket-chat-actions, websocket-edge-cases + helpers | 6 |
+| `services/chat.service.test.ts` | 635 | chat-rooms, chat-messages, chat-actions + helpers | 4 |
+| `integration/auth.integration.test.ts` | 607 | auth-register, auth-login, auth-password + helpers | 4 |
+
+**תוצאות:**
+- 5 original files deleted, 27 new files created (22 test files + 5 helper files)
+- All files under 300 lines (max: 255 lines)
+- All 222 tests preserved (0 tests lost)
+- Pre-existing failures preserved (no regressions)
+
+---
+
+## ✅ TASK-010: Frontend Page Unit Tests (8 פברואר 2026)
+
+**סטטוס:** ✅ הושלם
+**חומרה:** 🟢 שיפור
+**תאריך:** 8 פברואר 2026
+
+**תיאור:** נוצרו 18 קבצי בדיקות יחידה חדשים עבור דפי frontend שלא היו מכוסים בבדיקות. סך הכל 98 בדיקות חדשות.
+
+**קבצים שנוצרו:**
+| קובץ בדיקה | דף | בדיקות |
+|------------|-----|--------|
+| `apps/web/src/pages/VideoDate.test.jsx` | VideoDate | 4 |
+| `apps/web/src/pages/CompatibilityQuiz.test.jsx` | CompatibilityQuiz | 6 |
+| `apps/web/src/pages/Discover.test.jsx` | Discover | 4 |
+| `apps/web/src/pages/Achievements.test.jsx` | Achievements | 6 |
+| `apps/web/src/pages/Premium.test.jsx` | Premium | 6 |
+| `apps/web/src/pages/ReferralProgram.test.jsx` | ReferralProgram | 5 |
+| `apps/web/src/pages/ProfileBoost.test.jsx` | ProfileBoost | 5 |
+| `apps/web/src/pages/Analytics.test.jsx` | Analytics | 5 |
+| `apps/web/src/pages/DateIdeas.test.jsx` | DateIdeas | 5 |
+| `apps/web/src/pages/IceBreakers.test.jsx` | IceBreakers | 5 |
+| `apps/web/src/pages/VirtualEvents.test.jsx` | VirtualEvents | 4 |
+| `apps/web/src/pages/SafetyCenter.test.jsx` | SafetyCenter | 7 |
+| `apps/web/src/pages/Feedback.test.jsx` | Feedback | 6 |
+| `apps/web/src/pages/FAQ.test.jsx` | FAQ | 7 |
+| `apps/web/src/pages/UserVerification.test.jsx` | UserVerification | 6 |
+| `apps/web/src/pages/AudioTask.test.jsx` | AudioTask | 5 |
+| `apps/web/src/pages/VideoTask.test.jsx` | VideoTask | 6 |
+| `apps/web/src/pages/CreateStory.test.jsx` | CreateStory | 6 |
+
+**כיסוי בדיקות:**
+- Render tests (renders without crashing)
+- Key UI elements (headings, buttons, sections)
+- Loading states
+- Async data loading (findByText for queries)
+- Mock patterns: @/api, useCurrentUser, BackButton, ThemeProvider, child components
 
 ---
 
@@ -1976,4 +2043,5 @@ cd apps/api && npm run build
 | 6 פברואר 2026 | **ISSUE-014: Database Empty + Date Issues** | ✅ seed data + field aliases |
 | 6 פברואר 2026 | הוספת Admin User לסיד | ✅ admin@bellor.app |
 | 6 פברואר 2026 | תיקון Invalid Date ב-Creation | ✅ apiClient field aliases |
+| 8 פברואר 2026 | **TASK-009: Architecture Diagrams (Mermaid)** | ✅ 8 diagrams in docs/ARCHITECTURE.md |
 

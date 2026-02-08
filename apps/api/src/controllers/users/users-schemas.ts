@@ -71,6 +71,18 @@ export const updateProfileSchema = z.object({
   occupation: z.string().optional().nullable(),
   education: z.string().optional().nullable(),
   interests: z.array(z.string()).optional(),
+  // Privacy settings
+  showOnline: z.boolean().optional(),
+  showDistance: z.boolean().optional(),
+  showAge: z.boolean().optional(),
+  privateProfile: z.boolean().optional(),
+  doNotSell: z.boolean().optional(),
+  // Notification preferences
+  notifyNewMatches: z.boolean().optional(),
+  notifyNewMessages: z.boolean().optional(),
+  notifyChatRequests: z.boolean().optional(),
+  notifyDailyMissions: z.boolean().optional(),
+  notifyEmail: z.boolean().optional(),
   last_active_date: z.string().optional(),
   main_profile_image_url: z.string().optional().nullable(),
   verification_photos: z.array(z.string()).optional(),

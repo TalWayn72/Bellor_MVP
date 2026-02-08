@@ -9,9 +9,37 @@ import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import EditProfileImages from '@/components/profile/EditProfileImages';
 import EditProfileForm from '@/components/profile/EditProfileForm';
 
+function getLocationString(location) {
+  if (!location) return '';
+  if (typeof location === 'string') return location;
+  if (typeof location === 'object') return location.city || '';
+  return '';
+}
+
+function getAge(birthDate) {
+  if (!birthDate) return '';
+  const birth = new Date(birthDate);
+  if (isNaN(birth.getTime())) return '';
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
+}
+
+function getLookingFor(lookingFor) {
+  if (!lookingFor) return '';
+  if (Array.isArray(lookingFor)) {
+    if (lookingFor.length === 0) return '';
+    if (lookingFor.length >= 2) return 'both';
+    return lookingFor[0]?.toLowerCase() || '';
+  }
+  return lookingFor;
+}
+
 export default function EditProfile() {
   const navigate = useNavigate();
-  const { currentUser, isLoading: userLoading } = useCurrentUser();
+  const { currentUser, isLoading: userLoading, updateUser } = useCurrentUser();
   const [formData, setFormData] = useState({
     nickname: '', bio: '', age: '', gender: '', looking_for: '',
     location: '', phone: '', occupation: '', education: '',
@@ -23,12 +51,17 @@ export default function EditProfile() {
   useEffect(() => {
     if (currentUser) {
       setFormData({
-        nickname: currentUser.nickname || '', bio: currentUser.bio || '',
-        age: currentUser.age || '', gender: currentUser.gender || '',
-        looking_for: currentUser.looking_for || '', location: currentUser.location || '',
-        phone: currentUser.phone || '', occupation: currentUser.occupation || '',
-        education: currentUser.education || '', interests: currentUser.interests || [],
-        profile_images: currentUser.profile_images || [],
+        nickname: currentUser.nickname || currentUser.firstName || '',
+        bio: currentUser.bio || '',
+        age: getAge(currentUser.birthDate),
+        gender: (currentUser.gender || '').toLowerCase(),
+        looking_for: getLookingFor(currentUser.lookingFor || currentUser.looking_for),
+        location: getLocationString(currentUser.location),
+        phone: currentUser.phone || '',
+        occupation: currentUser.occupation || '',
+        education: currentUser.education || '',
+        interests: currentUser.interests || [],
+        profile_images: currentUser.profileImages || currentUser.profile_images || [],
       });
     }
   }, [currentUser]);
@@ -37,13 +70,24 @@ export default function EditProfile() {
     if (!currentUser) return;
     setIsSaving(true);
     try {
+      const ageNum = parseInt(formData.age, 10);
       const updateData = {
-        nickname: formData.nickname, bio: formData.bio, gender: formData.gender,
-        lookingFor: formData.looking_for ? (Array.isArray(formData.looking_for) ? formData.looking_for : [formData.looking_for]) : [],
-        location: formData.location, profileImages: formData.profile_images || [],
-        lastActiveAt: new Date().toISOString(),
+        nickname: formData.nickname,
+        bio: formData.bio,
+        gender: formData.gender,
+        lookingFor: formData.looking_for
+          ? (formData.looking_for === 'both' ? ['MALE', 'FEMALE'] : [formData.looking_for.toUpperCase()])
+          : [],
+        location: formData.location,
+        profileImages: formData.profile_images || [],
+        phone: formData.phone || null,
+        occupation: formData.occupation || null,
+        education: formData.education || null,
+        interests: formData.interests || [],
+        ...(ageNum >= 18 && ageNum <= 120 ? { age: ageNum } : {}),
       };
-      await userService.updateUser(currentUser.id, updateData);
+      const result = await userService.updateUser(currentUser.id, updateData);
+      updateUser(result.data || updateData);
       navigate(createPageUrl('Profile'));
     } catch (error) {
       console.error('Error updating profile:', error);

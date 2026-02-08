@@ -22,22 +22,35 @@ export interface UpdateUserProfileInput {
   gender?: string;
   profileImages?: string[];
   profile_images?: string[]; // snake_case alias
-  drawingUrl?: string;
-  drawing_url?: string; // snake_case alias
+  drawingUrl?: string | null;
+  drawing_url?: string | null; // snake_case alias
   sketchMethod?: string;
   sketch_method?: string; // snake_case alias
-  location?: string | { lat?: number; lng?: number; city?: string; country?: string };
+  location?: string | { lat?: number; lng?: number; city?: string; country?: string } | null;
   lookingFor?: string[];
   looking_for?: string; // snake_case alias
   ageRangeMin?: number;
   ageRangeMax?: number;
   maxDistance?: number;
-  // Fields that don't exist in DB - will be ignored
+  // Extra profile fields
   age?: number;
-  phone?: string;
-  occupation?: string;
-  education?: string;
+  phone?: string | null;
+  occupation?: string | null;
+  education?: string | null;
   interests?: string[];
+  // Privacy settings
+  showOnline?: boolean;
+  showDistance?: boolean;
+  showAge?: boolean;
+  privateProfile?: boolean;
+  doNotSell?: boolean;
+  // Notification preferences
+  notifyNewMatches?: boolean;
+  notifyNewMessages?: boolean;
+  notifyChatRequests?: boolean;
+  notifyDailyMissions?: boolean;
+  notifyEmail?: boolean;
+  // Legacy fields from frontend
   last_active_date?: string;
   main_profile_image_url?: string;
   verification_photos?: string[];

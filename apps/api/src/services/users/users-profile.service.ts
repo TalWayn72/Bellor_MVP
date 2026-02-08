@@ -91,6 +91,26 @@ function buildUpdateData(input: UpdateUserProfileInput): Prisma.UserUpdateInput 
   if (input.ageRangeMax) updateData.ageRangeMax = input.ageRangeMax;
   if (input.maxDistance) updateData.maxDistance = input.maxDistance;
 
+  // Extra profile fields
+  if (input.phone !== undefined) updateData.phone = input.phone;
+  if (input.occupation !== undefined) updateData.occupation = input.occupation;
+  if (input.education !== undefined) updateData.education = input.education;
+  if (input.interests !== undefined) updateData.interests = input.interests;
+
+  // Privacy settings
+  if (input.showOnline !== undefined) updateData.showOnline = input.showOnline;
+  if (input.showDistance !== undefined) updateData.showDistance = input.showDistance;
+  if (input.showAge !== undefined) updateData.showAge = input.showAge;
+  if (input.privateProfile !== undefined) updateData.privateProfile = input.privateProfile;
+  if (input.doNotSell !== undefined) updateData.doNotSell = input.doNotSell;
+
+  // Notification preferences
+  if (input.notifyNewMatches !== undefined) updateData.notifyNewMatches = input.notifyNewMatches;
+  if (input.notifyNewMessages !== undefined) updateData.notifyNewMessages = input.notifyNewMessages;
+  if (input.notifyChatRequests !== undefined) updateData.notifyChatRequests = input.notifyChatRequests;
+  if (input.notifyDailyMissions !== undefined) updateData.notifyDailyMissions = input.notifyDailyMissions;
+  if (input.notifyEmail !== undefined) updateData.notifyEmail = input.notifyEmail;
+
   updateData.lastActiveAt = new Date();
   return updateData;
 }
@@ -100,6 +120,10 @@ const USER_PROFILE_SELECT = {
   birthDate: true, gender: true, preferredLanguage: true, bio: true,
   profileImages: true, drawingUrl: true, sketchMethod: true, location: true,
   lookingFor: true, ageRangeMin: true, ageRangeMax: true, maxDistance: true,
+  phone: true, occupation: true, education: true, interests: true,
+  showOnline: true, showDistance: true, showAge: true, privateProfile: true, doNotSell: true,
+  notifyNewMatches: true, notifyNewMessages: true, notifyChatRequests: true,
+  notifyDailyMissions: true, notifyEmail: true,
   isBlocked: true, isPremium: true, isVerified: true, createdAt: true, lastActiveAt: true,
 } as const;
 

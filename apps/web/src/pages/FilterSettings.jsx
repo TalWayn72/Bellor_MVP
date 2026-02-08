@@ -10,7 +10,7 @@ import FilterSliders from '@/components/settings/FilterSliders';
 
 export default function FilterSettings() {
   const navigate = useNavigate();
-  const { currentUser, isLoading } = useCurrentUser();
+  const { currentUser, isLoading, updateUser } = useCurrentUser();
   const [ageRange, setAgeRange] = useState([18, 35]);
   const [maxDistance, setMaxDistance] = useState(50);
   const [preferredGender, setPreferredGender] = useState('all');
@@ -46,6 +46,7 @@ export default function FilterSettings() {
           : [preferredGender.toUpperCase()]
       };
       await userService.updateUser(currentUser.id, updateData);
+      updateUser(updateData);
       alert('Preferences saved successfully!');
       navigate(createPageUrl('SharedSpace'));
     } catch (error) {

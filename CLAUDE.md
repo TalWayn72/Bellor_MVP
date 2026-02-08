@@ -27,6 +27,8 @@ The **only active project** is **Bellor_MVP** at `C:\Users\talwa\.claude\project
 - **השלם בדיקות אוטומטיות לפני פריסה** - תמיד לוודא שכל הבדיקות עוברות לפני deployment
 - **תקן תקלות אוטומטית** - במקרה של כשל, לזהות ולתקן את הבעיה באופן עצמאי
 - **השתמש ב-VS Code Extensions** - להשתמש בתוספים המותקנים כדי לייעל את העבודה (Vitest, Playwright, Docker, PostgreSQL Client וכו')
+- **ריבוי משימות במקביל** - כשיש מספר משימות שאינן תלויות זו בזו, יש לבצען באמצעות Agents אוטומטיים במקביל (Task tool) כדי לחסוך זמן
+- **בדיקת אבטחה לקוד חדש** - כל קוד חדש שנכנס (כולל מ-Agents) חייב לעמוד בתקני האבטחה: ללא XSS, SQL injection, command injection, secrets בקוד, input לא מסונן, או חשיפת מידע רגיש. יש לסרוק קוד חדש מול `docs/SECURITY_CHECKLIST.md` לפני commit
 
 ## 📏 Code Quality Rules
 
@@ -378,7 +380,8 @@ npm run cap:build       # Build web + sync
 ## Important Files
 - `docs/MIGRATION_PLAN.md` - Complete migration strategy
 - `docs/PHASE_1_FOUNDATION_COMPLETE.md` - Phase 1 summary
-- `docs/OPEN_ISSUES.md` - Bug tracking and testing status (296+ items)
+- `docs/OPEN_ISSUES.md` - Bug tracking and testing status (304+ items)
+- `docs/ARCHITECTURE.md` - System architecture diagrams (Mermaid)
 - `docs/PERFORMANCE_BASELINE.md` - k6 load test results (p95: 23ms smoke, 230ms stress)
 - `docs/SECURITY_PLAN.md` - Comprehensive security hardening plan
 - `docs/SECURITY_CHECKLIST.md` - Pre-release security audit checklist
@@ -497,7 +500,8 @@ All Base44 dependencies have been removed (Phase 4 complete).
 - **Files:** `apps/api/src/security/`, `apps/api/src/config/security.config.ts`, `apps/web/src/security/`, `apps/web/src/hooks/useSecure*.ts`, `apps/web/src/components/secure/`
 
 ## Important Documentation
-- `docs/OPEN_ISSUES.md` - Bug tracking and testing status
+- `docs/OPEN_ISSUES.md` - Bug tracking and testing status (304+ items)
+- `docs/ARCHITECTURE.md` - System architecture diagrams (Mermaid)
 - `docs/SECURITY_PLAN.md` - Security hardening plan
 - `docs/SECURITY_CHECKLIST.md` - Pre-release security audit
 - `docs/INCIDENT_RESPONSE.md` - Incident response procedures

@@ -74,7 +74,11 @@ export async function handleGetMe(request: FastifyRequest, reply: FastifyReply) 
         id: true, email: true, firstName: true, lastName: true, nickname: true, birthDate: true,
         gender: true, preferredLanguage: true, bio: true, profileImages: true, drawingUrl: true,
         sketchMethod: true, location: true, lookingFor: true, ageRangeMin: true, ageRangeMax: true,
-        maxDistance: true, isBlocked: true, isVerified: true, isPremium: true, isAdmin: true,
+        maxDistance: true, phone: true, occupation: true, education: true, interests: true,
+        showOnline: true, showDistance: true, showAge: true, privateProfile: true, doNotSell: true,
+        notifyNewMatches: true, notifyNewMessages: true, notifyChatRequests: true,
+        notifyDailyMissions: true, notifyEmail: true,
+        isBlocked: true, isVerified: true, isPremium: true, isAdmin: true,
         createdAt: true, lastActiveAt: true,
       },
     });
