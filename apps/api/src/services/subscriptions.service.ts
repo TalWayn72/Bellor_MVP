@@ -90,7 +90,7 @@ export const SubscriptionsService = {
     const stripeClient = ensureStripeConfigured();
     const stripeSub = await stripeClient.subscriptions.update(
       subscription.stripeSubscriptionId, { cancel_at_period_end: cancelAtPeriodEnd }
-    ) as any;
+    );
 
     await prisma.subscription.update({
       where: { id: subscription.id },
@@ -100,7 +100,10 @@ export const SubscriptionsService = {
         status: cancelAtPeriodEnd ? subscription.status : 'CANCELED',
       },
     });
-    return { success: true, cancelAtPeriodEnd, currentPeriodEnd: new Date(stripeSub.current_period_end * 1000) };
+    const periodEnd = typeof stripeSub.current_period_end === 'number'
+      ? new Date(stripeSub.current_period_end * 1000)
+      : new Date();
+    return { success: true, cancelAtPeriodEnd, currentPeriodEnd: periodEnd };
   },
 
   async reactivateSubscription(userId: string) {

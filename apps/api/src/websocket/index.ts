@@ -97,7 +97,7 @@ export async function sendToUser(
   io: Server,
   userId: string,
   event: string,
-  data: any
+  data: Record<string, unknown>
 ): Promise<boolean> {
   try {
     const socketId = await redis.get(`socket:${userId}`);

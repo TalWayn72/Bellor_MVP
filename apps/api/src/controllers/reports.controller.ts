@@ -38,7 +38,7 @@ export const ReportsController = {
     reply: FastifyReply
   ) {
     try {
-      const userId = (request as any).user?.id;
+      const userId = request.user?.id;
       if (!userId) {
         return reply.status(401).send({ error: 'Unauthorized' });
       }
@@ -63,8 +63,9 @@ export const ReportsController = {
         message: 'Report submitted successfully',
         report,
       });
-    } catch (error: any) {
-      return reply.status(400).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(400).send({ error: message });
     }
   },
 
@@ -77,15 +78,16 @@ export const ReportsController = {
     reply: FastifyReply
   ) {
     try {
-      const user = (request as any).user;
+      const user = request.user as unknown as { id: string; isAdmin?: boolean } | undefined;
       if (!user?.isAdmin) {
         return reply.status(403).send({ error: 'Admin access required' });
       }
 
       const report = await ReportsService.getReportById(request.params.id);
       return reply.send({ report });
-    } catch (error: any) {
-      return reply.status(404).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(404).send({ error: message });
     }
   },
 
@@ -98,7 +100,7 @@ export const ReportsController = {
     reply: FastifyReply
   ) {
     try {
-      const user = (request as any).user;
+      const user = request.user as unknown as { isAdmin?: boolean } | undefined;
       if (!user?.isAdmin) {
         return reply.status(403).send({ error: 'Admin access required' });
       }
@@ -113,8 +115,9 @@ export const ReportsController = {
       });
 
       return reply.send(result);
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -127,15 +130,16 @@ export const ReportsController = {
     reply: FastifyReply
   ) {
     try {
-      const user = (request as any).user;
+      const user = request.user as unknown as { isAdmin?: boolean } | undefined;
       if (!user?.isAdmin) {
         return reply.status(403).send({ error: 'Admin access required' });
       }
 
       const count = await ReportsService.getPendingCount();
       return reply.send({ count });
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -148,7 +152,7 @@ export const ReportsController = {
     reply: FastifyReply
   ) {
     try {
-      const user = (request as any).user;
+      const user = request.user as unknown as { id: string; isAdmin?: boolean } | undefined;
       if (!user?.isAdmin) {
         return reply.status(403).send({ error: 'Admin access required' });
       }
@@ -166,8 +170,9 @@ export const ReportsController = {
         message: 'Report reviewed successfully',
         report,
       });
-    } catch (error: any) {
-      return reply.status(400).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(400).send({ error: message });
     }
   },
 
@@ -180,15 +185,16 @@ export const ReportsController = {
     reply: FastifyReply
   ) {
     try {
-      const user = (request as any).user;
+      const user = request.user as unknown as { isAdmin?: boolean } | undefined;
       if (!user?.isAdmin) {
         return reply.status(403).send({ error: 'Admin access required' });
       }
 
       const reports = await ReportsService.getReportsForUser(request.params.userId);
       return reply.send({ reports });
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -201,15 +207,16 @@ export const ReportsController = {
     reply: FastifyReply
   ) {
     try {
-      const user = (request as any).user;
+      const user = request.user as unknown as { isAdmin?: boolean } | undefined;
       if (!user?.isAdmin) {
         return reply.status(403).send({ error: 'Admin access required' });
       }
 
       const statistics = await ReportsService.getStatistics();
       return reply.send({ statistics });
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 };

@@ -33,7 +33,7 @@ export async function loggingMiddleware(app: FastifyInstance) {
         'content-type': request.headers['content-type'],
         'authorization': request.headers.authorization ? '[PRESENT]' : '[MISSING]',
       },
-      userId: (request as any).user?.userId || 'anonymous',
+      userId: request.user?.userId || 'anonymous',
     });
   });
 
@@ -64,7 +64,7 @@ export async function loggingMiddleware(app: FastifyInstance) {
         params: request.params as Record<string, string>,
         query: request.query as Record<string, string>,
         body: sanitizeForLog(request.body),
-        userId: (request as any).user?.userId,
+        userId: request.user?.userId,
       },
       response: {
         statusCode: reply.statusCode,
@@ -89,7 +89,7 @@ export async function loggingMiddleware(app: FastifyInstance) {
         params: request.params as Record<string, string>,
         query: request.query as Record<string, string>,
         body: sanitizeForLog(request.body),
-        userId: (request as any).user?.userId,
+        userId: request.user?.userId,
       },
       response: {
         statusCode: reply.statusCode || 500,

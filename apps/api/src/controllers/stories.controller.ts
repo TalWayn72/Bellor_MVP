@@ -29,7 +29,7 @@ export const StoriesController = {
     reply: FastifyReply
   ) {
     try {
-      const userId = (request as any).user?.id;
+      const userId = request.user?.id;
       if (!userId) {
         return reply.status(401).send({ error: 'Unauthorized' });
       }
@@ -48,8 +48,9 @@ export const StoriesController = {
         message: 'Story created successfully',
         data: story,
       });
-    } catch (error: any) {
-      return reply.status(400).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(400).send({ error: message });
     }
   },
 
@@ -64,8 +65,9 @@ export const StoriesController = {
     try {
       const story = await StoriesService.getStoryById(request.params.id);
       return reply.send({ data: story });
-    } catch (error: any) {
-      return reply.status(404).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(404).send({ error: message });
     }
   },
 
@@ -78,7 +80,7 @@ export const StoriesController = {
     reply: FastifyReply
   ) {
     try {
-      const userId = (request as any).user?.id;
+      const userId = request.user?.id;
       if (!userId) {
         return reply.status(401).send({ error: 'Unauthorized' });
       }
@@ -91,8 +93,9 @@ export const StoriesController = {
       });
 
       return reply.send({ data: feed });
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -105,15 +108,16 @@ export const StoriesController = {
     reply: FastifyReply
   ) {
     try {
-      const userId = (request as any).user?.id;
+      const userId = request.user?.id;
       if (!userId) {
         return reply.status(401).send({ error: 'Unauthorized' });
       }
 
       const stories = await StoriesService.getStoriesByUser(userId);
       return reply.send({ data: stories });
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -128,8 +132,9 @@ export const StoriesController = {
     try {
       const stories = await StoriesService.getStoriesByUser(request.params.userId);
       return reply.send({ data: stories });
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -142,15 +147,16 @@ export const StoriesController = {
     reply: FastifyReply
   ) {
     try {
-      const userId = (request as any).user?.id;
+      const userId = request.user?.id;
       if (!userId) {
         return reply.status(401).send({ error: 'Unauthorized' });
       }
 
       const story = await StoriesService.viewStory(request.params.id, userId);
       return reply.send({ data: story });
-    } catch (error: any) {
-      return reply.status(400).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(400).send({ error: message });
     }
   },
 
@@ -163,15 +169,16 @@ export const StoriesController = {
     reply: FastifyReply
   ) {
     try {
-      const userId = (request as any).user?.id;
+      const userId = request.user?.id;
       if (!userId) {
         return reply.status(401).send({ error: 'Unauthorized' });
       }
 
       await StoriesService.deleteStory(request.params.id, userId);
       return reply.send({ message: 'Story deleted successfully' });
-    } catch (error: any) {
-      return reply.status(400).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(400).send({ error: message });
     }
   },
 
@@ -184,15 +191,16 @@ export const StoriesController = {
     reply: FastifyReply
   ) {
     try {
-      const userId = (request as any).user?.id;
+      const userId = request.user?.id;
       if (!userId) {
         return reply.status(401).send({ error: 'Unauthorized' });
       }
 
       const stats = await StoriesService.getUserStoryStats(userId);
       return reply.send({ data: stats });
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -205,7 +213,7 @@ export const StoriesController = {
     reply: FastifyReply
   ) {
     try {
-      const user = (request as any).user;
+      const user = request.user as unknown as { isAdmin?: boolean } | undefined;
       if (!user?.isAdmin) {
         return reply.status(403).send({ error: 'Admin access required' });
       }
@@ -215,8 +223,9 @@ export const StoriesController = {
         message: `Cleaned up ${result.deletedCount} expired stories`,
         ...result,
       });
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 };

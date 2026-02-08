@@ -28,8 +28,9 @@ export const AchievementsController = {
         offset: offset ? Number(offset) : undefined,
       });
       return reply.send(result);
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -41,7 +42,7 @@ export const AchievementsController = {
     request: FastifyRequest<{ Querystring: ListAchievementsQuery }>,
     reply: FastifyReply
   ) {
-    const userId = (request.user as any).id;
+    const userId = request.user!.id;
     const { limit, offset } = request.query;
 
     try {
@@ -50,8 +51,9 @@ export const AchievementsController = {
         offset: offset ? Number(offset) : undefined,
       });
       return reply.send(result);
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -72,8 +74,9 @@ export const AchievementsController = {
         offset: offset ? Number(offset) : undefined,
       });
       return reply.send(result);
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -90,8 +93,9 @@ export const AchievementsController = {
     try {
       const achievement = await AchievementsService.getAchievementById(id);
       return reply.send({ achievement });
-    } catch (error: any) {
-      return reply.status(404).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(404).send({ error: message });
     }
   },
 
@@ -103,13 +107,14 @@ export const AchievementsController = {
     request: FastifyRequest,
     reply: FastifyReply
   ) {
-    const userId = (request.user as any).id;
+    const userId = request.user!.id;
 
     try {
       const unlocked = await AchievementsService.checkAndUnlockAchievements(userId);
       return reply.send({ unlockedAchievements: unlocked });
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -126,8 +131,9 @@ export const AchievementsController = {
     try {
       const stats = await AchievementsService.getAchievementStats(id);
       return reply.send(stats);
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 };

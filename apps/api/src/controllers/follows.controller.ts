@@ -25,7 +25,7 @@ export const FollowsController = {
     request: FastifyRequest<{ Body: FollowBody }>,
     reply: FastifyReply
   ) {
-    const followerId = (request.user as any).id;
+    const followerId = request.user!.id;
     const { userId: followingId } = request.body;
 
     if (!followingId) {
@@ -40,8 +40,9 @@ export const FollowsController = {
     try {
       const follow = await FollowsService.followUser(followerId, followingId);
       return reply.send({ follow });
-    } catch (error: any) {
-      return reply.status(400).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(400).send({ error: message });
     }
   },
 
@@ -53,7 +54,7 @@ export const FollowsController = {
     request: FastifyRequest<{ Params: { userId: string } }>,
     reply: FastifyReply
   ) {
-    const followerId = (request.user as any).id;
+    const followerId = request.user!.id;
     const { userId: followingId } = request.params;
 
     // Reject operations on demo users
@@ -64,8 +65,9 @@ export const FollowsController = {
     try {
       const result = await FollowsService.unfollowUser(followerId, followingId);
       return reply.send(result);
-    } catch (error: any) {
-      return reply.status(404).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(404).send({ error: message });
     }
   },
 
@@ -77,7 +79,7 @@ export const FollowsController = {
     request: FastifyRequest<{ Querystring: ListFollowsQuery }>,
     reply: FastifyReply
   ) {
-    const userId = (request.user as any).id;
+    const userId = request.user!.id;
     const { limit, offset } = request.query;
 
     try {
@@ -86,8 +88,9 @@ export const FollowsController = {
         offset: offset ? Number(offset) : undefined,
       });
       return reply.send(result);
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -99,7 +102,7 @@ export const FollowsController = {
     request: FastifyRequest<{ Querystring: ListFollowsQuery }>,
     reply: FastifyReply
   ) {
-    const userId = (request.user as any).id;
+    const userId = request.user!.id;
     const { limit, offset } = request.query;
 
     try {
@@ -108,8 +111,9 @@ export const FollowsController = {
         offset: offset ? Number(offset) : undefined,
       });
       return reply.send(result);
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -130,8 +134,9 @@ export const FollowsController = {
         offset: offset ? Number(offset) : undefined,
       });
       return reply.send(result);
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -152,8 +157,9 @@ export const FollowsController = {
         offset: offset ? Number(offset) : undefined,
       });
       return reply.send(result);
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -165,15 +171,16 @@ export const FollowsController = {
     request: FastifyRequest<{ Params: { userId: string } }>,
     reply: FastifyReply
   ) {
-    const followerId = (request.user as any).id;
+    const followerId = request.user!.id;
     const { userId: followingId } = request.params;
 
     try {
       const isFollowing = await FollowsService.isFollowing(followerId, followingId);
       const isMutual = await FollowsService.areMutualFollowers(followerId, followingId);
       return reply.send({ isFollowing, isMutual });
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -185,13 +192,14 @@ export const FollowsController = {
     request: FastifyRequest,
     reply: FastifyReply
   ) {
-    const userId = (request.user as any).id;
+    const userId = request.user!.id;
 
     try {
       const stats = await FollowsService.getFollowStats(userId);
       return reply.send(stats);
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 };

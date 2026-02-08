@@ -161,7 +161,7 @@ export function setupPresenceHandlers(_io: Server, socket: AuthenticatedSocket) 
   /**
    * Update user activity status (typing, viewing, etc.)
    */
-  socket.on('presence:activity', async (data: { activity: string; metadata?: any }) => {
+  socket.on('presence:activity', async (data: { activity: string; metadata?: Record<string, unknown> }) => {
     if (!socket.userId) return;
 
     try {

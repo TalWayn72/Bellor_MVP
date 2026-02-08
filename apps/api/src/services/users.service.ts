@@ -36,7 +36,7 @@ export class UsersService {
     const where: Prisma.UserWhereInput = {};
     if (isBlocked !== undefined) where.isBlocked = isBlocked;
     if (isPremium !== undefined) where.isPremium = isPremium;
-    if (language) where.preferredLanguage = language as any;
+    if (language) where.preferredLanguage = language as Prisma.EnumLanguageFilter;
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({
@@ -51,7 +51,7 @@ export class UsersService {
 
   /** Get user by ID */
   static async getUserById(userId: string) {
-    const cached = await cacheGet<any>(CacheKey.user(userId));
+    const cached = await cacheGet<Record<string, unknown>>(CacheKey.user(userId));
     if (cached) return cached;
 
     const user = await prisma.user.findUnique({

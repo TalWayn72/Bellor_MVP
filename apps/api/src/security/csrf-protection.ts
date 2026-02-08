@@ -96,7 +96,14 @@ export async function csrfProtection(
   }
 
   // For cookie-based sessions (if any), use double-submit pattern
-  const cookieToken = (request as any).cookies?.[CSRF_COOKIE_NAME];
+  // Parse cookies from the Cookie header
+  const cookieHeader = request.headers.cookie || '';
+  const parsedCookies: Record<string, string> = {};
+  for (const pair of cookieHeader.split(';')) {
+    const [key, ...val] = pair.trim().split('=');
+    if (key) parsedCookies[key] = val.join('=');
+  }
+  const cookieToken = parsedCookies[CSRF_COOKIE_NAME];
   const headerToken = request.headers[CSRF_HEADER_NAME];
 
   if (!cookieToken || !headerToken || cookieToken !== headerToken) {

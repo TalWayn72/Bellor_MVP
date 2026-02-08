@@ -4,6 +4,7 @@
  * Uses @fastify/rate-limit with Redis backend.
  */
 
+import { FastifyRequest } from 'fastify';
 import { RATE_LIMITS } from '../config/security.config.js';
 import { redis } from '../lib/redis.js';
 
@@ -16,11 +17,11 @@ export function getAuthRateLimitConfig(endpoint: keyof typeof RATE_LIMITS.auth) 
     max: config.max,
     timeWindow: config.timeWindow,
     redis,
-    keyGenerator: (request: any) => {
+    keyGenerator: (request: FastifyRequest) => {
       // Rate limit by IP for auth endpoints
       return `rl:auth:${endpoint}:${request.ip}`;
     },
-    errorResponseBuilder: (_request: any, context: any) => ({
+    errorResponseBuilder: (_request: FastifyRequest, context: { ttl: number }) => ({
       success: false,
       error: {
         code: 'RATE_LIMIT_EXCEEDED',
@@ -36,13 +37,13 @@ export function getApiRateLimitConfig(endpoint: keyof typeof RATE_LIMITS.api) {
     max: config.max,
     timeWindow: config.timeWindow,
     redis,
-    keyGenerator: (request: any) => {
+    keyGenerator: (request: FastifyRequest) => {
       // Rate limit by user ID if authenticated, otherwise by IP
       const userId = request.user?.userId || request.user?.id;
       const key = userId || request.ip;
       return `rl:api:${endpoint}:${key}`;
     },
-    errorResponseBuilder: (_request: any, context: any) => ({
+    errorResponseBuilder: (_request: FastifyRequest, context: { ttl: number }) => ({
       success: false,
       error: {
         code: 'RATE_LIMIT_EXCEEDED',

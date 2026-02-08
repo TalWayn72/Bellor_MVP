@@ -54,7 +54,7 @@ export async function registerSecurityMiddleware(app: FastifyInstance): Promise<
     }
 
     // Replace body with sanitized version
-    (request as any).body = result.clean;
+    request.body = result.clean;
   });
 
   // Validate query parameters

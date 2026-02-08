@@ -11,6 +11,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { env } from './config/env.js';
 import { setupWebSocket } from './websocket/index.js';
+import type { Server as SocketIOServer } from 'socket.io';
 import { prisma } from './lib/prisma.js';
 import { redis } from './lib/redis.js';
 import { startBackgroundJobs, stopBackgroundJobs } from './jobs/index.js';
@@ -164,7 +165,7 @@ await app.register(import('./routes/v1/index.js'), { prefix: '/api/v1' });
 
 // Setup WebSocket server
 // Note: WebSocket server will be initialized in the start function after HTTP server is ready
-let io: any = null;
+let io: SocketIOServer | null = null;
 
 // Graceful shutdown
 const gracefulShutdown = async (signal: string) => {

@@ -4,6 +4,7 @@
  */
 
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { MessageType } from '@prisma/client';
 import { chatService } from '../../services/chat.service.js';
 import { authMiddleware } from '../../middleware/auth.middleware.js';
 import { isDemoUserId, isDemoId } from '../../utils/demoId.util.js';
@@ -79,11 +80,12 @@ export default async function chatsRoutes(app: FastifyInstance) {
     try {
       const chat = await chatService.createOrGetChat(userId, targetUserId, temporary);
       return reply.code(201).send({ chat });
-    } catch (error: any) {
-      if (error.message === 'Target user not found') {
+    } catch (error) {
+      const err = error as Error;
+      if (err.message === 'Target user not found') {
         return reply.code(404).send({ error: 'Target user not found' });
       }
-      return reply.code(500).send({ error: error.message });
+      return reply.code(500).send({ error: err.message });
     }
   });
 
@@ -133,7 +135,7 @@ export default async function chatsRoutes(app: FastifyInstance) {
 
     const message = await chatService.sendMessage(chatId, userId, {
       content,
-      messageType: msgType as any,
+      messageType: msgType as MessageType,
     });
 
     if (!message) {

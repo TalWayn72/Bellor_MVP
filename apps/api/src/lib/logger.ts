@@ -31,7 +31,7 @@ export interface LogEntry {
   level: LogLevel;
   category: string;
   message: string;
-  data?: any;
+  data?: Record<string, unknown>;
   error?: {
     name: string;
     message: string;
@@ -42,17 +42,17 @@ export interface LogEntry {
     method: string;
     url: string;
     headers?: Record<string, string>;
-    body?: any;
-    query?: any;
-    params?: any;
+    body?: Record<string, unknown>;
+    query?: Record<string, unknown>;
+    params?: Record<string, unknown>;
     userId?: string;
   };
   response?: {
     statusCode: number;
-    body?: any;
+    body?: Record<string, unknown>;
     duration?: number;
   };
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 }
 
 class Logger {
@@ -163,7 +163,7 @@ class Logger {
     }
   }
 
-  debug(category: string, message: string, data?: any) {
+  debug(category: string, message: string, data?: Record<string, unknown>) {
     this.log({
       timestamp: new Date().toISOString(),
       level: LogLevel.DEBUG,
@@ -173,7 +173,7 @@ class Logger {
     });
   }
 
-  info(category: string, message: string, data?: any) {
+  info(category: string, message: string, data?: Record<string, unknown>) {
     this.log({
       timestamp: new Date().toISOString(),
       level: LogLevel.INFO,
@@ -183,7 +183,7 @@ class Logger {
     });
   }
 
-  warn(category: string, message: string, data?: any) {
+  warn(category: string, message: string, data?: Record<string, unknown>) {
     this.log({
       timestamp: new Date().toISOString(),
       level: LogLevel.WARN,
@@ -193,7 +193,7 @@ class Logger {
     });
   }
 
-  error(category: string, message: string, error?: Error, context?: Record<string, any>) {
+  error(category: string, message: string, error?: Error, context?: Record<string, unknown>) {
     this.log({
       timestamp: new Date().toISOString(),
       level: LogLevel.ERROR,
@@ -208,7 +208,7 @@ class Logger {
     });
   }
 
-  fatal(category: string, message: string, error?: Error, context?: Record<string, any>) {
+  fatal(category: string, message: string, error?: Error, context?: Record<string, unknown>) {
     this.log({
       timestamp: new Date().toISOString(),
       level: LogLevel.FATAL,
@@ -237,11 +237,11 @@ class Logger {
 export const logger = Logger.getInstance();
 
 // Helper to sanitize sensitive data from logs
-export function sanitizeForLog(obj: any): any {
+export function sanitizeForLog(obj: unknown): unknown {
   if (!obj || typeof obj !== 'object') return obj;
 
   const sensitiveFields = ['password', 'token', 'refreshToken', 'accessToken', 'authorization', 'secret'];
-  const sanitized = { ...obj };
+  const sanitized: Record<string, unknown> = { ...(obj as Record<string, unknown>) };
 
   for (const key of Object.keys(sanitized)) {
     if (sensitiveFields.some(f => key.toLowerCase().includes(f))) {

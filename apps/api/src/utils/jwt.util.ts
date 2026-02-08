@@ -16,7 +16,7 @@ export const generateAccessToken = (userId: string, email: string): string => {
 
   return jwt.sign(payload, env.JWT_SECRET, {
     expiresIn: env.JWT_EXPIRES_IN,
-  } as any) as string;
+  } as jwt.SignOptions) as string;
 };
 
 export const generateRefreshToken = (userId: string): string => {
@@ -24,7 +24,7 @@ export const generateRefreshToken = (userId: string): string => {
 
   return jwt.sign(payload, env.JWT_REFRESH_SECRET, {
     expiresIn: env.JWT_REFRESH_EXPIRES_IN,
-  } as any) as string;
+  } as jwt.SignOptions) as string;
 };
 
 export const verifyAccessToken = (token: string): JWTPayload => {

@@ -32,7 +32,7 @@ export const DeviceTokensController = {
     request: FastifyRequest<{ Body: RegisterDeviceBody }>,
     reply: FastifyReply
   ) {
-    const userId = (request.user as any).id;
+    const userId = request.user!.id;
     const { token, platform, deviceId, deviceName } = request.body;
 
     if (!token || !platform) {
@@ -57,8 +57,9 @@ export const DeviceTokensController = {
       });
 
       return reply.status(201).send({ deviceToken });
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -79,8 +80,9 @@ export const DeviceTokensController = {
     try {
       const result = await PushNotificationsService.unregisterDevice(token);
       return reply.send(result);
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -92,7 +94,7 @@ export const DeviceTokensController = {
     request: FastifyRequest,
     reply: FastifyReply
   ) {
-    const userId = (request.user as any).id;
+    const userId = request.user!.id;
 
     try {
       const devices = await PushNotificationsService.getUserDeviceTokens(userId);
@@ -107,8 +109,9 @@ export const DeviceTokensController = {
           createdAt: d.createdAt,
         })),
       });
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -120,7 +123,7 @@ export const DeviceTokensController = {
     request: FastifyRequest<{ Body: SendTestNotificationBody }>,
     reply: FastifyReply
   ) {
-    const userId = (request.user as any).id;
+    const userId = request.user!.id;
     const { title = 'Test Notification', body = 'This is a test notification' } =
       request.body || {};
 
@@ -136,8 +139,9 @@ export const DeviceTokensController = {
         success: true,
         ...result,
       });
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -149,9 +153,9 @@ export const DeviceTokensController = {
     request: FastifyRequest<{ Body: { title: string; body: string } }>,
     reply: FastifyReply
   ) {
-    const user = request.user as any;
+    const user = request.user as Record<string, unknown> | undefined;
 
-    if (!user.isAdmin) {
+    if (!user || !(user as Record<string, unknown>).isAdmin) {
       return reply.status(403).send({ error: 'Admin access required' });
     }
 
@@ -169,8 +173,9 @@ export const DeviceTokensController = {
         success: true,
         ...result,
       });
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -182,9 +187,9 @@ export const DeviceTokensController = {
     request: FastifyRequest<{ Body: { daysOld?: number } }>,
     reply: FastifyReply
   ) {
-    const user = request.user as any;
+    const user = request.user as Record<string, unknown> | undefined;
 
-    if (!user.isAdmin) {
+    if (!user || !(user as Record<string, unknown>).isAdmin) {
       return reply.status(403).send({ error: 'Admin access required' });
     }
 
@@ -196,8 +201,9 @@ export const DeviceTokensController = {
         success: true,
         ...result,
       });
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 };

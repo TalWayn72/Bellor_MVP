@@ -16,7 +16,7 @@ export const SubscriptionWebhooks = {
     }
 
     const stripeClient = ensureStripeConfigured();
-    const stripeSub = await stripeClient.subscriptions.retrieve(session.subscription as string) as any;
+    const stripeSub = await stripeClient.subscriptions.retrieve(session.subscription as string);
 
     const subscription = await prisma.subscription.create({
       data: {
@@ -38,7 +38,7 @@ export const SubscriptionWebhooks = {
   },
 
   /** Handle Stripe webhook: invoice.payment_succeeded */
-  async handlePaymentSucceeded(invoice: any) {
+  async handlePaymentSucceeded(invoice: Stripe.Invoice) {
     const stripeSubscriptionId = invoice.subscription as string;
     const subscription = await prisma.subscription.findFirst({ where: { stripeSubscriptionId } });
     if (!subscription) return null;
@@ -53,7 +53,7 @@ export const SubscriptionWebhooks = {
     });
 
     const stripeClient = ensureStripeConfigured();
-    const stripeSub = await stripeClient.subscriptions.retrieve(stripeSubscriptionId) as any;
+    const stripeSub = await stripeClient.subscriptions.retrieve(stripeSubscriptionId);
 
     await prisma.subscription.update({
       where: { id: subscription.id },
@@ -73,7 +73,7 @@ export const SubscriptionWebhooks = {
   },
 
   /** Handle Stripe webhook: invoice.payment_failed */
-  async handlePaymentFailed(invoice: any) {
+  async handlePaymentFailed(invoice: Stripe.Invoice) {
     const stripeSubscriptionId = invoice.subscription as string;
     const subscription = await prisma.subscription.findFirst({ where: { stripeSubscriptionId } });
     if (!subscription) return null;
@@ -92,7 +92,7 @@ export const SubscriptionWebhooks = {
   },
 
   /** Handle Stripe webhook: customer.subscription.updated */
-  async handleSubscriptionUpdated(stripeSubscription: any) {
+  async handleSubscriptionUpdated(stripeSubscription: Stripe.Subscription) {
     const subscription = await prisma.subscription.findFirst({
       where: { stripeSubscriptionId: stripeSubscription.id },
     });
@@ -128,7 +128,7 @@ export const SubscriptionWebhooks = {
   },
 
   /** Handle Stripe webhook: customer.subscription.deleted */
-  async handleSubscriptionDeleted(stripeSubscription: any) {
+  async handleSubscriptionDeleted(stripeSubscription: Stripe.Subscription) {
     const subscription = await prisma.subscription.findFirst({
       where: { stripeSubscriptionId: stripeSubscription.id },
     });

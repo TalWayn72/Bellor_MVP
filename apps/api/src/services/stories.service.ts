@@ -153,14 +153,14 @@ export const StoriesService = {
       }
       acc[userId].stories.push(story);
       return acc;
-    }, {} as Record<string, { user: any; stories: any[]; hasUnviewed: boolean }>);
+    }, {} as Record<string, { user: typeof stories[number]['user']; stories: typeof stories; hasUnviewed: boolean }>);
 
     // Convert to array and sort (current user's stories first, then by most recent)
     const feedArray = Object.values(groupedByUser).sort((a, b) => {
       if (a.user.id === currentUserId) return -1;
       if (b.user.id === currentUserId) return 1;
-      const aLatest = Math.max(...a.stories.map((s: any) => s.createdAt.getTime()));
-      const bLatest = Math.max(...b.stories.map((s: any) => s.createdAt.getTime()));
+      const aLatest = Math.max(...a.stories.map((s: { createdAt: Date }) => s.createdAt.getTime()));
+      const bLatest = Math.max(...b.stories.map((s: { createdAt: Date }) => s.createdAt.getTime()));
       return bLatest - aLatest;
     });
 

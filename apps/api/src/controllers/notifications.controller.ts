@@ -23,7 +23,7 @@ export const NotificationsController = {
     request: FastifyRequest<{ Querystring: ListNotificationsQuery }>,
     reply: FastifyReply
   ) {
-    const userId = (request.user as any).id;
+    const userId = request.user!.id;
     const { limit, offset, isRead, type } = request.query;
 
     try {
@@ -34,8 +34,9 @@ export const NotificationsController = {
         type,
       });
       return reply.send(result);
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -47,13 +48,14 @@ export const NotificationsController = {
     request: FastifyRequest,
     reply: FastifyReply
   ) {
-    const userId = (request.user as any).id;
+    const userId = request.user!.id;
 
     try {
       const count = await NotificationsService.getUnreadCount(userId);
       return reply.send({ unreadCount: count });
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -65,14 +67,15 @@ export const NotificationsController = {
     request: FastifyRequest<{ Params: { id: string } }>,
     reply: FastifyReply
   ) {
-    const userId = (request.user as any).id;
+    const userId = request.user!.id;
     const { id } = request.params;
 
     try {
       const notification = await NotificationsService.markAsRead(id, userId);
       return reply.send({ notification });
-    } catch (error: any) {
-      return reply.status(404).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(404).send({ error: message });
     }
   },
 
@@ -84,13 +87,14 @@ export const NotificationsController = {
     request: FastifyRequest,
     reply: FastifyReply
   ) {
-    const userId = (request.user as any).id;
+    const userId = request.user!.id;
 
     try {
       const result = await NotificationsService.markAllAsRead(userId);
       return reply.send(result);
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 
@@ -102,14 +106,15 @@ export const NotificationsController = {
     request: FastifyRequest<{ Params: { id: string } }>,
     reply: FastifyReply
   ) {
-    const userId = (request.user as any).id;
+    const userId = request.user!.id;
     const { id } = request.params;
 
     try {
       const result = await NotificationsService.deleteNotification(id, userId);
       return reply.send(result);
-    } catch (error: any) {
-      return reply.status(404).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(404).send({ error: message });
     }
   },
 
@@ -121,13 +126,14 @@ export const NotificationsController = {
     request: FastifyRequest,
     reply: FastifyReply
   ) {
-    const userId = (request.user as any).id;
+    const userId = request.user!.id;
 
     try {
       const result = await NotificationsService.deleteReadNotifications(userId);
       return reply.send(result);
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   },
 };
