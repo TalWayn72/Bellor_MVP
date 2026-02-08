@@ -1,277 +1,215 @@
-# הנחיות עבודה לשיחות חדשות
+# Bellor MVP - Project Status & Reference
+
+**Last Updated:** February 8, 2026
+**Repository:** https://github.com/TalWayn72/Bellor_MVP
+**Status:** Production Ready (Phases 1-9 Complete)
+**Version:** 1.0.0-beta
 
 ---
 
-## 🚀 חובה בתחילת כל שיחה - הפעלת שירותים
+## Project Overview
 
-**לפני כל פעולה אחרת, יש להפעיל את השירותים הבאים:**
+Bellor is a modern dating and social networking application, fully standalone and independent from Base44.
+Built as a monorepo with npm workspaces: React frontend, Fastify backend, PostgreSQL, Redis, real-time WebSocket.
+Supports 5 languages (EN, HE, ES, DE, FR), 50+ UI components, production-ready with CI/CD and K8s deployment.
 
-```bash
-# 1. נווט לתיקיית הפרויקט
-cd C:\Users\talwa\.claude\projects\Bellor_MVP
+## Tech Stack
 
-# 2. הפעל Docker (PostgreSQL + Redis)
-npm run docker:up
+| Layer | Technology | Version | Purpose |
+|-------|-----------|---------|---------|
+| **Frontend** | React | 18.2 | UI Framework |
+| | Vite | 6.1 | Build Tool |
+| | TypeScript | 5.8 | Type Safety |
+| | Tailwind CSS | 3.4 | Styling |
+| | Radix UI | Latest | Component Library |
+| | TanStack Query | 5.84 | Data Fetching |
+| | React Router | 6.26 | Routing |
+| | Framer Motion | 11.16 | Animations |
+| **Backend** | Node.js | 20+ | Runtime |
+| | Fastify | 5.2 | Web Framework |
+| | Prisma | 6.19 | ORM |
+| | PostgreSQL | 16 | Database |
+| | Redis | 7 | Cache & Sessions |
+| | Socket.io | 4.8 | Real-time WebSocket |
+| | Zod | 3.23 | Validation |
+| | Stripe | 20.3 | Payments |
+| | Firebase Admin | 13.6 | Push Notifications |
+| | Vitest | 2.1 | Testing |
+| **DevOps** | Docker | 24+ | Containerization |
+| | Kubernetes | 1.28+ | Orchestration |
+| | GitHub Actions | Latest | CI/CD |
+| | Prometheus/Grafana | Latest | Monitoring |
+| | Loki/Alertmanager | Latest | Logs & Alerts |
 
-# 3. הפעל את ה-API (background mode)
-npm run dev:api
-
-# 4. בדוק שהכל עובד
-curl http://localhost:3000/health
-```
-
-**רשימת תיוג לתחילת שיחה:**
-- [ ] Docker רץ (bellor_postgres, bellor_redis)
-- [ ] API רץ על port 3000
-- [ ] Health check עובר
-
-**⚠️ אסור להתחיל לעבוד לפני שכל השירותים פועלים!**
-
----
-
-## ✅ Polish: State Components (הושלם - 4 פברואר 2026)
-
-```
-סטטוס: הושלם ✅
-רכיבים שנוצרו:
-- LoadingState.jsx - מצבי טעינה (spinner, skeleton, cards, list, profile, chat, feed)
-- EmptyState.jsx - מצבים ריקים (messages, matches, feed, notifications, search)
-- ErrorState.jsx - הצגת שגיאות (default, network, server, notFound)
-- index.js - ייצוא מרוכז
-
-דפים שעודכנו: 40+ דפים
-- Core: SharedSpace, Profile, Matches, Notifications, TemporaryChats
-- Settings: Settings, FollowingList, BlockedUsers, FilterSettings, ThemeSettings
-- Chat: PrivateChat, LiveChat
-- Social: Stories, Achievements, Discover
-- Tasks: AudioTask, VideoTask, CreateStory, VideoDate, CompatibilityQuiz
-- Premium: Premium, ReferralProgram, ProfileBoost, Analytics, DateIdeas, IceBreakers
-- Support: SafetyCenter, Feedback, EmailSupport, FAQ, VirtualEvents
-- Admin: All 7 admin pages (Dashboard, UserManagement, Reports, Chat, Activity, Settings, PreReg)
-- Profile: EditProfile, UserProfile, UserVerification
-
-מיקום: apps/web/src/components/states/
-```
-
----
-
-## 🔴 בדיקת שירותים חובה - לפני סיום כל עבודה
-
-**חובה לוודא שכל השירותים פועלים לפני סיום כל משימה:**
-
-| שירות | פורט | פקודת בדיקה |
-|--------|------|-------------|
-| Frontend (Vite) | 5173 | `netstat -ano \| findstr ":5173"` |
-| Backend (API) | 3000 | `netstat -ano \| findstr ":3000"` |
-| PostgreSQL | 5432 | `docker ps \| grep postgres` |
-| Redis | 6379 | `docker ps \| grep redis` |
-
-### פקודת בדיקה מהירה
-```bash
-docker ps && netstat -ano | findstr ":3000 :5173"
-```
-
-### אם שירות לא רץ - הפעלה:
-```bash
-npm run docker:up      # PostgreSQL + Redis
-npm run dev:api        # Backend API (port 3000)
-npm run dev            # Frontend (port 5173)
-```
-
-**⚠️ אין לסיים משימה ללא אישור שכל השירותים פועלים!**
-
----
-
-## לפני התחלת עבודה - תמיד להעתיק את ההודעה הזו:
-
----
-
-## ✅ שיחה חדשה - קבוצה 2: פרופיל ומשתמש (הושלם)
+## Project Structure
 
 ```
-סטטוס: הושלם ✅
-קבצים שעודכנו:
-- Profile.jsx - מיושם עם Design System
-- UserProfile.jsx - מיושם עם Design System
-- EditProfile.jsx - Card components, English labels
-- ProfileBoost.jsx - Card components, design tokens
-- FollowingList.jsx - Avatar, Card, design tokens
+Bellor_MVP/
+├── apps/
+│   ├── web/                    # React Frontend
+│   │   ├── src/                # api/, components/, hooks/, pages/, security/, styles/, utils/
+│   │   ├── e2e/                # Playwright E2E tests
+│   │   ├── android/            # Capacitor Android
+│   │   └── ios/                # Capacitor iOS
+│   └── api/                    # Node.js Backend
+│       ├── src/                # config/, controllers/, middleware/, routes/, services/, security/, websocket/, lib/, utils/
+│       └── prisma/             # schema.prisma
+├── packages/                   # shared/ (types), ui/ (design system)
+├── infrastructure/             # docker/, kubernetes/, monitoring/
+├── .github/workflows/          # CI/CD pipelines
+├── scripts/                    # Deployment & utility scripts
+├── docs/                       # Documentation
+├── docker-compose.yml          # Development
+├── docker-compose.prod.yml     # Production
+├── docker-compose.all-in-one.yml  # Self-contained (275MB)
+└── docker-compose.monitoring.yml  # Monitoring stack
 ```
 
----
+## Commands Reference
 
-## ✅ שיחה חדשה - קבוצה 3: פיד וחלל משותף (הושלם)
+| Category | Command | Description |
+|----------|---------|-------------|
+| **Dev** | `npm run dev` | Frontend only (port 5173) |
+| | `npm run dev:api` | Backend only (port 3000) |
+| | `npm run dev:all` | Both frontend and backend |
+| | `npm run build` | Build all workspaces |
+| | `npm run lint` / `lint:fix` | Lint all / auto-fix |
+| | `npm run type-check` | TypeScript compilation check |
+| **DB** | `npm run prisma:generate` | Generate Prisma client |
+| | `npm run prisma:migrate` | Run migrations (dev) |
+| | `npm run prisma:studio` | Prisma Studio (port 5555) |
+| | `npm run prisma:seed` | Seed demo data (20 users) |
+| **Test** | `npm run test` | All tests |
+| | `npm run test:api` / `test:web` | Backend / Frontend only |
+| | `npm run test:e2e` | E2E (Playwright) |
+| | `npm run test:e2e:ui` | E2E UI debug mode |
+| | `npm run test:coverage` | Tests with coverage |
+| **Docker** | `npm run docker:up` / `docker:down` | Start/Stop PostgreSQL + Redis |
+| **Deploy** | `./scripts/deploy.sh docker prod` | Docker Compose production |
+| | `./scripts/deploy.sh k8s prod` | Kubernetes production |
+| **Mobile** | `npm run cap:sync` | Sync web to native |
+| | `npm run cap:open:android` | Open Android Studio |
+| | `npm run cap:open:ios` | Open Xcode (macOS) |
+| | `npm run cap:build` | Build web + sync |
 
-```
-סטטוס: הושלם ✅
-קבצים שעודכנו:
-- SharedSpace.jsx - מיושם עם Design System
-- Stories.jsx - Button, Card, Badge components
-- CreateStory.jsx - Button components
-- Creation.jsx - Card components, design tokens
-```
+## Migration Phases Status
 
----
+| Phase | Description | Status |
+|-------|-------------|--------|
+| 1 | Foundation - Monorepo, TypeScript, Prisma, Docker | COMPLETE |
+| 2 | Core Backend - Auth, Users, Files, Stories, Achievements, Premium, Push, Email | COMPLETE |
+| 3 | Real-time - Socket.io, Chat, Presence, Frontend integration | COMPLETE |
+| 4 | Frontend Migration - Remove Base44 dependencies | COMPLETE |
+| 5 | Admin & Tools - Dashboard, User/Report/Chat management, API routes | COMPLETE |
+| 6 | Testing & QA - 306 unit tests, 224 E2E tests, 100% backend coverage | COMPLETE |
+| 7 | Deployment - CI/CD, Docker builds, K8s manifests, universal installers | COMPLETE |
+| 8 | Universal Deployment - Cloud-agnostic, free hosting options, one-command deploy | COMPLETE |
+| 9 | Final Polish (8 Feb 2026) - Push notifs, audio playback, story viewer, TS cleanup, Logger | COMPLETE |
+| 10 | Mobile App - Capacitor configured, Android+iOS platforms added | **30%** |
 
-## ✅ שיחה חדשה - קבוצה 4: צ'אט והודעות (הושלם)
+**Phase 10 remaining:** Upload Keystore (Android), AAB build, Store listing (pending account setup)
 
-```
-סטטוס: הושלם ✅
-קבצים שעודכנו:
-- PrivateChat.jsx - header structure, border styling
-- LiveChat.jsx - useCurrentUser hook, Card, Input components
-- TemporaryChats.jsx - Avatar, Card, Badge components
-- Notifications.jsx - אומת תאימות
-```
+## Important Files Reference
 
----
+| File | Description |
+|------|-------------|
+| `CLAUDE.md` | AI assistant configuration and work rules |
+| `README.md` | Project overview and quick start |
+| `GUIDELINES.md` | Development guidelines and standards |
+| `docs/OPEN_ISSUES.md` | Bug tracking and testing status (296+ items) |
+| `docs/MIGRATION_PLAN.md` | Complete migration strategy |
+| `docs/SECURITY_PLAN.md` | Security hardening strategy |
+| `docs/SECURITY_CHECKLIST.md` | Pre-release security audit checklist |
+| `docs/INCIDENT_RESPONSE.md` | Incident response procedures (P1-P4) |
+| `docs/PERFORMANCE_BASELINE.md` | k6 load test results (p95: 23ms smoke, 230ms stress) |
+| `docs/PRD.md` | Product Requirements Document |
+| `docs/DEPLOYMENT_INFRASTRUCTURE_COMPLETE.md` | Universal deployment status |
+| `apps/api/prisma/schema.prisma` | Database schema (all entities) |
 
-## ✅ שיחה חדשה - קבוצה 5: התאמות וגילוי (הושלם)
+## Infrastructure
 
-```
-סטטוס: הושלם ✅
-קבצים שעודכנו:
-- Matches.jsx - LTR layout, English labels, design tokens
-- Discover.jsx - design tokens for colors
-- CompatibilityQuiz.jsx - LTR layout, updated buttons
-- FilterSettings.jsx - Card components, design tokens
-```
+### Services & Ports
 
----
+| Service | Port | Start Command | Health Check |
+|---------|------|---------------|--------------|
+| Frontend (Vite) | 5173 | `npm run dev` | http://localhost:5173 |
+| Backend API | 3000 | `npm run dev:api` | http://localhost:3000/health |
+| PostgreSQL | 5432 | `npm run docker:up` | `docker ps` |
+| Redis | 6379 | `npm run docker:up` | `docker ps` |
+| Prisma Studio | 5555 | `npm run prisma:studio` | http://localhost:5555 |
+| Grafana | 3001 | monitoring compose | http://localhost:3001 |
+| Prometheus | 9090 | monitoring compose | http://localhost:9090 |
 
-## ✅ שיחה חדשה - קבוצה 6: הגדרות א' (הושלם)
+### Docker Images & Deployment
 
-```
-סטטוס: הושלם ✅
-קבצים שעודכנו:
-- Settings.jsx - Separator import added
-- NotificationSettings.jsx - Switch component, Card, LTR
-- PrivacySettings.jsx - Switch component, Card, security options
-```
+Images pushed to GHCR on version tags (`v*.*.*`): `ghcr.io/TalWayn72/bellor_mvp/{api,web}:<version>`
 
----
+| Method | Command | Scale |
+|--------|---------|-------|
+| Docker Compose (dev) | `docker compose up -d` | Single |
+| Docker Compose (prod) | `docker compose -f docker-compose.prod.yml up -d` | Single |
+| Docker All-in-one | `docker compose -f docker-compose.all-in-one.yml up -d` | 275MB min |
+| Docker Production | `docker compose -f docker-compose.production.yml up -d` | 3-20 replicas |
+| Kubernetes | `kubectl apply -f infrastructure/kubernetes/` | 3-10 pods (HPA) |
 
-## ✅ שיחה חדשה - קבוצה 7: הגדרות ב' (הושלם)
+### Monitoring Stack
+Prometheus (metrics: request rates, p50/p95/p99, errors, WebSocket), Grafana (dashboards),
+Loki+Promtail (structured logs with correlation IDs), Alertmanager (downtime, errors, resources).
 
-```
-סטטוס: הושלם ✅
-קבצים שעודכנו:
-- ThemeSettings.jsx - עודכן
-- BlockedUsers.jsx - עודכן
-- SafetyCenter.jsx - עודכן
-```
+## Testing Status
 
----
+| Category | Count | Framework | Files |
+|----------|-------|-----------|-------|
+| Backend Unit | 306 | Vitest | 14 test files |
+| E2E | 224 | Playwright | 11 test files |
+| **Total** | **530** | | **25 test files** |
 
-## ✅ שיחה חדשה - קבוצה 8: משימות (הושלם)
+### E2E Test Files
+| File | Coverage |
+|------|----------|
+| `auth.spec.ts` | Login, register, logout |
+| `navigation.spec.ts` | Routing, back nav, deep links |
+| `feed.spec.ts` | SharedSpace, missions, responses, likes |
+| `chat.spec.ts` | Messages, typing indicators |
+| `profile.spec.ts` | View, edit, my book |
+| `matches.spec.ts` | Romantic, positive matches |
+| `onboarding.spec.ts` | Full 14-step onboarding |
+| `notifications.spec.ts` | List, mark read |
+| `settings.spec.ts` | Theme, privacy, blocked users |
+| `api-client.spec.ts` | API client transformers |
+| `onboarding-drawing.spec.ts` | Canvas drawing |
 
-```
-סטטוס: הושלם ✅
-קבצים שעודכנו:
-- AudioTask.jsx - Card, Switch, Label, LTR, English text
-- VideoTask.jsx - Card, LTR layout, English text
-- WriteTask.jsx - Card, Switch, Label, English text
-- IceBreakers.jsx - Card, Button, LTR layout
-- DateIdeas.jsx - verified compatibility
-```
+Browsers: Chromium, Mobile Chrome, Mobile Safari, Firefox (CI).
 
----
+## Security Status
 
-## ✅ שיחה חדשה - קבוצה 9: פרימיום והישגים (הושלם)
+Multi-layer security hardening implemented. Key areas:
+- **Input Sanitization** - Client + server, injection detection, field-level rules
+- **File Upload** - Magic bytes, EXIF stripping, re-encoding, filename sanitization
+- **Auth** - Brute force protection, security logging, password strength
+- **HTTP** - CSP, HSTS, CORS, X-Frame-Options, COEP/COOP/CORP
+- **Container** - Non-root, read-only FS, capability dropping, resource limits
+- **Client** - SecureTextInput, SecureImageUpload, useSecureInput/useSecureUpload
 
-```
-סטטוס: הושלם ✅
-קבצים שעודכנו:
-- Premium.jsx - LTR layout
-- Achievements.jsx - Button, Card, Badge components, LTR
-- Analytics.jsx - LTR layout, header update
-- ReferralProgram.jsx - Button, Card, Badge, LTR
-```
+Files: `apps/api/src/security/`, `apps/web/src/security/` | Audit: `docs/SECURITY_CHECKLIST.md`
 
----
+## Design System Status
 
-## ✅ שיחה חדשה - קבוצה 11: משפטי ואימות (הושלם)
+All 12 groups completed (50+ components): Home, Profile, Feed, Chat, Matches, Settings,
+Tasks, Premium, Support, Legal, Admin. State components (Loading/Empty/Error) on 40+ pages.
+Location: `apps/web/src/components/states/`
 
-```
-סטטוס: הושלם ✅
-קבצים שעודכנו:
-- PrivacyPolicy.jsx - Card, Button, LTR, hero section
-- TermsOfService.jsx - Card, Button, LTR, hero section
-- UserVerification.jsx - Card, LTR, header update
-```
+## CI/CD Pipelines
 
----
+| Workflow | Trigger | Actions |
+|----------|---------|---------|
+| `ci.yml` | Push/PR | Lint, Tests, Build, Security Scan |
+| `docker-build.yml` | Tags (`v*.*.*`) | Multi-platform Docker build, push to GHCR |
+| `cd.yml` | Post-CI | Deploy to production |
+| `test.yml` | Push/PR | Testing workflows |
 
-## ✅ שיחה חדשה - קבוצה 12: אדמין (הושלם)
+## Current Open Items
 
-```
-סטטוס: הושלם ✅
-קבצים שעודכנו:
-- AdminActivityMonitoring.jsx - LTR, English text
-- AdminChatMonitoring.jsx - LTR, English text
-- AdminDashboard.jsx - LTR, English text
-- AdminPreRegistration.jsx - LTR, English text
-- AdminReportManagement.jsx - LTR, English text
-- AdminSystemSettings.jsx - LTR, English text
-- AdminUserManagement.jsx - LTR, English text
-```
+Tracking: `docs/OPEN_ISSUES.md` (296+ items documented, 75+ bugs fixed)
 
----
-
-## פקודות Figma API
-
-```bash
-# קריאת עיצוב ספציפי
-curl -H "X-Figma-Token: YOUR_FIGMA_TOKEN" \
-  "https://api.figma.com/v1/files/Xw7AxN31GF7dXOiaXxGbN6/nodes?ids=NODE_ID&depth=3"
-
-# עמודים עיקריים:
-# 0-1: Design System
-# 0-6017: Main pages
-# 4304-33971: UI Design
-```
-
-## סטטוס קבוצות
-
-- ✅ קבוצה 1: בית וניווט - הושלם
-- ✅ קבוצה 2: פרופיל ומשתמש - הושלם
-- ✅ קבוצה 3: פיד וחלל משותף - הושלם (+ RTL fix)
-- ✅ קבוצה 4: צ'אט והודעות - הושלם (+ RTL fix)
-- ✅ קבוצה 5: התאמות וגילוי - הושלם
-- ✅ קבוצה 6: הגדרות א' - הושלם
-- ✅ קבוצה 7: הגדרות ב' - הושלם
-- ✅ קבוצה 8: משימות - הושלם
-- ✅ קבוצה 9: פרימיום והישגים - הושלם
-- ✅ קבוצה 10: תמיכה ומידע - הושלם
-- ✅ קבוצה 11: משפטי ואימות - הושלם
-- ✅ קבוצה 12: אדמין - הושלם (Hebrew translated to English)
-
----
-
-## 📋 משימות בהמתנה - Deployment & Testing
-
-### 🔜 Phase 9: פריסת סביבת QA ב-Oracle Cloud (מתוכנן)
-**עדיפות:** גבוהה
-**זמן משוער:** 2 שעות
-**עלות:** $0 (חינם לצמיתות)
-
-**שלבים:**
-- [ ] רישום ל-Oracle Cloud Free Tier
-- [ ] יצירת VCN ו-Security Rules
-- [ ] יצירת VM (ARM: 4 CPUs, 24GB RAM)
-- [ ] התקנת Docker והגדרת השרת
-- [ ] הגדרת SSH Keys ל-GitHub
-- [ ] Clone הפרויקט והגדרת Environment
-- [ ] Build והפעלה ראשונית
-- [ ] הגדרת Auto-Deploy מ-GitHub
-- [ ] בדיקות תקינות
-
-**מסמך מפורט:** [docs/ORACLE_CLOUD_QA_DEPLOYMENT.md](docs/ORACLE_CLOUD_QA_DEPLOYMENT.md)
-
----
-
-### 📋 Phase 6: Testing (מתוכנן)
-- [ ] Unit tests ל-Services (50% coverage)
-- [ ] Integration tests ל-API endpoints
-- [ ] E2E tests קריטיים
-- [ ] CI integration
+**Pending:** Phase 10 Mobile (30%), beta testing (100 users), production cloud deployment.
