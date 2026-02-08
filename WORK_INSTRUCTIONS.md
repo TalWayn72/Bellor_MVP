@@ -109,6 +109,18 @@ Bellor_MVP/
 
 **Phase 10 remaining:** Upload Keystore (Android), AAB build, Store listing (pending account setup)
 
+## Documentation Sync Rules
+
+When new features or capabilities are added, the following documents **must** be updated:
+
+| Trigger | Documents to Update |
+|---------|-------------------|
+| New feature/capability added | `README.md` (Features section) + `docs/PRD.md` (relevant section) + `docs/OPEN_ISSUES.md` |
+| Bug fixed | `docs/OPEN_ISSUES.md` (status + history) |
+| Numbers changed (tests, issues) | `README.md` + `docs/OPEN_ISSUES.md` |
+| Work rules changed | `CLAUDE.md` |
+| Architecture changed | `docs/ARCHITECTURE.md` + `README.md` |
+
 ## Important Files Reference
 
 | File | Description |

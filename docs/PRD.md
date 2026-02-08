@@ -19,7 +19,7 @@
 | Temporary-to-permanent chat | Time-limited conversations; mutual interest converts them to permanent |
 | Fully self-hosted | Zero vendor lock-in -- any cloud, on-prem, or free-tier hosting |
 
-**Current state:** 9 of 10 phases complete. 530+ automated tests, zero TypeScript errors, multi-layer security, production-grade Docker/Kubernetes infrastructure.
+**Current state:** 9 of 10 phases complete. 750+ automated tests, zero TypeScript errors, multi-layer security, production-grade Docker/Kubernetes infrastructure.
 
 ---
 
@@ -278,8 +278,23 @@ PostgreSQL 16, Prisma ORM. **18 entities, 17 enums, 40+ indexes.** Full schema: 
 | | Audit | Security checklist 71/75 verified |
 | **Reliability** | Uptime | 99.9% (K8s rolling updates, PDB minAvailable=2, health probes) |
 | | Data durability | PostgreSQL WAL, Redis AOF |
+| | DB transaction safety | Atomic paired writes via `prisma.$transaction()` - responses, likes, chat messages |
+| | Circuit breaker | Fault tolerance for external APIs (Stripe, Firebase, Resend) - auto-open on failures |
+| | Global error handler | Standardized AppError class with code+status, unhandled rejection/exception capture |
 | | Incident response | P1-P4 procedures ([INCIDENT_RESPONSE.md](INCIDENT_RESPONSE.md)) |
+| **Rate Limiting** | Endpoint-specific | Login 5/15min, register 3/hr, chat 30/min, search 20/min, upload 10/min |
+| **Caching** | Redis cache-aside | User profiles (5min), stories (2min), missions (5min), achievements (10min) |
+| **WebSocket** | Heartbeat | Ping 25s / timeout 20s, TTL 300s, stale socket cleanup every 60s |
+| **Network Security** | K8s NetworkPolicy | Pod-to-pod traffic restriction (web→api→db), RBAC with least privilege |
+| **DB Performance** | Optimized indexes | 40+ indexes including compound (isActive+gender, isActive+lastActiveAt, chatRoomId+createdAt) |
+| **Auth Optimization** | JWT admin caching | `isAdmin` in JWT payload eliminates N+1 DB queries on admin endpoints |
+| **Frontend** | Auth guards | ProtectedRoute component with splash screen, admin route validation |
+| | Context optimization | useMemo on AuthContext and SocketProvider to prevent unnecessary re-renders |
+| | Image lazy loading | `loading="lazy"` across all image-rendering components (15+) |
+| | Accessibility | aria-labels, htmlFor, focus management on interactive components |
+| | Type safety | All 14 API services in TypeScript with typed interfaces and return values |
 | **Observability** | Metrics / Dashboards | Prometheus + Grafana (request rate, latency, errors, WS, DB) |
+| | Business metrics | Custom counters: chat_messages_total, matches_total, registrations_total, payment_attempts_total |
 | | Logs / Alerts | Loki + Promtail (structured JSON, correlation IDs) / Alertmanager |
 
 ---
