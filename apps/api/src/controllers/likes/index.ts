@@ -2,6 +2,7 @@
  * Likes Controller - barrel export
  */
 export { LikesController } from '../likes.controller.js';
+export { LikesResponseController } from './likes-response.controller.js';
 export {
   likeUserBodySchema,
   likeResponseBodySchema,

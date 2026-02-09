@@ -106,6 +106,7 @@
 | **ISSUE-032: Memory Leaks - Frontend React Hooks & UI Components (Feb 9)** | 2+3 | 🔴 קריטי (2 דליפות) + 🟢 Verified (3 hooks) | ✅ תוקן |
 | **TASK-057: Test Fixes - Backend Integration Mock Configuration (Feb 9)** | 86 | 🟡 בינוני | ✅ הושלם |
 | **TASK-058: Test Fixes - Frontend Memory Optimization (Feb 9)** | 685+ | 🟢 שיפור | ✅ הושלם |
+| **TASK-059: File Size Enforcement - 150 Line Max (Wave 2) (Feb 10)** | 34 files | 🟢 שיפור | ✅ הושלם |
 | **TASK-059: WebSocket Integration Tests - Memory Leak Cleanup (Feb 9)** | 5 | 🟡 בינוני | ✅ הושלם |
 | **TASK-060: Production Memory Monitoring - Real-time Metrics & Alerts (Feb 9)** | 5 | 🟢 שיפור | ✅ הושלם |
 
@@ -3756,4 +3757,104 @@ curl http://localhost:3000/health/memory
 ✅ **תקני קוד נשמרו (no any, no console.log, 143 lines < 150)**
 ✅ **Memory leak safe (cleanup מתאים)**
 ✅ **סקירת אבטחה עברה**
+
+---
+
+## TASK-059: File Size Enforcement - 150 Line Max (Wave 2)
+**סטטוס:** ✅ הושלם | **חומרה:** 🟢 שיפור | **תאריך:** 10 February 2026
+
+### תיאור
+חלוקת כל 34 קבצי קוד שחרגו מ-150 שורות לקבצים קטנים יותר, עם שמירה על תאימות imports דרך barrel files.
+
+### קבצים שפוצלו
+
+#### Backend Core (גל 1 - קריטי)
+| קובץ מקורי | שורות | פוצל ל- |
+|------------|--------|---------|
+| `app.ts` | 343 | `app.ts`, `app-middleware.ts`, `app-routes.ts`, `app-lifecycle.ts` |
+| `logger.ts` | 298 | `logger.ts`, `logger-core.ts`, `logger-formatter.ts`, `logger-helpers.ts`, `logger-types.ts` |
+| `auth.service.ts` | 294 | `auth/auth-login.service.ts`, `auth/auth-tokens.service.ts`, `auth/auth-password.service.ts`, `auth/auth-types.ts`, `auth/index.ts` |
+| `websocket/index.ts` | 228 | `websocket-server.ts`, `websocket-auth.ts`, `websocket-presence.ts` |
+
+#### Backend Services & Handlers (גל 2 - בינוני)
+| קובץ מקורי | שורות | פוצל ל- |
+|------------|--------|---------|
+| `chat-messaging.handler.ts` | 208 | `chat-send.handler.ts`, `chat-read.handler.ts`, `chat-typing.handler.ts` |
+| `storage-upload.ts` | 203 | `upload-core.ts`, `upload-images.ts`, `upload-media.ts` |
+| `chats.routes.ts` | 191 | `chats-crud.routes.ts`, `chats-messages.routes.ts` |
+| `chat-messages.service.ts` | 174 | `chat-messages-queries.service.ts`, `chat-messages-mutations.service.ts`, `chat-messages.types.ts` |
+| `users-profile.service.ts` | 174 | `users-profile-mapping.ts` extracted |
+| `subscriptions.service.ts` | 169 | `subscriptions-management.service.ts`, `subscriptions-queries.service.ts` |
+| `google-oauth.service.ts` | 168 | `google-oauth/` directory with split files |
+
+#### Backend Controllers (גל 3)
+| קובץ | שורות | שינוי |
+|-------|--------|-------|
+| `stories.controller.ts` | 173 | Extracted to `stories/stories-admin.controller.ts` |
+| `likes.controller.ts` | 171 | Extracted to `likes/likes-response.controller.ts` |
+| `reports.controller.ts` | 165 | Extracted validation logic |
+| `users.controller.ts` | 153 | Extracted to `users/users-profile.controller.ts` |
+| `responses.controller.ts` | 152 | Extracted to `responses/responses-mutations.controller.ts` |
+
+#### Backend Services - Remaining
+| קובץ | שורות | שינוי |
+|-------|--------|-------|
+| `notification-events.ts` | 165 | Extracted `notification-types.ts` |
+| `likes-matching.service.ts` | 164 | Extracted `likes-scoring.ts` |
+| `stories.service.ts` | 151 | Extracted `stories.types.ts` |
+| `reports.service.ts` | 151 | Extracted `reports.types.ts` |
+
+#### Frontend Pages
+| קובץ | שורות | שינוי |
+|-------|--------|-------|
+| `SharedSpace.jsx` | 173 | Split to `shared-space/` directory |
+| `LiveChat.jsx` | 171 | Split to `live-chat/` directory |
+| `Stories.jsx` | 168 | Split to `stories/` directory |
+| `EmailSupport.jsx` | 162 | Split to `email-support/` directory |
+| `ReferralProgram.jsx` | 153 | Extracted constants |
+| `WriteTask.jsx` | 151 | Extracted constants |
+| `VideoTask.jsx` | 151 | Extracted constants |
+| `IceBreakers.jsx` | 151 | Extracted constants |
+
+#### Frontend Components & Hooks
+| קובץ | שורות | שינוי |
+|-------|--------|-------|
+| `paste-guard.ts` | 172 | Extracted `paste-guard-detection.ts`, `paste-guard.types.ts` |
+| `SocketProvider.jsx` | 171 | Extracted `socket-events.js`, `socket-reconnection.js` |
+| `StepVerification.jsx` | 151 | Extracted `CameraIcon.jsx` |
+| `useSecureUpload.ts` | 162 | Extracted `upload-validation.ts` |
+
+#### Shared Packages
+| קובץ | שורות | שינוי |
+|-------|--------|-------|
+| `user.schema.ts` | 159 | Split to `user-auth.schema.ts`, `user-profile.schema.ts` |
+| `userService.ts` | 158 | Split to `userService-auth.ts`, `userService-profile.ts`, `userService-types.ts` |
+
+### Pre-commit Hook
+- נוצר `scripts/check-file-length.js` - סורק קבצים ומכשיל commit אם יש חריגה מ-150 שורות
+- הוגדר ב-`.husky/pre-commit`
+- נוסף npm script: `npm run check:file-length`
+
+### תוצאות בדיקה
+- **לפני הפיצול:** 16 test files failed, 62 passed (78 total)
+- **אחרי הפיצול:** 16 test files failed, 62 passed (78 total)
+- **אפס רגרסיות** - כל הכשלונות קיימים מלפני
+- Memory leak check: ✅ passed (exit code 0)
+
+### סטטיסטיקות
+- **34 קבצים פוצלו**
+- **~58 קבצים חדשים נוצרו**
+- **43 קבצים מקוריים עודכנו**
+- **0 קבצים חורגים מ-150 שורות** (למעט פטורים)
+- **13 Agents רצו במקביל**
+
+### סקירת אבטחה
+| בדיקה | תוצאה |
+|--------|-------|
+| XSS | ✅ אין שינוי בלוגיקה - רק פיצול קבצים |
+| SQL Injection | ✅ אין שינוי - כל שאילתות דרך Prisma |
+| Command Injection | ✅ אין שינוי |
+| Secrets | ✅ אין סודות בקוד |
+| Input Validation | ✅ אין שינוי - הועבר כמות שהוא |
+| Barrel Files | ✅ כל re-exports שומרים על API קיים |
 ✅ **Production-ready monitoring system**

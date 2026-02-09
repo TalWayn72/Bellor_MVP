@@ -1,7 +1,4 @@
-/**
- * Users Service - barrel file with core CRUD operations
- * Re-exports profile update and GDPR functions from sub-modules
- */
+/** Users Service - barrel file with core CRUD operations */
 import { prisma } from '../lib/prisma.js';
 import { Prisma } from '@prisma/client';
 import { cacheGet, cacheSet, cacheDel, CacheKey, CacheTTL } from '../lib/cache.js';

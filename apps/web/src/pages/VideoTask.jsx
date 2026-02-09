@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import VideoRecorder from '@/components/tasks/VideoRecorder';
 import { useToast } from '@/components/ui/use-toast';
+import { DEFAULT_MISSION, NEW_MISSION_TEMPLATE } from './VideoTask.constants';
 
 export default function VideoTask() {
   const navigate = useNavigate();
@@ -17,19 +18,15 @@ export default function VideoTask() {
   const { toast } = useToast();
   const [selectedOption, setSelectedOption] = useState('Subtle energy');
   const [isPublic] = useState(true);
-  const defaultMission = {
-    question: "Which type of energy are you most drawn to?",
-    options: ["Subtle energy", "Light, grounded, romantic, steady", "Primal nature"]
-  };
 
   const { data: todayMission, isLoading: missionLoading } = useQuery({
     queryKey: ['todayMission'],
     queryFn: async () => {
       try {
         const result = await missionService.getTodaysMission();
-        return result.data || defaultMission;
+        return result.data || DEFAULT_MISSION;
       } catch (error) {
-        return defaultMission;
+        return DEFAULT_MISSION;
       }
     },
   });
@@ -42,12 +39,9 @@ export default function VideoTask() {
       if (!mission?.id) {
         const today = new Date().toISOString().split('T')[0];
         const result = await missionService.createMission({
-          title: "Share something about yourself",
-          question: "Share something interesting about yourself today",
-          category: "identity",
+          ...NEW_MISSION_TEMPLATE,
           date: today,
           isActive: true,
-          responseTypes: ['text', 'drawing', 'voice', 'video']
         });
         mission = result.data;
       }

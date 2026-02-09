@@ -2,6 +2,7 @@
  * Reports Controller - barrel export
  */
 export { ReportsController } from '../reports.controller.js';
+export { ReportsAdminController } from './reports-admin.controller.js';
 export {
   createReportBodySchema,
   listReportsQuerySchema,

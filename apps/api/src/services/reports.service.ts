@@ -5,7 +5,8 @@
  */
 
 import { prisma } from '../lib/prisma.js';
-import { ReportReason, ReportStatus, ContentType, Prisma } from '@prisma/client';
+import { ReportStatus, Prisma } from '@prisma/client';
+import { CreateReportInput, ListReportsParams, ReviewReportInput } from './reports.types.js';
 import {
   calculatePriority,
   checkAutoBlock,
@@ -14,28 +15,7 @@ import {
   getPendingCount,
 } from './reports/reports-moderation.service.js';
 
-interface CreateReportInput {
-  reporterId: string;
-  reportedUserId: string;
-  reason: ReportReason;
-  description?: string;
-  contentType?: ContentType;
-  contentId?: string;
-}
-
-interface ListReportsParams {
-  status?: ReportStatus;
-  reason?: ReportReason;
-  limit?: number;
-  offset?: number;
-}
-
-interface ReviewReportInput {
-  reviewerId: string;
-  status: ReportStatus;
-  reviewNotes?: string;
-  blockUser?: boolean;
-}
+export type { CreateReportInput, ListReportsParams, ReviewReportInput } from './reports.types.js';
 
 export const ReportsService = {
   /**

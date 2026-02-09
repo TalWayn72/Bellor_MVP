@@ -10,6 +10,7 @@ import { extractHashtags } from '../components/feed/HashtagExtractor';
 import { extractMentions } from '../components/feed/MentionExtractor';
 import WritingPrompt from '@/components/tasks/WritingPrompt';
 import { useToast } from '@/components/ui/use-toast';
+import { DEFAULT_MISSION, NEW_MISSION_TEMPLATE } from './WriteTask.constants';
 
 export default function WriteTask() {
   const navigate = useNavigate();
@@ -24,15 +25,9 @@ export default function WriteTask() {
     queryFn: async () => {
       try {
         const result = await missionService.getTodaysMission();
-        return result.data || {
-          question: "Which type of energy are you most drawn to?",
-          options: ["Subtle energy", "Light, grounded, romantic, steady", "Primal nature"]
-        };
+        return result.data || DEFAULT_MISSION;
       } catch (error) {
-        return {
-          question: "Which type of energy are you most drawn to?",
-          options: ["Subtle energy", "Light, grounded, romantic, steady", "Primal nature"]
-        };
+        return DEFAULT_MISSION;
       }
     },
   });
@@ -48,12 +43,9 @@ export default function WriteTask() {
       if (!mission?.id) {
         const today = new Date().toISOString().split('T')[0];
         const result = await missionService.createMission({
-          title: "Share something about yourself",
-          question: "Share something interesting about yourself today",
-          category: "identity",
+          ...NEW_MISSION_TEMPLATE,
           date: today,
           isActive: true,
-          responseTypes: ['text', 'drawing', 'voice', 'video']
         });
         mission = result.data;
       }

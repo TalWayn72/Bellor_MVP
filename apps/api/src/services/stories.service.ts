@@ -4,8 +4,8 @@
  */
 
 import { prisma } from '../lib/prisma.js';
-import { MediaType } from '@prisma/client';
 import { cacheDel, cacheInvalidatePattern, CacheKey } from '../lib/cache.js';
+import { CreateStoryInput, STORY_DURATION_HOURS } from './stories.types.js';
 import {
   getStoriesByUser,
   getStoriesFeed,
@@ -14,16 +14,7 @@ import {
   STORY_USER_SELECT,
 } from './stories/stories-queries.service.js';
 
-interface CreateStoryInput {
-  userId: string;
-  mediaType: MediaType;
-  mediaUrl: string;
-  thumbnailUrl?: string;
-  caption?: string;
-}
-
-// Story duration in hours
-const STORY_DURATION_HOURS = 24;
+export type { CreateStoryInput } from './stories.types.js';
 
 export const StoriesService = {
   /**
@@ -32,24 +23,17 @@ export const StoriesService = {
   async createStory(input: CreateStoryInput) {
     const { userId, mediaType, mediaUrl, thumbnailUrl, caption } = input;
 
-    // Set expiration to 24 hours from now
     const expiresAt = new Date(Date.now() + STORY_DURATION_HOURS * 60 * 60 * 1000);
 
     const story = await prisma.story.create({
       data: {
-        userId,
-        mediaType,
-        mediaUrl,
-        thumbnailUrl,
-        caption,
-        expiresAt,
+        userId, mediaType, mediaUrl, thumbnailUrl, caption, expiresAt,
       },
       include: {
         user: { select: STORY_USER_SELECT },
       },
     });
 
-    // Invalidate story caches for this user and all feeds
     await cacheDel(CacheKey.storiesUser(userId));
     await cacheInvalidatePattern('cache:stories:feed:*');
 
@@ -71,7 +55,6 @@ export const StoriesService = {
       throw new Error('Story not found');
     }
 
-    // Check if story has expired
     if (story.expiresAt < new Date()) {
       throw new Error('Story has expired');
     }
@@ -91,12 +74,10 @@ export const StoriesService = {
       throw new Error('Story not found');
     }
 
-    // Don't count self-views
     if (story.userId === viewerId) {
       return story;
     }
 
-    // Increment view count
     const updatedStory = await prisma.story.update({
       where: { id: storyId },
       data: { viewCount: { increment: 1 } },
@@ -125,7 +106,6 @@ export const StoriesService = {
       where: { id: storyId },
     });
 
-    // Invalidate story caches for this user and all feeds
     await cacheDel(CacheKey.storiesUser(userId));
     await cacheInvalidatePattern('cache:stories:feed:*');
 

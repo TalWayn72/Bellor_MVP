@@ -26,6 +26,7 @@
     "test:mutation": "stryker run",
     "test:mutation:report": "start reports/mutation/mutation-report.html",
     "test:memory-leak": "npm run test apps/api/src/test/memory-leak-detection.test.ts apps/web/src/test/memory-leak-detection.test.ts",
+    "check:file-length": "node scripts/check-file-length.js",
     "check:memory-leaks": "node scripts/check-memory-leaks.js",
     "prisma:generate": "npm run prisma:generate --workspace=@bellor/api",
     "prisma:migrate": "npm run prisma:migrate --workspace=@bellor/api",

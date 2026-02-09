@@ -11,6 +11,7 @@ import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import { CardsSkeleton } from '@/components/states';
 import ReferralStats from '@/components/referral/ReferralStats';
 import { useToast } from '@/components/ui/use-toast';
+import { REFERRAL_REWARDS } from './ReferralProgram.constants';
 
 export default function ReferralProgram() {
   const navigate = useNavigate();
@@ -71,13 +72,6 @@ export default function ReferralProgram() {
     sendReferralMutation.mutate(email);
   };
 
-  const rewards = [
-    { icon: '🎁', label: 'Free Premium Month', description: 'For each friend who joins' },
-    { icon: '⭐', label: '5 Super Likes', description: 'When they complete their profile' },
-    { icon: '🚀', label: 'Profile Boost', description: 'When they make their first match' },
-    { icon: '🏆', label: 'Exclusive Badge', description: 'After 5 successful referrals' }
-  ];
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -109,7 +103,7 @@ export default function ReferralProgram() {
         <Card><CardContent className="p-5">
           <h3 className="font-bold text-base text-foreground mb-4">Your Rewards</h3>
           <div className="grid grid-cols-2 gap-3">
-            {rewards.map((reward, idx) => (
+            {REFERRAL_REWARDS.map((reward, idx) => (
               <div key={idx} className="bg-muted rounded-xl p-4 text-center">
                 <div className="text-3xl mb-2">{reward.icon}</div>
                 <div className="font-semibold text-sm text-foreground mb-1">{reward.label}</div>

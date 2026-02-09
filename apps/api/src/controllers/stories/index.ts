@@ -2,6 +2,7 @@
  * Stories Controller - barrel export
  */
 export { StoriesController } from '../stories.controller.js';
+export { StoriesAdminController } from './stories-admin.controller.js';
 export {
   createStoryBodySchema,
   listStoriesQuerySchema,

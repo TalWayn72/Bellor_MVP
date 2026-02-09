@@ -6,6 +6,8 @@
 import React, { createContext, useState, useEffect, useContext, useCallback, useMemo, useRef } from 'react';
 import { socketService } from '@/api/services/socketService';
 import { tokenStorage } from '@/api/client/tokenStorage';
+import { createSocketEventHandlers, registerSocketListeners, removeSocketListeners } from './socket-events';
+import { connectSocket, startHeartbeat, reconnectSocket, refreshUnreadCount } from './socket-reconnection';
 
 const SocketContext = createContext(null);
 
@@ -19,84 +21,29 @@ export function SocketProvider({ children }) {
   useEffect(() => {
     let isMounted = true;
 
-    const connectSocket = async () => {
-      if (!tokenStorage.isAuthenticated()) {
-        if (isMounted) {
-          setIsConnected(false);
-        }
-        return;
-      }
+    // Wrap state setters with mount guard
+    const guardedSetIsConnected = (val) => { if (isMounted) setIsConnected(val); };
+    const guardedSetError = (val) => { if (isMounted) setError(val); };
+    const guardedSetUnreadChatCount = (val) => { if (isMounted) setUnreadChatCount(val); };
 
-      try {
-        await socketService.connect();
-        if (isMounted) {
-          setIsConnected(true);
-          setError(null);
-        }
-
-        // Get initial unread count
-        const unreadResponse = await socketService.getUnreadCount();
-        if (unreadResponse.success && isMounted) {
-          setUnreadChatCount(unreadResponse.data.unreadCount);
-        }
-      } catch (err) {
-        console.error('Socket connection error:', err);
-        if (isMounted) {
-          setError(err.message);
-          setIsConnected(false);
-        }
-      }
+    const callbacks = {
+      setIsConnected: guardedSetIsConnected,
+      setError: guardedSetError,
+      setUnreadChatCount: guardedSetUnreadChatCount,
     };
 
-    connectSocket();
+    connectSocket(socketService, tokenStorage, callbacks);
 
-    // Setup event listeners
-    const handleConnect = () => {
-      if (isMounted) {
-        setIsConnected(true);
-        setError(null);
-      }
-    };
-
-    const handleDisconnect = () => {
-      if (isMounted) {
-        setIsConnected(false);
-      }
-    };
-
-    const handleError = (err) => {
-      if (isMounted) {
-        setError(err?.message || 'Connection error');
-      }
-    };
-
-    // Listen for new messages to update unread count
-    const handleNewMessage = (data) => {
-      // Increment unread count when receiving a message
-      if (isMounted) {
-        setUnreadChatCount((prev) => prev + 1);
-      }
-    };
-
-    const handleMessageRead = () => {
-      // Decrement unread count when message is read
-      if (isMounted) {
-        setUnreadChatCount((prev) => Math.max(0, prev - 1));
-      }
-    };
-
-    socketService.on('connect', handleConnect);
-    socketService.on('disconnect', handleDisconnect);
-    socketService.on('connect_error', handleError);
-    socketService.on('chat:message:new', handleNewMessage);
-    socketService.on('chat:message:read', handleMessageRead);
+    // Setup event listeners with mount-guarded setters
+    const handlers = createSocketEventHandlers(
+      guardedSetIsConnected,
+      guardedSetError,
+      guardedSetUnreadChatCount
+    );
+    registerSocketListeners(socketService, handlers);
 
     // Heartbeat to maintain presence - store in ref to ensure cleanup
-    heartbeatIntervalRef.current = setInterval(() => {
-      if (socketService.isConnected()) {
-        socketService.sendHeartbeat();
-      }
-    }, 30000);
+    heartbeatIntervalRef.current = startHeartbeat(socketService);
 
     return () => {
       isMounted = false;
@@ -107,11 +54,7 @@ export function SocketProvider({ children }) {
         heartbeatIntervalRef.current = null;
       }
 
-      socketService.off('connect', handleConnect);
-      socketService.off('disconnect', handleDisconnect);
-      socketService.off('connect_error', handleError);
-      socketService.off('chat:message:new', handleNewMessage);
-      socketService.off('chat:message:read', handleMessageRead);
+      removeSocketListeners(socketService, handlers);
     };
   }, []);
 
@@ -124,25 +67,12 @@ export function SocketProvider({ children }) {
 
   // Reconnect socket
   const reconnect = useCallback(async () => {
-    try {
-      await socketService.connect();
-      setIsConnected(true);
-      setError(null);
-    } catch (err) {
-      setError(err.message);
-    }
+    await reconnectSocket(socketService, setIsConnected, setError);
   }, []);
 
   // Refresh unread count
-  const refreshUnreadCount = useCallback(async () => {
-    try {
-      const response = await socketService.getUnreadCount();
-      if (response.success) {
-        setUnreadChatCount(response.data.unreadCount);
-      }
-    } catch (err) {
-      console.error('Failed to refresh unread count:', err);
-    }
+  const refreshUnread = useCallback(async () => {
+    await refreshUnreadCount(socketService, setUnreadChatCount);
   }, []);
 
   const value = useMemo(() => ({
@@ -151,9 +81,9 @@ export function SocketProvider({ children }) {
     unreadChatCount,
     disconnect,
     reconnect,
-    refreshUnreadCount,
+    refreshUnreadCount: refreshUnread,
     socketService,
-  }), [isConnected, error, unreadChatCount, disconnect, reconnect, refreshUnreadCount]);
+  }), [isConnected, error, unreadChatCount, disconnect, reconnect, refreshUnread]);
 
   return (
     <SocketContext.Provider value={value}>

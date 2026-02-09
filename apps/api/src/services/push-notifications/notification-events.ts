@@ -3,24 +3,13 @@
  * Event-specific notification methods for different notification types
  */
 
-import { NotificationType } from '@prisma/client';
+import { NotificationType, ContentType } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
+import { SendToUserFn } from './notification-types.js';
 
-interface NotificationEventResult {
-  sent: number;
-  failed: number;
-}
+export type { NotificationEventResult, SendToUserFn } from './notification-types.js';
 
-type SendToUserFn = (input: {
-  userId: string;
-  title: string;
-  body: string;
-  data?: Record<string, string>;
-}) => Promise<NotificationEventResult>;
-
-/**
- * Send notification based on notification type
- */
+/** Send notification based on notification type */
 export async function sendForNotificationType(
   sendToUser: SendToUserFn,
   userId: string,
@@ -36,7 +25,7 @@ export async function sendForNotificationType(
       title,
       message,
       relatedUserId: relatedData?.relatedUserId,
-      relatedContentType: relatedData?.contentType as any,
+      relatedContentType: relatedData?.contentType as ContentType,
       relatedContentId: relatedData?.contentId,
     },
   });
@@ -49,9 +38,7 @@ export async function sendForNotificationType(
   return sendToUser({ userId, title, body: message, data });
 }
 
-/**
- * Send new message notification
- */
+/** Send new message notification */
 export async function sendNewMessageNotification(
   sendToUser: SendToUserFn,
   userId: string,
@@ -69,9 +56,7 @@ export async function sendNewMessageNotification(
   );
 }
 
-/**
- * Send new match notification
- */
+/** Send new match notification */
 export async function sendNewMatchNotification(
   sendToUser: SendToUserFn,
   userId: string,
@@ -88,9 +73,7 @@ export async function sendNewMatchNotification(
   );
 }
 
-/**
- * Send new like notification
- */
+/** Send new like notification */
 export async function sendNewLikeNotification(
   sendToUser: SendToUserFn,
   userId: string,
@@ -107,9 +90,7 @@ export async function sendNewLikeNotification(
   );
 }
 
-/**
- * Send mission reminder notification
- */
+/** Send mission reminder notification */
 export async function sendMissionReminderNotification(
   sendToUser: SendToUserFn,
   userId: string,
@@ -122,13 +103,11 @@ export async function sendMissionReminderNotification(
     'MISSION_REMINDER',
     '! משימה מחכה לך \u{1F3AF}',
     `אל תשכח להשלים: ${missionTitle}`,
-    { contentId: missionId, contentType: 'MISSION' as any }
+    { contentId: missionId, contentType: 'MISSION' as ContentType }
   );
 }
 
-/**
- * Send achievement unlocked notification
- */
+/** Send achievement unlocked notification */
 export async function sendAchievementUnlockedNotification(
   sendToUser: SendToUserFn,
   userId: string,
@@ -145,9 +124,7 @@ export async function sendAchievementUnlockedNotification(
   );
 }
 
-/**
- * Send story view notification
- */
+/** Send story view notification */
 export async function sendStoryViewNotification(
   sendToUser: SendToUserFn,
   userId: string,

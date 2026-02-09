@@ -9,16 +9,13 @@ import { ReportsService } from '../services/reports.service.js';
 import {
   createReportBodySchema,
   listReportsQuerySchema,
-  reviewReportBodySchema,
   reportIdParamsSchema,
-  reportUserParamsSchema,
   CreateReportBody,
   ListReportsQuery,
-  ReviewReportBody,
   ReportIdParams,
-  ReportUserParams,
 } from './reports/reports-schemas.js';
 import { securityLogger } from '../security/logger.js';
+import { ReportsAdminController } from './reports/reports-admin.controller.js';
 
 function zodError(reply: FastifyReply, error: z.ZodError) {
   return reply.status(400).send({ error: 'Validation failed', details: error.errors });
@@ -104,62 +101,12 @@ export const ReportsController = {
     }
   },
 
-  /** PATCH /api/v1/reports/:id/review (admin only) */
-  async reviewReport(
-    request: FastifyRequest<{ Params: ReportIdParams; Body: ReviewReportBody }>,
-    reply: FastifyReply
-  ) {
-    try {
-      const user = request.user as unknown as { id: string; isAdmin?: boolean } | undefined;
-      if (!user?.isAdmin) {
-        securityLogger.accessDenied(request, 'reports.reviewReport');
-        return reply.status(403).send({ error: 'Admin access required' });
-      }
-      const params = reportIdParamsSchema.parse(request.params);
-      const body = reviewReportBodySchema.parse(request.body);
-      const report = await ReportsService.reviewReport(params.id, {
-        reviewerId: user.id, status: body.status,
-        reviewNotes: body.reviewNotes, blockUser: body.blockUser,
-      });
-      return reply.send({ message: 'Report reviewed successfully', report });
-    } catch (error: unknown) {
-      if (error instanceof z.ZodError) return zodError(reply, error);
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(400).send({ error: message });
-    }
-  },
+  /** PATCH /api/v1/reports/:id/review (admin only) - delegated to ReportsAdminController */
+  reviewReport: ReportsAdminController.reviewReport,
 
-  /** GET /api/v1/reports/user/:userId (admin only) */
-  async getReportsForUser(request: FastifyRequest<{ Params: ReportUserParams }>, reply: FastifyReply) {
-    try {
-      const user = request.user as unknown as { isAdmin?: boolean } | undefined;
-      if (!user?.isAdmin) {
-        securityLogger.accessDenied(request, 'reports.getReportsForUser');
-        return reply.status(403).send({ error: 'Admin access required' });
-      }
-      const params = reportUserParamsSchema.parse(request.params);
-      const reports = await ReportsService.getReportsForUser(params.userId);
-      return reply.send({ reports });
-    } catch (error: unknown) {
-      if (error instanceof z.ZodError) return zodError(reply, error);
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(500).send({ error: message });
-    }
-  },
+  /** GET /api/v1/reports/user/:userId (admin only) - delegated to ReportsAdminController */
+  getReportsForUser: ReportsAdminController.getReportsForUser,
 
-  /** GET /api/v1/reports/statistics (admin only) */
-  async getStatistics(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      const user = request.user as unknown as { isAdmin?: boolean } | undefined;
-      if (!user?.isAdmin) {
-        securityLogger.accessDenied(request, 'reports.getStatistics');
-        return reply.status(403).send({ error: 'Admin access required' });
-      }
-      const statistics = await ReportsService.getStatistics();
-      return reply.send({ statistics });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(500).send({ error: message });
-    }
-  },
+  /** GET /api/v1/reports/statistics (admin only) - delegated to ReportsAdminController */
+  getStatistics: ReportsAdminController.getStatistics,
 };

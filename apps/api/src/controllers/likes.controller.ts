@@ -6,18 +6,16 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { LikesService } from '../services/likes.service.js';
-import { isDemoUserId, isDemoId } from '../utils/demoId.util.js';
+import { isDemoUserId } from '../utils/demoId.util.js';
 import { AppError } from '../lib/app-error.js';
 import {
   likeUserBodySchema,
-  likeResponseBodySchema,
   listLikesQuerySchema,
   targetUserParamsSchema,
-  responseIdParamsSchema,
   LikeUserBody,
   ListLikesQuery,
-  ResponseIdParams,
 } from './likes/likes-schemas.js';
+import { LikesResponseController } from './likes/likes-response.controller.js';
 
 function zodError(reply: FastifyReply, error: z.ZodError) {
   return reply.status(400).send({
@@ -65,39 +63,11 @@ export const LikesController = {
     }
   },
 
-  /** POST /likes/response */
-  async likeResponse(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      const body = likeResponseBodySchema.parse(request.body);
-      const userId = request.user!.id;
-      if (isDemoId(body.responseId)) return reply.status(400).send({ error: 'Cannot perform operations on demo content' });
+  /** POST /likes/response - delegated to LikesResponseController */
+  likeResponse: LikesResponseController.likeResponse,
 
-      const like = await LikesService.likeResponse(userId, body.responseId);
-      return reply.send({ like });
-    } catch (error: unknown) {
-      if (error instanceof z.ZodError) return zodError(reply, error);
-      if (error instanceof AppError) return reply.status(error.statusCode).send({ error: error.message });
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      const status = NOT_FOUND_MESSAGES.includes(message) ? 404 : 500;
-      return reply.status(status).send({ error: message });
-    }
-  },
-
-  /** DELETE /likes/response/:responseId */
-  async unlikeResponse(request: FastifyRequest<{ Params: ResponseIdParams }>, reply: FastifyReply) {
-    try {
-      const params = responseIdParamsSchema.parse(request.params);
-      const userId = request.user!.id;
-      if (isDemoId(params.responseId)) return reply.status(400).send({ error: 'Cannot perform operations on demo content' });
-
-      const result = await LikesService.unlikeResponse(userId, params.responseId);
-      return reply.send(result);
-    } catch (error: unknown) {
-      if (error instanceof z.ZodError) return zodError(reply, error);
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(404).send({ error: message });
-    }
-  },
+  /** DELETE /likes/response/:responseId - delegated to LikesResponseController */
+  unlikeResponse: LikesResponseController.unlikeResponse,
 
   /** GET /likes/received */
   async getReceivedLikes(request: FastifyRequest<{ Querystring: ListLikesQuery }>, reply: FastifyReply) {
@@ -149,23 +119,6 @@ export const LikesController = {
     }
   },
 
-  /** GET /likes/response/:responseId */
-  async getResponseLikes(
-    request: FastifyRequest<{ Params: ResponseIdParams; Querystring: ListLikesQuery }>,
-    reply: FastifyReply
-  ) {
-    try {
-      const params = responseIdParamsSchema.parse(request.params);
-      const query = listLikesQuerySchema.parse(request.query);
-      const result = await LikesService.getResponseLikes(params.responseId, {
-        limit: query.limit, offset: query.offset,
-      });
-      return reply.send(result);
-    } catch (error: unknown) {
-      if (error instanceof z.ZodError) return zodError(reply, error);
-      if (error instanceof AppError) return reply.status(error.statusCode).send({ error: error.message });
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(500).send({ error: message });
-    }
-  },
+  /** GET /likes/response/:responseId - delegated to LikesResponseController */
+  getResponseLikes: LikesResponseController.getResponseLikes,
 };
