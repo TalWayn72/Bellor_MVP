@@ -3,27 +3,35 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { MessageSquare } from 'lucide-react';
+import { chatService } from '@/api';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function CommentInputDialog({ isOpen, onClose, response, currentUser }) {
   const [commentText, setCommentText] = React.useState('');
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const createCommentMutation = useMutation({
     mutationFn: async (text) => {
-      // Log comment creation (Comment service can be added in future)
-      // Comment creation - backend service can be added later
+      const chatResult = await chatService.createOrGetChat(response.user_id);
+      await chatService.sendMessage(chatResult.chat.id, { content: text, type: 'text' });
     },
     onSuccess: () => {
       setCommentText('');
       onClose();
+      toast({ title: 'Comment sent', description: 'Your comment was sent as a message' });
       queryClient.invalidateQueries({ queryKey: ['comments', response.id] });
       queryClient.invalidateQueries({ queryKey: ['hasNewComments'] });
+    },
+    onError: () => {
+      toast({ title: 'Error', description: 'Failed to send comment', variant: 'destructive' });
     },
   });
 
@@ -40,15 +48,15 @@ export default function CommentInputDialog({ isOpen, onClose, response, currentU
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md" dir="rtl" aria-describedby="comment-input-description">
+      <DialogContent className="sm:max-w-md" dir="rtl">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold text-center mb-2 flex items-center justify-center gap-2">
             <MessageSquare className="w-5 h-5 text-blue-500" />
             כתוב תגובה
           </DialogTitle>
-          <p id="comment-input-description" className="text-sm text-gray-600 text-center">
+          <DialogDescription className="text-sm text-gray-600 text-center">
             התגובה שלך תישלח ישירות לכותב השיתוף
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">

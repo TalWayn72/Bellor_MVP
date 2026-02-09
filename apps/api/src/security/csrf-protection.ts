@@ -7,6 +7,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import crypto from 'crypto';
 import { env } from '../config/env.js';
+import { securityLogger } from './logger.js';
 
 const CSRF_COOKIE_NAME = '__bellor_csrf';
 const CSRF_HEADER_NAME = 'x-csrf-token';
@@ -84,6 +85,7 @@ export async function csrfProtection(
   // For JWT-based auth, Origin validation is the primary CSRF defense
   if (isApiCall) {
     if (!validateOrigin(request)) {
+      securityLogger.suspiciousActivity(request, 'CSRF origin validation failed');
       return reply.code(403).send({
         success: false,
         error: {
@@ -107,6 +109,7 @@ export async function csrfProtection(
   const headerToken = request.headers[CSRF_HEADER_NAME];
 
   if (!cookieToken || !headerToken || cookieToken !== headerToken) {
+    securityLogger.suspiciousActivity(request, 'CSRF token mismatch');
     return reply.code(403).send({
       success: false,
       error: {

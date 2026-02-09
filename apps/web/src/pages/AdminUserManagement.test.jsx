@@ -64,8 +64,8 @@ describe('AdminUserManagement', () => {
     expect(screen.getByTestId('user-filters')).toBeInTheDocument();
   });
 
-  it('renders user table', () => {
+  it('renders user table', async () => {
     render(<AdminUserManagement />, { wrapper: createWrapper() });
-    expect(screen.getByTestId('user-table')).toBeInTheDocument();
+    expect(await screen.findByTestId('user-table')).toBeInTheDocument();
   });
 });

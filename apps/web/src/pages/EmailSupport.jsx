@@ -9,8 +9,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import { CardsSkeleton } from '@/components/states';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function EmailSupport() {
+  const { toast } = useToast();
   const navigate = useNavigate();
   const { currentUser, isLoading } = useCurrentUser();
   const [formData, setFormData] = useState({
@@ -31,7 +33,7 @@ export default function EmailSupport() {
       return emailData;
     },
     onSuccess: () => {
-      alert('Your message has been sent! We\'ll respond within 24 hours.');
+      toast({ title: 'Success', description: "Your message has been sent! We'll respond within 24 hours." });
       setFormData({ subject: '', category: '', message: '' });
     },
   });
@@ -47,7 +49,7 @@ export default function EmailSupport() {
 
   const handleSubmit = () => {
     if (!formData.subject || !formData.category || !formData.message) {
-      alert('Please fill in all fields');
+      toast({ title: 'Validation', description: 'Please fill in all fields', variant: 'destructive' });
       return;
     }
     sendEmailMutation.mutate(formData);

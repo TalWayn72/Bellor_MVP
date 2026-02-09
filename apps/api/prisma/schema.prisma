@@ -81,6 +81,7 @@ model User {
   achievements          UserAchievement[]
   reportsMade           Report[]  @relation("Reporter")
   reportsReceived       Report[]  @relation("ReportedUser")
+  feedbacks             Feedback[]
 
   @@index([email])
   @@index([lastActiveAt])
@@ -618,6 +619,25 @@ enum PaymentStatus {
   SUCCEEDED
   FAILED
   REFUNDED
+}
+
+// ==================== FEEDBACK ====================
+
+model Feedback {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String   // 'improvement' | 'bug' | 'feature' | 'other'
+  title       String
+  description String
+  rating      Int?     // 1-5, optional
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([status])
 }
 
 // ==================== DEVICE TOKENS (Push Notifications) ====================

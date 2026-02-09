@@ -9,10 +9,12 @@ import BackButton from '@/components/navigation/BackButton';
 import { useQuery } from '@tanstack/react-query';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import VideoRecorder from '@/components/tasks/VideoRecorder';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function VideoTask() {
   const navigate = useNavigate();
   const { currentUser } = useCurrentUser();
+  const { toast } = useToast();
   const [selectedOption, setSelectedOption] = useState('Subtle energy');
   const [isPublic] = useState(true);
   const defaultMission = {
@@ -73,7 +75,7 @@ export default function VideoTask() {
       navigate(createPageUrl('SharedSpace'));
     } catch (error) {
       console.error('Error uploading video:', error);
-      alert('Error saving video');
+      toast({ title: 'Error', description: 'Error saving video', variant: 'destructive' });
     }
   };
 

@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { UsersService } from '../services/users.service.js';
 import { logger } from '../lib/logger.js';
+import { securityLogger } from '../security/logger.js';
 import { listUsersQuerySchema, updateProfileSchema, updateLanguageSchema, searchQuerySchema } from './users/users-schemas.js';
 import { UsersDataController } from './users/users-data.controller.js';
 
@@ -65,6 +66,7 @@ export class UsersController {
     try {
       if (request.user?.userId !== id) {
         logger.warn('USER_UPDATE', 'Forbidden: user trying to update another profile', { userId: id, requestUserId: request.user?.userId });
+        securityLogger.accessDenied(request, 'users.updateUserProfile');
         return reply.code(403).send({ success: false, error: { code: 'FORBIDDEN', message: 'You can only update your own profile' } });
       }
 
@@ -97,6 +99,7 @@ export class UsersController {
     try {
       const { id } = request.params;
       if (request.user?.userId !== id) {
+        securityLogger.accessDenied(request, 'users.updateUserLanguage');
         return reply.code(403).send({ success: false, error: { code: 'FORBIDDEN', message: 'You can only update your own language preference' } });
       }
       const body = updateLanguageSchema.parse(request.body);
@@ -135,6 +138,7 @@ export class UsersController {
     try {
       const { id } = request.params;
       if (request.user?.userId !== id) {
+        securityLogger.accessDenied(request, 'users.deactivateUser');
         return reply.code(403).send({ success: false, error: { code: 'FORBIDDEN', message: 'You can only deactivate your own account' } });
       }
       const result = await UsersService.deactivateUser(id);

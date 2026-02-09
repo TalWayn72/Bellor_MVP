@@ -85,8 +85,17 @@
 | **TASK-042: K8s NetworkPolicy + RBAC (Feb 8)** | 2 | 🟢 שיפור | ✅ הושלם |
 | **TASK-043: Prometheus Business Metrics (Feb 8)** | 1 | 🟢 שיפור | ✅ הושלם |
 | **TASK-044: PgBouncer Pool Sizing (Feb 8)** | 1 | 🟢 שיפור | ✅ הושלם |
+| **ISSUE-026: Radix Dialog Description Warning (Feb 8)** | 10 | 🟡 בינוני | ✅ תוקן |
+| **ISSUE-027: DrawerMenu location Object Crash (Feb 8)** | 1 | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-028: ProtectedRoute → Login instead of Welcome (Feb 8)** | 2 | 🟡 בינוני | ✅ תוקן |
+| **ISSUE-029: Admin Panel + is_admin/isAdmin Mismatch (Feb 8)** | 6 | 🔴 קריטי | ✅ תוקן |
+| **TASK-046: Security Event Reporting - Client→Server Auth Logging (Feb 8)** | 5 | 🔴 קריטי | ✅ הושלם |
+| **TASK-047: Comprehensive Security Logging Audit - 41+ Silent Events (Feb 8)** | 41 | 🔴 קריטי | ✅ הושלם |
+| **ISSUE-030: FollowingList Crash - location Object Rendered as React Child (Feb 8)** | 4 | 🔴 קריטי | ✅ תוקן |
+| **TASK-048: Fix Non-Functional Buttons + Replace alert() with Toast (Feb 9)** | 66 | 🟡 בינוני | ✅ הושלם |
+| **TASK-049: Comprehensive Testing Strategy - Critical Security Gaps (Feb 9)** | 24 | 🔴 קריטי | ✅ הושלם |
 
-**סה"כ:** 523+ פריטים זוהו → 523+ טופלו ✅
+**סה"כ:** 682+ פריטים זוהו → 682+ טופלו ✅
 
 ---
 
@@ -107,6 +116,302 @@
 | G2 | GDPR Data Export/Deletion | User data export (JSON) and account deletion endpoints | 🔴 קריטי |
 | G3 | Discovery Algorithm | Weighted scoring for match suggestions (preferences, activity, compatibility) | 🟡 בינוני |
 | G4 | Notification Preferences | Per-category notification settings (chat, matches, likes, system) | 🟢 נמוך |
+
+---
+
+## ✅ ISSUE-030: FollowingList Crash - location Object Rendered as React Child (8 פברואר 2026)
+
+**סטטוס:** ✅ תוקן | **חומרה:** 🔴 קריטי | **תאריך:** 8 February 2026
+
+**בעיה:** לחיצה על Followers בדף FollowingList גורמת לקריסה: "Objects are not valid as a React child (found: object with keys {lat, lng, city, country})".
+
+**שורש הבעיה:** שדה `location` מגיע מה-API כאובייקט `{lat, lng, city, country}` אבל 4 קומפוננטות מרנדרות אותו ישירות כטקסט JSX. פונקציית `formatLocation()` כבר קיימת ב-`userTransformer.js` אבל לא הייתה בשימוש בכל המקומות.
+
+**סריקה מקיפה:** נמצאו 7 מקומות שמרנדרים `location` - 3 תקינים (משתמשים ב-`formatLocation()`), 4 פגומים.
+
+**פתרון:**
+
+| קומפוננטה | קובץ | שינוי |
+|-----------|------|-------|
+| FollowingCard | `components/profile/FollowingCard.jsx:48` | `{userData.location}` → `{formatLocation(userData.location)}` |
+| ProfileAboutTab | `components/profile/ProfileAboutTab.jsx:34` | `{currentUser.location \|\| 'Israel'}` → `{formatLocation(currentUser.location)}` |
+| UserDetailSections | `components/admin/users/UserDetailSections.jsx:21` | `user.location \|\| 'Not set'` → `formatLocation(user.location)` |
+| DiscoverCard | `components/discover/DiscoverCard.jsx:39` | `{profile.location}` → `{formatLocation(profile.location)}` |
+
+**נוסף:** GlobalErrorBoundary חדש ב-App.jsx שתופס rendering crashes ומדווח לשרת (`render_crash` event type).
+
+**בדיקות:** FollowingList.test.jsx - 3 passed | userTransformer.test.js - 18/19 passed (1 pre-existing)
+
+---
+
+## ✅ TASK-048: Fix Non-Functional Buttons + Replace alert() with Toast (9 פברואר 2026)
+
+**סטטוס:** ✅ הושלם | **חומרה:** 🟡 בינוני | **תאריך:** 9 February 2026
+
+**בעיה:** ביקורת UX/UI גילתה 66 בעיות:
+- 2 empty mutations (comments, star mark-as-read) - פיצ'רים שלא עובדים
+- 2 placeholder features (feedback, premium) - UI בלבד ללא backend
+- 57 קריאות `alert()` במקום toast notifications
+- 4 קישורים מקולקלים/hash-based navigation
+
+**תיקונים:**
+
+| קטגוריה | פיצ'ר | שינוי |
+|----------|-------|-------|
+| **CommentInputDialog** | Comments sent as chat messages | Wired to `chatService.createOrGetChat()` + `chatService.sendMessage()` |
+| **StarSendersModal** | Mark-as-read mutation | Removed empty mutation (no backend endpoint exists) |
+| **Feedback backend** | NEW: Full feedback system | Prisma model + service + routes + frontend API client |
+| **Premium page** | Demo checkout | Removed fake `is_premium` update, replaced with toast "Payment coming soon" |
+| **Alert→Toast migration** | 57 `alert()` calls across 28 files | All replaced with `useToast()` hook and toast notifications |
+| **Dead links** | 4 broken navigation patterns | Fixed `/terms`→`/TermsOfService`, `window.open()` hash routes, `createPageUrl()` query params |
+
+**קבצים שונו (66 קבצים):**
+- **Backend:** `feedback.service.ts` (NEW), `feedback.routes.ts` (NEW), `prisma/schema.prisma` (Feedback model)
+- **Frontend API:** `feedbackService.ts` (NEW), `api/index.js` (export)
+- **Components fixed:** `CommentInputDialog.jsx`, `StarSendersModal.jsx`, `ReportCard.jsx`, `StepAuth.jsx`
+- **Pages fixed (toast):** 19 pages including Feedback, Premium, PrivacySettings, Discover, UserProfile, SafetyCenter, etc.
+- **Components fixed (toast):** MatchCard, EditProfileImages, StepDrawing, StepPhoneLogin, StepPhoneVerify, AudioRecorder, VideoRecorder, etc.
+- **Admin pages (toast):** AdminReportManagement, AdminUserManagement, AdminPreRegistration
+
+**בדיקות:** Frontend 663 passed (22 test files)
+
+**Manual steps required:**
+1. Run `npx prisma generate` after closing all Node/VSCode processes (DLL lock issue)
+2. Run `npx prisma migrate dev --name add_feedback_model` to apply schema changes
+3. Restart API server to load new routes
+
+---
+
+## ✅ TASK-049: Comprehensive Testing Strategy - Critical Security Gaps (9 פברואר 2026)
+
+**סטטוס:** ✅ הושלם | **חומרה:** 🔴 קריטי | **תאריך:** 9 February 2026
+
+**בעיה:** סקירת איכות מקיפה גילתה פערים קריטיים בבדיקות:
+- **Auth middleware** ללא בדיקות כלל → סיכון auth bypass/privilege escalation
+- **Security middleware** ללא בדיקות → סיכון XSS/injection attacks
+- **Google OAuth** ללא בדיקות → תהליך login חיצוני חשוף
+- **AuthContext (frontend)** ללא בדיקות → כל session תלוי בו
+- **API Client interceptors** ללא בדיקות → token refresh לא מאומת
+- **CI מתעלם מכשלונות frontend** (`continue-on-error: true`)
+- **אין pre-commit hooks** → קוד עם שגיאות נכנס ל-repo
+- **בדיקות frontend הן scaffolds** → 63 קבצים בודקים רק "renders without crashing"
+
+**פתרון - 3 Phases:**
+
+### Phase 0: Developer Workflow Guards
+| משימה | תיקון |
+|-------|-------|
+| CI fix | הסרת `continue-on-error: true` מ-`.github/workflows/ci.yml:128` |
+| Pre-commit hooks | Husky + lint-staged - ESLint + TypeScript check על קבצים שהשתנו |
+| Frontend coverage | הוספת `coverage.thresholds` (40%) ל-`apps/web/vitest.config.js` |
+
+### Phase 1: Backend Critical Gaps (9 קבצי בדיקות חדשים)
+| קובץ | מספר בדיקות | מה נבדק |
+|------|-------------|---------|
+| `auth.middleware.test.ts` | 22 | authMiddleware, optionalAuth, adminMiddleware - token validation, 401/403 handling |
+| `security.middleware.test.ts` | 62 | XSS sanitization, prototype pollution, injection detection, request ID |
+| `security/input-sanitizer.test.ts` | ~80 | Script tags, event handlers, SQL/NoSQL injection, command injection |
+| `security/csrf-protection.test.ts` | ~40 | Token generation/validation, Origin/Referer checks |
+| `security/auth-hardening.test.ts` | ~30 | Brute force protection, IP tracking, lockout expiry |
+| `lib/email.test.ts` | ~20 | sendEmail, circuit breaker, Resend API errors |
+| `services/google-oauth.service.test.ts` | ~25 | handleCallback, new user creation, account linking, blocked users |
+| `services/chat.service.test.ts` | ~20 | getUserChats, getChatById, createOrGetChat |
+
+### Phase 2: Frontend Critical Gaps (9 קבצי בדיקות חדשים)
+| קובץ | מספר בדיקות | מה נבדק |
+|------|-------------|---------|
+| `lib/AuthContext.test.jsx` | 36 | login, register, logout, checkUserAuth, token refresh, error states |
+| `components/providers/UserProvider.test.jsx` | 25 | initial fetch, updateUser, refreshUser, 401 handling, memory leaks |
+| `api/client/apiClient.test.ts` | 68 | Interceptors, token refresh, transformation, network errors (החליף קובץ ישן שהיה שגוי) |
+| `security/securityEventReporter.test.ts` | ~30 | reportAuthRedirect, reportAdminDenied, reportRenderCrash |
+| `security/input-sanitizer.test.ts` | ~40 | HTML stripping, entity encoding, nested objects |
+| `security/paste-guard.test.ts` | ~20 | Block HTML paste, allow plain text, detect malicious clipboard |
+| `components/secure/SecureTextInput.test.tsx` | ~30 | Malicious input blocking, paste/drop prevention, character limits |
+| `components/secure/SecureTextArea.test.tsx` | ~25 | Same as SecureTextInput for textarea |
+| `hooks/useSecureInput.test.ts` | ~10 | Sanitization logic, isBlocked state, field type configs |
+
+### Phase 3: Upgrade Scaffold Tests to Behavioral (6 קבצים שודרגו)
+| קובץ | מה נוסף |
+|------|---------|
+| `pages/Login.test.jsx` | Form submission, validation, error display, Google OAuth button, mode toggle |
+| `pages/OAuthCallback.test.jsx` | Code extraction, success redirect, error handling, returnUrl logic |
+| `pages/Welcome.test.jsx` | Navigation to login/register, branding display |
+| `pages/Profile.test.jsx` | Tab switching, stats display, edit profile link, loading/error states |
+| `pages/Discover.test.jsx` | Card actions (like/pass), empty state, API errors |
+| `pages/PrivateChat.test.jsx` | Message send/receive, typing indicator, WebSocket integration |
+
+**קבצים שונו:**
+- **Backend:** 9 קבצי בדיקות חדשים, `.github/workflows/ci.yml`, `package.json` (Husky)
+- **Frontend:** 9 קבצי בדיקות חדשים, 6 קבצים משודרגים, `vitest.config.js`
+- **Infrastructure:** `.husky/pre-commit` (NEW), `.lintstagedrc.json` (NEW)
+
+**בדיקות:**
+- Backend: **54 קבצים, 1034 בדיקות** - הכל עובר ✅
+- Frontend: **78 קבצים, 974 בדיקות** (957 עוברות, 17 כשלונות קיימים מלפני)
+- סה"כ: **132 קבצי בדיקות, 2008 בדיקות**
+
+**סטטוס Coverage:**
+- Backend: 75% lines (was ~72%)
+- Frontend: Coverage tracking enabled (baseline: 40%)
+
+---
+
+## ✅ TASK-047: Comprehensive Security Logging Audit - 41+ Silent Events (8 פברואר 2026)
+
+**סטטוס:** ✅ הושלם | **חומרה:** 🔴 קריטי | **תאריך:** 8 February 2026
+
+**בעיה:** ביקורת מקיפה גילתה 41+ אירועי אבטחה שלא נרשמו בלוגים בכל ה-codebase.
+הפניות שקטות, token clears, admin/ownership checks, CSRF failures, OAuth errors - כולם עם console-only logging או ללא logging כלל.
+
+**סריקה כיסתה:**
+- **Frontend:** 12+ אירועים לא מדווחים (apiClient token clears, AuthContext failures, UserProvider failures, OAuthCallback, PrivacySettings)
+- **Backend:** 29+ אירועים לא מדווחים (admin checks in 7 controllers, ownership checks, CSRF failures, 401 responses)
+
+**פתרון - שכבות:**
+
+| שכבה | קבצים | אירועים שתוקנו |
+|-------|--------|----------------|
+| **Central auth error** | `token-validation.ts` | 11+ backend 401/403 responses now logged via `sendAuthError(request)` |
+| **Auth middleware** | `auth.middleware.ts` | All `sendAuthError()` calls now pass `request` for logging |
+| **Frontend auth contexts** | `AuthContext.jsx`, `UserProvider.jsx` | `reportAuthCheckFailed()` + `reportTokenCleared()` on all catch blocks |
+| **Frontend API client** | `apiClient.ts` | Reports token clear + redirect before clearing tokens |
+| **OAuth callback** | `OAuthCallback.jsx` | Reports auth failures to backend |
+| **Security event reporter** | `securityEventReporter.ts` | New event types: `token_cleared`, `auth_check_failed` |
+| **Backend endpoint** | `security-events.routes.ts` | Accepts 4 event types from frontend |
+| **Reports controller** | `reports.controller.ts` | `securityLogger.accessDenied()` on 7 admin checks |
+| **Stories controller** | `stories.controller.ts` | `securityLogger.accessDenied()` on 7 auth/admin checks |
+| **Device tokens controller** | `device-tokens.controller.ts` | `securityLogger.accessDenied()` on 2 admin checks |
+| **Users controller** | `users.controller.ts` | `securityLogger.accessDenied()` on 3 ownership checks |
+| **Users data controller** | `users-data.controller.ts` | `securityLogger.accessDenied()` on 3 ownership checks |
+| **Responses controller** | `responses.controller.ts` | `securityLogger.accessDenied()` on 1 ownership check |
+| **Subscriptions admin** | `subscriptions-admin.controller.ts` | `securityLogger.accessDenied()` on 1 admin check |
+| **CSRF protection** | `csrf-protection.ts` | `securityLogger.suspiciousActivity()` on 2 CSRF failures |
+
+**בדיקות:** Backend 651 passed | Frontend 22 passed (ProtectedRoute + authFieldValidator + Welcome)
+
+---
+
+## ✅ TASK-046: Security Event Reporting - Client→Server Auth Logging (8 פברואר 2026)
+
+**סטטוס:** ✅ הושלם | **חומרה:** 🔴 קריטי | **תאריך:** 8 February 2026
+
+**בעיה:** הפניות auth שקטות (ProtectedRoute redirects) לא נרשמו בלוגים של השרת.
+כשמשתמש admin הופנה בגלל באג field naming, לא היה שום trace בלוגים. רק `console.warn` בדפדפן שנעלם עם סגירת הטאב.
+
+**שורש הבעיה:**
+1. **ProtectedRoute** - השתמש רק ב-`console.warn(DEV)` → לא נרשם בשום מקום קבוע
+2. **adminMiddleware** - החזיר 403 בלי לקרוא ל-`securityLogger.accessDenied()`
+3. **אין מנגנון** שמדווח אירועי אבטחה מ-frontend ל-backend
+
+**פתרון:**
+1. **Backend endpoint חדש** - `POST /api/v1/security/client-event` - מקבל אירועי אבטחה מ-frontend
+2. **Frontend reporter** - `securityEventReporter.ts` - שולח auth redirects לשרת (fire-and-forget)
+3. **ProtectedRoute משופר** - מדווח כל redirect לשרת עם הנתיב המנותב, נתיב היעד, ופרטי המשתמש
+4. **adminMiddleware** - מדווח עכשיו access denied דרך `securityLogger.accessDenied()`
+5. **Security event types חדשים** - `CLIENT_AUTH_REDIRECT`, `CLIENT_ADMIN_DENIED`
+
+**קבצים:**
+- `apps/api/src/routes/v1/security-events.routes.ts` - NEW: endpoint
+- `apps/api/src/routes/v1/index.ts` - registered route
+- `apps/api/src/middleware/auth.middleware.ts` - added securityLogger to adminMiddleware
+- `apps/api/src/security/logger.ts` - new convenience methods
+- `apps/api/src/config/security.config.ts` - new event types
+- `apps/web/src/security/securityEventReporter.ts` - NEW: frontend reporter
+- `apps/web/src/components/auth/ProtectedRoute.jsx` - integrated reporting
+
+**בדיקות:** ProtectedRoute.test.jsx (9 tests - 3 new for reporting)
+
+---
+
+## ✅ ISSUE-029: Admin Panel Redirect + is_admin/isAdmin Mismatch (8 פברואר 2026)
+
+**סטטוס:** ✅ תוקן (תיקון שני - סופי) | **חומרה:** 🔴 קריטי | **תאריך:** 8 February 2026
+
+**בעיה:** לחיצה על Admin Panel בהגדרות מובילה ל-`/Welcome` במקום ל-AdminDashboard.
+
+**שורשי הבעיה (שורש אמיתי):**
+- `apiClient.ts:51` - Response interceptor ממיר **כל** מפתחות ל-snake_case (`transformKeysToSnakeCase`)
+- Backend שולח `isAdmin: true` (camelCase מ-Prisma)
+- אחרי ה-interceptor → `is_admin: true` (snake_case)
+- `ProtectedRoute.jsx:32` בדק `user?.isAdmin` (camelCase) → תמיד `undefined` → הפניה ל-`/`
+- Settings.jsx בדק נכון `currentUser?.is_admin` → Admin Options הופיע, אבל הלחיצה נכשלה
+
+**תיקון ראשון (חלקי - לא עבד):**
+1. הוספת נרמול ב-`userTransformer.js` - אבל AuthContext לא קורא ל-`transformUser()`
+2. עדכון `/Login` ל-`/Welcome`
+3. הוספת dev logging
+
+**תיקון שני (סופי):**
+1. **ProtectedRoute.jsx:32** - שינוי מ-`user?.isAdmin` ל-`user?.is_admin` (התיקון הקריטי)
+2. **AuthContext.jsx** - הוספת `validateAuthUserFields()` לאיתור אוטומטי של חוסר התאמת שדות
+3. **authFieldValidator.js** - מנגנון חדש לאיתור אוטומטי של camelCase/snake_case mismatches
+4. **ProtectedRoute.test.jsx** - תיקון mocks מ-`isAdmin` ל-`is_admin` + regression test חדש
+
+**קבצים:**
+- `apps/web/src/components/auth/ProtectedRoute.jsx:32` - is_admin fix
+- `apps/web/src/lib/AuthContext.jsx` - validateAuthUserFields integration
+- `apps/web/src/utils/authFieldValidator.js` - NEW: dev-time field naming validator
+- `apps/web/src/utils/authFieldValidator.test.js` - NEW: 8 tests
+- `apps/web/src/components/auth/ProtectedRoute.test.jsx` - fixed mocks + regression test
+
+**בדיקות:** ProtectedRoute.test.jsx (6 tests), authFieldValidator.test.js (8 tests)
+
+---
+
+## ✅ ISSUE-028: ProtectedRoute Redirects to Login Instead of Welcome (8 פברואר 2026)
+
+**סטטוס:** ✅ תוקן | **חומרה:** 🟡 בינוני | **תאריך:** 8 February 2026
+
+**בעיה:** משתמשים חדשים/לא מחוברים שנכנסים לאתר מופנים ישירות ל-`/Login` במקום ל-`/Welcome`.
+**שורש:** `ProtectedRoute.jsx:26` - הניתוב הקשיח `<Navigate to="/Login" replace />`.
+**פתרון:**
+1. שינוי ניתוב ב-`ProtectedRoute.jsx` מ-`/Login` ל-`/Welcome`
+2. הוספת כפתור "Sign In" בדף Welcome למשתמשים חוזרים
+**קבצים:** `apps/web/src/components/auth/ProtectedRoute.jsx`, `apps/web/src/pages/Welcome.jsx`
+**בדיקות:** `ProtectedRoute.test.tsx`, `Welcome.test.tsx`
+
+---
+
+## ✅ ISSUE-027: DrawerMenu location Object Crash (8 פברואר 2026)
+
+**סטטוס:** ✅ תוקן | **חומרה:** 🔴 קריטי | **תאריך:** 8 February 2026
+
+**בעיה:** לחיצה על תפריט המבורגר ב-SharedSpace גורמת ל-crash עם השגיאה:
+`Objects are not valid as a React child (found: object with keys (city))`
+**שורש:** `DrawerMenu.jsx:51` - `user.location` הוא אובייקט `{city: "..."}` שרונדר ישירות כ-React child.
+**פתרון:** שימוש ב-`formatLocation(user.location)` במקום `user.location` ישירות.
+**קבצים:** `apps/web/src/components/navigation/DrawerMenu.jsx`
+**בדיקות:** `DrawerMenu.test.tsx`
+
+---
+
+## ✅ ISSUE-026: Radix Dialog Description Warning - Repeating Console Error (8 פברואר 2026)
+
+**סטטוס:** ✅ תוקן | **חומרה:** 🟡 בינוני | **תאריך:** 8 February 2026
+
+**בעיה:** אזהרת Radix UI חוזרת בקונסול:
+`Warning: Missing 'Description' or 'aria-describedby={undefined}' for {DialogContent}`
+
+**שורש הבעיה:**
+1. **dialog.jsx wrapper** - השתמש ב-`<span>` רגיל כ-fallback לנגישות במקום `<DialogPrimitive.Description>`. Radix UI בודק נוכחות של קומפוננטת `Description` ב-context, לא רק `aria-describedby` attribute
+2. **10 קומפוננטים** - השתמשו ב-`aria-describedby` ידני עם `<p>` או `<span>` במקום `<DialogDescription>` של Radix
+
+**פתרון:**
+1. **dialog.jsx** - הוחלף `<span>` ב-`<DialogPrimitive.Description>`, הוסרה לוגיקת `useId()` ו-`ariaDescribedBy` מיותרת
+2. **10 קומפוננטים תוקנו** - הוחלפו `<p>`/`<span>` ידניים ב-`<DialogDescription>`, הוסר `aria-describedby` ידני
+
+**קבצים שתוקנו:**
+- `apps/web/src/components/ui/dialog.jsx` - wrapper (DialogContent + DialogContentFullScreen)
+- `apps/web/src/components/feed/DailyTaskSelector.jsx`
+- `apps/web/src/components/feed/HeartResponseSelector.jsx`
+- `apps/web/src/components/feed/StarSendersModal.jsx`
+- `apps/web/src/components/user/UserBioDialog.jsx`
+- `apps/web/src/components/comments/CommentInputDialog.jsx`
+- `apps/web/src/components/stories/StoryViewer.jsx`
+- `apps/web/src/components/admin/users/UserDetailModal.jsx`
+- `apps/web/src/components/ui/command.jsx`
+- `apps/web/src/pages/Profile.jsx`
+- `apps/web/src/pages/UserProfile.jsx`
 
 ---
 
@@ -2242,4 +2547,14 @@ cd apps/api && npm run build
 | 8 פברואר 2026 | **TASK-009: Architecture Diagrams (Mermaid)** | ✅ 8 diagrams in docs/ARCHITECTURE.md |
 | 8 פברואר 2026 | **TASK-012: Prometheus Alert Rules** | ✅ P1-P4 severity tiers, WebSocket, Database alerts |
 | 8 פברואר 2026 | **TASK-013: PII Data Retention Policy** | ✅ GDPR/CCPA compliance, retention schedule, deletion procedures |
+| 8 פברואר 2026 | **ISSUE-026: Radix Dialog Description Warning** | ✅ Fixed wrapper + 10 components using DialogDescription properly |
+| 8 פברואר 2026 | **ISSUE-027: DrawerMenu location Object Crash** | ✅ formatLocation() instead of raw object rendering |
+| 8 פברואר 2026 | **ISSUE-028: ProtectedRoute → Welcome** | ✅ Redirect to /Welcome + added Sign In button |
+| 8 פברואר 2026 | **ISSUE-029: Admin Panel + isAdmin mismatch** | ✅ userTransformer normalization + 5 /Login→/Welcome redirects |
+| 8 פברואר 2026 | **ISSUE-029 (reopened): ProtectedRoute still used camelCase** | ✅ ProtectedRoute.jsx is_admin fix + authFieldValidator diagnostic tool |
+| 8 פברואר 2026 | **TASK-046: Security Event Reporting** | ✅ Client→Server auth event logging + adminMiddleware securityLogger |
+| 8 פברואר 2026 | **TASK-047: Comprehensive Security Logging Audit** | ✅ 41+ silent security events now logged (frontend + backend) |
+| 8 פברואר 2026 | **ISSUE-030: FollowingList location Crash** | ✅ formatLocation() in 4 components + GlobalErrorBoundary |
+| 9 פברואר 2026 | **TASK-048: Fix Non-Functional Buttons + alert()→toast** | ✅ 66 fixes: CommentInputDialog, Feedback system, Premium demo, 57 toast replacements, 4 dead links |
+| 9 פברואר 2026 | **TASK-049: Comprehensive Testing Strategy** | ✅ 24 test files: Auth middleware, Security, OAuth, AuthContext, API client, Secure components, behavioral page tests + CI fix + Husky |
 

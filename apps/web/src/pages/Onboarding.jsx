@@ -20,8 +20,10 @@ import StepVerification from '@/components/onboarding/steps/StepVerification';
 import StepSketchMode from '@/components/onboarding/steps/StepSketchMode';
 import StepDrawing from '@/components/onboarding/steps/StepDrawing';
 import StepFirstQuestion from '@/components/onboarding/steps/StepFirstQuestion';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function Onboarding() {
+  const { toast } = useToast();
   const navigate = useNavigate();
   const { user: authUser, isAuthenticated } = useAuth();
   const searchParams = new URLSearchParams(window.location.search);
@@ -85,12 +87,12 @@ export default function Onboarding() {
       }
       navigate(createPageUrl('Onboarding') + '?step=' + (currentStep + 1));
     } else {
-      if (!authUser) { alert('Please log in to complete onboarding'); return; }
-      if (!authUser.id) { alert('User ID not found. Please log out and log in again.'); return; }
+      if (!authUser) { toast({ title: 'Error', description: 'Please log in to complete onboarding', variant: 'destructive' }); return; }
+      if (!authUser.id) { toast({ title: 'Error', description: 'User ID not found. Please log out and log in again.', variant: 'destructive' }); return; }
       setIsLoading(true);
       try {
         const dateValidation = validateDateOfBirth(formData.date_of_birth);
-        if (!dateValidation.isValid) { alert(`Invalid date of birth: ${dateValidation.error}`); setIsLoading(false); return; }
+        if (!dateValidation.isValid) { toast({ title: 'Validation', description: `Invalid date of birth: ${dateValidation.error}`, variant: 'destructive' }); setIsLoading(false); return; }
         const lookingForArray = formData.looking_for ? (Array.isArray(formData.looking_for) ? formData.looking_for : [formData.looking_for]) : [];
         const userData = {
           nickname: formData.nickname, birthDate: formData.date_of_birth, gender: formData.gender, lookingFor: lookingForArray,
@@ -102,7 +104,7 @@ export default function Onboarding() {
         navigate(createPageUrl('SharedSpace'));
       } catch (error) {
         const errorMessage = error?.response?.data?.error?.message || error?.response?.data?.message || error?.message || 'Error saving data. Please try again.';
-        alert(errorMessage);
+        toast({ title: 'Error', description: errorMessage, variant: 'destructive' });
       } finally { setIsLoading(false); }
     }
   };

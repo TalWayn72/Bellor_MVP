@@ -10,11 +10,13 @@ import { Badge } from '@/components/ui/badge';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import { CardsSkeleton } from '@/components/states';
 import ReferralStats from '@/components/referral/ReferralStats';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function ReferralProgram() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { currentUser, isLoading } = useCurrentUser();
+  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [copied, setCopied] = useState(false);
   const [localReferrals, setLocalReferrals] = useState([]);
@@ -39,7 +41,7 @@ export default function ReferralProgram() {
       setLocalReferrals(prev => [newReferral, ...prev]);
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
       setEmail('');
-      alert('Referral sent! 🎉');
+      toast({ title: 'Success', description: 'Referral sent!' });
     },
   });
 
@@ -53,7 +55,7 @@ export default function ReferralProgram() {
 
   const handleSendReferral = () => {
     if (!email.trim()) return;
-    if (!email.includes('@')) { alert('Please enter a valid email'); return; }
+    if (!email.includes('@')) { toast({ title: 'Validation', description: 'Please enter a valid email', variant: 'destructive' }); return; }
     sendReferralMutation.mutate(email);
   };
 

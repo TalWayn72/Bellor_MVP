@@ -6,9 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import LayoutAdmin from '../components/admin/LayoutAdmin';
 import { ListSkeleton } from '@/components/states';
 import PreRegTable from '@/components/admin/PreRegTable';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function AdminPreRegistration() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [emailMessage, setEmailMessage] = useState('Hello! Your registration to Bellor has been received. We will update you when the app is available.');
   const [whatsappMessage, setWhatsappMessage] = useState('Hi! Your registration to Bellor has been received 🎉 We will update you soon!');
 
@@ -40,7 +42,7 @@ export default function AdminPreRegistration() {
   };
 
   const handleOpenWhatsApp = (referral) => {
-    if (!referral.phone_number) { alert('No phone number for this user'); return; }
+    if (!referral.phone_number) { toast({ title: 'Validation', description: 'No phone number for this user', variant: 'destructive' }); return; }
     const cleanPhone = referral.phone_number.replace(/\D/g, '');
     const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(whatsappMessage)}`;
     window.open(url, '_blank');

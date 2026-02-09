@@ -2,8 +2,11 @@ import React from 'react';
 import { Plus, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { uploadService } from '@/api';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function EditProfileImages({ images, onChange }) {
+  const { toast } = useToast();
+
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -13,7 +16,7 @@ export default function EditProfileImages({ images, onChange }) {
       onChange([...images, result.url]);
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Error uploading image');
+      toast({ title: 'Error', description: 'Error uploading image', variant: 'destructive' });
     }
   };
 

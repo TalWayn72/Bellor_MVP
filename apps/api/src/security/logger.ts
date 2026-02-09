@@ -119,4 +119,12 @@ export const securityLogger = {
   passwordChanged(request: FastifyRequest, userId: string) {
     logSecurityEvent(SECURITY_LOG_EVENTS.AUTH_PASSWORD_CHANGE, request, { userId });
   },
+
+  clientAuthRedirect(request: FastifyRequest, details: Record<string, unknown>) {
+    logSecurityEvent(SECURITY_LOG_EVENTS.CLIENT_AUTH_REDIRECT, request, details);
+  },
+
+  clientAdminDenied(request: FastifyRequest, details: Record<string, unknown>) {
+    logSecurityEvent(SECURITY_LOG_EVENTS.CLIENT_ADMIN_DENIED, request, details);
+  },
 };

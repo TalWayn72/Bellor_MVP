@@ -6,9 +6,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import LayoutAdmin from '../components/admin/LayoutAdmin';
 import { ListSkeleton, EmptyState } from '@/components/states';
 import ReportCard from '@/components/admin/reports/ReportCard';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function AdminReportManagement() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [selectedReport, setSelectedReport] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
   const [reportedContent, setReportedContent] = useState({});
@@ -36,7 +38,7 @@ export default function AdminReportManagement() {
 
   const blockUserMutation = useMutation({
     mutationFn: async ({ userId }) => await userService.blockUser(userId),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-reports'] }); alert('User blocked successfully'); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-reports'] }); toast({ title: 'Success', description: 'User blocked successfully' }); },
   });
 
   const deleteContentMutation = useMutation({
@@ -44,8 +46,8 @@ export default function AdminReportManagement() {
       if (contentType === 'response') return await responseService.deleteResponse(contentId);
       if (contentType === 'message') return await adminService.deleteMessage(contentId);
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-reports'] }); alert('Content deleted successfully'); },
-    onError: (error) => { alert(`Failed to delete content: ${error?.message || 'Unknown error'}`); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-reports'] }); toast({ title: 'Success', description: 'Content deleted successfully' }); },
+    onError: (error) => { toast({ title: 'Error', description: `Failed to delete content: ${error?.message || 'Unknown error'}`, variant: 'destructive' }); },
   });
 
   const filteredReports = reports.filter(r => filterStatus === 'all' || r.status === filterStatus);

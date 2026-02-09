@@ -7,7 +7,7 @@ import BackButton from '@/components/navigation/BackButton';
 import { Button } from '@/components/ui/button';
 import { Card, CardImage } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { createPageUrl } from '@/utils';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
@@ -98,12 +98,12 @@ export default function Profile() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={!!selectedResponse} onOpenChange={() => setSelectedResponse(null)}>
-        <DialogContent className="max-w-sm" aria-describedby="delete-post-description">
+        <DialogContent className="max-w-sm">
           <DialogHeader className="text-center">
             <div className="flex justify-center mb-4"><Avatar size="lg" className="bg-destructive/10"><AvatarFallback className="bg-transparent"><Trash2 className="w-6 h-6 text-destructive" /></AvatarFallback></Avatar></div>
             <DialogTitle>Delete Post?</DialogTitle>
           </DialogHeader>
-          <p id="delete-post-description" className="text-sm text-muted-foreground text-center">This action cannot be undone. Your post will be permanently deleted.</p>
+          <DialogDescription className="text-sm text-muted-foreground text-center">This action cannot be undone. Your post will be permanently deleted.</DialogDescription>
           <DialogFooter className="flex-row gap-3 sm:justify-center">
             <Button onClick={() => setSelectedResponse(null)} variant="outline" size="lg" className="flex-1">Cancel</Button>
             <Button onClick={() => deleteMutation.mutate(selectedResponse?.id)} variant="destructive" size="lg" className="flex-1" loading={deleteMutation.isPending}>Delete</Button>

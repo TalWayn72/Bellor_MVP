@@ -1,16 +1,16 @@
 import React from 'react';
 import { likeService, userService } from '@/api';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Star } from 'lucide-react';
 
 export default function StarSendersModal({ isOpen, onClose, response, currentUser }) {
-  const queryClient = useQueryClient();
 
   // Fetch all star senders for this response
   const { data: starLikes = [], isLoading } = useQuery({
@@ -49,40 +49,21 @@ export default function StarSendersModal({ isOpen, onClose, response, currentUse
     enabled: starLikes?.length > 0,
   });
 
-  // Mark stars as read when modal opens (logging only - no backend service)
-  const markAsReadMutation = useMutation({
-    mutationFn: async () => {
-      if (!response?.id || !currentUser?.id) return;
-
-      // StarReadReceipt tracking - backend service can be added later
-    },
-    onSuccess: () => {
-      // Invalidate queries to refresh new badge
-      queryClient.invalidateQueries({ queryKey: ['starReadReceipt'] });
-    }
-  });
-
-  React.useEffect(() => {
-    if (isOpen && response?.id && currentUser?.id === response?.user_id) {
-      markAsReadMutation.mutate();
-    }
-  }, [isOpen, response?.id, currentUser?.id]);
-
   if (!response || currentUser?.id !== response.user_id) {
     return null;
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md" dir="rtl" aria-describedby="star-senders-description">
+      <DialogContent className="sm:max-w-md" dir="rtl">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold text-center mb-2 flex items-center justify-center gap-2">
             <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
             מי שלח לך כוכב
           </DialogTitle>
-          <p id="star-senders-description" className="text-sm text-gray-600 text-center">
+          <DialogDescription className="text-sm text-gray-600 text-center">
             משתמשים שנתנו פידבק חיובי לפוסט שלך
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <div className="mt-4 space-y-3 max-h-96 overflow-y-auto">

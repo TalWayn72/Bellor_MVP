@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -19,6 +19,11 @@ vi.mock('../components/providers/ThemeProvider', () => ({
 }));
 
 import LiveChat from './LiveChat';
+
+// JSDOM does not implement scrollIntoView - stub it once
+beforeAll(() => {
+  Element.prototype.scrollIntoView = function () {};
+});
 
 const createWrapper = () => {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });

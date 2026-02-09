@@ -4,8 +4,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Mic, ArrowRight, Eye } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function AudioRecorder({ onShare }) {
+  const { toast } = useToast();
   const [isRecording, setIsRecording] = useState(false);
   const [hasRecording, setHasRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState(null);
@@ -40,7 +42,7 @@ export default function AudioRecorder({ onShare }) {
       setIsRecording(true);
     } catch (error) {
       console.error('Error accessing microphone:', error);
-      alert('Unable to access microphone');
+      toast({ title: 'Error', description: 'Unable to access microphone', variant: 'destructive' });
     }
   };
 

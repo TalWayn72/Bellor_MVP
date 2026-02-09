@@ -9,10 +9,12 @@ import BackButton from '@/components/navigation/BackButton';
 import { useQuery } from '@tanstack/react-query';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import AudioRecorder from '@/components/tasks/AudioRecorder';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function AudioTask() {
   const navigate = useNavigate();
   const { currentUser } = useCurrentUser();
+  const { toast } = useToast();
 
   const { data: todayMission, isLoading: missionLoading } = useQuery({
     queryKey: ['todayMission'],
@@ -74,7 +76,7 @@ export default function AudioTask() {
       navigate(createPageUrl('SharedSpace'));
     } catch (error) {
       console.error('Error uploading audio:', error);
-      alert('Error saving recording');
+      toast({ title: 'Error', description: 'Error saving recording', variant: 'destructive' });
     }
   };
 

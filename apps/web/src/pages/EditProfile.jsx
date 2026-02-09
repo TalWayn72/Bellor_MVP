@@ -8,6 +8,7 @@ import BackButton from '@/components/navigation/BackButton';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import EditProfileImages from '@/components/profile/EditProfileImages';
 import EditProfileForm from '@/components/profile/EditProfileForm';
+import { useToast } from '@/components/ui/use-toast';
 
 function getLocationString(location) {
   if (!location) return '';
@@ -38,6 +39,7 @@ function getLookingFor(lookingFor) {
 }
 
 export default function EditProfile() {
+  const { toast } = useToast();
   const navigate = useNavigate();
   const { currentUser, isLoading: userLoading, updateUser } = useCurrentUser();
   const [formData, setFormData] = useState({
@@ -91,7 +93,7 @@ export default function EditProfile() {
       navigate(createPageUrl('Profile'));
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Error updating profile');
+      toast({ title: 'Error', description: 'Error updating profile', variant: 'destructive' });
     } finally {
       setIsSaving(false);
     }

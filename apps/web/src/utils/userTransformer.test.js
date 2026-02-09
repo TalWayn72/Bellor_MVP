@@ -72,7 +72,7 @@ describe('userTransformer', () => {
     it('should preserve existing nickname', () => {
       const user = { nickname: 'Johnny', first_name: 'John' };
       const result = transformUser(user);
-      expect(result.nickname).toBe('John'); // first_name takes precedence
+      expect(result.nickname).toBe('Johnny'); // existing nickname takes precedence
     });
 
     it('should calculate age from birth_date', () => {

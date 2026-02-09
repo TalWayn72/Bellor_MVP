@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { userService } from '@/api';
 import { useQuery } from '@tanstack/react-query';
 import { MapPin, User, ExternalLink, MessageCircle } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -69,10 +69,10 @@ export default function UserBioDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md" aria-describedby="user-bio-description">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="sr-only">User Profile</DialogTitle>
-          <p id="user-bio-description" className="sr-only">View user profile and bio information</p>
+          <DialogDescription className="sr-only">View user profile and bio information</DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col items-center text-center py-4">

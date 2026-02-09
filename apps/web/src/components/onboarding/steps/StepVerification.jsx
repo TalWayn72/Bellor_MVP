@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import ProgressBar from '@/components/onboarding/ProgressBar';
 import { TOTAL_STEPS } from '@/components/onboarding/utils/onboardingUtils';
+import { useToast } from '@/components/ui/use-toast';
 
 const CameraIcon = ({ className }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -12,6 +13,7 @@ const CameraIcon = ({ className }) => (
 );
 
 export default function StepVerification({ formData, setFormData, handleNext, handleBack, subStep }) {
+  const { toast } = useToast();
   const [verificationStream, setVerificationStream] = useState(null);
   const [verificationPhoto, setVerificationPhoto] = useState(null);
   const videoRef = useRef(null);
@@ -23,7 +25,7 @@ export default function StepVerification({ formData, setFormData, handleNext, ha
       if (videoRef.current) videoRef.current.srcObject = stream;
     } catch (error) {
       console.error('Error accessing camera:', error);
-      alert('Cannot access camera');
+      toast({ title: 'Error', description: 'Cannot access camera', variant: 'destructive' });
     }
   };
 

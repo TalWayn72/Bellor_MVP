@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -108,7 +108,7 @@ export default function Login() {
           </div>
           <div className="mt-4 pt-4 border-t border-muted"><Button type="button" variant="outline" onClick={() => navigate(createPageUrl('Welcome'))} className="w-full h-12"><User className="w-5 h-5 mr-2" />Continue as Guest</Button></div>
         </div>
-        <p className="text-center text-sm text-white/70 mt-6">By continuing, you agree to our{' '}<a href="/TermsOfService" className="underline hover:text-white">Terms of Service</a>{' '}and{' '}<a href="/PrivacyPolicy" className="underline hover:text-white">Privacy Policy</a></p>
+        <p className="text-center text-sm text-white/70 mt-6">By continuing, you agree to our{' '}<Link to="/TermsOfService" className="underline hover:text-white">Terms of Service</Link>{' '}and{' '}<Link to="/PrivacyPolicy" className="underline hover:text-white">Privacy Policy</Link></p>
       </div>
     </div>
   );

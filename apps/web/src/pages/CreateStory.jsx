@@ -6,6 +6,7 @@ import { LoadingState } from '@/components/states';
 import { createPageUrl } from '@/utils';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import StoryPreview from '@/components/stories/StoryPreview';
+import { useToast } from '@/components/ui/use-toast';
 
 const colors = [
   'from-purple-500 to-pink-500',
@@ -19,6 +20,7 @@ const colors = [
 export default function CreateStory() {
   const navigate = useNavigate();
   const { currentUser, isLoading } = useCurrentUser();
+  const { toast } = useToast();
   const [storyType, setStoryType] = useState('text');
   const [textContent, setTextContent] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
@@ -59,7 +61,7 @@ export default function CreateStory() {
         });
       } catch (error) {
         console.error('Error uploading image:', error);
-        alert('Error uploading image');
+        toast({ title: 'Error', description: 'Error uploading image', variant: 'destructive' });
       }
     }
   };

@@ -122,4 +122,7 @@ export const SECURITY_LOG_EVENTS = {
   RATE_LIMIT_EXCEEDED: 'rate.limit.exceeded',
   ACCESS_DENIED: 'access.denied',
   SUSPICIOUS_ACTIVITY: 'suspicious.activity',
+  // Client-side auth events reported from frontend
+  CLIENT_AUTH_REDIRECT: 'client.auth.redirect',
+  CLIENT_ADMIN_DENIED: 'client.admin.denied',
 } as const;

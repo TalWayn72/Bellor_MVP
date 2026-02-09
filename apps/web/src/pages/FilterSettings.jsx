@@ -7,8 +7,10 @@ import { createPageUrl } from '@/utils';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import BackButton from '@/components/navigation/BackButton';
 import FilterSliders from '@/components/settings/FilterSliders';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function FilterSettings() {
+  const { toast } = useToast();
   const navigate = useNavigate();
   const { currentUser, isLoading, updateUser } = useCurrentUser();
   const [ageRange, setAgeRange] = useState([18, 35]);
@@ -47,11 +49,11 @@ export default function FilterSettings() {
       };
       await userService.updateUser(currentUser.id, updateData);
       updateUser(updateData);
-      alert('Preferences saved successfully!');
+      toast({ title: 'Success', description: 'Preferences saved successfully!' });
       navigate(createPageUrl('SharedSpace'));
     } catch (error) {
       console.error('Error saving preferences:', error);
-      alert('Error saving preferences');
+      toast({ title: 'Error', description: 'Error saving preferences', variant: 'destructive' });
     } finally {
       setSaving(false);
     }

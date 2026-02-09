@@ -1,6 +1,8 @@
 import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
 import { authService } from '@/api/services/authService';
 import { tokenStorage } from '@/api/client/tokenStorage';
+import { validateAuthUserFields } from '@/utils/authFieldValidator';
+import { reportAuthCheckFailed, reportTokenCleared } from '@/security/securityEventReporter';
 
 const AuthContext = createContext();
 
@@ -28,11 +30,13 @@ export const AuthProvider = ({ children }) => {
 
       // Try to get current user
       const currentUser = await authService.getCurrentUser();
+      validateAuthUserFields(currentUser, 'AuthContext.checkUserAuth');
       setUser(currentUser);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
     } catch (error) {
       console.error('User auth check failed:', error);
+      reportAuthCheckFailed('AuthContext.checkUserAuth', error.response?.status);
       setIsLoadingAuth(false);
       setIsAuthenticated(false);
 
@@ -42,6 +46,7 @@ export const AuthProvider = ({ children }) => {
           type: 'auth_required',
           message: 'Authentication required'
         });
+        reportTokenCleared('AuthContext.checkUserAuth', `Token cleared after ${error.response?.status} response`);
         tokenStorage.clearTokens();
       }
     }
@@ -53,6 +58,7 @@ export const AuthProvider = ({ children }) => {
       setAuthError(null);
 
       const { user: loggedInUser } = await authService.login(credentials);
+      validateAuthUserFields(loggedInUser, 'AuthContext.login');
       setUser(loggedInUser);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
@@ -97,13 +103,13 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(false);
 
       if (shouldRedirect) {
-        window.location.href = '/Login';
+        window.location.href = '/Welcome';
       }
     }
   }, []);
 
   const navigateToLogin = useCallback(() => {
-    window.location.href = '/Login';
+    window.location.href = '/Welcome';
   }, []);
 
   const value = useMemo(() => ({

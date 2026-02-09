@@ -11,8 +11,10 @@ import {
   EmergencyContact
 } from '@/components/safety/SafetyContent';
 import ReportFormModal from '@/components/safety/ReportFormModal';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function SafetyCenter() {
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { currentUser, isLoading } = useCurrentUser();
   const [showReportForm, setShowReportForm] = useState(false);
@@ -36,13 +38,13 @@ export default function SafetyCenter() {
       queryClient.invalidateQueries({ queryKey: ['safetyReports'] });
       setShowReportForm(false);
       setReportData({ incident_type: '', description: '', related_user_id: '' });
-      alert('Report submitted. Our team will review it shortly.');
+      toast({ title: 'Success', description: 'Report submitted. Our team will review it shortly.' });
     },
   });
 
   const handleSubmitReport = () => {
     if (!reportData.incident_type || !reportData.description) {
-      alert('Please fill in all required fields');
+      toast({ title: 'Validation', description: 'Please fill in all required fields', variant: 'destructive' });
       return;
     }
     reportMutation.mutate(reportData);

@@ -39,7 +39,8 @@ describe('PrivacyPolicy', () => {
 
   it('renders privacy policy title', () => {
     render(<PrivacyPolicy />, { wrapper: createWrapper() });
-    expect(screen.getByText('Privacy Policy')).toBeInTheDocument();
+    // "Privacy Policy" appears in both the header and the card title
+    expect(screen.getAllByText('Privacy Policy').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders policy sections', () => {

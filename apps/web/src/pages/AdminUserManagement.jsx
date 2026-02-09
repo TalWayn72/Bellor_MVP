@@ -6,9 +6,11 @@ import { ListSkeleton } from '@/components/states';
 import UserFilters from '@/components/admin/users/UserFilters';
 import UserTable from '@/components/admin/users/UserTable';
 import UserDetailModal from '@/components/admin/users/UserDetailModal';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function AdminUserManagement() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedUser, setSelectedUser] = useState(null);
@@ -31,20 +33,20 @@ export default function AdminUserManagement() {
     mutationFn: async ({ userId, isBlocked }) => {
       return isBlocked ? await userService.blockUser(userId) : await userService.unblockUser(userId);
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-all-users'] }); alert('Status updated successfully!'); },
-    onError: (error) => { alert('Error updating status: ' + (error.message || 'Try again later')); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-all-users'] }); toast({ title: 'Success', description: 'Status updated successfully!' }); },
+    onError: (error) => { toast({ title: 'Error', description: 'Error updating status: ' + (error.message || 'Try again later'), variant: 'destructive' }); },
   });
 
   const roleChangeMutation = useMutation({
     mutationFn: async ({ userId, newRole }) => await userService.updateProfile(userId, { role: newRole }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-all-users'] }); alert('Role updated successfully!'); },
-    onError: (error) => { alert('Error updating role: ' + (error.message || 'Try again later')); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-all-users'] }); toast({ title: 'Success', description: 'Role updated successfully!' }); },
+    onError: (error) => { toast({ title: 'Error', description: 'Error updating role: ' + (error.message || 'Try again later'), variant: 'destructive' }); },
   });
 
   const verifyMutation = useMutation({
     mutationFn: async ({ userId, isVerified }) => await userService.updateProfile(userId, { is_verified: isVerified }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-all-users'] }); alert('Status updated successfully!'); },
-    onError: (error) => { alert('Error updating verification: ' + (error.message || 'Try again later')); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-all-users'] }); toast({ title: 'Success', description: 'Status updated successfully!' }); },
+    onError: (error) => { toast({ title: 'Error', description: 'Error updating verification: ' + (error.message || 'Try again later'), variant: 'destructive' }); },
   });
 
   const filteredUsers = users.filter(user => {

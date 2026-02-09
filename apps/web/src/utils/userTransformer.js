@@ -81,6 +81,9 @@ export function transformUser(user) {
     profile_images: user.profile_images || user.profileImages || [],
     // Normalize verification status
     is_verified: user.is_verified ?? user.isVerified ?? false,
+    // Normalize admin status (backend sends isAdmin, some components expect is_admin)
+    is_admin: user.is_admin ?? user.isAdmin ?? false,
+    isAdmin: user.isAdmin ?? user.is_admin ?? false,
   };
 }
 

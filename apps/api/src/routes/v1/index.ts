@@ -61,4 +61,10 @@ export default async function v1Routes(app: FastifyInstance) {
 
   // Chats routes (messaging)
   await app.register(import('./chats.routes.js'), { prefix: '/chats' });
+
+  // Feedback routes (user feedback submissions)
+  await app.register(import('./feedback.routes.js'), { prefix: '/feedback' });
+
+  // Security events (client-side auth/access reporting)
+  await app.register(import('./security-events.routes.js'), { prefix: '/security' });
 }

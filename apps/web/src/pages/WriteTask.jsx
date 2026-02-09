@@ -9,10 +9,12 @@ import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import { extractHashtags } from '../components/feed/HashtagExtractor';
 import { extractMentions } from '../components/feed/MentionExtractor';
 import WritingPrompt from '@/components/tasks/WritingPrompt';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function WriteTask() {
   const navigate = useNavigate();
   const { currentUser } = useCurrentUser();
+  const { toast } = useToast();
   const [textContent, setTextContent] = useState('');
   const [selectedOption, setSelectedOption] = useState('Subtle energy');
   const [isPublic, setIsPublic] = useState(true);
@@ -37,7 +39,7 @@ export default function WriteTask() {
 
   const handleShare = async () => {
     if (!textContent.trim() || !currentUser) {
-      alert('Please write something before sharing');
+      toast({ title: 'Validation', description: 'Please write something before sharing', variant: 'destructive' });
       return;
     }
 
@@ -88,7 +90,7 @@ export default function WriteTask() {
       navigate(createPageUrl('SharedSpace'));
     } catch (error) {
       console.error('Error saving text:', error);
-      alert('Error saving text');
+      toast({ title: 'Error', description: 'Error saving text', variant: 'destructive' });
     }
   };
 

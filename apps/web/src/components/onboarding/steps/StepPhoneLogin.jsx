@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowRight } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function StepPhoneLogin({ formData, setFormData }) {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   return (
     <div className="flex-1 flex flex-col bg-card">
@@ -46,10 +48,10 @@ export default function StepPhoneLogin({ formData, setFormData }) {
         <Button
           onClick={() => {
             if (formData.phone && formData.phone.length >= 10) {
-              alert('Demo Mode: In production, an OTP will be sent to ' + formData.phone);
+              toast({ title: 'Info', description: 'Demo Mode: In production, an OTP will be sent to ' + formData.phone });
               navigate(createPageUrl('Onboarding') + '?step=2.4');
             } else {
-              alert('Please enter a valid phone number');
+              toast({ title: 'Validation', description: 'Please enter a valid phone number', variant: 'destructive' });
             }
           }}
           disabled={!formData.phone || formData.phone.length < 10}

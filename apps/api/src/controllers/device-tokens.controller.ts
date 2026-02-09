@@ -10,6 +10,7 @@ import {
   UnregisterDeviceBody,
   SendTestNotificationBody,
 } from './device-tokens/device-tokens-schemas.js';
+import { securityLogger } from '../security/logger.js';
 
 export const DeviceTokensController = {
   /** POST /device-tokens/register */
@@ -87,6 +88,7 @@ export const DeviceTokensController = {
   async sendBroadcast(request: FastifyRequest<{ Body: { title: string; body: string } }>, reply: FastifyReply) {
     const user = request.user as Record<string, unknown> | undefined;
     if (!user || !(user as Record<string, unknown>).isAdmin) {
+      securityLogger.accessDenied(request, 'deviceTokens.sendBroadcast');
       return reply.status(403).send({ error: 'Admin access required' });
     }
     const { title, body } = request.body;
@@ -105,6 +107,7 @@ export const DeviceTokensController = {
   async cleanupInactiveTokens(request: FastifyRequest<{ Body: { daysOld?: number } }>, reply: FastifyReply) {
     const user = request.user as Record<string, unknown> | undefined;
     if (!user || !(user as Record<string, unknown>).isAdmin) {
+      securityLogger.accessDenied(request, 'deviceTokens.cleanupInactiveTokens');
       return reply.status(403).send({ error: 'Admin access required' });
     }
     const { daysOld = 30 } = request.body || {};

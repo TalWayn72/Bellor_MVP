@@ -22,3 +22,4 @@ export { reportService } from './services/reportService';
 export { achievementService } from './services/achievementService';
 export { socketService } from './services/socketService';
 export { adminService } from './services/adminService';
+export { feedbackService } from './services/feedbackService';

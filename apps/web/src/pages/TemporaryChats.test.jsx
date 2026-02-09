@@ -55,14 +55,16 @@ describe('TemporaryChats', () => {
     expect(container).toBeDefined();
   });
 
-  it('renders the page heading', () => {
+  it('renders the page heading', async () => {
     render(<TemporaryChats />, { wrapper: createWrapper() });
-    expect(screen.getByText('Temporary Chats')).toBeInTheDocument();
+    // Wait for async query to resolve so heading renders instead of skeleton
+    expect(await screen.findByText('Temporary Chats')).toBeInTheDocument();
   });
 
-  it('renders filter buttons', () => {
+  it('renders filter buttons', async () => {
     render(<TemporaryChats />, { wrapper: createWrapper() });
-    expect(screen.getByText(/All/)).toBeInTheDocument();
+    // Wait for async query to resolve so filter buttons render
+    expect(await screen.findByText(/All/)).toBeInTheDocument();
     expect(screen.getByText(/Pending/)).toBeInTheDocument();
     expect(screen.getByText(/Active/)).toBeInTheDocument();
   });

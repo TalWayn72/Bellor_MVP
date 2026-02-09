@@ -1,8 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function VideoRecorder({ onShare }) {
+  const { toast } = useToast();
   const [isRecording, setIsRecording] = useState(false);
   const [hasRecording, setHasRecording] = useState(false);
   const [videoUrl, setVideoUrl] = useState(null);
@@ -39,7 +41,7 @@ export default function VideoRecorder({ onShare }) {
       setIsRecording(true);
     } catch (error) {
       console.error('Error accessing camera:', error);
-      alert('Unable to access camera');
+      toast({ title: 'Error', description: 'Unable to access camera', variant: 'destructive' });
     }
   };
 

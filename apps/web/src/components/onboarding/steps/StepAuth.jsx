@@ -54,9 +54,9 @@ export default function StepAuth({ formData, setFormData, isAuthenticated }) {
             />
             <label htmlFor="terms" className="text-xs text-white">
               I agree to the{' '}
-              <a href="/terms" target="_blank" className="underline font-semibold">Terms of Service</a>
+              <a href="/TermsOfService" target="_blank" className="underline font-semibold">Terms of Service</a>
               {' '}and{' '}
-              <a href="/privacy" target="_blank" className="underline font-semibold">Privacy Policy</a>
+              <a href="/PrivacyPolicy" target="_blank" className="underline font-semibold">Privacy Policy</a>
             </label>
           </div>
         )}

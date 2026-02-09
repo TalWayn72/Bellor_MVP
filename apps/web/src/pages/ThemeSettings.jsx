@@ -10,11 +10,13 @@ import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import { themes } from '../components/providers/ThemeProvider';
 import BackButton from '@/components/navigation/BackButton';
 import ThemePreview from '@/components/settings/ThemePreview';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function ThemeSettings() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { currentUser, isLoading } = useCurrentUser();
+  const { toast } = useToast();
   const [selectedTheme, setSelectedTheme] = useState(currentUser?.selected_theme || 'blue');
 
   const updateThemeMutation = useMutation({
@@ -22,10 +24,10 @@ export default function ThemeSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       queryClient.invalidateQueries({ queryKey: ['adminTheme'] });
-      alert('Theme updated! Please refresh the page to see changes.');
+      toast({ title: 'Success', description: 'Theme updated! Please refresh the page to see changes.' });
       navigate(createPageUrl('Settings'));
     },
-    onError: (error) => { console.error('Error updating theme:', error); alert('Failed to update theme.'); },
+    onError: (error) => { console.error('Error updating theme:', error); toast({ title: 'Error', description: 'Failed to update theme.', variant: 'destructive' }); },
   });
 
   if (isLoading) return <CardsSkeleton count={4} />;

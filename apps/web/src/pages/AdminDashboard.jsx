@@ -40,7 +40,7 @@ export default function AdminDashboard() {
 
   const statsCards = [
     { title: 'Total Users', value: users.length, subtitle: `${blockedUsers} blocked`, icon: Users, color: 'bg-blue-500', onClick: () => navigate(createPageUrl('AdminUserManagement')) },
-    { title: 'Pending Reports', value: pendingReports, subtitle: `out of ${reports.length} total`, icon: Flag, color: 'bg-red-500', onClick: () => navigate(createPageUrl('AdminReportManagement?status=pending')) },
+    { title: 'Pending Reports', value: pendingReports, subtitle: `out of ${reports.length} total`, icon: Flag, color: 'bg-red-500', onClick: () => navigate(createPageUrl('AdminReportManagement') + '?status=pending') },
     { title: 'Active Chats', value: chats.filter(c => c.status === 'active').length, subtitle: `${temporaryChats} temporary, ${permanentChats} permanent`, icon: MessageSquare, color: 'bg-green-500', onClick: () => navigate(createPageUrl('AdminChatMonitoring')) },
     { title: 'Total Responses', value: responses.length, subtitle: 'responses in system', icon: Activity, color: 'bg-purple-500', onClick: () => navigate(createPageUrl('AdminActivityMonitoring')) },
   ];

@@ -54,13 +54,15 @@ describe('AdminReportManagement', () => {
 
   it('renders status filter buttons', () => {
     render(<AdminReportManagement />, { wrapper: createWrapper() });
-    expect(screen.getByText(/All/)).toBeInTheDocument();
+    // "All" matches both the button and the subtitle text, so use getAllByText
+    expect(screen.getAllByText(/All/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/Pending/)).toBeInTheDocument();
     expect(screen.getByText(/Reviewed/)).toBeInTheDocument();
   });
 
-  it('shows empty state when no reports', () => {
+  it('shows empty state when no reports', async () => {
     render(<AdminReportManagement />, { wrapper: createWrapper() });
-    expect(screen.getByText('No reports to display')).toBeInTheDocument();
+    // Wait for async query to resolve and empty state to render
+    expect(await screen.findByText('No reports to display')).toBeInTheDocument();
   });
 });

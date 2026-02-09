@@ -7,9 +7,11 @@ import BackButton from '@/components/navigation/BackButton';
 import { TOTAL_STEPS } from '@/components/onboarding/utils/onboardingUtils';
 import { uploadService } from '@/api';
 import { createPageUrl } from '@/utils';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function StepDrawing({ formData, setFormData, handleNext, handleBack, isLoading, setIsLoading }) {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawingContext, setDrawingContext] = useState(null);
@@ -50,7 +52,7 @@ export default function StepDrawing({ formData, setFormData, handleNext, handleB
       setFormData({ ...formData, drawing_url: result.url });
     } catch (error) {
       console.error('Error saving drawing:', error);
-      alert('Error saving drawing. Please try again.');
+      toast({ title: 'Error', description: 'Error saving drawing. Please try again.', variant: 'destructive' });
       setIsLoading(false);
       return;
     }

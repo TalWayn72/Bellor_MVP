@@ -5,15 +5,17 @@ import { useQuery } from '@tanstack/react-query';
 import { Heart, X, MessageCircle, Star } from 'lucide-react';
 import BackButton from '@/components/navigation/BackButton';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ProfileSkeleton } from '@/components/states';
 import { createPageUrl, transformUser } from '@/utils';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import UserProfileHeader from '@/components/profile/UserProfileHeader';
 import UserProfileAbout from '@/components/profile/UserProfileAbout';
 import UserProfileBook from '@/components/profile/UserProfileBook';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function UserProfile() {
+  const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const userId = searchParams.get('id');
@@ -73,12 +75,12 @@ export default function UserProfile() {
   const tabs = [{ id: 'about', label: 'About' }, { id: 'book', label: 'Book' }];
 
   const handleLike = async (type) => {
-    try { await likeService.likeUser(userId, type); alert(type === 'ROMANTIC' ? '\u05d4\u05e8\u05d0\u05ea \u05e2\u05e0\u05d9\u05d9\u05df \u05e8\u05d5\u05de\u05e0\u05d8\u05d9!' : '\u05e0\u05ea\u05ea \u05e4\u05d9\u05d3\u05d1\u05e7 \u05d7\u05d9\u05d5\u05d1\u05d9!'); } catch (e) { /* Ignore */ }
+    try { await likeService.likeUser(userId, type); toast({ title: 'Success', description: type === 'ROMANTIC' ? '\u05d4\u05e8\u05d0\u05ea \u05e2\u05e0\u05d9\u05d9\u05df \u05e8\u05d5\u05de\u05e0\u05d8\u05d9!' : '\u05e0\u05ea\u05ea \u05e4\u05d9\u05d3\u05d1\u05e7 \u05d7\u05d9\u05d5\u05d1\u05d9!' }); } catch (e) { /* Ignore */ }
   };
 
   const handleSendMessage = async (message) => {
-    try { const r = await chatService.createOrGetChat(userId); await chatService.sendMessage(r.chat.id, { content: message, type: 'text' }); setShowMessageDialog(false); alert('Message sent successfully!'); }
-    catch { alert('Error sending message'); }
+    try { const r = await chatService.createOrGetChat(userId); await chatService.sendMessage(r.chat.id, { content: message, type: 'text' }); setShowMessageDialog(false); toast({ title: 'Success', description: 'Message sent successfully!' }); }
+    catch { toast({ title: 'Error', description: 'Error sending message', variant: 'destructive' }); }
   };
 
   if (isLoading || !viewedUser) return <ProfileSkeleton />;
@@ -126,10 +128,10 @@ export default function UserProfile() {
       </div>
 
       <Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
-        <DialogContent className="sm:max-w-lg" aria-describedby="message-dialog-description">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Send message to {viewedUser.nickname}</DialogTitle>
-            <p id="message-dialog-description" className="text-sm text-muted-foreground">Write a private message to start a conversation</p>
+            <DialogDescription className="text-sm text-muted-foreground">Write a private message to start a conversation</DialogDescription>
           </DialogHeader>
           <textarea id="messageInput" placeholder="Write your message..." className="w-full h-32 border-2 border-input rounded-xl p-3 text-sm resize-none focus:border-primary focus:ring-primary" />
           <DialogFooter className="flex-row gap-3 sm:justify-end">

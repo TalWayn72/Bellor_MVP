@@ -6,10 +6,12 @@ import { createPageUrl } from '@/utils';
 import BackButton from '@/components/navigation/BackButton';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import { VerificationInstructions, CameraView, VerificationPreview } from '@/components/verification/VerificationSteps';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function UserVerification() {
   const navigate = useNavigate();
   const { currentUser, isLoading } = useCurrentUser();
+  const { toast } = useToast();
   const [verificationPhoto, setVerificationPhoto] = useState(null);
   const [verificationStream, setVerificationStream] = useState(null);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -27,7 +29,7 @@ export default function UserVerification() {
       if (videoRef.current) videoRef.current.srcObject = stream;
     } catch (error) {
       console.error('Error accessing camera:', error);
-      alert('Unable to access camera');
+      toast({ title: 'Error', description: 'Unable to access camera', variant: 'destructive' });
     }
   };
 

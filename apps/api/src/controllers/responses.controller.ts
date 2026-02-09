@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { ResponsesService } from '../services/responses.service.js';
 import { createResponseSchema, listResponsesQuerySchema } from './responses/responses-schemas.js';
+import { securityLogger } from '../security/logger.js';
 
 export class ResponsesController {
   /**
@@ -134,6 +135,7 @@ export class ResponsesController {
           });
         }
         if (error.message === 'Unauthorized') {
+          securityLogger.accessDenied(request, 'responses.deleteResponse');
           return reply.code(403).send({
             success: false,
             error: { code: 'UNAUTHORIZED', message: 'You can only delete your own responses' },

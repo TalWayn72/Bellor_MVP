@@ -1,6 +1,7 @@
 import React from 'react';
 import { MapPin, User, Search, Briefcase } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatLocation } from '@/utils/userTransformer';
 import { Badge } from '@/components/ui/badge';
 import DailyStreakBadge from './DailyStreakBadge';
 import ProfileCompletionCard from './ProfileCompletionCard';
@@ -31,7 +32,7 @@ export default function ProfileAboutTab({ currentUser }) {
         <CardContent className="space-y-3 pt-5">
           <div className="flex items-center gap-3">
             <MapPin className="w-5 h-5 text-muted-foreground" />
-            <span className="text-sm text-foreground">{currentUser.location || 'Israel'}</span>
+            <span className="text-sm text-foreground">{formatLocation(currentUser.location)}</span>
           </div>
           <div className="flex items-center gap-3">
             <User className="w-5 h-5 text-muted-foreground" />

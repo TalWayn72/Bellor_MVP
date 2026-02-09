@@ -31,6 +31,14 @@ export default function Welcome() {
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
 
+          <Button
+            onClick={() => navigate(createPageUrl('Login'))}
+            variant="ghost"
+            className="w-full h-12 text-white/90 hover:text-white hover:bg-white/10 text-base font-medium rounded-2xl transition-all"
+          >
+            Already have an account? Sign In
+          </Button>
+
           <p className="text-sm text-white/70 mt-6">
             Join thousands finding meaningful connections
           </p>

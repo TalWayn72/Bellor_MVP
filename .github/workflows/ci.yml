@@ -125,7 +125,6 @@ jobs:
 
       - name: Run Web tests
         run: npm run test:web -- --coverage
-        continue-on-error: true
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v4
@@ -535,6 +534,7 @@ jobs:
         run: |
           if [[ "${{ needs.lint.result }}" == "failure" ]] || \
              [[ "${{ needs.test-api.result }}" == "failure" ]] || \
+             [[ "${{ needs.test-web.result }}" == "failure" ]] || \
              [[ "${{ needs.build-api.result }}" == "failure" ]] || \
              [[ "${{ needs.build-web.result }}" == "failure" ]]; then
             echo "CI failed"

@@ -12,8 +12,10 @@ import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import { getDemoProfiles } from '@/data/demoData';
 import DiscoverCard from '@/components/discover/DiscoverCard';
 import DiscoverFilters from '@/components/discover/DiscoverFilters';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function Discover() {
+  const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { currentUser, isLoading } = useCurrentUser();
@@ -50,7 +52,7 @@ export default function Discover() {
     if (!currentProfile) return;
     try {
       const result = await likeService.likeUser(currentProfile.id, 'ROMANTIC');
-      if (result.isMatch) alert('It\'s a match!');
+      if (result.isMatch) toast({ title: 'Success', description: "It's a match!" });
       setCurrentProfileIndex(currentProfileIndex + 1);
     } catch (error) {
       console.error('Error liking profile:', error);
@@ -68,7 +70,7 @@ export default function Discover() {
       setShowSuperLikeModal(false);
       setSuperLikeMessage('');
       setCurrentProfileIndex(currentProfileIndex + 1);
-      alert('Super Like sent!');
+      toast({ title: 'Success', description: 'Super Like sent!' });
     },
   });
 

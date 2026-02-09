@@ -6,6 +6,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { StoriesService } from '../services/stories.service.js';
+import { securityLogger } from '../security/logger.js';
 import {
   createStoryBodySchema,
   listStoriesQuerySchema,
@@ -26,7 +27,10 @@ export const StoriesController = {
   async createStory(request: FastifyRequest<{ Body: CreateStoryBody }>, reply: FastifyReply) {
     try {
       const userId = request.user?.id;
-      if (!userId) return reply.status(401).send({ error: 'Unauthorized' });
+      if (!userId) {
+        securityLogger.accessDenied(request, 'stories.createStory');
+        return reply.status(401).send({ error: 'Unauthorized' });
+      }
       const body = createStoryBodySchema.parse(request.body);
       const story = await StoriesService.createStory({ userId, ...body });
       return reply.status(201).send({ message: 'Story created successfully', data: story });
@@ -54,7 +58,10 @@ export const StoriesController = {
   async getFeed(request: FastifyRequest<{ Querystring: ListStoriesQuery }>, reply: FastifyReply) {
     try {
       const userId = request.user?.id;
-      if (!userId) return reply.status(401).send({ error: 'Unauthorized' });
+      if (!userId) {
+        securityLogger.accessDenied(request, 'stories.getFeed');
+        return reply.status(401).send({ error: 'Unauthorized' });
+      }
       const query = listStoriesQuerySchema.parse(request.query);
       const feed = await StoriesService.getStoriesFeed(userId, {
         limit: query.limit, offset: query.offset,
@@ -71,7 +78,10 @@ export const StoriesController = {
   async getMyStories(request: FastifyRequest, reply: FastifyReply) {
     try {
       const userId = request.user?.id;
-      if (!userId) return reply.status(401).send({ error: 'Unauthorized' });
+      if (!userId) {
+        securityLogger.accessDenied(request, 'stories.getMyStories');
+        return reply.status(401).send({ error: 'Unauthorized' });
+      }
       const stories = await StoriesService.getStoriesByUser(userId);
       return reply.send({ data: stories });
     } catch (error: unknown) {
@@ -97,7 +107,10 @@ export const StoriesController = {
   async viewStory(request: FastifyRequest<{ Params: StoryIdParams }>, reply: FastifyReply) {
     try {
       const userId = request.user?.id;
-      if (!userId) return reply.status(401).send({ error: 'Unauthorized' });
+      if (!userId) {
+        securityLogger.accessDenied(request, 'stories.viewStory');
+        return reply.status(401).send({ error: 'Unauthorized' });
+      }
       const params = storyIdParamsSchema.parse(request.params);
       const story = await StoriesService.viewStory(params.id, userId);
       return reply.send({ data: story });
@@ -112,7 +125,10 @@ export const StoriesController = {
   async deleteStory(request: FastifyRequest<{ Params: StoryIdParams }>, reply: FastifyReply) {
     try {
       const userId = request.user?.id;
-      if (!userId) return reply.status(401).send({ error: 'Unauthorized' });
+      if (!userId) {
+        securityLogger.accessDenied(request, 'stories.deleteStory');
+        return reply.status(401).send({ error: 'Unauthorized' });
+      }
       const params = storyIdParamsSchema.parse(request.params);
       await StoriesService.deleteStory(params.id, userId);
       return reply.send({ message: 'Story deleted successfully' });
@@ -127,7 +143,10 @@ export const StoriesController = {
   async getStats(request: FastifyRequest, reply: FastifyReply) {
     try {
       const userId = request.user?.id;
-      if (!userId) return reply.status(401).send({ error: 'Unauthorized' });
+      if (!userId) {
+        securityLogger.accessDenied(request, 'stories.getStats');
+        return reply.status(401).send({ error: 'Unauthorized' });
+      }
       const stats = await StoriesService.getUserStoryStats(userId);
       return reply.send({ data: stats });
     } catch (error: unknown) {
@@ -140,7 +159,10 @@ export const StoriesController = {
   async cleanup(request: FastifyRequest, reply: FastifyReply) {
     try {
       const user = request.user as unknown as { isAdmin?: boolean } | undefined;
-      if (!user?.isAdmin) return reply.status(403).send({ error: 'Admin access required' });
+      if (!user?.isAdmin) {
+        securityLogger.accessDenied(request, 'stories.cleanup');
+        return reply.status(403).send({ error: 'Admin access required' });
+      }
       const result = await StoriesService.cleanupExpiredStories();
       return reply.send({ message: `Cleaned up ${result.deletedCount} expired stories`, ...result });
     } catch (error: unknown) {

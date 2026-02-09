@@ -4,6 +4,7 @@ import { createPageUrl } from '@/utils';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -50,14 +51,14 @@ export default function DailyTaskSelector({ isOpen, onClose, mission }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md" dir="rtl" aria-describedby="task-selector-description">
+      <DialogContent className="sm:max-w-md" dir="rtl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-center mb-2">
             איך תרצה לשתף?
           </DialogTitle>
-          <p id="task-selector-description" className="text-sm text-gray-600 text-center">
+          <DialogDescription className="text-sm text-gray-600 text-center">
             {mission?.question || "שתף משהו מעניין על עצמך היום"}
-          </p>
+          </DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-4 mt-4">
           {taskOptions.map((option) => (

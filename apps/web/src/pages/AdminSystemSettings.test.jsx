@@ -48,14 +48,18 @@ describe('AdminSystemSettings', () => {
     expect(screen.getByTestId('layout-admin')).toBeInTheDocument();
   });
 
-  it('renders settings categories', () => {
+  it('renders settings categories', async () => {
     render(<AdminSystemSettings />, { wrapper: createWrapper() });
-    expect(screen.getByText('Limits')).toBeInTheDocument();
-    expect(screen.getByText('System Settings')).toBeInTheDocument();
+    // Wait for async query to resolve so categories render instead of skeleton
+    expect(await screen.findByText('Limits')).toBeInTheDocument();
+    // "System Settings" appears as both the heading and a category name
+    expect(screen.getAllByText('System Settings').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('renders settings form', () => {
+  it('renders settings form', async () => {
     render(<AdminSystemSettings />, { wrapper: createWrapper() });
-    expect(screen.getAllByTestId('settings-form').length).toBeGreaterThan(0);
+    // Wait for async query to resolve so form renders
+    const forms = await screen.findAllByTestId('settings-form');
+    expect(forms.length).toBeGreaterThan(0);
   });
 });

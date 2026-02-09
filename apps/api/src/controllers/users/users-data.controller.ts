@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { UsersService } from '../../services/users.service.js';
+import { securityLogger } from '../../security/logger.js';
 
 function notFoundError(reply: FastifyReply) {
   return reply.code(404).send({ success: false, error: { code: 'USER_NOT_FOUND', message: 'User not found' } });
@@ -23,6 +24,7 @@ export class UsersDataController {
     try {
       const { id } = request.params;
       if (request.user?.userId !== id) {
+        securityLogger.accessDenied(request, 'usersData.getUserStats');
         return forbiddenError(reply, 'You can only view your own statistics');
       }
       const stats = await UsersService.getUserStats(id);
@@ -43,6 +45,7 @@ export class UsersDataController {
     try {
       const { id } = request.params;
       if (request.user?.userId !== id) {
+        securityLogger.accessDenied(request, 'usersData.exportUserData');
         return forbiddenError(reply, 'You can only export your own data');
       }
       const exportData = await UsersService.exportUserData(id);
@@ -67,6 +70,7 @@ export class UsersDataController {
     try {
       const { id } = request.params;
       if (request.user?.userId !== id) {
+        securityLogger.accessDenied(request, 'usersData.deleteUserGDPR');
         return forbiddenError(reply, 'You can only delete your own data');
       }
       await UsersService.deleteUserGDPR(id);

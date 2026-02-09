@@ -6,11 +6,13 @@ import { LoadingState } from '@/components/states';
 import { createPageUrl } from '@/utils';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import { demoQuestions, QuestionCard, QuizInfoCard } from '@/components/quiz/QuizQuestions';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function CompatibilityQuiz() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { currentUser, isLoading } = useCurrentUser();
+  const { toast } = useToast();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [localAnswers, setLocalAnswers] = useState([]);
@@ -66,7 +68,7 @@ export default function CompatibilityQuiz() {
     });
 
     if (isLastQuestion) {
-      alert('Quiz completed! Your answers will help us find better matches for you.');
+      toast({ title: 'Success', description: 'Quiz completed! Your answers will help us find better matches for you.' });
       navigate(createPageUrl('Profile'));
     } else {
       setCurrentQuestionIndex(currentQuestionIndex + 1);

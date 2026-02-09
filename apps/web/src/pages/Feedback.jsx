@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { MessageSquare } from 'lucide-react';
 import BackButton from '@/components/navigation/BackButton';
@@ -7,26 +6,21 @@ import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import { Card, CardContent } from '@/components/ui/card';
 import { CardsSkeleton } from '@/components/states';
 import FeedbackForm from '@/components/feedback/FeedbackForm';
+import { feedbackService } from '@/api';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function Feedback() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { currentUser, isLoading } = useCurrentUser();
   const [feedbackType, setFeedbackType] = useState('improvement');
   const [rating, setRating] = useState(0);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const { toast } = useToast();
 
   const submitFeedbackMutation = useMutation({
     mutationFn: async (data) => {
-      const feedbackData = {
-        user_id: currentUser.id,
-        ...data,
-        status: 'pending',
-        created_date: new Date().toISOString()
-      };
-      // Feedback service integration pending
-      return feedbackData;
+      return feedbackService.submitFeedback(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['feedback'] });
@@ -34,12 +28,18 @@ export default function Feedback() {
       setRating(0);
       setTitle('');
       setDescription('');
-      alert('Thank you for your feedback! 🙏');
+      toast({ title: 'Thank you!', description: 'Your feedback has been submitted successfully' });
+    },
+    onError: () => {
+      toast({ title: 'Error', description: 'Failed to submit feedback. Please try again.', variant: 'destructive' });
     },
   });
 
   const handleSubmit = () => {
-    if (!description.trim()) { alert('Please write your feedback'); return; }
+    if (!description.trim()) {
+      toast({ title: 'Missing feedback', description: 'Please write your feedback', variant: 'destructive' });
+      return;
+    }
     submitFeedbackMutation.mutate({
       type: feedbackType,
       title: title.trim() || 'Untitled',

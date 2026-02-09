@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { tokenStorage } from '@/api/client/tokenStorage';
 import { useAuth } from '@/lib/AuthContext';
 import { createPageUrl } from '@/utils';
+import { reportAuthCheckFailed } from '@/security/securityEventReporter';
 
 export default function OAuthCallback() {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ export default function OAuthCallback() {
             account_blocked: 'Your account has been deactivated',
             oauth_failed: 'OAuth login failed. Please try again.',
           };
+          reportAuthCheckFailed('OAuthCallback', undefined);
           setError(errorMessages[errorParam] || 'An error occurred during login');
           setTimeout(() => {
             navigate(createPageUrl('Onboarding') + '?step=2');
@@ -60,6 +62,7 @@ export default function OAuthCallback() {
         }
       } catch (err) {
         console.error('OAuth callback error:', err);
+        reportAuthCheckFailed('OAuthCallback.catch', err?.response?.status);
         setError('An error occurred during login');
         setTimeout(() => {
           navigate(createPageUrl('Onboarding') + '?step=2');

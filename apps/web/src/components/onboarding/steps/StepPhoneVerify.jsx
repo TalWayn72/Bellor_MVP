@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowRight } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function StepPhoneVerify({ formData, setFormData, isLoading, setIsLoading, isAuthenticated }) {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   return (
     <div className="flex-1 flex flex-col bg-card">
@@ -42,7 +44,7 @@ export default function StepPhoneVerify({ formData, setFormData, isLoading, setI
 
           <div className="text-center mb-6">
             <button
-              onClick={() => alert('Demo Mode: In production, a new OTP will be sent')}
+              onClick={() => toast({ title: 'Info', description: 'Demo Mode: In production, a new OTP will be sent' })}
               className="text-sm text-info hover:text-info font-medium"
             >
               Didn't receive code? Send again
@@ -66,16 +68,16 @@ export default function StepPhoneVerify({ formData, setFormData, isLoading, setI
               try {
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 if (!isAuthenticated) {
-                  alert('Demo Mode: User would be created/authenticated here');
+                  toast({ title: 'Info', description: 'Demo Mode: User would be created/authenticated here' });
                 }
                 navigate(createPageUrl('Onboarding') + '?step=3');
               } catch (error) {
-                alert('Verification failed. Please try again.');
+                toast({ title: 'Error', description: 'Verification failed. Please try again.', variant: 'destructive' });
               } finally {
                 setIsLoading(false);
               }
             } else {
-              alert('Please enter a valid 6-digit code');
+              toast({ title: 'Validation', description: 'Please enter a valid 6-digit code', variant: 'destructive' });
             }
           }}
           disabled={!formData.phone_otp || formData.phone_otp.length !== 6 || isLoading}

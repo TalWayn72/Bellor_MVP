@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Flag, ExternalLink, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,6 +19,7 @@ export default function ReportCard({
   blockUserPending,
   deleteContentPending,
 }) {
+  const navigate = useNavigate();
   const handleToggle = () => {
     if (isExpanded) {
       onToggleExpand(null);
@@ -54,7 +56,7 @@ export default function ReportCard({
             <p className="text-sm text-muted-foreground mb-1">Reporter:</p>
             <div className="flex items-center gap-2">
               <p className="text-sm font-medium text-foreground">{report.reporter_id.substring(0, 12)}...</p>
-              <button onClick={() => window.open(`#/AdminUserManagement?userId=${report.reporter_id}`, '_blank')} aria-label="View reporter profile" className="text-info hover:text-info/80">
+              <button onClick={() => navigate(`/AdminUserManagement?userId=${report.reporter_id}`)} aria-label="View reporter profile" className="text-info hover:text-info/80">
                 <User className="w-4 h-4" />
               </button>
             </div>
@@ -63,7 +65,7 @@ export default function ReportCard({
             <p className="text-sm text-muted-foreground mb-1">Reported User:</p>
             <div className="flex items-center gap-2">
               <p className="text-sm font-medium text-foreground">{report.reported_user_id.substring(0, 12)}...</p>
-              <button onClick={() => window.open(`#/AdminUserManagement?userId=${report.reported_user_id}`, '_blank')} aria-label="View reported user profile" className="text-info hover:text-info/80">
+              <button onClick={() => navigate(`/AdminUserManagement?userId=${report.reported_user_id}`)} aria-label="View reported user profile" className="text-info hover:text-info/80">
                 <User className="w-4 h-4" />
               </button>
             </div>

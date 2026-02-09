@@ -5,7 +5,7 @@ A modern dating and social networking platform built for scale. Fully standalone
 [![CI](https://github.com/TalWayn72/Bellor_MVP/workflows/CI/badge.svg)](https://github.com/TalWayn72/Bellor_MVP/actions)
 ![Version](https://img.shields.io/badge/version-1.0.0--beta-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)
-![Tests](https://img.shields.io/badge/tests-545%2B-green)
+![Tests](https://img.shields.io/badge/tests-2232%2B-green)
 ![License](https://img.shields.io/badge/license-Private-red)
 
 ---
@@ -72,7 +72,7 @@ For detailed architecture diagrams (Mermaid): [docs/ARCHITECTURE.md](docs/ARCHIT
 | **Frontend** | React 18.2, Vite 6.1, TypeScript 5.8, Tailwind CSS 3.4, Radix UI, TanStack Query 5, React Router 6, Framer Motion 11 |
 | **Backend** | Node.js 20+, Fastify 5.2, Prisma 6.19, Zod 3.23, Socket.io 4.8, Stripe 20.3, Firebase Admin 13.6 |
 | **Database** | PostgreSQL 16 (40+ indexes), Redis 7 (sessions, cache, presence) |
-| **Testing** | Vitest 2.1 (320 unit tests), Playwright (224 E2E tests), k6 (5 load test scripts) |
+| **Testing** | Vitest 2.1 (2008 unit tests across 132 files), Playwright (224 E2E tests), k6 (5 load test scripts) |
 | **DevOps** | Docker 24+, Kubernetes 1.28+, GitHub Actions, Prometheus, Grafana, Loki, Alertmanager |
 
 ---
@@ -89,6 +89,7 @@ For detailed architecture diagrams (Mermaid): [docs/ARCHITECTURE.md](docs/ARCHIT
 - **Premium** -- Stripe subscriptions, profile boost, referral program
 - **Push Notifications** -- Firebase Cloud Messaging for offline users
 - **Audio/Video** -- Voice responses with play/pause, video tasks, video dating
+- **Feedback System** -- User feedback collection (bug reports, feature requests, improvements)
 
 ### Admin Dashboard
 - User management (block/unblock/verify), report moderation, chat monitoring
@@ -130,9 +131,9 @@ For detailed architecture diagrams (Mermaid): [docs/ARCHITECTURE.md](docs/ARCHIT
 | | `npm run prisma:migrate` | Run migrations (dev) |
 | | `npm run prisma:studio` | Prisma Studio (port 5555) |
 | | `npm run prisma:seed` | Seed 20 demo users |
-| **Test** | `npm run test` | All tests (545+) |
-| | `npm run test:api` | Backend unit tests (306) |
-| | `npm run test:web` | Frontend unit tests |
+| **Test** | `npm run test` | All tests (2232+) |
+| | `npm run test:api` | Backend unit tests (1034) |
+| | `npm run test:web` | Frontend unit tests (974) |
 | | `npm run test:e2e` | Playwright E2E (224 tests) |
 | | `npm run test:coverage` | Tests with coverage report |
 | **Docker** | `npm run docker:up` / `down` | Start/stop PostgreSQL + Redis |
@@ -278,7 +279,7 @@ VITE_WS_URL=ws://localhost:3000
 | 3 | Real-time -- Socket.io, Chat, Presence, Frontend integration | Complete |
 | 4 | Frontend Migration -- Remove Base44 dependencies | Complete |
 | 5 | Admin & Tools -- Dashboard, User/Report/Chat management | Complete |
-| 6 | Testing & QA -- 306 unit + 224 E2E tests, 100% backend coverage | Complete |
+| 6 | Testing & QA -- 2008 unit + 224 E2E tests, 75% backend coverage, 40% frontend baseline | Complete |
 | 7 | Deployment -- CI/CD, Docker builds, K8s, universal installers | Complete |
 | 8 | Universal Deployment -- Cloud-agnostic, free hosting, one-command deploy | Complete |
 | 9 | Final Polish -- Push notifications, audio playback, story viewer, TS cleanup, Logger | Complete |

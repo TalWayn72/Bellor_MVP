@@ -11,6 +11,7 @@ import axios, {
 } from 'axios';
 import { tokenStorage } from './tokenStorage';
 import { transformKeysToSnakeCase, transformKeysToCamelCase } from './apiTransformers';
+import { reportAuthRedirect } from '@/security/securityEventReporter';
 
 const API_BASE_URL: string = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 
@@ -76,8 +77,9 @@ class ApiClient {
           try {
             const refreshToken = tokenStorage.getRefreshToken();
             if (!refreshToken) {
+              reportAuthRedirect(originalRequest.url || 'unknown', '/Welcome');
               tokenStorage.clearTokens();
-              window.location.href = '/Login';
+              window.location.href = '/Welcome';
               return Promise.reject(error);
             }
             const response = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken });
@@ -88,8 +90,9 @@ class ApiClient {
             originalRequest.headers.Authorization = `Bearer ${accessToken}`;
             return this.client(originalRequest);
           } catch (refreshError: unknown) {
+            reportAuthRedirect(originalRequest.url || 'unknown', '/Welcome');
             tokenStorage.clearTokens();
-            window.location.href = '/Login';
+            window.location.href = '/Welcome';
             return Promise.reject(refreshError);
           }
         }

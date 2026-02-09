@@ -53,7 +53,7 @@ describe('FollowingList', () => {
 
   it('renders the page heading', () => {
     render(<FollowingList />, { wrapper: createWrapper() });
-    expect(screen.getByText('Connections')).toBeInTheDocument();
+    expect(screen.getByText('User Connections')).toBeInTheDocument();
   });
 
   it('renders following and followers tabs', () => {

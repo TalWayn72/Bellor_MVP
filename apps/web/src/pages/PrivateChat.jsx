@@ -10,8 +10,10 @@ import PrivateChatHeader from '@/components/chat/PrivateChatHeader';
 import MessageList from '@/components/chat/MessageList';
 import ChatInput from '@/components/chat/ChatInput';
 import { ICE_BREAKERS, ErrorScreen } from '@/components/chat/PrivateChatConstants';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function PrivateChat() {
+  const { toast } = useToast();
   const navigate = useNavigate(), location = useLocation();
   const messagesEndRef = useRef(null), typingTimeoutRef = useRef(null);
   const { currentUser, isLoading } = useCurrentUser();
@@ -93,8 +95,8 @@ export default function PrivateChat() {
 
   const handleBlockUser = async () => {
     if (!confirm('Are you sure you want to block this user?')) return;
-    try { await userService.blockUser(otherUserId); alert('User blocked successfully'); navigate(createPageUrl('SharedSpace')); }
-    catch { alert('Error blocking user'); }
+    try { await userService.blockUser(otherUserId); toast({ title: 'Success', description: 'User blocked successfully' }); navigate(createPageUrl('SharedSpace')); }
+    catch { toast({ title: 'Error', description: 'Error blocking user', variant: 'destructive' }); }
   };
 
   const goBack = () => navigate(createPageUrl('SharedSpace'));

@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -80,14 +81,14 @@ export default function HeartResponseSelector({ isOpen, onClose, targetUser, cur
 
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose(false)}>
-      <DialogContent className="sm:max-w-md" dir="rtl" aria-describedby="heart-response-description">
+      <DialogContent className="sm:max-w-md" dir="rtl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-center mb-2">
             איך תרצה להגיב?
           </DialogTitle>
-          <p id="heart-response-description" className="text-sm text-gray-600 text-center">
+          <DialogDescription className="text-sm text-gray-600 text-center">
             הראה ל-{targetUser?.nickname || 'המשתמש'} שאת/ה מעוניין/ת
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 mt-4">

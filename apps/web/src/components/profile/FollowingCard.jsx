@@ -4,6 +4,7 @@ import { userService } from '@/api';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { createPageUrl } from '@/utils';
+import { formatLocation } from '@/utils/userTransformer';
 import FollowButton from '@/components/profile/FollowButton';
 
 export default function FollowingCard({ userId, currentUserId }) {
@@ -45,7 +46,7 @@ export default function FollowingCard({ userId, currentUserId }) {
           </Avatar>
           <div className="flex-1 text-left">
             <h3 className="font-semibold text-sm text-foreground">{userData.nickname}, {userData.age}</h3>
-            <p className="text-xs text-muted-foreground">{userData.location}</p>
+            <p className="text-xs text-muted-foreground">{formatLocation(userData.location)}</p>
           </div>
         </button>
         <FollowButton

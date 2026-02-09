@@ -18,9 +18,7 @@ export default function StoryViewer({
       <DialogContent
         showClose={false}
         className="max-w-md w-full h-[80vh] p-0 bg-black border-0 rounded-2xl overflow-hidden"
-        aria-describedby="story-viewer-description"
       >
-        <span id="story-viewer-description" className="sr-only">Story viewer</span>
         {currentStory && (
           <div className="relative w-full h-full flex flex-col">
             {/* Progress bar */}

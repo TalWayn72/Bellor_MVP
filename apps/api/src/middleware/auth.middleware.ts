@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { extractBearerToken, sendAuthError, requireRole } from './token-validation.js';
+import { securityLogger } from '../security/logger.js';
 
 // Re-export for backward compatibility
 export { requireRole } from './token-validation.js';
@@ -15,26 +16,26 @@ export async function authMiddleware(
     const authHeader = request.headers.authorization;
 
     if (!authHeader) {
-      return sendAuthError(reply, 'UNAUTHORIZED', 'Authorization header is required');
+      return sendAuthError(reply, 'UNAUTHORIZED', 'Authorization header is required', 401, request);
     }
 
     if (!authHeader.startsWith('Bearer ')) {
-      return sendAuthError(reply, 'INVALID_TOKEN_FORMAT', 'Authorization header must use Bearer scheme');
+      return sendAuthError(reply, 'INVALID_TOKEN_FORMAT', 'Authorization header must use Bearer scheme', 401, request);
     }
 
     const token = authHeader.substring(7);
     if (!token) {
-      return sendAuthError(reply, 'MISSING_TOKEN', 'Token is required');
+      return sendAuthError(reply, 'MISSING_TOKEN', 'Token is required', 401, request);
     }
 
     const payload = extractBearerToken(authHeader);
     if (!payload) {
-      return sendAuthError(reply, 'INVALID_TOKEN', 'Invalid or expired access token');
+      return sendAuthError(reply, 'INVALID_TOKEN', 'Invalid or expired access token', 401, request);
     }
 
     request.user = payload;
   } catch (error) {
-    return sendAuthError(reply, 'INTERNAL_SERVER_ERROR', 'An error occurred during authentication', 500);
+    return sendAuthError(reply, 'INTERNAL_SERVER_ERROR', 'An error occurred during authentication', 500, request);
   }
 }
 
@@ -68,12 +69,13 @@ export async function adminMiddleware(
   reply: FastifyReply
 ): Promise<void> {
   if (!request.user) {
-    return sendAuthError(reply, 'UNAUTHORIZED', 'Authentication required');
+    return sendAuthError(reply, 'UNAUTHORIZED', 'Authentication required', 401, request);
   }
 
   // isAdmin is cached in the JWT since C7 improvement.
   // For tokens issued before this change, isAdmin may be undefined -> treat as false.
   if (!request.user.isAdmin) {
-    return sendAuthError(reply, 'FORBIDDEN', 'Admin access required', 403);
+    securityLogger.accessDenied(request, `admin route: ${request.url}`);
+    return sendAuthError(reply, 'FORBIDDEN', 'Admin access required', 403, request);
   }
 }

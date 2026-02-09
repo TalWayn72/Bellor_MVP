@@ -7,6 +7,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { SubscriptionsService } from '../../services/subscriptions.service.js';
 import Stripe from 'stripe';
 import { logger } from '../../lib/logger.js';
+import { securityLogger } from '../../security/logger.js';
 
 interface CreatePlanBody {
   name: string;
@@ -30,6 +31,7 @@ export const SubscriptionsAdminController = {
     const user = request.user as unknown as { id: string; isAdmin?: boolean };
 
     if (!user.isAdmin) {
+      securityLogger.accessDenied(request, 'subscriptions.createPlan');
       return reply.status(403).send({ error: 'Admin access required' });
     }
 

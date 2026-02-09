@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { authService } from '@/api/services/authService';
 import { tokenStorage } from '@/api/client/tokenStorage';
+import { reportAuthCheckFailed, reportTokenCleared } from '@/security/securityEventReporter';
 
 const UserContext = createContext(null);
 
@@ -32,12 +33,14 @@ export function UserProvider({ children }) {
         }
       } catch (error) {
         console.error('Error fetching user:', error);
+        reportAuthCheckFailed('UserProvider.fetchUser', error.response?.status);
         if (isMounted) {
           setCurrentUser(null);
           setIsAuthenticated(false);
 
           // Clear invalid tokens
           if (error.response?.status === 401) {
+            reportTokenCleared('UserProvider.fetchUser', 'Token cleared after 401 response');
             tokenStorage.clearTokens();
           }
         }
@@ -67,6 +70,7 @@ export function UserProvider({ children }) {
       setIsAuthenticated(true);
     } catch (error) {
       console.error('Error refreshing user:', error);
+      reportAuthCheckFailed('UserProvider.refreshUser', error.response?.status);
       setCurrentUser(null);
       setIsAuthenticated(false);
     } finally {

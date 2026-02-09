@@ -1,42 +1,26 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { userService } from '@/api';
 import { Crown } from 'lucide-react';
 import BackButton from '@/components/navigation/BackButton';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import { Card, CardContent } from '@/components/ui/card';
 import { CardsSkeleton } from '@/components/states';
-import { createPageUrl } from '@/utils';
 import { PlanSelector, FeaturesList } from '@/components/premium/PlanCards';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function Premium() {
-  const navigate = useNavigate();
   const { currentUser, isLoading: userLoading } = useCurrentUser();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('3months');
+  const { toast } = useToast();
 
   const handleSubscribe = async () => {
-    if (!currentUser) { alert('Please log in to subscribe'); return; }
-    setIsLoading(true);
-    try {
-      const subscriptionData = {
-        user_id: currentUser.id, plan: 'premium', status: 'active',
-        start_date: new Date().toISOString(),
-        end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        amount: 29.99
-      };
-      // Subscription service integration pending
-      await userService.updateUser(currentUser.id, {
-        is_premium: true, last_active_date: new Date().toISOString()
-      });
-      alert('Subscription created! Premium features activated.');
-      navigate(createPageUrl('SharedSpace'));
-    } catch (error) {
-      console.error('Error subscribing:', error);
-      alert('Error creating subscription');
-    } finally {
-      setIsLoading(false);
+    if (!currentUser) {
+      toast({ title: 'Login required', description: 'Please log in to subscribe', variant: 'destructive' });
+      return;
     }
+    setIsLoading(true);
+    toast({ title: 'Coming Soon', description: 'Payment integration coming soon! Stay tuned.' });
+    setIsLoading(false);
   };
 
   if (userLoading) {

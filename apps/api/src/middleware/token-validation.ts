@@ -5,6 +5,7 @@
 
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { verifyAccessToken, JWTPayload } from '../utils/jwt.util.js';
+import { logSecurityEvent } from '../security/logger.js';
 
 // Extend FastifyRequest to include user property
 declare module 'fastify' {
@@ -33,14 +34,20 @@ export function extractBearerToken(authHeader: string | undefined): JWTPayload |
 }
 
 /**
- * Send a standardized auth error response
+ * Send a standardized auth error response with security logging.
+ * Pass request to enable server-side audit trail.
  */
 export function sendAuthError(
   reply: FastifyReply,
   code: string,
   message: string,
-  statusCode = 401
+  statusCode = 401,
+  request?: FastifyRequest
 ) {
+  if (request) {
+    const event = statusCode === 403 ? 'access.denied' : 'auth.failure';
+    logSecurityEvent(event, request, { code, message, statusCode });
+  }
   return reply.code(statusCode).send({
     success: false,
     error: { code, message },

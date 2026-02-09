@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { reportRenderCrash } from '@/security/securityEventReporter';
 
 /**
  * Error Boundary Component for Admin Pages
@@ -18,6 +19,8 @@ class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     console.error('Admin Error:', error, errorInfo);
+    const route = window.location.pathname + window.location.search;
+    reportRenderCrash(route, error?.message || 'Admin render error', errorInfo?.componentStack);
   }
 
   render() {

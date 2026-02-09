@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Heart, X, Star } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+import { formatLocation } from '@/utils/userTransformer';
 import { Card } from '@/components/ui/card';
 
 export default function DiscoverCard({
@@ -36,7 +37,7 @@ export default function DiscoverCard({
             </h2>
             <div className="flex items-center gap-2 mb-3">
               <MapPin className="w-4 h-4" />
-              <span className="text-sm">{profile.location}</span>
+              <span className="text-sm">{formatLocation(profile.location)}</span>
             </div>
             <p className="text-sm opacity-90 mb-3">{profile.bio}</p>
             <div className="flex flex-wrap gap-2">

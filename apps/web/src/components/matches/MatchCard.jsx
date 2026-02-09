@@ -5,6 +5,7 @@ import { Heart, Sparkles } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
 
 function UserCard({ userId }) {
   const [user, setUser] = React.useState(null);
@@ -71,6 +72,7 @@ function UserInfo({ userId, type }) {
 
 export default function MatchCard({ like, type }) {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const isRomantic = type === 'romantic';
   const IconComponent = isRomantic ? Heart : Sparkles;
   const colorClass = isRomantic ? 'love' : 'superlike';
@@ -78,12 +80,12 @@ export default function MatchCard({ like, type }) {
   const handleReply = async (e) => {
     e.stopPropagation();
     if (like.user_id?.startsWith('demo-')) {
-      alert(isRomantic ? 'Demo user - cannot send interest' : 'Demo user - cannot send feedback');
+      toast({ title: 'Info', description: isRomantic ? 'Demo user - cannot send interest' : 'Demo user - cannot send feedback' });
       return;
     }
     try {
       await likeService.likeUser(like.user_id, isRomantic ? 'ROMANTIC' : 'POSITIVE');
-      alert(isRomantic ? 'You sent romantic interest back!' : 'You sent positive feedback back!');
+      toast({ title: 'Success', description: isRomantic ? 'You sent romantic interest back!' : 'You sent positive feedback back!' });
     } catch (error) {
       console.error('Error:', error);
     }

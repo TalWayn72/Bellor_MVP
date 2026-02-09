@@ -9,11 +9,13 @@ import { createPageUrl } from '@/utils';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import { CardsSkeleton } from '@/components/states';
 import BoostOptions from '@/components/premium/BoostOptions';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function ProfileBoost() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { currentUser, isLoading } = useCurrentUser();
+  const { toast } = useToast();
   const [activeBoost, setActiveBoost] = useState(null);
 
   const activateBoostMutation = useMutation({
@@ -30,7 +32,7 @@ export default function ProfileBoost() {
     onSuccess: (data) => {
       setActiveBoost(data);
       queryClient.invalidateQueries({ queryKey: ['activeBoost'] });
-      alert('Boost activated! Your profile will be shown to more people.');
+      toast({ title: 'Success', description: 'Boost activated! Your profile will be shown to more people.' });
     },
   });
 

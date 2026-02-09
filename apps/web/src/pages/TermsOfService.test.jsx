@@ -34,12 +34,13 @@ describe('TermsOfService', () => {
 
   it('renders the page heading', () => {
     render(<TermsOfService />, { wrapper: createWrapper() });
-    expect(screen.getByText('Terms of Service')).toBeInTheDocument();
+    // "Terms of Service" appears in both the header and the hero section
+    expect(screen.getAllByText('Terms of Service').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders terms title', () => {
     render(<TermsOfService />, { wrapper: createWrapper() });
-    expect(screen.getByText('Bellor Terms of Service')).toBeInTheDocument();
+    expect(screen.getByText('Bell\u00f8r Terms of Service')).toBeInTheDocument();
   });
 
   it('renders terms sections', () => {

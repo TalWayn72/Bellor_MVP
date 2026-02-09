@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   ProfileSection,
   BioSection,
@@ -14,12 +14,12 @@ export default function UserDetailModal({ user, userResponses, onClose }) {
 
   return (
     <Dialog open={!!user} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="user-details-description">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>User Details - {user.nickname || user.full_name}</DialogTitle>
-          <p id="user-details-description" className="text-sm text-muted-foreground">
+          <DialogDescription className="text-sm text-muted-foreground">
             View and manage user information, status, and activity
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">

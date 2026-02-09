@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { formatLocation } from '@/utils/userTransformer';
 
 export function ProfileSection({ user }) {
   return (
@@ -18,7 +19,7 @@ export function ProfileSection({ user }) {
               {[
                 ['Full Name', user.full_name], ['Nickname', user.nickname || 'Not set'],
                 ['Email', user.email], ['Age', user.age || 'Not set'],
-                ['Location', user.location || 'Not set'], ['Phone', user.phone || 'Not set'],
+                ['Location', formatLocation(user.location)], ['Phone', user.phone || 'Not set'],
               ].map(([label, value]) => (
                 <div key={label}>
                   <p className="text-sm text-muted-foreground">{label}</p>

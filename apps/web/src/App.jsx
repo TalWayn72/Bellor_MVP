@@ -13,6 +13,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import OAuthCallback from './pages/OAuthCallback';
 import BackendStatus from '@/components/BackendStatus';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import GlobalErrorBoundary from '@/components/states/GlobalErrorBoundary';
 
 // Loading spinner for lazy-loaded pages
 const PageLoader = () => (
@@ -115,7 +116,7 @@ const AuthenticatedApp = () => {
 function App() {
 
   return (
-    <>
+    <GlobalErrorBoundary>
     <BackendStatus />
     <AuthProvider>
       <SocketProvider>
@@ -130,7 +131,7 @@ function App() {
         </QueryClientProvider>
       </SocketProvider>
     </AuthProvider>
-    </>
+    </GlobalErrorBoundary>
   )
 }
 

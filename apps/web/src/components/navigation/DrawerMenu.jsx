@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import { createPageUrl, formatLocation } from '@/utils';
 import { X } from 'lucide-react';
 import { menuItems } from './DrawerMenuItems';
 
@@ -48,7 +48,7 @@ export default function DrawerMenu({ isOpen, onClose, currentUser }) {
             <h2 className="text-white text-2xl font-bold mb-1">
               {user.nickname || user.full_name} {'\u2022'} {user.age}
             </h2>
-            <p className="text-white/90 text-sm">{user.location}</p>
+            <p className="text-white/90 text-sm">{formatLocation(user.location)}</p>
           </div>
         </div>
 

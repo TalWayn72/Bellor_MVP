@@ -7,8 +7,10 @@ import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import PrivacyToggles from '@/components/settings/PrivacyToggles';
 import GDPRSection from '@/components/settings/GDPRSection';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function PrivacySettings() {
+  const { toast } = useToast();
   const { currentUser, updateUser } = useCurrentUser();
   const [settings, setSettings] = useState({
     showOnline: true, showDistance: true, showAge: true,
@@ -47,10 +49,10 @@ export default function PrivacySettings() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      alert('Your data has been exported successfully!');
+      toast({ title: 'Success', description: 'Your data has been exported successfully!' });
     } catch (error) {
       console.error('Error exporting data:', error);
-      alert('Failed to export data. Please try again.');
+      toast({ title: 'Error', description: 'Failed to export data. Please try again.', variant: 'destructive' });
     } finally { setIsExporting(false); }
   };
 
@@ -59,11 +61,11 @@ export default function PrivacySettings() {
     setIsDeleting(true);
     try {
       await userService.deleteUserGDPR(currentUser.id);
-      alert('Your account and all data have been permanently deleted.');
-      window.location.href = '/Login';
+      toast({ title: 'Success', description: 'Your account and all data have been permanently deleted.' });
+      window.location.href = '/Welcome';
     } catch (error) {
       console.error('Error deleting account:', error);
-      alert('Failed to delete account. Please try again.');
+      toast({ title: 'Error', description: 'Failed to delete account. Please try again.', variant: 'destructive' });
     } finally { setIsDeleting(false); setShowDeleteDialog(false); }
   };
 
