@@ -77,6 +77,7 @@ vi.mock('../lib/prisma.js', () => {
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+      deleteMany: vi.fn(),
       count: vi.fn(),
     },
     mission: {
@@ -94,6 +95,7 @@ vi.mock('../lib/prisma.js', () => {
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+      deleteMany: vi.fn(),
       count: vi.fn(),
     },
     story: {
@@ -114,6 +116,7 @@ vi.mock('../lib/prisma.js', () => {
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+      deleteMany: vi.fn(),
       count: vi.fn(),
     },
     follow: {
@@ -160,6 +163,14 @@ vi.mock('../lib/prisma.js', () => {
       updateMany: vi.fn(),
       count: vi.fn(),
       groupBy: vi.fn(),
+    },
+    subscriptionPlan: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn(),
     },
     $transaction: vi.fn(),
     $connect: vi.fn(),

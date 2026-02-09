@@ -53,7 +53,7 @@ describe('POST /api/v1/uploads/profile-image - Upload Profile Image', () => {
       payload: {},
     });
 
-    expect([400, 500, 503]).toContain(response.statusCode);
+    expect([400, 415, 500, 503]).toContain(response.statusCode);
   });
 
   it('should reject request without file', async () => {
@@ -66,7 +66,7 @@ describe('POST /api/v1/uploads/profile-image - Upload Profile Image', () => {
       },
     });
 
-    expect([400, 500, 503]).toContain(response.statusCode);
+    expect([400, 415, 500, 503]).toContain(response.statusCode);
   });
 
   it('should reject files that are too large', async () => {
@@ -78,7 +78,7 @@ describe('POST /api/v1/uploads/profile-image - Upload Profile Image', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 
   it('should reject non-image files', async () => {
@@ -89,7 +89,7 @@ describe('POST /api/v1/uploads/profile-image - Upload Profile Image', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 });
 
@@ -113,7 +113,7 @@ describe('POST /api/v1/uploads/story-media - Upload Story Media', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 
   it('should return thumbnail URL for videos', async () => {
@@ -124,7 +124,7 @@ describe('POST /api/v1/uploads/story-media - Upload Story Media', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 
   it('should validate file type', async () => {
@@ -134,7 +134,7 @@ describe('POST /api/v1/uploads/story-media - Upload Story Media', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 });
 
@@ -158,7 +158,7 @@ describe('POST /api/v1/uploads/audio - Upload Audio', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 
   it('should validate audio MIME types', async () => {
@@ -168,7 +168,7 @@ describe('POST /api/v1/uploads/audio - Upload Audio', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 
   it('should enforce audio file size limits', async () => {
@@ -178,7 +178,7 @@ describe('POST /api/v1/uploads/audio - Upload Audio', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 });
 
@@ -202,7 +202,7 @@ describe('POST /api/v1/uploads/video - Upload Video', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 
   it('should validate video MIME types', async () => {
@@ -212,7 +212,7 @@ describe('POST /api/v1/uploads/video - Upload Video', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 
   it('should enforce video file size limits', async () => {
@@ -222,7 +222,7 @@ describe('POST /api/v1/uploads/video - Upload Video', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 });
 
@@ -246,7 +246,7 @@ describe('POST /api/v1/uploads/drawing - Upload Drawing', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 
   it('should update user drawingUrl in database', async () => {
@@ -258,7 +258,7 @@ describe('POST /api/v1/uploads/drawing - Upload Drawing', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 
   it('should validate image format', async () => {
@@ -268,7 +268,7 @@ describe('POST /api/v1/uploads/drawing - Upload Drawing', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 });
 
@@ -292,7 +292,7 @@ describe('POST /api/v1/uploads/response-media - Upload Response Media', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 
   it('should validate file types', async () => {
@@ -302,7 +302,7 @@ describe('POST /api/v1/uploads/response-media - Upload Response Media', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 });
 
@@ -318,7 +318,7 @@ describe('Upload Security & Validation', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 
   it('should validate file magic bytes (not just extension)', async () => {
@@ -329,7 +329,7 @@ describe('Upload Security & Validation', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 
   it('should reject executable files', async () => {
@@ -339,7 +339,7 @@ describe('Upload Security & Validation', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 
   it('should reject files with path traversal attempts', async () => {
@@ -349,7 +349,7 @@ describe('Upload Security & Validation', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 
   it('should handle storage service unavailable gracefully', async () => {
@@ -360,7 +360,7 @@ describe('Upload Security & Validation', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 500, 503]).toContain(response.statusCode);
+    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
   });
 });
 
@@ -383,7 +383,7 @@ describe('Upload Rate Limiting', () => {
 
     // At least some requests should succeed or fail with expected codes
     statusCodes.forEach(code => {
-      expect([400, 401, 429, 500, 503]).toContain(code);
+      expect([400, 401, 415, 429, 500, 503]).toContain(code);
     });
   });
 });

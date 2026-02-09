@@ -144,6 +144,7 @@ describe('GET /api/v1/users/:id - Get User By ID', () => {
 describe('PATCH /api/v1/users/:id - Update User Profile', () => {
   it('should update own profile successfully', async () => {
     const updatedUser = createMockUser({ firstName: 'Updated' });
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(createMockUser());
     vi.mocked(prisma.user.update).mockResolvedValue(updatedUser);
 
     const response = await app.inject({
@@ -204,6 +205,7 @@ describe('PATCH /api/v1/users/:id - Update User Profile', () => {
 describe('PATCH /api/v1/users/:id/language - Update Language', () => {
   it('should update language preference', async () => {
     const updatedUser = createMockUser({ preferredLanguage: 'HEBREW' });
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(createMockUser());
     vi.mocked(prisma.user.update).mockResolvedValue(updatedUser);
 
     const response = await app.inject({
@@ -305,6 +307,7 @@ describe('GET /api/v1/users/search - Search Users', () => {
 // ============================================
 describe('DELETE /api/v1/users/:id - Deactivate User', () => {
   it('should deactivate own account', async () => {
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(createMockUser());
     vi.mocked(prisma.user.update).mockResolvedValue(createMockUser({ isBlocked: true }));
 
     const response = await app.inject({

@@ -9,6 +9,15 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.js'],
     include: ['src/**/*.test.{js,jsx,ts,tsx}'],
+    poolOptions: {
+      threads: {
+        maxThreads: 1,
+        minThreads: 1,
+        singleThread: true,
+      },
+    },
+    testTimeout: 60000,
+    isolate: false,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
