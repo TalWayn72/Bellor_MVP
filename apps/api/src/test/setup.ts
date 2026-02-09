@@ -55,9 +55,10 @@ vi.mock('../lib/prisma.js', () => {
   const mockPrismaObj = {
     user: {
       findUnique: vi.fn(),
-      findMany: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
       create: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn().mockResolvedValue({ count: 0 }),
       delete: vi.fn(),
       count: vi.fn(),
     },
@@ -67,6 +68,7 @@ vi.mock('../lib/prisma.js', () => {
       findMany: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn().mockResolvedValue({ count: 0 }),
       delete: vi.fn(),
       count: vi.fn(),
     },
@@ -175,6 +177,7 @@ vi.mock('../lib/prisma.js', () => {
     $transaction: vi.fn(),
     $connect: vi.fn(),
     $disconnect: vi.fn(),
+    $queryRaw: vi.fn().mockResolvedValue([{ result: 1 }]),
   };
   // $transaction supports both array and callback styles
   mockPrismaObj.$transaction.mockImplementation(async (fn: unknown) => {
@@ -212,6 +215,7 @@ vi.mock('../lib/redis.js', () => ({
     keys: vi.fn().mockResolvedValue([]),
     ping: vi.fn().mockResolvedValue('PONG'),
     quit: vi.fn().mockResolvedValue('OK'),
+    defineCommand: vi.fn(),
   },
 }));
 
