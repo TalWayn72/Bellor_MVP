@@ -1,4 +1,4 @@
 {
-  "apps/api/src/**/*.ts": ["cd apps/api && eslint src --fix"],
-  "apps/web/src/**/*.{js,jsx,ts,tsx}": ["cd apps/web && eslint src --fix"]
+  "apps/api/src/**/*.ts": ["eslint --config apps/api/eslint.config.js --fix"],
+  "apps/web/src/**/*.{js,jsx,ts,tsx}": ["eslint --config apps/web/eslint.config.js --fix"]
 }

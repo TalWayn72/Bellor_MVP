@@ -161,11 +161,14 @@
 ## חובת בדיקות
 | סוג שינוי | דרישת בדיקות |
 |-----------|---------------|
-| פיצ'ר חדש | Unit + Integration |
-| תיקון באג | בדיקת רגרסיה |
+| פיצ'ר חדש | Unit + Integration + Memory Leak Detection |
+| תיקון באג | בדיקת רגרסיה + Memory Leak Detection |
 | שינוי API | בדיקות אינטגרציה לכל endpoint |
 | שינוי UI | בדיקות קומפוננטות + E2E |
 | שינוי Config | בדיקות תקינות הגדרות |
+| **קוד עם Intervals/Timers** | **חובה: Memory Leak Detection** |
+| **קוד עם Event Listeners** | **חובה: Memory Leak Detection** |
+| **קוד עם WebSockets** | **חובה: Memory Leak Detection** |
 
 ### מיקום קבצי בדיקות
 | סוג | מיקום |
@@ -174,6 +177,7 @@
 | Backend Integration | `apps/api/src/test/integration/*.test.ts` |
 | Frontend Unit | `apps/web/src/**/*.test.{ts,tsx}` |
 | E2E | `apps/web/e2e/*.spec.ts` |
+| **Memory Leak Detection** | `apps/api/src/test/memory-leak-detection.test.ts`<br>`apps/web/src/test/memory-leak-detection.test.ts` |
 
 ### פקודות בדיקה
 | פקודה | תיאור |
@@ -182,8 +186,108 @@
 | `npm run test:api` | Backend בלבד |
 | `npm run test:web` | Frontend בלבד |
 | `npm run test:e2e` | E2E בלבד |
+| **`npm run test:memory-leak`** | **בדיקות דליפות זכרון (Backend + Frontend)** |
+| **`npm run check:memory-leaks`** | **סריקה אוטומטית לדפוסי דליפות בקוד** |
 
-**אין לבצע merge או deploy ללא בדיקות מלאות.**
+**אין לבצע merge או deploy ללא בדיקות מלאות + בדיקות דליפות זכרון.**
+
+## בדיקות דליפות זכרון - חובה! 🔴
+
+### מתי להריץ בדיקות דליפות זכרון
+- **לפני כל commit** שמכיל Intervals, Timers, Event Listeners, או WebSockets
+- **בסוף כל יום עבודה** - הרץ `npm run check:memory-leaks`
+- **לפני כל merge/deploy** - חובה להריץ את כל הבדיקות
+
+### דפוסי דליפות נפוצים שנבדקים אוטומטית
+| דפוס | חומרה | תיאור |
+|------|--------|-------|
+| `setInterval` ללא `clearInterval` | 🔴 קריטי | Interval ימשיך לרוץ לאחר unmount |
+| `setTimeout` ב-refs ללא `clearTimeout` | 🟡 בינוני | Timeouts יצטברו בזכרון |
+| `addEventListener` ללא `removeEventListener` | 🔴 קריטי | Listeners יצטברו על DOM |
+| `.on()` ללא `.off()` | 🔴 קריטי | Event listeners יצטברו |
+| `useEffect` ללא cleanup return | 🟡 בינוני | Side effects לא ינוקו |
+| `Map/Set` ללא ניהול גודל | 🟢 נמוך | זכרון יגדל ללא הגבלה |
+| `WebSocket` ללא `.close()` | 🔴 קריטי | Connections יישארו פתוחות |
+
+### חוקי כתיבת קוד למניעת דליפות
+1. **כל `setInterval` חייב להישמר במשתנה ולהיות מנוקה ב-cleanup**
+   ```typescript
+   // ✅ נכון
+   const interval = setInterval(() => {}, 1000);
+   return () => clearInterval(interval);
+
+   // ❌ לא נכון
+   setInterval(() => {}, 1000); // אין cleanup!
+   ```
+
+2. **כל `addEventListener` חייב `removeEventListener` מתאים**
+   ```typescript
+   // ✅ נכון
+   const handler = () => {};
+   element.addEventListener('click', handler);
+   return () => element.removeEventListener('click', handler);
+
+   // ❌ לא נכון
+   element.addEventListener('click', () => {}); // לא ניתן להסיר!
+   ```
+
+3. **React `useEffect` עם side effects חייב להחזיר cleanup function**
+   ```typescript
+   // ✅ נכון
+   useEffect(() => {
+     const interval = setInterval(() => {}, 1000);
+     return () => clearInterval(interval);
+   }, []);
+
+   // ❌ לא נכון
+   useEffect(() => {
+     setInterval(() => {}, 1000); // אין cleanup!
+   }, []);
+   ```
+
+4. **כל Socket/WebSocket חייב `.disconnect()` או `.close()` ב-cleanup**
+   ```typescript
+   // ✅ נכון
+   useEffect(() => {
+     socketService.connect();
+     return () => socketService.disconnect();
+   }, []);
+
+   // ❌ לא נכון
+   useEffect(() => {
+     socketService.connect(); // לא מנותק!
+   }, []);
+   ```
+
+5. **Map/Set שגדלים דינמית חייבים ניהול גודל**
+   ```typescript
+   // ✅ נכון
+   const cache = new Map();
+   const MAX_SIZE = 1000;
+   if (cache.size > MAX_SIZE) {
+     const firstKey = cache.keys().next().value;
+     cache.delete(firstKey);
+   }
+
+   // ❌ לא נכון
+   const cache = new Map();
+   cache.set(key, value); // גדל ללא הגבלה!
+   ```
+
+### הרצת בדיקות דליפות זכרון
+```bash
+# בדיקות יחידה לדליפות
+npm run test:memory-leak
+
+# סריקה סטטית של הקוד
+npm run check:memory-leaks
+
+# בדיקה מלאה לפני commit
+npm run test && npm run check:memory-leaks
+```
+
+### CI/CD Integration
+הסקריפט `check-memory-leaks.js` יכשל (exit code 1) אם נמצאו דליפות בחומרה HIGH, ויצליח (exit code 0) אם הכל תקין.
 
 ## סנכרון תיעוד
 | קובץ | מתי לעדכן | מה לסנכרן |

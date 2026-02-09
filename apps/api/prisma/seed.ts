@@ -6,11 +6,16 @@ import { PrismaClient, ChatStatus, MessageType, ResponseType } from '@prisma/cli
 import bcrypt from 'bcryptjs';
 import { demoUsersBatch1 } from './seed-data/users-1.js';
 import { demoUsersBatch2, cities } from './seed-data/users-2.js';
-import { demoMissions, demoAchievements, demoResponseTexts, demoStoryImages } from './seed-data/content.js';
+import { demoUsersBatch3 } from './seed-data/users-3.js';
+import { demoMissions, demoAchievements } from './seed-data/content.js';
+import { demoResponses, demoStories } from './seed-data/responses-stories.js';
 import { demoConversations, chatPairs, likePairs, followPairs, notificationTemplates } from './seed-data/relationships.js';
+import { subscriptionPlans, subscriptions, payments, referrals } from './seed-data/financial.js';
+import { demoReports, demoFeedback } from './seed-data/moderation.js';
+import { demoDeviceTokens, demoLikes, demoFollows } from './seed-data/technical.js';
 
 const prisma = new PrismaClient();
-const demoUsers = [...demoUsersBatch1, ...demoUsersBatch2];
+const demoUsers = [...demoUsersBatch1, ...demoUsersBatch2, ...demoUsersBatch3];
 
 async function main() {
   console.log('Starting comprehensive database seed...\n');
@@ -66,12 +71,22 @@ async function main() {
   }
 
   console.log('Creating responses...');
-  for (let i = 0; i < createdUsers.length; i++) {
-    const user = createdUsers[i];
-    for (let j = 0; j < 2 + Math.floor(Math.random() * 3); j++) {
-      const mission = createdMissions[Math.floor(Math.random() * createdMissions.length)];
-      await prisma.response.upsert({ where: { id: `demo-response-${user.id}-${mission.id}-${j}` }, update: {}, create: { id: `demo-response-${user.id}-${mission.id}-${j}`, userId: user.id, missionId: mission.id, responseType: ResponseType.TEXT, content: demoResponseTexts[(i + j) % demoResponseTexts.length], isPublic: true, viewCount: Math.floor(Math.random() * 80) + 10, likeCount: Math.floor(Math.random() * 30) + 5, createdAt: new Date(Date.now() - Math.random() * 14 * 86400000) } });
-    }
+  for (const resp of demoResponses) {
+    const user = createdUsers.find(u => u.id === resp.userId);
+    if (!user) continue;
+    const mission = resp.missionId ? createdMissions.find(m => m.id === resp.missionId) : createdMissions[Math.floor(Math.random() * createdMissions.length)];
+    const respData: any = {
+      userId: user.id,
+      missionId: mission?.id || createdMissions[0].id,
+      responseType: resp.response_type,
+      content: resp.content || '',
+      isPublic: true,
+      viewCount: Math.floor(Math.random() * 80) + 10,
+      likeCount: Math.floor(Math.random() * 30) + 5,
+      createdAt: resp.created_date || new Date(Date.now() - Math.random() * 14 * 86400000),
+    };
+    if (resp.text_content) respData.textContent = resp.text_content;
+    await prisma.response.upsert({ where: { id: `demo-response-${user.id}-${Math.random().toString(36).substring(7)}` }, update: {}, create: { id: `demo-response-${user.id}-${Math.random().toString(36).substring(7)}`, ...respData } });
   }
   for (const user of createdUsers) {
     const count = await prisma.response.count({ where: { userId: user.id } });
@@ -79,10 +94,19 @@ async function main() {
   }
 
   console.log('Creating stories...');
-  for (let i = 0; i < Math.min(10, createdUsers.length); i++) {
-    const user = createdUsers[i], s = demoStoryImages[i % demoStoryImages.length];
-    const expiresAt = new Date(Date.now() + (12 + Math.random() * 12) * 3600000);
-    await prisma.story.upsert({ where: { id: `demo-story-${user.id}` }, update: { mediaUrl: s.url, caption: s.caption, expiresAt }, create: { id: `demo-story-${user.id}`, userId: user.id, mediaType: s.mediaType, mediaUrl: s.url, caption: s.caption, viewCount: Math.floor(Math.random() * 50) + 5, createdAt: new Date(Date.now() - Math.random() * 12 * 3600000), expiresAt } });
+  for (const story of demoStories) {
+    const user = createdUsers.find(u => u.id === story.userId);
+    if (!user) continue;
+    const storyData: any = {
+      userId: user.id,
+      mediaType: story.content_type,
+      mediaUrl: story.content,
+      caption: story.caption || '',
+      viewCount: Math.floor(Math.random() * 50) + 5,
+      createdAt: story.created_date || new Date(Date.now() - Math.random() * 12 * 3600000),
+      expiresAt: story.expiresAt || new Date(Date.now() + (12 + Math.random() * 12) * 3600000),
+    };
+    await prisma.story.upsert({ where: { id: `demo-story-${user.id}-${Math.random().toString(36).substring(7)}` }, update: storyData, create: { id: `demo-story-${user.id}-${Math.random().toString(36).substring(7)}`, ...storyData } });
   }
 
   console.log('Creating likes...');
@@ -117,6 +141,47 @@ async function main() {
     }
   }
 
+  console.log('Creating subscription plans...');
+  for (const plan of subscriptionPlans) {
+    await prisma.subscriptionPlan.upsert({ where: { id: plan.id }, update: plan as any, create: plan as any });
+  }
+
+  console.log('Creating subscriptions & payments...');
+  for (const sub of subscriptions) {
+    await prisma.subscription.upsert({ where: { id: sub.id }, update: sub as any, create: sub as any });
+  }
+  for (const payment of payments) {
+    await prisma.payment.upsert({ where: { id: payment.id }, update: payment as any, create: payment as any });
+  }
+
+  console.log('Creating referrals...');
+  for (const ref of referrals) {
+    await prisma.referral.upsert({ where: { id: ref.id }, update: ref as any, create: ref as any });
+  }
+
+  console.log('Creating reports & feedback...');
+  for (const report of demoReports) {
+    await prisma.report.upsert({ where: { id: report.id }, update: report as any, create: report as any });
+  }
+  for (const feedback of demoFeedback) {
+    await prisma.feedback.upsert({ where: { id: `feedback-${feedback.userId}-${Date.now()}-${Math.random().toString(36).substring(7)}` }, update: {}, create: { id: `feedback-${feedback.userId}-${Date.now()}-${Math.random().toString(36).substring(7)}`, ...feedback as any } });
+  }
+
+  console.log('Creating device tokens...');
+  for (const token of demoDeviceTokens) {
+    await prisma.deviceToken.upsert({ where: { id: token.id }, update: token as any, create: token as any });
+  }
+
+  console.log('Creating additional likes & follows...');
+  for (const like of demoLikes) {
+    const existing = await prisma.like.findFirst({ where: { userId: like.userId, targetUserId: like.targetUserId } });
+    if (!existing) await prisma.like.create({ data: like as any });
+  }
+  for (const follow of demoFollows) {
+    const existing = await prisma.follow.findFirst({ where: { followerId: follow.followerId, followingId: follow.followingId } });
+    if (!existing) await prisma.follow.create({ data: follow as any });
+  }
+
   console.log('Updating user statistics...');
   for (const user of createdUsers) {
     const chatCount = await prisma.chat.count({ where: { OR: [{ user1Id: user.id }, { user2Id: user.id }] } });
@@ -124,10 +189,20 @@ async function main() {
     await prisma.user.update({ where: { id: user.id }, data: { chatCount, missionCompletedCount: missionCount } });
   }
 
-  console.log('\nSEED COMPLETED!');
-  console.log(`Users: ${createdUsers.length}, Missions: ${createdMissions.length}, Achievements: ${createdAchievements.length}`);
-  console.log(`Chats: ${chatPairs.length}, Likes: ${likePairs.length}, Follows: ${followPairs.length}`);
-  console.log('Demo Login: any demo email with password Demo123! | Admin: admin@bellor.app');
+  console.log('\n========================================');
+  console.log('SEED COMPLETED SUCCESSFULLY!');
+  console.log('========================================');
+  console.log(`Users: ${createdUsers.length} (18 original + ${demoUsersBatch3.length} new)`);
+  console.log(`Missions: ${createdMissions.length} | Achievements: ${createdAchievements.length}`);
+  console.log(`Responses: ${demoResponses.length} | Stories: ${demoStories.length}`);
+  console.log(`Chats: ${chatPairs.length} | Likes: ${likePairs.length + demoLikes.length} | Follows: ${followPairs.length + demoFollows.length}`);
+  console.log(`Subscriptions: ${subscriptions.length} | Payments: ${payments.length}`);
+  console.log(`Referrals: ${referrals.length} | Device Tokens: ${demoDeviceTokens.length}`);
+  console.log(`Reports: ${demoReports.length} | Feedback: ${demoFeedback.length}`);
+  console.log('========================================');
+  console.log('Demo Login: any demo email with password Demo123!');
+  console.log('Admin Login: admin@bellor.app with password Demo123!');
+  console.log('========================================');
 }
 
 main()

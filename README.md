@@ -22,7 +22,7 @@ cp apps/api/.env.example apps/api/.env    # Configure environment
 npm run docker:up                          # Start PostgreSQL + Redis
 npm run prisma:generate                    # Generate Prisma client
 npm run prisma:migrate                     # Apply database schema
-npm run prisma:seed                        # Seed 20 demo users
+npm run prisma:seed                        # Seed 50 users + comprehensive demo data
 npm run dev:all                            # Start frontend + backend
 ```
 
@@ -217,6 +217,7 @@ docker compose -f docker-compose.monitoring.yml up -d
 | **Visual Regression** | **20+ scenarios** | **Playwright** | **1 spec file** |
 | Load Testing | 7 scripts | k6 | smoke, sustained, stress, spike, WS, DB, memory |
 | Mutation Testing | Critical services | Stryker | Auth, Chat, Security, Middleware |
+| **🆕 Memory Leak Detection** | **Automated scan** | **Custom + Vitest** | **Static analysis + Runtime tests** |
 | **Total** | **3054+ tests** | | **81+ test files** |
 
 **Browsers (E2E):** Chromium, Mobile Chrome, Mobile Safari, Firefox (CI)
@@ -271,6 +272,33 @@ npm run test:mutation:report       # View HTML report
 **Thresholds:** High: 80%, Low: 60%, Break: 50%
 
 **CI:** Automated weekly on Sundays at 2 AM UTC via GitHub Actions.
+
+### 🆕 Memory Leak Detection
+
+Automated detection system for common memory leak patterns. Catches issues before they reach production.
+
+**What it detects:**
+- ✅ `setInterval` without `clearInterval` 🔴 HIGH
+- ✅ `addEventListener` without `removeEventListener` 🔴 HIGH
+- ✅ Event emitter `.on()` without `.off()` 🔴 HIGH
+- ✅ `useEffect` without cleanup return 🟡 MEDIUM
+- ✅ `setTimeout` in refs without cleanup 🟡 MEDIUM
+- ✅ WebSocket connections not closed 🔴 HIGH
+- ✅ Map/Set growth without size limits 🟢 LOW
+
+**Commands:**
+```bash
+npm run check:memory-leaks         # Static analysis scan (618 files)
+npm run test:memory-leak           # Runtime validation tests
+```
+
+**CI Integration:** GitHub Actions runs on every PR and daily at 2 AM UTC. Fails builds if HIGH severity leaks detected.
+
+**Files:**
+- `scripts/check-memory-leaks.js` - Static analyzer
+- `apps/api/src/test/memory-leak-detection.test.ts` - Backend tests
+- `apps/web/src/test/memory-leak-detection.test.ts` - Frontend tests
+- `.github/workflows/memory-leak-check.yml` - CI workflow
 
 ---
 

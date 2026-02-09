@@ -1,8 +1,8 @@
 /**
- * Seed Data - Missions, Achievements, Responses, Stories
+ * Seed Data - Missions and Achievements
  */
 
-import { MissionType, MediaType } from '@prisma/client';
+import { MissionType } from '@prisma/client';
 
 export const demoMissions = [
   {
@@ -95,6 +95,22 @@ export const demoMissions = [
     activeFrom: new Date(),
     activeUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
   },
+  // Additional missions (11-25)
+  { title: 'Send a Voice Message', description: 'Record and send your first voice message to someone!', missionType: MissionType.DAILY, difficulty: 1, xpReward: 20, activeFrom: new Date(), activeUntil: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000) },
+  { title: 'Complete Your Bio', description: 'Fill out your complete profile bio and personality section', missionType: MissionType.ICE_BREAKER, difficulty: 1, xpReward: 30, activeFrom: new Date(), activeUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) },
+  { title: 'Like 3 Profiles', description: 'Show some love! Like at least 3 profiles today', missionType: MissionType.DAILY, difficulty: 1, xpReward: 15, activeFrom: new Date(), activeUntil: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000) },
+  { title: 'Start 5 Conversations', description: 'Be social! Start conversations with 5 different people', missionType: MissionType.WEEKLY, difficulty: 2, xpReward: 40, activeFrom: new Date(), activeUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) },
+  { title: 'Complete Compatibility Quiz', description: 'Take the compatibility quiz to improve your matches!', missionType: MissionType.ICE_BREAKER, difficulty: 2, xpReward: 35, activeFrom: new Date(), activeUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) },
+  { title: 'Share a Story', description: 'Post your first story and let others see your day!', missionType: MissionType.DAILY, difficulty: 1, xpReward: 20, activeFrom: new Date(), activeUntil: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000) },
+  { title: 'First Match', description: 'Get your first mutual match!', missionType: MissionType.SPECIAL, difficulty: 2, xpReward: 100, activeFrom: new Date(), activeUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) },
+  { title: 'Premium Member Welcome', description: 'Upgrade to premium and unlock exclusive features!', missionType: MissionType.SPECIAL, difficulty: 1, xpReward: 50, activeFrom: new Date(), activeUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) },
+  { title: 'Invite a Friend', description: 'Refer a friend to join Bellor using your referral code', missionType: MissionType.SPECIAL, difficulty: 2, xpReward: 75, activeFrom: new Date(), activeUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) },
+  { title: 'Coffee Date Plan', description: 'Plan a virtual or real coffee date with a match', missionType: MissionType.WEEKLY, difficulty: 3, xpReward: 60, activeFrom: new Date(), activeUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) },
+  { title: 'Favorite Music Genre', description: 'Share what music you love and why it speaks to you', missionType: MissionType.ICE_BREAKER, difficulty: 1, xpReward: 10, activeFrom: new Date(), activeUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) },
+  { title: 'Dream Vacation', description: 'Describe your dream vacation destination in detail', missionType: MissionType.ICE_BREAKER, difficulty: 1, xpReward: 10, activeFrom: new Date(), activeUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) },
+  { title: 'Weekend Plans', description: 'Share what you have planned for this weekend!', missionType: MissionType.WEEKLY, difficulty: 1, xpReward: 20, activeFrom: new Date(), activeUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) },
+  { title: 'Pet Lover', description: 'Share a photo or story about your pet (or dream pet!)', missionType: MissionType.DAILY, difficulty: 1, xpReward: 15, activeFrom: new Date(), activeUntil: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000) },
+  { title: 'Fitness Journey', description: 'Share your fitness goals or achievements this month', missionType: MissionType.WEEKLY, difficulty: 2, xpReward: 30, activeFrom: new Date(), activeUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) },
 ];
 
 export const demoAchievements = [
@@ -109,35 +125,14 @@ export const demoAchievements = [
   { name: 'Artist', description: 'Submit 5 drawing responses', requirement: { type: 'drawing_count', value: 5 }, xpReward: 120, iconUrl: '🎨' },
   { name: 'Connector', description: 'Match with 3 people', requirement: { type: 'match_count', value: 3 }, xpReward: 150, iconUrl: '🤝' },
   { name: 'Heart Breaker', description: 'Receive 100 likes', requirement: { type: 'received_likes', value: 100 }, xpReward: 300, iconUrl: '💘' },
-];
-
-export const demoResponseTexts = [
-  'My perfect day would start with sunrise yoga on the beach, followed by a homemade brunch. Then exploring a new hiking trail and ending with stargazing!',
-  'I wake up at 6am, do 20 minutes of meditation, make my favorite coffee, and journal. It sets such a positive tone for the day!',
-  "Not many people know this, but I can solve a Rubik's cube in under 2 minutes! Started learning during quarantine.",
-  'My favorite travel memory is watching the northern lights in Iceland. The colors dancing across the sky was absolutely magical.',
-  'Just made homemade pasta from scratch for the first time! It was easier than I thought and so delicious.',
-  'My perfect day: coffee in the morning by the sea, a day in nature with friends, and an evening of board games!',
-  'My hidden talent - I can do complex origami. Here is a swan I folded!',
-  'My perfect day includes tapas with friends, live music, and a good book on the beach!',
-  'Captured this amazing sunset during my trip to Santorini. The colors were unreal!',
-  'Morning routine: 5am wake up, cold shower, 30 min run, healthy smoothie. Changed my life!',
-  'Two truths and a lie: I can speak 4 languages, I have a pilot license, I once swam with sharks. Guess which is the lie!',
-  'Bucket list top 3: 1) Northern lights in Norway, 2) Hike the Inca trail, 3) Learn to surf in Bali',
-  'Today I feel like a calm ocean - peaceful but full of depth. Drew a watercolor to express it.',
-  'What I miss most is long late-night conversations with real friends. Those are the most beautiful moments.',
-  'My favorite dish: a homemade mushroom risotto. My grandmother\'s recipe!',
-];
-
-export const demoStoryImages = [
-  { url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600', caption: 'Morning hike views', mediaType: MediaType.IMAGE },
-  { url: 'https://images.unsplash.com/photo-1493770348161-369560ae357d?w=600', caption: 'Brunch time!', mediaType: MediaType.IMAGE },
-  { url: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=600', caption: 'Weekend camping', mediaType: MediaType.IMAGE },
-  { url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600', caption: 'Dinner date', mediaType: MediaType.IMAGE },
-  { url: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600', caption: 'Pizza night!', mediaType: MediaType.IMAGE },
-  { url: 'https://images.unsplash.com/photo-1552733407-5d5c46c3bb3b?w=600', caption: 'Beach day', mediaType: MediaType.IMAGE },
-  { url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600', caption: 'Night sky magic', mediaType: MediaType.IMAGE },
-  { url: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=600', caption: 'Coffee time', mediaType: MediaType.IMAGE },
-  { url: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600', caption: 'Road trip vibes', mediaType: MediaType.IMAGE },
-  { url: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=600', caption: 'Golden hour', mediaType: MediaType.IMAGE },
+  // Additional achievements (12-20)
+  { name: 'Influencer', description: 'Get 500 followers', requirement: { type: 'followers', value: 500 }, xpReward: 400, iconUrl: '👑' },
+  { name: 'Daily Streak Master', description: 'Complete daily missions for 30 days straight', requirement: { type: 'streak', value: 30 }, xpReward: 500, iconUrl: '⚡' },
+  { name: 'Mission Master', description: 'Complete 50 total missions', requirement: { type: 'mission_count', value: 50 }, xpReward: 300, iconUrl: '🏆' },
+  { name: 'Supporter', description: 'Maintain premium membership for 6 months', requirement: { type: 'premium_duration', value: 180 }, xpReward: 250, iconUrl: '⭐' },
+  { name: '100 Likes', description: 'Give 100 likes to others', requirement: { type: 'given_likes', value: 100 }, xpReward: 150, iconUrl: '❤️' },
+  { name: '50 Matches', description: 'Match with 50 people', requirement: { type: 'match_count', value: 50 }, xpReward: 400, iconUrl: '🎉' },
+  { name: '1 Year Member', description: 'Be a Bellor member for 1 year', requirement: { type: 'member_duration', value: 365 }, xpReward: 600, iconUrl: '🎂' },
+  { name: 'Voice Expert', description: 'Send 25 voice messages', requirement: { type: 'voice_count', value: 25 }, xpReward: 180, iconUrl: '🎤' },
+  { name: 'Video Star', description: 'Send 10 video messages', requirement: { type: 'video_count', value: 10 }, xpReward: 200, iconUrl: '🎬' },
 ];
