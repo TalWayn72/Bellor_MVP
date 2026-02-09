@@ -14,6 +14,8 @@
     "prisma:seed": "tsx prisma/seed.ts",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
+    "test:migration": "vitest --config vitest.migration.config.ts",
+    "test:migration:run": "vitest run --config vitest.migration.config.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix"

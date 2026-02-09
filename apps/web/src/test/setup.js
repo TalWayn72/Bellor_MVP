@@ -4,6 +4,10 @@
  */
 
 import '@testing-library/jest-dom';
+import { toHaveNoViolations } from 'jest-axe';
+
+// Extend expect with axe matchers
+expect.extend(toHaveNoViolations);
 
 // Mock window.matchMedia for components that use media queries
 Object.defineProperty(window, 'matchMedia', {

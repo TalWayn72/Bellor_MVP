@@ -5,7 +5,7 @@ A modern dating and social networking platform built for scale. Fully standalone
 [![CI](https://github.com/TalWayn72/Bellor_MVP/workflows/CI/badge.svg)](https://github.com/TalWayn72/Bellor_MVP/actions)
 ![Version](https://img.shields.io/badge/version-1.0.0--beta-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)
-![Tests](https://img.shields.io/badge/tests-2232%2B-green)
+![Tests](https://img.shields.io/badge/tests-3054%2B-green)
 ![License](https://img.shields.io/badge/license-Private-red)
 
 ---
@@ -72,7 +72,7 @@ For detailed architecture diagrams (Mermaid): [docs/ARCHITECTURE.md](docs/ARCHIT
 | **Frontend** | React 18.2, Vite 6.1, TypeScript 5.8, Tailwind CSS 3.4, Radix UI, TanStack Query 5, React Router 6, Framer Motion 11 |
 | **Backend** | Node.js 20+, Fastify 5.2, Prisma 6.19, Zod 3.23, Socket.io 4.8, Stripe 20.3, Firebase Admin 13.6 |
 | **Database** | PostgreSQL 16 (40+ indexes), Redis 7 (sessions, cache, presence) |
-| **Testing** | Vitest 2.1 (2008 unit tests across 132 files), Playwright (224 E2E tests + visual regression), k6 (7 load test scripts) |
+| **Testing** | Vitest 2.1 (2774 unit/integration tests across 153 files), Playwright (280 E2E tests + visual regression + accessibility), k6 (7 load test scripts) |
 | **DevOps** | Docker 24+, Kubernetes 1.28+, GitHub Actions, Prometheus, Grafana, Loki, Alertmanager |
 
 ---
@@ -131,10 +131,11 @@ For detailed architecture diagrams (Mermaid): [docs/ARCHITECTURE.md](docs/ARCHIT
 | | `npm run prisma:migrate` | Run migrations (dev) |
 | | `npm run prisma:studio` | Prisma Studio (port 5555) |
 | | `npm run prisma:seed` | Seed 20 demo users |
-| **Test** | `npm run test` | All tests (2232+) |
-| | `npm run test:api` | Backend unit tests (1034) |
-| | `npm run test:web` | Frontend unit tests (974) |
-| | `npm run test:e2e` | Playwright E2E (224 tests) |
+| **Test** | `npm run test` | All tests (3054+) |
+| | `npm run test:api` | Backend unit tests (1371) |
+| | `npm run test:web` | Frontend unit tests (1123) |
+| | `npm run test:e2e` | Playwright E2E (280 tests) |
+| | `npm run test:migration` | Database migration tests (97 tests) |
 | | `npm run test:coverage` | Tests with coverage report |
 | | `npm run test:mutation` | Stryker mutation testing (critical backend services) |
 | | `npm run test:mutation:report` | Open mutation test HTML report |
@@ -206,13 +207,17 @@ docker compose -f docker-compose.monitoring.yml up -d
 
 | Category | Count | Framework | Files |
 |----------|-------|-----------|-------|
-| Backend Unit | 306 | Vitest | 27 test files |
+| Backend Unit | 306 services + middleware | Vitest | 27 test files |
+| **Backend Integration** | **240 controller tests** | **Vitest + Fastify inject()** | **10 test files** |
+| **Database Migration** | **97 migration tests** | **Vitest + PostgreSQL** | **3 test files** |
 | Frontend Unit | 18 pages + utils | Vitest | 20 test files |
+| **Frontend Accessibility** | **138 component tests** | **vitest-axe + jest-axe** | **7 test files** |
 | E2E | 224 | Playwright | 11 spec files |
+| **E2E Accessibility** | **56 page tests (28×2 viewports)** | **axe-core + Playwright** | **1 test file** |
 | **Visual Regression** | **20+ scenarios** | **Playwright** | **1 spec file** |
 | Load Testing | 7 scripts | k6 | smoke, sustained, stress, spike, WS, DB, memory |
 | Mutation Testing | Critical services | Stryker | Auth, Chat, Security, Middleware |
-| **Total** | **565+** | | **60+ test files** |
+| **Total** | **3054+ tests** | | **81+ test files** |
 
 **Browsers (E2E):** Chromium, Mobile Chrome, Mobile Safari, Firefox (CI)
 
@@ -232,6 +237,22 @@ npm run test:visual:update       # Update baseline screenshots
 ```
 
 See [apps/web/e2e/visual/README.md](apps/web/e2e/visual/README.md) for details.
+
+### Accessibility (A11y) Testing
+
+Comprehensive WCAG 2.1 AA compliance testing across all components and pages:
+
+- **Component Tests:** 138 tests for SecureTextInput, SecureTextArea, Dialog, Button, Form, Navigation, Image
+- **E2E Tests:** 28 scenarios × 2 viewports (desktop 1280x720, mobile 375x667) = 56 test executions
+- **Coverage:** Form labels, ARIA attributes, keyboard navigation, focus management, screen reader compatibility
+- **Tools:** axe-core, axe-playwright, vitest-axe, jest-axe
+
+```bash
+npm run test -- src/test/a11y        # Run component a11y tests
+npm run test:e2e -- accessibility    # Run E2E a11y tests
+```
+
+See [apps/web/src/test/a11y/README.md](apps/web/src/test/a11y/README.md) for complete documentation.
 
 ### Mutation Testing
 
@@ -316,7 +337,7 @@ VITE_WS_URL=ws://localhost:3000
 | 3 | Real-time -- Socket.io, Chat, Presence, Frontend integration | Complete |
 | 4 | Frontend Migration -- Remove Base44 dependencies | Complete |
 | 5 | Admin & Tools -- Dashboard, User/Report/Chat management | Complete |
-| 6 | Testing & QA -- 2008 unit + 224 E2E tests, 75% backend coverage, 40% frontend baseline | Complete |
+| 6 | Testing & QA -- 2774 unit/integration + 280 E2E tests, 75% backend coverage, 40% frontend baseline, WCAG 2.1 AA compliance | Complete |
 | 7 | Deployment -- CI/CD, Docker builds, K8s, universal installers | Complete |
 | 8 | Universal Deployment -- Cloud-agnostic, free hosting, one-command deploy | Complete |
 | 9 | Final Polish -- Push notifications, audio playback, story viewer, TS cleanup, Logger | Complete |
