@@ -305,6 +305,90 @@ jobs:
           path: apps/web/playwright-report/
           retention-days: 7
 
+  visual-regression-tests:
+    name: Visual Regression Tests
+    runs-on: ubuntu-latest
+    needs: [build-api, build-web]
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: bellor
+          POSTGRES_PASSWORD: bellor_test
+          POSTGRES_DB: bellor_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: Setup database
+        run: |
+          cd apps/api
+          npx prisma migrate deploy
+          npx prisma db seed
+        env:
+          DATABASE_URL: postgresql://bellor:bellor_test@localhost:5432/bellor_test
+      - name: Run visual regression tests
+        run: npm run test:visual -- --project=chromium
+        env:
+          DATABASE_URL: postgresql://bellor:bellor_test@localhost:5432/bellor_test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+      - name: Upload visual diff artifacts
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: visual-regression-diffs
+          path: |
+            apps/web/e2e/visual/snapshots/**/*-diff.png
+            apps/web/e2e/visual/snapshots/**/*-actual.png
+            apps/web/playwright-report/
+          retention-days: 14
+      - name: Comment on PR with visual diffs
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            let comment = '## ⚠️ Visual Regression Test Failures\n\n';
+            comment += 'Visual differences detected. Please review the diff images in the artifacts.\n\n';
+            comment += '**Action Items:**\n';
+            comment += '- If changes are intentional: Run `npm run test:visual:update` locally and commit the updated snapshots\n';
+            comment += '- If changes are unintentional: Fix the UI issue causing the regression\n\n';
+            comment += '📸 [Download visual diff artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
   docker-build-test:
     name: Docker Build Test
     runs-on: ubuntu-latest
@@ -448,11 +532,11 @@ jobs:
             echo "ZAP scan completed. Check artifacts for detailed report." >> $GITHUB_STEP_SUMMARY
           fi
 
-  load-test:
+  load-test-smoke:
     name: Load Test (Smoke)
     runs-on: ubuntu-latest
     needs: [build-api]
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/develop'
 
     services:
       postgres:
@@ -511,22 +595,185 @@ jobs:
           PORT: 3000
 
       - name: Run smoke load test
-        run: |
-          k6 run --vus 10 --duration 30s infrastructure/k6/smoke-test.js
+        run: npm run load:smoke
         continue-on-error: true
 
-      - name: Upload load test results
+      - name: Upload smoke test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: load-test-results
+          name: smoke-test-results
           path: load-test-results.json
           retention-days: 7
+
+  load-test-sustained:
+    name: Load Test (Sustained)
+    runs-on: ubuntu-latest
+    needs: [build-api]
+    if: github.ref == 'refs/heads/main'
+    timeout-minutes: 45
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Setup API for load test
+        run: |
+          npm run prisma:generate --workspace=@bellor/api
+          npm run prisma:migrate:deploy --workspace=@bellor/api
+          npm run build:api
+          npm run start:api &
+          sleep 15
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test_jwt_secret_min_32_chars_long_12345
+          JWT_REFRESH_SECRET: test_refresh_secret_min_32_chars_long
+          NODE_ENV: production
+          PORT: 3000
+
+      - name: Run sustained load test
+        run: npm run load:sustained
+        continue-on-error: true
+
+      - name: Upload sustained test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sustained-load-results
+          path: sustained-load-results.json
+          retention-days: 30
+
+      - name: Performance Report
+        if: always()
+        run: |
+          echo "## Sustained Load Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f sustained-load-results.json ]; then
+            echo "Test completed. Duration: ~30 minutes" >> $GITHUB_STEP_SUMMARY
+            echo "Peak load: 200 concurrent users" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "See artifacts for detailed metrics." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Test results not available" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  load-test-stress:
+    name: Load Test (Stress)
+    runs-on: ubuntu-latest
+    needs: [build-api]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Setup API for load test
+        run: |
+          npm run prisma:generate --workspace=@bellor/api
+          npm run prisma:migrate:deploy --workspace=@bellor/api
+          npm run build:api
+          npm run start:api &
+          sleep 15
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test_jwt_secret_min_32_chars_long_12345
+          JWT_REFRESH_SECRET: test_refresh_secret_min_32_chars_long
+          NODE_ENV: production
+          PORT: 3000
+
+      - name: Run stress test
+        run: npm run load:stress
+        continue-on-error: true
+
+      - name: Upload stress test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stress-test-results
+          path: stress-test-results.json
+          retention-days: 30
 
   ci-status:
     name: CI Status
     runs-on: ubuntu-latest
-    needs: [lint, test-api, test-web, build-api, build-web, security-scan, owasp-zap-scan, e2e-tests]
+    needs: [lint, test-api, test-web, build-api, build-web, security-scan, owasp-zap-scan, e2e-tests, visual-regression-tests]
     if: always()
 
     steps:
@@ -556,3 +803,4 @@ jobs:
           echo "| Security | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| OWASP ZAP | ${{ needs.owasp-zap-scan.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| E2E Tests | ${{ needs.e2e-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Visual Regression | ${{ needs.visual-regression-tests.result }} |" >> $GITHUB_STEP_SUMMARY

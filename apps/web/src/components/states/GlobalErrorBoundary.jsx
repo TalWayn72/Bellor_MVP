@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import * as Sentry from '@sentry/react';
 import { reportRenderCrash } from '@/security/securityEventReporter';
 
 /**
@@ -21,7 +22,22 @@ class GlobalErrorBoundary extends React.Component {
     const componentStack = errorInfo?.componentStack || '';
 
     console.error('[GlobalErrorBoundary] Render crash:', error, errorInfo);
+
+    // Report to backend security event system
     reportRenderCrash(route, error?.message || 'Unknown render error', componentStack);
+
+    // Report to Sentry for production error tracking
+    Sentry.captureException(error, {
+      contexts: {
+        react: {
+          componentStack,
+        },
+      },
+      tags: {
+        errorBoundary: 'GlobalErrorBoundary',
+        route,
+      },
+    });
   }
 
   render() {

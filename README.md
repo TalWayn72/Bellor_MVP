@@ -72,7 +72,7 @@ For detailed architecture diagrams (Mermaid): [docs/ARCHITECTURE.md](docs/ARCHIT
 | **Frontend** | React 18.2, Vite 6.1, TypeScript 5.8, Tailwind CSS 3.4, Radix UI, TanStack Query 5, React Router 6, Framer Motion 11 |
 | **Backend** | Node.js 20+, Fastify 5.2, Prisma 6.19, Zod 3.23, Socket.io 4.8, Stripe 20.3, Firebase Admin 13.6 |
 | **Database** | PostgreSQL 16 (40+ indexes), Redis 7 (sessions, cache, presence) |
-| **Testing** | Vitest 2.1 (2008 unit tests across 132 files), Playwright (224 E2E tests), k6 (5 load test scripts) |
+| **Testing** | Vitest 2.1 (2008 unit tests across 132 files), Playwright (224 E2E tests + visual regression), k6 (7 load test scripts) |
 | **DevOps** | Docker 24+, Kubernetes 1.28+, GitHub Actions, Prometheus, Grafana, Loki, Alertmanager |
 
 ---
@@ -136,6 +136,8 @@ For detailed architecture diagrams (Mermaid): [docs/ARCHITECTURE.md](docs/ARCHIT
 | | `npm run test:web` | Frontend unit tests (974) |
 | | `npm run test:e2e` | Playwright E2E (224 tests) |
 | | `npm run test:coverage` | Tests with coverage report |
+| | `npm run test:mutation` | Stryker mutation testing (critical backend services) |
+| | `npm run test:mutation:report` | Open mutation test HTML report |
 | **Docker** | `npm run docker:up` / `down` | Start/stop PostgreSQL + Redis |
 | **Mobile** | `npm run cap:sync` | Sync web to native projects |
 | | `npm run cap:build` | Build web + sync to Android/iOS |
@@ -207,12 +209,47 @@ docker compose -f docker-compose.monitoring.yml up -d
 | Backend Unit | 306 | Vitest | 27 test files |
 | Frontend Unit | 18 pages + utils | Vitest | 20 test files |
 | E2E | 224 | Playwright | 11 spec files |
-| Load Testing | 5 scripts | k6 | smoke, stress, spike, WS, DB |
-| **Total** | **545+** | | **58+ test files** |
+| **Visual Regression** | **20+ scenarios** | **Playwright** | **1 spec file** |
+| Load Testing | 7 scripts | k6 | smoke, sustained, stress, spike, WS, DB, memory |
+| Mutation Testing | Critical services | Stryker | Auth, Chat, Security, Middleware |
+| **Total** | **565+** | | **60+ test files** |
 
 **Browsers (E2E):** Chromium, Mobile Chrome, Mobile Safari, Firefox (CI)
 
 **Performance baseline (k6):** p95 = 23ms (smoke), 230ms (stress). See [docs/PERFORMANCE_BASELINE.md](docs/PERFORMANCE_BASELINE.md).
+
+### Visual Regression Testing
+
+Automated screenshot comparison to catch UI regressions:
+- **Coverage:** Login, Feed, Profile, Chat, Discover, Settings, Modals
+- **Viewports:** Desktop (1280x720), Mobile (390x844)
+- **Themes:** Light mode, Dark mode
+- **Framework:** Playwright's built-in screenshot comparison
+
+```bash
+npm run test:visual              # Run visual regression tests
+npm run test:visual:update       # Update baseline screenshots
+```
+
+See [apps/web/e2e/visual/README.md](apps/web/e2e/visual/README.md) for details.
+
+### Mutation Testing
+
+Mutation testing validates test quality by introducing small code changes (mutations) and checking if tests catch them. Stryker is configured to test critical backend services:
+
+- **Services:** `auth.service.ts`, `chat.service.ts`
+- **Middleware:** `auth.middleware.ts`
+- **Security:** `input-sanitizer.ts`, `csrf-protection.ts`
+
+Run manually or via weekly GitHub Actions workflow:
+```bash
+npm run test:mutation              # Run mutation tests (~10+ minutes)
+npm run test:mutation:report       # View HTML report
+```
+
+**Thresholds:** High: 80%, Low: 60%, Break: 50%
+
+**CI:** Automated weekly on Sundays at 2 AM UTC via GitHub Actions.
 
 ---
 

@@ -1,4 +1,11 @@
 import 'dotenv/config';
+
+// Initialize Sentry FIRST, before any other imports
+// This ensures all errors are captured, even during module loading
+import { initSentry } from './config/sentry.config.js';
+initSentry();
+
+import * as Sentry from '@sentry/node';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
@@ -143,7 +150,23 @@ app.setErrorHandler((error, request, reply) => {
       error: { code: error.code, message: error.message, details: error.details, requestId: request.id },
     });
   }
-  logger.error('SYSTEM', 'Unhandled error', error instanceof Error ? error : new Error(String(error)), { requestId: request.id });
+
+  // Log and report unexpected errors to Sentry
+  const errorInstance = error instanceof Error ? error : new Error(String(error));
+  logger.error('SYSTEM', 'Unhandled error', errorInstance, { requestId: request.id });
+
+  // Send error to Sentry for production tracking
+  Sentry.captureException(errorInstance, {
+    contexts: {
+      request: {
+        method: request.method,
+        url: request.url,
+        requestId: request.id,
+      },
+    },
+    user: request.user ? { id: request.user.userId } : undefined,
+  });
+
   return reply.status(500).send({
     success: false,
     error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred', requestId: request.id },
@@ -152,10 +175,13 @@ app.setErrorHandler((error, request, reply) => {
 
 // Process-level error handlers
 process.on('unhandledRejection', (reason) => {
-  logger.error('SYSTEM', 'Unhandled rejection', reason instanceof Error ? reason : new Error(String(reason)));
+  const error = reason instanceof Error ? reason : new Error(String(reason));
+  logger.error('SYSTEM', 'Unhandled rejection', error);
+  Sentry.captureException(error, { tags: { errorType: 'unhandledRejection' } });
 });
 process.on('uncaughtException', (error) => {
   logger.error('SYSTEM', 'Uncaught exception', error);
+  Sentry.captureException(error, { tags: { errorType: 'uncaughtException' } });
   process.exit(1);
 });
 
@@ -257,8 +283,10 @@ const start = async () => {
     app.log.info(`WebSocket server initialized`);
     app.log.info(`Background jobs started`);
     app.log.info(`Environment: ${env.NODE_ENV}`);
+    app.log.info(`Sentry: ${env.SENTRY_DSN ? 'enabled' : 'disabled'}`);
   } catch (error) {
     app.log.error(error);
+    Sentry.captureException(error instanceof Error ? error : new Error(String(error)));
     process.exit(1);
   }
 };

@@ -104,5 +104,17 @@ export default defineConfig({
   // Expect timeout
   expect: {
     timeout: 10000,
+    // Visual regression screenshot comparison settings
+    toHaveScreenshot: {
+      // Maximum number of pixels that can differ
+      maxDiffPixels: 100,
+      // Threshold for pixel difference (0-1, where 0 is identical)
+      threshold: 0.2,
+      // Enable animations to complete before screenshot
+      animations: 'disabled',
+    },
   },
+
+  // Screenshot directory for visual regression tests
+  snapshotDir: './e2e/visual/snapshots',
 });

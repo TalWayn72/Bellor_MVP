@@ -51,6 +51,12 @@ coverage/
 *.local
 apps/web/test-results/
 apps/web/playwright-report/
+reports/
+.stryker-tmp/
+
+# Visual regression test artifacts (keep baseline snapshots)
+apps/web/e2e/visual/snapshots/**/*-diff.png
+apps/web/e2e/visual/snapshots/**/*-actual.png
 
 # Misc
 .cache/
