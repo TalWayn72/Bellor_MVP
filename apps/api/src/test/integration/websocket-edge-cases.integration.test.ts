@@ -5,14 +5,14 @@
  * and other edge case scenarios.
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
 import { createServer, Server as HttpServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { io as SocketClient, Socket as ClientSocket } from 'socket.io-client';
 import { setupWebSocket } from '../../websocket/index.js';
 import { generateTestToken } from '../build-test-app.js';
 import { redis } from '../../lib/redis.js';
-import { mockUser1 } from './websocket-test-helpers.js';
+import { mockUser1, SocketAck } from './websocket-test-helpers.js';
 
 const TEST_PORT = 3117;
 const TEST_URL = `http://localhost:${TEST_PORT}`;
@@ -45,6 +45,10 @@ describe('WebSocket - Edge Cases & Error Handling', () => {
     vi.mocked(redis.del).mockResolvedValue(1);
     vi.mocked(redis.expire).mockResolvedValue(1);
     vi.mocked(redis.keys).mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    clientSocket1?.removeAllListeners();
   });
 
   it('should handle multiple rapid connections from same user', async () => {
@@ -92,7 +96,7 @@ describe('WebSocket - Edge Cases & Error Handling', () => {
     // Test presence:check with valid callback
     vi.mocked(redis.get).mockResolvedValue(null);
 
-    const result = await new Promise<any>((resolve) => {
+    const result = await new Promise<SocketAck>((resolve) => {
       clientSocket1.emit('presence:check', { userIds: [] }, resolve);
     });
 

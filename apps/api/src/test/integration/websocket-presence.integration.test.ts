@@ -13,7 +13,8 @@ import { setupWebSocket } from '../../websocket/index.js';
 import { generateTestToken } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
 import { redis } from '../../lib/redis.js';
-import { mockUser1, mockUser2 } from './websocket-test-helpers.js';
+import type { User } from '@prisma/client';
+import { mockUser1, mockUser2, SocketAck } from './websocket-test-helpers.js';
 
 // Test configuration
 const TEST_PORT = 3098;
@@ -74,12 +75,14 @@ describe('WebSocket - Presence Handlers', () => {
   });
 
   afterEach(() => {
+    clientSocket1?.removeAllListeners();
+    clientSocket2?.removeAllListeners();
     if (clientSocket1?.connected) clientSocket1.disconnect();
     if (clientSocket2?.connected) clientSocket2.disconnect();
   });
 
   it('should broadcast user:online when presence:online is emitted', async () => {
-    const onlinePromise = new Promise<any>((resolve) => {
+    const onlinePromise = new Promise<SocketAck>((resolve) => {
       clientSocket2.on('user:online', resolve);
     });
 
@@ -97,7 +100,7 @@ describe('WebSocket - Presence Handlers', () => {
   });
 
   it('should broadcast user:offline when presence:offline is emitted', async () => {
-    const offlinePromise = new Promise<any>((resolve) => {
+    const offlinePromise = new Promise<SocketAck>((resolve) => {
       clientSocket2.on('user:offline', resolve);
     });
 
@@ -122,7 +125,7 @@ describe('WebSocket - Presence Handlers', () => {
       return null;
     });
 
-    const result = await new Promise<any>((resolve) => {
+    const result = await new Promise<SocketAck>((resolve) => {
       clientSocket1.emit('presence:check', { userIds: [mockUser2.id, 'nonexistent-user'] }, resolve);
     });
 
@@ -140,9 +143,9 @@ describe('WebSocket - Presence Handlers', () => {
 
   it('should get all online users with presence:get-online', async () => {
     vi.mocked(redis.keys).mockResolvedValue([`online:${mockUser1.id}`, `online:${mockUser2.id}`]);
-    vi.mocked(prisma.user.findMany).mockResolvedValue([mockUser1 as any, mockUser2 as any]);
+    vi.mocked(prisma.user.findMany).mockResolvedValue([mockUser1 as unknown as User, mockUser2 as unknown as User]);
 
-    const result = await new Promise<any>((resolve) => {
+    const result = await new Promise<SocketAck>((resolve) => {
       clientSocket1.emit('presence:get-online', resolve);
     });
 
@@ -151,7 +154,7 @@ describe('WebSocket - Presence Handlers', () => {
   });
 
   it('should respond to heartbeat with ack', async () => {
-    const ackPromise = new Promise<any>((resolve) => {
+    const ackPromise = new Promise<SocketAck>((resolve) => {
       clientSocket1.on('presence:heartbeat:ack', resolve);
     });
 
@@ -167,7 +170,7 @@ describe('WebSocket - Presence Handlers', () => {
   });
 
   it('should broadcast activity updates with presence:activity', async () => {
-    const activityPromise = new Promise<any>((resolve) => {
+    const activityPromise = new Promise<SocketAck>((resolve) => {
       clientSocket2.on('user:activity', resolve);
     });
 

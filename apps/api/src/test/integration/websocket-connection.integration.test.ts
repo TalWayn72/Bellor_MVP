@@ -4,14 +4,14 @@
  * Tests for Socket.io connection authentication and disconnection cleanup.
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
 import { createServer, Server as HttpServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { io as SocketClient, Socket as ClientSocket } from 'socket.io-client';
 import { setupWebSocket } from '../../websocket/index.js';
 import { generateTestToken } from '../build-test-app.js';
 import { redis } from '../../lib/redis.js';
-import { mockUser1, mockUser2 } from './websocket-test-helpers.js';
+import { mockUser1, mockUser2, SocketAck } from './websocket-test-helpers.js';
 
 // Test configuration
 const TEST_PORT = 3097;
@@ -48,6 +48,10 @@ describe('WebSocket - Connection & Authentication', () => {
     vi.mocked(redis.del).mockResolvedValue(1);
     vi.mocked(redis.expire).mockResolvedValue(1);
     vi.mocked(redis.keys).mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    clientSocket1?.removeAllListeners();
   });
 
   it('should connect with valid JWT token', async () => {
@@ -166,6 +170,11 @@ describe('WebSocket - Disconnection', () => {
     vi.mocked(redis.keys).mockResolvedValue([]);
   });
 
+  afterEach(() => {
+    clientSocket1?.removeAllListeners();
+    clientSocket2?.removeAllListeners();
+  });
+
   it('should broadcast user:offline when client disconnects', async () => {
     const token1 = generateTestToken(mockUser1.id, mockUser1.email);
     const token2 = generateTestToken(mockUser2.id, mockUser2.email);
@@ -187,7 +196,7 @@ describe('WebSocket - Disconnection', () => {
     ]);
 
     // Setup listener for offline event on client2
-    const offlinePromise = new Promise<any>((resolve) => {
+    const offlinePromise = new Promise<SocketAck>((resolve) => {
       clientSocket2.on('user:offline', resolve);
     });
 

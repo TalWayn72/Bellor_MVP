@@ -39,6 +39,14 @@ export const mockChat = {
   user2: { id: 'ws-test-user-2' },
 };
 
+/** Socket acknowledgment type for test assertions */
+export interface SocketAck {
+  success?: boolean;
+  error?: string;
+  data?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
 export const mockMessage = {
   id: 'ws-test-message-1',
   chatId: 'ws-test-chat-1',
