@@ -78,15 +78,18 @@ export function setupWebSocket(httpServer: HttpServer): Server {
       }
     }, 120000);
 
-    // Setup handlers
-    setupPresenceHandlers(io, socket);
-    setupChatHandlers(io, socket);
+    // Setup handlers and store their cleanup functions
+    const cleanupPresenceHandlers = setupPresenceHandlers(io, socket);
+    const cleanupChatHandlers = setupChatHandlers(io, socket);
 
-    // Handle disconnection
-    socket.on('disconnect', async () => {
-      logger.info('WEBSOCKET', `User disconnected: ${socket.userId} (${socket.id})`);
-
+    // Cleanup function to prevent memory leaks
+    const cleanup = async () => {
+      // Clear presence interval
       clearInterval(presenceInterval);
+
+      // Call handler cleanup functions to remove all event listeners
+      cleanupPresenceHandlers();
+      cleanupChatHandlers();
 
       if (socket.userId) {
         // Remove from Redis
@@ -99,11 +102,22 @@ export function setupWebSocket(httpServer: HttpServer): Server {
           timestamp: new Date().toISOString(),
         });
       }
+
+      // Remove disconnect and error listeners
+      socket.removeAllListeners('disconnect');
+      socket.removeAllListeners('error');
+    };
+
+    // Handle disconnection
+    socket.on('disconnect', async () => {
+      logger.info('WEBSOCKET', `User disconnected: ${socket.userId} (${socket.id})`);
+      await cleanup();
     });
 
-    // Error handling
-    socket.on('error', (error) => {
+    // Error handling - also cleanup on error to prevent memory leaks
+    socket.on('error', async (error) => {
       logger.error('WEBSOCKET', `Socket error for user ${socket.userId}`, error instanceof Error ? error : undefined);
+      await cleanup();
     });
   });
 

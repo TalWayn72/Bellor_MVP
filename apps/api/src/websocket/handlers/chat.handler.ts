@@ -12,12 +12,13 @@ import { logger } from '../../lib/logger.js';
 
 /**
  * Setup chat handlers for real-time messaging
+ * Returns cleanup function to remove all listeners
  */
-export function setupChatHandlers(io: Server, socket: AuthenticatedSocket) {
+export function setupChatHandlers(io: Server, socket: AuthenticatedSocket): () => void {
   /**
    * Join a conversation room
    */
-  socket.on('chat:join', async (data: { chatId: string }, callback) => {
+  const handleChatJoin = async (data: { chatId: string }, callback?: (response: unknown) => void) => {
     if (!socket.userId) {
       return callback?.({
         error: 'Unauthorized',
@@ -61,12 +62,12 @@ export function setupChatHandlers(io: Server, socket: AuthenticatedSocket) {
         error: 'Failed to join conversation',
       });
     }
-  });
+  };
 
   /**
    * Leave a conversation room
    */
-  socket.on('chat:leave', async (data: { chatId: string }, callback) => {
+  const handleChatLeave = async (data: { chatId: string }, callback?: (response: unknown) => void) => {
     if (!socket.userId) {
       return callback?.({
         error: 'Unauthorized',
@@ -90,8 +91,19 @@ export function setupChatHandlers(io: Server, socket: AuthenticatedSocket) {
         error: 'Failed to leave conversation',
       });
     }
-  });
+  };
+
+  // Register event handlers
+  socket.on('chat:join', handleChatJoin);
+  socket.on('chat:leave', handleChatLeave);
 
   // Setup message-related handlers (send, read, typing, unread, delete)
-  setupChatMessagingHandlers(io, socket);
+  const cleanupMessagingHandlers = setupChatMessagingHandlers(io, socket);
+
+  // Return cleanup function to remove all listeners
+  return () => {
+    socket.off('chat:join', handleChatJoin);
+    socket.off('chat:leave', handleChatLeave);
+    cleanupMessagingHandlers();
+  };
 }

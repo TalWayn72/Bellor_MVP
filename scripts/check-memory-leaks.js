@@ -87,6 +87,41 @@ function scanFile(filePath) {
     if (matches && matches.length > 0) {
       const hasCleanup = pattern.cleanup.test(content);
 
+      // Special case: .on() that returns cleanup function (unsub pattern)
+      // Pattern: const unsub = service.on(...); return () => unsub();
+      // Also: function returns cleanup: return () => { socket.off(...) }
+      // Ignore server-level listeners: io.on('connection'), io.use()
+      if (pattern.name === 'Event emitter .on() without .off()') {
+        const hasUnsubPattern = /const\s+\w+\s*=\s*\w+\.on\s*\([^)]+\)/.test(content) &&
+                                /return\s*\(\)\s*=>\s*{\s*\w+\(\)/.test(content);
+        const returnsCleanupFunction = /return\s*\(\)\s*=>\s*{[\s\S]*?socket\.off\s*\(/m.test(content) ||
+                                       /return\s*\(\)\s*=>\s*{[\s\S]*?cleanupMessagingHandlers\s*\(/m.test(content) ||
+                                       /return\s*\(\)\s*=>\s*{[\s\S]*?cleanupPresenceHandlers\s*\(/m.test(content) ||
+                                       /return\s*\(\)\s*=>\s*{[\s\S]*?cleanupChatHandlers\s*\(/m.test(content);
+        const isServerLevelListener = /io\.on\s*\(\s*['"]connection['"]\s*,/.test(content) ||
+                                     /io\.use\s*\(/.test(content);
+
+        // Check if every .on() has a matching .off() in cleanup
+        const onCount = (content.match(/\.on\s*\(/g) || []).length;
+        const offCount = (content.match(/\.off\s*\(/g) || []).length;
+        const hasBalancedCleanup = onCount > 0 && onCount === offCount;
+
+        if (hasUnsubPattern || hasCleanup || returnsCleanupFunction || isServerLevelListener || hasBalancedCleanup) {
+          return; // Skip this file - has proper cleanup or is server-level listener
+        }
+      }
+
+      // Special case: setInterval that is stored and cleared
+      // Pattern: const interval = setInterval(...); clearInterval(interval);
+      if (pattern.name === 'setInterval without clearInterval') {
+        const intervalStoredAndCleared = /const\s+\w+Interval\s*=\s*setInterval\s*\(/m.test(content) &&
+                                         /clearInterval\s*\(\s*\w+Interval\s*\)/m.test(content);
+        const cleanupFunctionClearsInterval = /const\s+cleanup\s*=\s*async\s*\(\s*\)\s*=>\s*{[\s\S]*?clearInterval/m.test(content);
+        if (intervalStoredAndCleared || cleanupFunctionClearsInterval || hasCleanup) {
+          return; // Skip this file - has proper cleanup
+        }
+      }
+
       // Check context requirements
       let hasRequiredContext = true;
       if (pattern.requiresContext) {

@@ -7,9 +7,11 @@ export default function Splash() {
 
   useEffect(() => {
     // Simple timeout - always go to Onboarding Sign In page after splash
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       navigate(createPageUrl('Onboarding') + '?step=2');
     }, 2000);
+
+    return () => clearTimeout(timer);
   }, [navigate]);
 
   return (

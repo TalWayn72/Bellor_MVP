@@ -15,6 +15,7 @@ export default function LiveChat() {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const messagesEndRef = useRef(null);
+  const supportResponseTimerRef = useRef(null);
 
   useEffect(() => {
     if (currentUser) {
@@ -34,6 +35,14 @@ export default function LiveChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  useEffect(() => {
+    return () => {
+      if (supportResponseTimerRef.current) {
+        clearTimeout(supportResponseTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleSend = () => {
     if (!inputMessage.trim()) return;
 
@@ -48,7 +57,10 @@ export default function LiveChat() {
     setInputMessage('');
 
     // Simulate support response
-    setTimeout(() => {
+    if (supportResponseTimerRef.current) {
+      clearTimeout(supportResponseTimerRef.current);
+    }
+    supportResponseTimerRef.current = setTimeout(() => {
       const supportMessage = {
         id: messages.length + 2,
         sender: 'support',

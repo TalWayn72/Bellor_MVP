@@ -20,12 +20,21 @@ export default function ReferralProgram() {
   const [email, setEmail] = useState('');
   const [copied, setCopied] = useState(false);
   const [localReferrals, setLocalReferrals] = useState([]);
+  const copiedTimerRef = React.useRef(null);
 
   const { data: referrals = localReferrals } = useQuery({
     queryKey: ['referrals', currentUser?.id],
     queryFn: async () => { if (!currentUser) return []; return localReferrals; },
     enabled: !!currentUser,
   });
+
+  React.useEffect(() => {
+    return () => {
+      if (copiedTimerRef.current) {
+        clearTimeout(copiedTimerRef.current);
+      }
+    };
+  }, []);
 
   const sendReferralMutation = useMutation({
     mutationFn: async (referredEmail) => {
@@ -50,7 +59,10 @@ export default function ReferralProgram() {
   const handleCopyCode = () => {
     navigator.clipboard.writeText(`Join Bellor with my code: ${referralCode}`);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (copiedTimerRef.current) {
+      clearTimeout(copiedTimerRef.current);
+    }
+    copiedTimerRef.current = setTimeout(() => setCopied(false), 2000);
   };
 
   const handleSendReferral = () => {

@@ -12,16 +12,17 @@ import { logger } from '../../lib/logger.js';
 
 /**
  * Setup message-related chat handlers
+ * Returns cleanup function to remove all listeners
  */
-export function setupChatMessagingHandlers(io: Server, socket: AuthenticatedSocket) {
+export function setupChatMessagingHandlers(io: Server, socket: AuthenticatedSocket): () => void {
   /**
    * Send a message
    */
-  socket.on('chat:message', async (data: {
+  const handleChatMessage = async (data: {
     chatId: string;
     content: string;
     metadata?: Record<string, unknown>;
-  }, callback) => {
+  }, callback?: (response: unknown) => void) => {
     if (!socket.userId) {
       return callback?.({ error: 'Unauthorized' });
     }
@@ -83,12 +84,12 @@ export function setupChatMessagingHandlers(io: Server, socket: AuthenticatedSock
       logger.error('CHAT', 'Error sending message', error instanceof Error ? error : undefined);
       callback?.({ error: 'Failed to send message' });
     }
-  });
+  };
 
   /**
    * Mark message as read
    */
-  socket.on('chat:message:read', async (data: { messageId: string }, callback) => {
+  const handleMessageRead = async (data: { messageId: string }, callback?: (response: unknown) => void) => {
     if (!socket.userId) {
       return callback?.({ error: 'Unauthorized' });
     }
@@ -119,12 +120,12 @@ export function setupChatMessagingHandlers(io: Server, socket: AuthenticatedSock
       logger.error('CHAT', 'Error marking message as read', error instanceof Error ? error : undefined);
       callback?.({ error: 'Failed to mark message as read' });
     }
-  });
+  };
 
   /**
    * Typing indicator
    */
-  socket.on('chat:typing', async (data: { chatId: string; isTyping: boolean }) => {
+  const handleTyping = async (data: { chatId: string; isTyping: boolean }) => {
     if (!socket.userId) return;
     try {
       const { chatId, isTyping } = data;
@@ -134,12 +135,12 @@ export function setupChatMessagingHandlers(io: Server, socket: AuthenticatedSock
     } catch (error) {
       logger.error('CHAT', 'Error handling typing indicator', error instanceof Error ? error : undefined);
     }
-  });
+  };
 
   /**
    * Get unread message count
    */
-  socket.on('chat:unread:count', async (callback) => {
+  const handleUnreadCount = async (callback?: (response: unknown) => void) => {
     if (!socket.userId) {
       return callback?.({ error: 'Unauthorized' });
     }
@@ -158,12 +159,12 @@ export function setupChatMessagingHandlers(io: Server, socket: AuthenticatedSock
       logger.error('CHAT', 'Error getting unread count', error instanceof Error ? error : undefined);
       callback?.({ error: 'Failed to get unread count' });
     }
-  });
+  };
 
   /**
    * Delete message
    */
-  socket.on('chat:message:delete', async (data: { messageId: string }, callback) => {
+  const handleMessageDelete = async (data: { messageId: string }, callback?: (response: unknown) => void) => {
     if (!socket.userId) {
       return callback?.({ error: 'Unauthorized' });
     }
@@ -187,5 +188,21 @@ export function setupChatMessagingHandlers(io: Server, socket: AuthenticatedSock
       logger.error('CHAT', 'Error deleting message', error instanceof Error ? error : undefined);
       callback?.({ error: 'Failed to delete message' });
     }
-  });
+  };
+
+  // Register event handlers
+  socket.on('chat:message', handleChatMessage);
+  socket.on('chat:message:read', handleMessageRead);
+  socket.on('chat:typing', handleTyping);
+  socket.on('chat:unread:count', handleUnreadCount);
+  socket.on('chat:message:delete', handleMessageDelete);
+
+  // Return cleanup function to remove all listeners
+  return () => {
+    socket.off('chat:message', handleChatMessage);
+    socket.off('chat:message:read', handleMessageRead);
+    socket.off('chat:typing', handleTyping);
+    socket.off('chat:unread:count', handleUnreadCount);
+    socket.off('chat:message:delete', handleMessageDelete);
+  };
 }

@@ -10,6 +10,7 @@ export default function OAuthCallback() {
   const [searchParams] = useSearchParams();
   const [error, setError] = useState(null);
   const { checkUserAuth } = useAuth();
+  const redirectTimerRef = React.useRef(null);
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -29,7 +30,8 @@ export default function OAuthCallback() {
           };
           reportAuthCheckFailed('OAuthCallback', undefined);
           setError(errorMessages[errorParam] || 'An error occurred during login');
-          setTimeout(() => {
+          if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+          redirectTimerRef.current = setTimeout(() => {
             navigate(createPageUrl('Onboarding') + '?step=2');
           }, 3000);
           return;
@@ -37,7 +39,8 @@ export default function OAuthCallback() {
 
         if (!accessToken || !refreshToken) {
           setError('Missing authentication tokens');
-          setTimeout(() => {
+          if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+          redirectTimerRef.current = setTimeout(() => {
             navigate(createPageUrl('Onboarding') + '?step=2');
           }, 3000);
           return;
@@ -64,13 +67,20 @@ export default function OAuthCallback() {
         console.error('OAuth callback error:', err);
         reportAuthCheckFailed('OAuthCallback.catch', err?.response?.status);
         setError('An error occurred during login');
-        setTimeout(() => {
+        if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+        redirectTimerRef.current = setTimeout(() => {
           navigate(createPageUrl('Onboarding') + '?step=2');
         }, 3000);
       }
     };
 
     handleCallback();
+
+    return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
   }, [searchParams, navigate, checkUserAuth]);
 
   if (error) {

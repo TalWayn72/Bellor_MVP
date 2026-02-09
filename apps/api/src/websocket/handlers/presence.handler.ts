@@ -12,10 +12,11 @@ import {
 
 /**
  * Setup presence handlers for online/offline tracking
+ * Returns cleanup function to remove all listeners
  */
-export function setupPresenceHandlers(_io: Server, socket: AuthenticatedSocket) {
+export function setupPresenceHandlers(_io: Server, socket: AuthenticatedSocket): () => void {
   /** User comes online */
-  socket.on('presence:online', async () => {
+  const handlePresenceOnline = async () => {
     if (!socket.userId) return;
     try {
       await setUserOnline(socket.userId);
@@ -27,10 +28,10 @@ export function setupPresenceHandlers(_io: Server, socket: AuthenticatedSocket) 
       logger.error('PRESENCE', 'Error handling presence:online', error instanceof Error ? error : undefined);
       socket.emit('error', { code: 'PRESENCE_ERROR', message: 'Failed to update online status' });
     }
-  });
+  };
 
   /** User goes offline */
-  socket.on('presence:offline', async () => {
+  const handlePresenceOffline = async () => {
     if (!socket.userId) return;
     try {
       await setUserOffline(socket.userId);
@@ -42,10 +43,10 @@ export function setupPresenceHandlers(_io: Server, socket: AuthenticatedSocket) 
       logger.error('PRESENCE', 'Error handling presence:offline', error instanceof Error ? error : undefined);
       socket.emit('error', { code: 'PRESENCE_ERROR', message: 'Failed to update offline status' });
     }
-  });
+  };
 
   /** Get online status of specific users */
-  socket.on('presence:check', async (data: { userIds: string[] }, callback) => {
+  const handlePresenceCheck = async (data: { userIds: string[] }, callback?: (response: unknown) => void) => {
     if (!socket.userId) return callback?.({ error: 'Unauthorized' });
     try {
       const statuses = await checkUsersOnline(data.userIds);
@@ -54,10 +55,10 @@ export function setupPresenceHandlers(_io: Server, socket: AuthenticatedSocket) 
       logger.error('PRESENCE', 'Error checking presence', error instanceof Error ? error : undefined);
       callback?.({ error: 'Failed to check user presence' });
     }
-  });
+  };
 
   /** Get all online users */
-  socket.on('presence:get-online', async (callback) => {
+  const handlePresenceGetOnline = async (callback?: (response: unknown) => void) => {
     if (!socket.userId) return callback?.({ error: 'Unauthorized' });
     try {
       const users = await getOnlineUsers();
@@ -66,10 +67,10 @@ export function setupPresenceHandlers(_io: Server, socket: AuthenticatedSocket) 
       logger.error('PRESENCE', 'Error getting online users', error instanceof Error ? error : undefined);
       callback?.({ error: 'Failed to get online users' });
     }
-  });
+  };
 
   /** Heartbeat to keep connection alive */
-  socket.on('presence:heartbeat', async () => {
+  const handlePresenceHeartbeat = async () => {
     if (!socket.userId) return;
     try {
       await extendPresenceTTL(socket.userId);
@@ -77,10 +78,10 @@ export function setupPresenceHandlers(_io: Server, socket: AuthenticatedSocket) 
     } catch (error) {
       logger.error('PRESENCE', 'Error handling heartbeat', error instanceof Error ? error : undefined);
     }
-  });
+  };
 
   /** Update user activity status */
-  socket.on('presence:activity', async (data: { activity: string; metadata?: Record<string, unknown> }) => {
+  const handlePresenceActivity = async (data: { activity: string; metadata?: Record<string, unknown> }) => {
     if (!socket.userId) return;
     try {
       const { activity, metadata } = data;
@@ -98,5 +99,23 @@ export function setupPresenceHandlers(_io: Server, socket: AuthenticatedSocket) 
     } catch (error) {
       logger.error('PRESENCE', 'Error handling presence:activity', error instanceof Error ? error : undefined);
     }
-  });
+  };
+
+  // Register event handlers
+  socket.on('presence:online', handlePresenceOnline);
+  socket.on('presence:offline', handlePresenceOffline);
+  socket.on('presence:check', handlePresenceCheck);
+  socket.on('presence:get-online', handlePresenceGetOnline);
+  socket.on('presence:heartbeat', handlePresenceHeartbeat);
+  socket.on('presence:activity', handlePresenceActivity);
+
+  // Return cleanup function to remove all listeners
+  return () => {
+    socket.off('presence:online', handlePresenceOnline);
+    socket.off('presence:offline', handlePresenceOffline);
+    socket.off('presence:check', handlePresenceCheck);
+    socket.off('presence:get-online', handlePresenceGetOnline);
+    socket.off('presence:heartbeat', handlePresenceHeartbeat);
+    socket.off('presence:activity', handlePresenceActivity);
+  };
 }

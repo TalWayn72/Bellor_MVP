@@ -163,6 +163,11 @@ const FilePreview = ({ file, onRemove }) => {
       const reader = new FileReader()
       reader.onload = (e) => setPreview(e.target.result)
       reader.readAsDataURL(file)
+
+      // Cleanup: abort file reading if component unmounts
+      return () => {
+        reader.abort()
+      }
     }
   }, [file])
 

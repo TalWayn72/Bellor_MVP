@@ -17,10 +17,19 @@ export default function UserVerification() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState(null);
   const videoRef = useRef(null);
+  const redirectTimerRef = useRef(null);
 
   useEffect(() => {
     if (currentUser?.is_verified) navigate(createPageUrl('Profile'));
   }, [currentUser, navigate]);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
+  }, []);
 
   const startCamera = async () => {
     try {
@@ -56,7 +65,10 @@ export default function UserVerification() {
         verification_status: 'pending'
       });
       setVerificationStatus('success');
-      setTimeout(() => navigate(createPageUrl('Profile')), 2000);
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+      redirectTimerRef.current = setTimeout(() => navigate(createPageUrl('Profile')), 2000);
     } catch (error) {
       console.error('Error submitting verification:', error);
       setVerificationStatus('error');

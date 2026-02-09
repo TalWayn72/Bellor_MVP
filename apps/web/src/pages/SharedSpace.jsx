@@ -34,7 +34,8 @@ export default function SharedSpace() {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('openTaskSelector') === 'true') {
       setIsTaskSelectorOpen(true);
-      setTimeout(() => { window.history.replaceState({}, '', window.location.pathname); }, 100);
+      const timer = setTimeout(() => { window.history.replaceState({}, '', window.location.pathname); }, 100);
+      return () => clearTimeout(timer);
     }
   }, []);
 
