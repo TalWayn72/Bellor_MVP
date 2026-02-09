@@ -17,7 +17,7 @@ import swaggerUi from '@fastify/swagger-ui';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { env } from './config/env.js';
-import { setupWebSocket } from './websocket/index.js';
+import { setupWebSocket, stopStaleSocketCleanup } from './websocket/index.js';
 import type { Server as SocketIOServer } from 'socket.io';
 import { prisma } from './lib/prisma.js';
 import { redis } from './lib/redis.js';
@@ -243,6 +243,9 @@ const gracefulShutdown = async (signal: string) => {
     // Stop background jobs
     stopBackgroundJobs();
     app.log.info('Background jobs stopped');
+
+    // Stop WebSocket cleanup interval
+    stopStaleSocketCleanup();
 
     // Close WebSocket server
     if (io) {

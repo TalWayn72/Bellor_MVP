@@ -58,7 +58,7 @@ export async function getOnlineUsers() {
   return prisma.user.findMany({
     where: {
       id: { in: userIds },
-      isBlocked: true,
+      isBlocked: false,
     },
     select: {
       id: true,

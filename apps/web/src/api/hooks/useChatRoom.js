@@ -75,7 +75,10 @@ export function useChatRoom(chatId) {
       unsubMessage();
       unsubDeleted();
       unsubTyping();
+
+      // Clear all typing timeouts
       Object.values(typingTimeoutRef.current).forEach(clearTimeout);
+      typingTimeoutRef.current = {};
     };
   }, [chatId]);
 

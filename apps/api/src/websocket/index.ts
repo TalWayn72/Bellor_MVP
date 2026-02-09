@@ -12,6 +12,9 @@ export interface AuthenticatedSocket extends Socket {
   userEmail?: string;
 }
 
+/** Cleanup interval for stale socket entries */
+let cleanupInterval: NodeJS.Timeout | null = null;
+
 /**
  * Setup WebSocket server with Socket.io
  */
@@ -45,7 +48,7 @@ export function setupWebSocket(httpServer: HttpServer): Server {
       socket.userEmail = payload.email;
 
       next();
-    } catch (error) {
+    } catch {
       next(new Error('Invalid or expired token'));
     }
   });
@@ -105,9 +108,21 @@ export function setupWebSocket(httpServer: HttpServer): Server {
   });
 
   // Start periodic cleanup of stale socket entries
-  startStaleSocketCleanup(io);
+  cleanupInterval = startStaleSocketCleanup(io);
 
   return io;
+}
+
+/**
+ * Stop the stale socket cleanup interval
+ * Should be called during graceful shutdown
+ */
+export function stopStaleSocketCleanup(): void {
+  if (cleanupInterval) {
+    clearInterval(cleanupInterval);
+    cleanupInterval = null;
+    logger.info('WEBSOCKET', 'Stale socket cleanup stopped');
+  }
 }
 
 /**

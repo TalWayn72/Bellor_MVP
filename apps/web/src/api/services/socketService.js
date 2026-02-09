@@ -49,6 +49,15 @@ class SocketService {
         if (import.meta.env.DEV) console.debug('[Socket] connected:', this.socket.id);
         this.reconnectAttempts = 0;
         this.connectionPromise = null;
+
+        // Re-attach stored listeners on reconnect
+        this.listeners.forEach((callbacks, event) => {
+          callbacks.forEach(callback => {
+            this.socket.off(event, callback);
+            this.socket.on(event, callback);
+          });
+        });
+
         resolve(this.socket);
       });
 
@@ -64,16 +73,6 @@ class SocketService {
       this.socket.on('disconnect', (reason) => {
         if (import.meta.env.DEV) console.debug('[Socket] disconnected:', reason);
         if (reason === 'io server disconnect') this.socket.connect();
-      });
-
-      // Re-attach stored listeners on reconnect
-      this.socket.on('connect', () => {
-        this.listeners.forEach((callbacks, event) => {
-          callbacks.forEach(callback => {
-            this.socket.off(event, callback);
-            this.socket.on(event, callback);
-          });
-        });
       });
     });
 

@@ -3,7 +3,7 @@
  * Manages WebSocket connection at the app level
  */
 
-import React, { createContext, useState, useEffect, useContext, useCallback, useMemo } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback, useMemo, useRef } from 'react';
 import { socketService } from '@/api/services/socketService';
 import { tokenStorage } from '@/api/client/tokenStorage';
 
@@ -13,6 +13,7 @@ export function SocketProvider({ children }) {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState(null);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
+  const heartbeatIntervalRef = useRef(null);
 
   // Connect socket when user is authenticated
   useEffect(() => {
@@ -90,8 +91,8 @@ export function SocketProvider({ children }) {
     socketService.on('chat:message:new', handleNewMessage);
     socketService.on('chat:message:read', handleMessageRead);
 
-    // Heartbeat to maintain presence
-    const heartbeatInterval = setInterval(() => {
+    // Heartbeat to maintain presence - store in ref to ensure cleanup
+    heartbeatIntervalRef.current = setInterval(() => {
       if (socketService.isConnected()) {
         socketService.sendHeartbeat();
       }
@@ -99,7 +100,13 @@ export function SocketProvider({ children }) {
 
     return () => {
       isMounted = false;
-      clearInterval(heartbeatInterval);
+
+      // Clear heartbeat interval
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current);
+        heartbeatIntervalRef.current = null;
+      }
+
       socketService.off('connect', handleConnect);
       socketService.off('disconnect', handleDisconnect);
       socketService.off('connect_error', handleError);
