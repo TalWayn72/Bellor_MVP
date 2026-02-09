@@ -128,3 +128,41 @@ groups:
         annotations:
           summary: "Possible brute force attack"
           description: "Failed auth attempts are at {{ $value }}/s for 3 min."
+
+      - alert: BellorCriticalMemory
+        expr: bellor_memory_heap_used_bytes / 1024 / 1024 > 500
+        for: 2m
+        labels:
+          severity: P2
+          priority: high
+          component: memory
+        annotations:
+          summary: "Critical memory usage detected"
+          description: "Heap memory usage is {{ $value | humanize }}MB (threshold: 500MB)."
+          runbook: "Check for memory leaks, restart if needed."
+
+      - alert: BellorHighMemoryUsage
+        expr: bellor_memory_heap_used_bytes / 1024 / 1024 > 200
+        for: 5m
+        labels:
+          severity: P2
+          priority: high
+          component: memory
+        annotations:
+          summary: "High memory usage detected"
+          description: "Heap memory usage is {{ $value | humanize }}MB for 5 minutes (threshold: 200MB)."
+
+      - alert: BellorMemoryLeak
+        expr: |
+          (
+            (bellor_memory_heap_used_bytes - bellor_memory_heap_used_bytes offset 1h) / 1024 / 1024
+          ) > 10
+        for: 2h
+        labels:
+          severity: P2
+          priority: high
+          component: memory
+        annotations:
+          summary: "Possible memory leak detected"
+          description: "Heap growth of {{ $value | humanize }}MB per hour for 2 hours (threshold: 10MB/h)."
+          runbook: "Investigate memory patterns, check for listener leaks, review recent code changes."

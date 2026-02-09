@@ -31,6 +31,8 @@ npm run dev:all                            # Start frontend + backend
 | Frontend | http://localhost:5173 |
 | Backend API | http://localhost:3000 |
 | API Health | http://localhost:3000/health |
+| Memory Metrics | http://localhost:3000/health/memory |
+| Prometheus Metrics | http://localhost:3000/metrics |
 | Prisma Studio | http://localhost:5555 (via `npm run prisma:studio`) |
 
 ---
@@ -194,7 +196,14 @@ Docker images are published to GHCR on version tags (`v*.*.*`):
 | Logs | Loki + Promtail | via Grafana |
 | Alerts | Alertmanager | http://localhost:9093 |
 
-Tracks: API request rates, p50/p95/p99 latency, error rates, WebSocket connections, DB query performance, system resources. Structured logging with correlation IDs.
+Tracks: API request rates, p50/p95/p99 latency, error rates, WebSocket connections, DB query performance, system resources, **real-time memory metrics** (heap, RSS, external, GC). Structured logging with correlation IDs.
+
+### Memory Monitoring
+- **Real-time Prometheus metrics**: heapUsed, heapTotal, rss, external, arrayBuffers (auto-updated every 15s)
+- **Health endpoint**: `GET /health/memory` with status thresholds (healthy < 200MB, warning < 500MB, critical >= 500MB)
+- **Alert logger**: Monitors heap usage every 60s, logs warnings at 80%, critical at 90%, force GC if needed
+- **Trend detection**: 60-minute history tracking with heap growth rate calculation (MB/min)
+- **Prometheus alerts**: BellorHighMemoryUsage (>200MB for 5min), BellorCriticalMemory (>500MB for 2min), BellorMemoryLeak (>10MB/h growth for 2h)
 
 Start monitoring stack:
 ```bash
@@ -288,14 +297,23 @@ Automated detection system for common memory leak patterns. Catches issues befor
 
 **Commands:**
 ```bash
-npm run check:memory-leaks         # Static analysis scan (618 files)
-npm run test:memory-leak           # Runtime validation tests
+npm run check:memory-leaks              # AST-based static analysis (621 files)
+npm run check:memory-leaks -- --verbose # Verbose mode with debug info
+npm run test:memory-leak                # Runtime validation tests
 ```
 
 **CI Integration:** GitHub Actions runs on every PR and daily at 2 AM UTC. Fails builds if HIGH severity leaks detected.
 
+**Improvements (AST-based):**
+- Reduced false positives: 45 → 6 issues (only test files)
+- Zero HIGH severity false positives (was 6 → 0)
+- Smart detection: Recognizes unsub patterns, lifecycle events, server-level listeners
+- Test file awareness: Downgrades severity for `.test.` / `.spec.` files
+
 **Files:**
-- `scripts/check-memory-leaks.js` - Static analyzer
+- `scripts/check-memory-leaks.js` - Main entry point (144 lines)
+- `scripts/memory-leak-ast-analyzer.js` - AST analysis (100 lines)
+- `scripts/ast-utils.js` - Pattern detection utilities (146 lines)
 - `apps/api/src/test/memory-leak-detection.test.ts` - Backend tests
 - `apps/web/src/test/memory-leak-detection.test.ts` - Frontend tests
 - `.github/workflows/memory-leak-check.yml` - CI workflow

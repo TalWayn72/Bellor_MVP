@@ -26,7 +26,8 @@ import { registerSecurityMiddleware } from './middleware/security.middleware.js'
 import { loggingMiddleware } from './middleware/logging.middleware.js';
 import { logger } from './lib/logger.js';
 import { AppError } from './lib/app-error.js';
-import { metrics, promClient } from './lib/metrics.js';
+import { metrics, promClient, startMemoryMetricsCollection, stopMemoryMetricsCollection } from './lib/metrics.js';
+import { memoryMonitor } from './lib/memory-monitor.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -212,6 +213,39 @@ app.get('/health/ready', async (_req, reply) => {
   }
 });
 
+app.get('/health/memory', async () => {
+  const memUsage = process.memoryUsage();
+  const uptimeSeconds = process.uptime();
+
+  // Format bytes to MB
+  const toMB = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+
+  // Format uptime
+  const hours = Math.floor(uptimeSeconds / 3600);
+  const minutes = Math.floor((uptimeSeconds % 3600) / 60);
+  const uptimeFormatted = `${hours}h ${minutes}m`;
+
+  // Determine status based on heap usage thresholds
+  const heapUsedMB = memUsage.heapUsed / 1024 / 1024;
+  let status: 'healthy' | 'warning' | 'critical';
+  if (heapUsedMB >= 500) {
+    status = 'critical';
+  } else if (heapUsedMB >= 200) {
+    status = 'warning';
+  } else {
+    status = 'healthy';
+  }
+
+  return {
+    heapUsed: toMB(memUsage.heapUsed),
+    heapTotal: toMB(memUsage.heapTotal),
+    rss: toMB(memUsage.rss),
+    external: toMB(memUsage.external),
+    uptime: uptimeFormatted,
+    status,
+  };
+});
+
 // Prometheus metrics endpoint (prom-client)
 // Tracks: default Node.js metrics + custom business metrics (HTTP duration, chat, matches, etc.)
 app.get('/metrics', async (_req, reply) => {
@@ -243,6 +277,11 @@ const gracefulShutdown = async (signal: string) => {
     // Stop background jobs
     stopBackgroundJobs();
     app.log.info('Background jobs stopped');
+
+    // Stop memory monitoring
+    memoryMonitor.stop();
+    stopMemoryMetricsCollection();
+    app.log.info('Memory monitoring stopped');
 
     // Stop WebSocket cleanup interval
     stopStaleSocketCleanup();
@@ -282,9 +321,14 @@ const start = async () => {
     // Start background jobs (cleanup, notifications, etc.)
     startBackgroundJobs();
 
+    // Start memory monitoring
+    startMemoryMetricsCollection();
+    memoryMonitor.start();
+
     app.log.info(`Server listening on http://${env.HOST}:${env.PORT}`);
     app.log.info(`WebSocket server initialized`);
     app.log.info(`Background jobs started`);
+    app.log.info(`Memory monitoring started`);
     app.log.info(`Environment: ${env.NODE_ENV}`);
     app.log.info(`Sentry: ${env.SENTRY_DSN ? 'enabled' : 'disabled'}`);
   } catch (error) {

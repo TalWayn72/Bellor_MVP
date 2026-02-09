@@ -187,9 +187,12 @@
 | `npm run test:web` | Frontend בלבד |
 | `npm run test:e2e` | E2E בלבד |
 | **`npm run test:memory-leak`** | **בדיקות דליפות זכרון (Backend + Frontend)** |
-| **`npm run check:memory-leaks`** | **סריקה אוטומטית לדפוסי דליפות בקוד** |
+| **`npm run check:memory-leaks`** | **סריקה אוטומטית לדפוסי דליפות בקוד (AST-based)** |
+| **`npm run check:memory-leaks -- --verbose`** | **סריקה מפורטת עם פרטי debug** |
 
 **אין לבצע merge או deploy ללא בדיקות מלאות + בדיקות דליפות זכרון.**
+
+**הסקריפט משתמש ב-AST parsing (TypeScript Compiler API) במקום regex לזיהוי מדויק יותר ופחות false positives.**
 
 ## בדיקות דליפות זכרון - חובה! 🔴
 

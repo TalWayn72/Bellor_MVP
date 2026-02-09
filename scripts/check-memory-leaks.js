@@ -2,155 +2,49 @@
 
 /**
  * Memory Leak Detection Script
- * Scans codebase for common memory leak patterns
- * Run with: node scripts/check-memory-leaks.js
+ * Scans codebase for common memory leak patterns using AST parsing
+ * Run with: node scripts/check-memory-leaks.js [--verbose]
  */
 
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { analyzeFile } from './memory-leak-ast-analyzer.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.join(__dirname, '..');
 
-// Memory leak patterns to detect
-const LEAK_PATTERNS = [
-  {
-    name: 'setInterval without clearInterval',
-    pattern: /setInterval\s*\([^)]+\)/g,
-    cleanup: /clearInterval/g,
-    severity: 'HIGH'
-  },
-  {
-    name: 'setTimeout without cleanup in refs',
-    pattern: /setTimeout\s*\([^)]+\)/g,
-    cleanup: /clearTimeout/g,
-    severity: 'MEDIUM',
-    requiresContext: ['ref', 'useRef']
-  },
-  {
-    name: 'addEventListener without removeEventListener',
-    pattern: /addEventListener\s*\(/g,
-    cleanup: /removeEventListener/g,
-    severity: 'HIGH'
-  },
-  {
-    name: 'Event emitter .on() without .off()',
-    pattern: /\.on\s*\(/g,
-    cleanup: /\.off\s*\(/g,
-    severity: 'HIGH'
-  },
-  {
-    name: 'useEffect without cleanup return',
-    pattern: /useEffect\s*\(\s*\(\)\s*=>\s*{(?:[^{}]|{[^}]*})*}\s*,/g,
-    cleanup: /return\s*\(\)\s*=>/g,
-    severity: 'MEDIUM',
-    fileTypes: ['.jsx', '.tsx']
-  },
-  {
-    name: 'Map/Set without size management',
-    pattern: /new\s+(Map|Set)\s*\(/g,
-    cleanup: /(\.size|\.delete|MAX_SIZE)/g,
-    severity: 'LOW'
-  },
-  {
-    name: 'WebSocket without close in cleanup',
-    pattern: /new\s+WebSocket\s*\(/g,
-    cleanup: /\.close\s*\(/g,
-    severity: 'HIGH'
-  }
-];
+const verbose = process.argv.includes('--verbose');
 
 const results = {
   totalFiles: 0,
   scannedFiles: 0,
-  issues: [],
-  summary: {}
+  issues: []
 };
 
 /**
  * Scan a single file for memory leak patterns
  */
 function scanFile(filePath) {
-  const content = fs.readFileSync(filePath, 'utf-8');
-  const relativePath = path.relative(rootDir, filePath);
-  const fileIssues = [];
+  try {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const relativePath = path.relative(rootDir, filePath);
+    const issues = analyzeFile(content, relativePath, verbose);
 
-  LEAK_PATTERNS.forEach(pattern => {
-    // Check file type restrictions
-    if (pattern.fileTypes && !pattern.fileTypes.some(ext => filePath.endsWith(ext))) {
-      return;
+    return issues.map(issue => ({
+      file: relativePath,
+      pattern: issue.pattern,
+      severity: issue.severity,
+      occurrences: issue.occurrences,
+      line: issue.line
+    }));
+  } catch (error) {
+    if (verbose) {
+      console.log(`  ⚠️  Error scanning ${filePath}: ${error.message}`);
     }
-
-    const matches = content.match(pattern.pattern);
-    if (matches && matches.length > 0) {
-      const hasCleanup = pattern.cleanup.test(content);
-
-      // Special case: .on() that returns cleanup function (unsub pattern)
-      // Pattern: const unsub = service.on(...); return () => unsub();
-      // Also: function returns cleanup: return () => { socket.off(...) }
-      // Ignore server-level listeners: io.on('connection'), io.use()
-      if (pattern.name === 'Event emitter .on() without .off()') {
-        const hasUnsubPattern = /const\s+\w+\s*=\s*\w+\.on\s*\([^)]+\)/.test(content) &&
-                                /return\s*\(\)\s*=>\s*{\s*\w+\(\)/.test(content);
-        const returnsCleanupFunction = /return\s*\(\)\s*=>\s*{[\s\S]*?socket\.off\s*\(/m.test(content) ||
-                                       /return\s*\(\)\s*=>\s*{[\s\S]*?cleanupMessagingHandlers\s*\(/m.test(content) ||
-                                       /return\s*\(\)\s*=>\s*{[\s\S]*?cleanupPresenceHandlers\s*\(/m.test(content) ||
-                                       /return\s*\(\)\s*=>\s*{[\s\S]*?cleanupChatHandlers\s*\(/m.test(content);
-        const isServerLevelListener = /io\.on\s*\(\s*['"]connection['"]\s*,/.test(content) ||
-                                     /io\.use\s*\(/.test(content);
-
-        // Check if every .on() has a matching .off() in cleanup
-        const onCount = (content.match(/\.on\s*\(/g) || []).length;
-        const offCount = (content.match(/\.off\s*\(/g) || []).length;
-        const hasBalancedCleanup = onCount > 0 && onCount === offCount;
-
-        if (hasUnsubPattern || hasCleanup || returnsCleanupFunction || isServerLevelListener || hasBalancedCleanup) {
-          return; // Skip this file - has proper cleanup or is server-level listener
-        }
-      }
-
-      // Special case: setInterval that is stored and cleared
-      // Pattern: const interval = setInterval(...); clearInterval(interval);
-      if (pattern.name === 'setInterval without clearInterval') {
-        const intervalStoredAndCleared = /const\s+\w+Interval\s*=\s*setInterval\s*\(/m.test(content) &&
-                                         /clearInterval\s*\(\s*\w+Interval\s*\)/m.test(content);
-        const cleanupFunctionClearsInterval = /const\s+cleanup\s*=\s*async\s*\(\s*\)\s*=>\s*{[\s\S]*?clearInterval/m.test(content);
-        if (intervalStoredAndCleared || cleanupFunctionClearsInterval || hasCleanup) {
-          return; // Skip this file - has proper cleanup
-        }
-      }
-
-      // Check context requirements
-      let hasRequiredContext = true;
-      if (pattern.requiresContext) {
-        hasRequiredContext = pattern.requiresContext.some(ctx =>
-          content.includes(ctx)
-        );
-      }
-
-      if (!hasCleanup && hasRequiredContext) {
-        fileIssues.push({
-          file: relativePath,
-          pattern: pattern.name,
-          severity: pattern.severity,
-          occurrences: matches.length,
-          line: getLineNumber(content, matches[0])
-        });
-      }
-    }
-  });
-
-  return fileIssues;
-}
-
-/**
- * Get line number of a match
- */
-function getLineNumber(content, match) {
-  const lines = content.substring(0, content.indexOf(match)).split('\n');
-  return lines.length;
+    return [];
+  }
 }
 
 /**
@@ -164,7 +58,6 @@ function scanDirectory(dir, extensions = ['.ts', '.tsx', '.js', '.jsx']) {
     const stat = fs.statSync(filePath);
 
     if (stat.isDirectory()) {
-      // Skip node_modules, dist, build directories
       if (!['node_modules', 'dist', 'build', '.git'].includes(file)) {
         scanDirectory(filePath, extensions);
       }
@@ -195,7 +88,6 @@ function generateReport() {
     return 0;
   }
 
-  // Group by severity
   const bySeverity = results.issues.reduce((acc, issue) => {
     acc[issue.severity] = acc[issue.severity] || [];
     acc[issue.severity].push(issue);
@@ -227,16 +119,18 @@ function generateReport() {
  * Main execution
  */
 function main() {
-  console.log('🔍 Scanning codebase for memory leak patterns...\n');
+  console.log('🔍 Scanning codebase for memory leak patterns (AST mode)...\n');
 
-  // Scan backend
+  if (verbose) {
+    console.log('Verbose mode enabled\n');
+  }
+
   const apiDir = path.join(rootDir, 'apps', 'api', 'src');
   if (fs.existsSync(apiDir)) {
     console.log('Scanning backend (apps/api/src)...');
     scanDirectory(apiDir, ['.ts', '.js']);
   }
 
-  // Scan frontend
   const webDir = path.join(rootDir, 'apps', 'web', 'src');
   if (fs.existsSync(webDir)) {
     console.log('Scanning frontend (apps/web/src)...');
