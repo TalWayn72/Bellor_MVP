@@ -4,7 +4,8 @@
  */
 
 // Auth types and middleware
-export { AuthenticatedSocket, authMiddleware } from './websocket-auth.js';
+export type { AuthenticatedSocket } from './websocket-auth.js';
+export { authMiddleware } from './websocket-auth.js';
 
 // Server setup
 export { setupWebSocket } from './websocket-server.js';

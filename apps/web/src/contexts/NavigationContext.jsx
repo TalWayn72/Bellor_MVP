@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const NavigationContext = createContext();
@@ -16,6 +16,7 @@ export function NavigationProvider({ children }) {
   const location = useLocation();
   const [history, setHistory] = useState([]);
   const [canGoBack, setCanGoBack] = useState(false);
+  const historyRef = useRef([]);
 
   // Track navigation history
   useEffect(() => {
@@ -24,9 +25,9 @@ export function NavigationProvider({ children }) {
       if (prev[prev.length - 1] === location.pathname) {
         return prev;
       }
-      const newHistory = [...prev, location.pathname];
-      // Keep last 50 entries
-      return newHistory.slice(-50);
+      const newHistory = [...prev, location.pathname].slice(-50);
+      historyRef.current = newHistory;
+      return newHistory;
     });
   }, [location.pathname]);
 
@@ -39,14 +40,17 @@ export function NavigationProvider({ children }) {
    * @param {string} fallbackPath - Path to use if no history (default: /SharedSpace)
    */
   const goBack = useCallback((fallbackPath = '/SharedSpace') => {
-    if (history.length > 1) {
-      const previousPath = history[history.length - 2];
-      setHistory(prev => prev.slice(0, -1));
+    const currentHistory = historyRef.current;
+    if (currentHistory.length > 1) {
+      const previousPath = currentHistory[currentHistory.length - 2];
+      const newHistory = currentHistory.slice(0, -1);
+      historyRef.current = newHistory;
+      setHistory(newHistory);
       navigate(previousPath);
     } else {
       navigate(fallbackPath);
     }
-  }, [history, navigate]);
+  }, [navigate]);
 
   /**
    * Navigate to a specific path
@@ -61,7 +65,9 @@ export function NavigationProvider({ children }) {
    * @param {string} path - Path to replace with
    */
   const replace = useCallback((path) => {
-    setHistory(prev => prev.slice(0, -1));
+    const newHistory = historyRef.current.slice(0, -1);
+    historyRef.current = newHistory;
+    setHistory(newHistory);
     navigate(path, { replace: true });
   }, [navigate]);
 

@@ -94,7 +94,6 @@ export default function EditProfile() {
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({ title: 'Error', description: 'Error updating profile', variant: 'destructive' });
-    } finally {
       setIsSaving(false);
     }
   };

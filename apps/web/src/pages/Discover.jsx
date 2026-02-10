@@ -53,13 +53,13 @@ export default function Discover() {
     try {
       const result = await likeService.likeUser(currentProfile.id, 'ROMANTIC');
       if (result.isMatch) toast({ title: 'Success', description: "It's a match!" });
-      setCurrentProfileIndex(currentProfileIndex + 1);
+      setCurrentProfileIndex(prev => prev + 1);
     } catch (error) {
       console.error('Error liking profile:', error);
     }
   };
 
-  const handlePass = () => setCurrentProfileIndex(currentProfileIndex + 1);
+  const handlePass = () => setCurrentProfileIndex(prev => prev + 1);
 
   const superLikeMutation = useMutation({
     mutationFn: async ({ targetUserId }) => {
@@ -69,7 +69,7 @@ export default function Discover() {
       queryClient.invalidateQueries({ queryKey: ['superLikes'] });
       setShowSuperLikeModal(false);
       setSuperLikeMessage('');
-      setCurrentProfileIndex(currentProfileIndex + 1);
+      setCurrentProfileIndex(prev => prev + 1);
       toast({ title: 'Success', description: 'Super Like sent!' });
     },
   });

@@ -28,8 +28,11 @@ export default function UserVerification() {
       if (redirectTimerRef.current) {
         clearTimeout(redirectTimerRef.current);
       }
+      if (verificationStream) {
+        verificationStream.getTracks().forEach(track => track.stop());
+      }
     };
-  }, []);
+  }, [verificationStream]);
 
   const startCamera = async () => {
     try {

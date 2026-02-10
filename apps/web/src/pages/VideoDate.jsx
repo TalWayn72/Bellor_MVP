@@ -40,15 +40,25 @@ export default function VideoDate() {
   });
 
   useEffect(() => {
+    let isMounted = true;
+    let activeStream = null;
     const startCamera = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        if (videoRef.current) videoRef.current.srcObject = stream;
+        if (isMounted && videoRef.current) {
+          videoRef.current.srcObject = stream;
+          activeStream = stream;
+        } else {
+          stream.getTracks().forEach(track => track.stop());
+        }
       } catch (error) { console.error('Error accessing camera:', error); }
     };
     startCamera();
     return () => {
-      if (videoRef.current?.srcObject) {
+      isMounted = false;
+      if (activeStream) {
+        activeStream.getTracks().forEach(track => track.stop());
+      } else if (videoRef.current?.srcObject) {
         videoRef.current.srcObject.getTracks().forEach(track => track.stop());
       }
     };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService, responseService } from '@/api';
 import LayoutAdmin from '@/components/admin/LayoutAdmin';
@@ -11,15 +12,15 @@ import { useToast } from '@/components/ui/use-toast';
 export default function AdminUserManagement() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const statusParam = params.get('status');
+    const statusParam = searchParams.get('status');
     if (statusParam) setFilterStatus(statusParam);
-  }, []);
+  }, [searchParams]);
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['admin-all-users'],
