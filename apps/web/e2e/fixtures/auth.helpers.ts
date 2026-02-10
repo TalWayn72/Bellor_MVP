@@ -4,8 +4,12 @@
  * Supports both mocked and full-stack authentication
  */
 import { test as base, Page } from '@playwright/test';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { STORAGE_STATE_PATH } from './test-data.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 import { mockApiResponse } from './api-mock.helpers.js';
 import { createMockUser } from './factories/index.js';
 import type { MockUser } from './factories/index.js';
@@ -122,12 +126,18 @@ export async function registerNewUser(
   }
 }
 
-/** Get auth tokens from localStorage */
+/** Get auth tokens from localStorage (checks both bellor_ prefixed and legacy keys) */
 export async function getAuthTokens(page: Page) {
   return page.evaluate(() => ({
-    accessToken: localStorage.getItem('accessToken'),
-    refreshToken: localStorage.getItem('refreshToken'),
-    user: localStorage.getItem('user'),
+    accessToken:
+      localStorage.getItem('bellor_access_token') ||
+      localStorage.getItem('accessToken'),
+    refreshToken:
+      localStorage.getItem('bellor_refresh_token') ||
+      localStorage.getItem('refreshToken'),
+    user:
+      localStorage.getItem('bellor_user') ||
+      localStorage.getItem('user'),
   }));
 }
 

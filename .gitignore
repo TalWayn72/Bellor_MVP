@@ -51,6 +51,7 @@ coverage/
 *.local
 apps/web/test-results/
 apps/web/playwright-report/
+apps/web/playwright/.auth/
 reports/
 .stryker-tmp/
 

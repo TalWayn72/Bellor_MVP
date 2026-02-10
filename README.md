@@ -5,7 +5,7 @@ A modern dating and social networking platform built for scale. Fully standalone
 [![CI](https://github.com/TalWayn72/Bellor_MVP/workflows/CI/badge.svg)](https://github.com/TalWayn72/Bellor_MVP/actions)
 ![Version](https://img.shields.io/badge/version-1.0.0--beta-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)
-![Tests](https://img.shields.io/badge/tests-3066%2B-green)
+![Tests](https://img.shields.io/badge/tests-3268%2B-green)
 ![License](https://img.shields.io/badge/license-Private-red)
 
 ---
@@ -85,7 +85,7 @@ Bellor_MVP/
 ├── apps/
 │   ├── web/                 # React Frontend (Vite + TypeScript)
 │   │   ├── src/             # api/, components/, hooks/, pages/, security/, utils/
-│   │   ├── e2e/             # Playwright E2E tests (11 spec files)
+│   │   ├── e2e/             # Playwright E2E tests (11 mocked + 22 full-stack spec files)
 │   │   ├── android/         # Capacitor Android
 │   │   └── ios/             # Capacitor iOS
 │   └── api/                 # Fastify Backend (TypeScript)
@@ -126,7 +126,7 @@ For detailed architecture diagrams (Mermaid): [docs/architecture/ARCHITECTURE.md
 | **Frontend** | React 18.2, Vite 6.1, TypeScript 5.8, Tailwind CSS 3.4, Radix UI, TanStack Query 5, React Router 6, Framer Motion 11 |
 | **Backend** | Node.js 20+, Fastify 5.2, Prisma 6.19, Zod 3.23, Socket.io 4.8, Stripe 20.3, Firebase Admin 13.6 |
 | **Database** | PostgreSQL 16 (40+ indexes), Redis 7 (sessions, cache, presence) |
-| **Testing** | Vitest 2.1 (2774 unit/integration tests across 153 files), Playwright (280 E2E tests + visual regression + accessibility), k6 (7 load test scripts) |
+| **Testing** | Vitest 2.1 (2774 unit/integration tests across 153 files), Playwright (224 mocked + 214 full-stack E2E tests + visual regression + accessibility), k6 (7 load test scripts) |
 | **DevOps** | Docker 24+, Kubernetes 1.28+, GitHub Actions, Prometheus, Grafana, Loki, Alertmanager |
 
 ---
@@ -185,10 +185,11 @@ For detailed architecture diagrams (Mermaid): [docs/architecture/ARCHITECTURE.md
 | | `npm run prisma:migrate` | Run migrations (dev) |
 | | `npm run prisma:studio` | Prisma Studio (port 5555) |
 | | `npm run prisma:seed` | Seed 50 demo users |
-| **Test** | `npm run test` | All tests (3054+) |
+| **Test** | `npm run test` | All tests (3268+) |
 | | `npm run test:api` | Backend unit tests (1371) |
 | | `npm run test:web` | Frontend unit tests (1123) |
-| | `npm run test:e2e` | Playwright E2E (280 tests) |
+| | `npm run test:e2e` | Playwright E2E mocked (224 tests) |
+| | `npm run test:e2e:fullstack` | Playwright E2E full-stack (214 tests) |
 | | `npm run test:migration` | Database migration tests (97 tests) |
 | | `npm run test:coverage` | Tests with coverage report |
 | | `npm run test:mutation` | Stryker mutation testing (critical backend services) |
@@ -273,13 +274,14 @@ docker compose -f infrastructure/docker/docker-compose.monitoring.yml up -d
 | **Database Migration** | **97 migration tests** | **Vitest + PostgreSQL** | **3 test files** |
 | Frontend Unit | 18 pages + utils | Vitest | 20 test files |
 | **Frontend Accessibility** | **138 component tests** | **vitest-axe + jest-axe** | **7 test files** |
-| E2E | 224 | Playwright | 11 spec files |
+| E2E (Mocked) | 224 | Playwright | 11 spec files |
+| **E2E Full-Stack** | **214 (207 passed, 7 skipped)** | **Playwright** | **22 spec files** |
 | **E2E Accessibility** | **56 page tests (28×2 viewports)** | **axe-core + Playwright** | **1 test file** |
 | **Visual Regression** | **20+ scenarios** | **Playwright** | **1 spec file** |
 | Load Testing | 7 scripts | k6 | smoke, sustained, stress, spike, WS, DB, memory |
 | Mutation Testing | Critical services | Stryker | Auth, Chat, Security, Middleware |
 | **🆕 Memory Leak Detection** | **Automated scan** | **Custom + Vitest** | **Static analysis + Runtime tests** |
-| **Total** | **3054+ tests** | | **81+ test files** |
+| **Total** | **3268+ tests** | | **103+ test files** |
 
 **Browsers (E2E):** Chromium, Mobile Chrome, Mobile Safari, Firefox (CI)
 

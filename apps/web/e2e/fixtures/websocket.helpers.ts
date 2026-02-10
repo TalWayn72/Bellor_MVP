@@ -29,13 +29,16 @@ export async function sendChatMessage(
   page: Page,
   message: string,
 ): Promise<void> {
+  // ChatInput component uses: <Input placeholder="Type a message..." />
+  // which renders as <input placeholder="Type a message..." />
   const input = page.locator(
-    'input[placeholder*="message" i], input[placeholder*="הודעה" i], textarea[placeholder*="message" i], textarea[placeholder*="הודעה" i]',
-  );
+    'input[placeholder*="message" i], input[placeholder*="Type" i], input[placeholder*="הודעה" i], textarea[placeholder*="message" i], textarea[placeholder*="הודעה" i]',
+  ).first();
   await input.fill(message);
 
+  // ChatInput Send button has aria-label="Send message"
   const sendButton = page.locator(
-    'button[aria-label*="send" i], button[aria-label*="שלח" i], button:has(svg[data-icon="send"])',
+    'button[aria-label*="send" i], button[aria-label*="שלח" i]',
   ).first();
   await sendButton.click();
 }

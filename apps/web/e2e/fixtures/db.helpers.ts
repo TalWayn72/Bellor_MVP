@@ -3,7 +3,11 @@
  * Manages test data seeding, cleanup, and credential access
  */
 import { execSync } from 'child_process';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const API_BASE = process.env.E2E_API_URL || 'http://localhost:3000';
 const API_ROOT = resolve(__dirname, '../../../../api');

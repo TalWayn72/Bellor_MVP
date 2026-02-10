@@ -5,7 +5,11 @@
 import { Page } from '@playwright/test';
 
 export async function waitForPageLoad(page: Page) {
-  await page.waitForLoadState('networkidle');
+  // Use domcontentloaded instead of networkidle because WebSocket
+  // connections prevent networkidle from ever resolving, causing 30s+ hangs.
+  await page.waitForLoadState('domcontentloaded');
+  // Brief pause for React hydration / initial render
+  await page.waitForTimeout(500);
 }
 
 export async function waitForNavigation(page: Page, path: string) {
@@ -13,14 +17,22 @@ export async function waitForNavigation(page: Page, path: string) {
 }
 
 export async function navigateTo(page: Page, path: string) {
-  await page.goto(path);
+  await page.goto(path, { waitUntil: 'domcontentloaded' });
   await waitForPageLoad(page);
   await waitForLoadingComplete(page);
 }
 
+/**
+ * Safe page.goto that uses domcontentloaded instead of 'load'.
+ * WebSocket connections prevent the 'load' event from ever resolving.
+ */
+export async function safeGoto(page: Page, path: string) {
+  await page.goto(path, { waitUntil: 'domcontentloaded' });
+}
+
 export async function waitForLoadingComplete(page: Page) {
   await page.locator('.animate-pulse, [data-loading="true"]').first().waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
-  await page.waitForLoadState('networkidle').catch(() => {});
+  await page.waitForLoadState('domcontentloaded').catch(() => {});
 }
 
 export async function clearLocalStorage(page: Page) {

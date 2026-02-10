@@ -7,8 +7,9 @@
 export { testUser, newTestUser, STORAGE_STATE_PATH } from './test-data.js';
 
 // Auth fixtures (mocked + full-stack)
+export type { TestFixtures } from './auth.helpers.js';
 export {
-  test, TestFixtures, setupAuthenticatedUser,
+  test, setupAuthenticatedUser,
   fullstackTest, FULLSTACK_AUTH,
   loginWithRealCredentials, registerNewUser,
   getAuthTokens, isAuthenticated,
@@ -24,7 +25,7 @@ export {
 // Navigation
 export {
   waitForPageLoad, waitForNavigation, navigateTo, waitForLoadingComplete,
-  clearLocalStorage, getLocalStorageItem, setLocalStorageItem,
+  clearLocalStorage, getLocalStorageItem, setLocalStorageItem, safeGoto,
 } from './navigation.helpers.js';
 
 // Forms (basic + full-stack interaction helpers)
@@ -64,8 +65,8 @@ export {
 } from './websocket.helpers.js';
 
 // Factories
+export type { MockUser, MockMessage, MockResponse, MockNotification, MockLike } from './factories/index.js';
 export {
-  MockUser, MockMessage, MockResponse, MockNotification, MockLike,
   createMockUser, createMockMessage, createMockResponse,
   createMockNotification, createMockLike,
 } from './factories/index.js';

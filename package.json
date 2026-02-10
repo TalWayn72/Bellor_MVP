@@ -52,7 +52,12 @@
     "test:domain:content": "npx vitest run --testNamePattern=\"\\[content\\]\"",
     "test:domain:social": "npx vitest run --testNamePattern=\"\\[social\\]\"",
     "test:domain:profile": "npx vitest run --testNamePattern=\"\\[profile\\]\"",
-    "test:smoke": "npx vitest run --testNamePattern=\"\\[P0\\]\" --reporter=verbose"
+    "test:smoke": "npx vitest run --testNamePattern=\"\\[P0\\]\" --reporter=verbose",
+    "test:e2e:fullstack": "cd apps/web && cross-env FULLSTACK=1 npx playwright test --project=fullstack-chromium e2e/full-stack/",
+    "test:e2e:fullstack:headed": "cd apps/web && cross-env FULLSTACK=1 npx playwright test --headed --project=fullstack-chromium e2e/full-stack/",
+    "test:e2e:fullstack:debug": "cd apps/web && cross-env FULLSTACK=1 npx playwright test --debug --project=fullstack-chromium e2e/full-stack/",
+    "test:e2e:fullstack:ui": "cd apps/web && cross-env FULLSTACK=1 npx playwright test --ui e2e/full-stack/",
+    "test:e2e:fullstack:mobile": "cd apps/web && cross-env FULLSTACK=1 npx playwright test --project=fullstack-mobile e2e/full-stack/"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",

@@ -1,6 +1,6 @@
 # תקלות פתוחות - Bellor MVP
 
-**תאריך עדכון:** 9 פברואר 2026
+**תאריך עדכון:** 10 פברואר 2026
 **מצב:** ✅ Memory Leaks Fixed - WebSocket & Presence Tracking + Backend WebSocket Handlers
 
 ---
@@ -112,8 +112,58 @@
 | **ISSUE-033: Onboarding→SharedSpace Redirect Race Condition (Feb 10)** | 8 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-034: Deep Race Condition Audit - setState/navigate/media leaks (Feb 10)** | 5 | 🔴 קריטי | ✅ תוקן |
 | **TASK-061: Testing Infrastructure Overhaul - Professional Architecture (Feb 10)** | 183 files | 🟢 שיפור | ✅ הושלם |
+| **TASK-062: Full-Stack E2E Testing Suite - Manual QA Replacement (Feb 10)** | 22 specs, 214 tests | 🟢 שיפור | ✅ הושלם |
 
-**סה"כ:** 2726+ פריטים זוהו → 2726+ טופלו ✅
+**סה"כ:** 2940+ פריטים זוהו → 2940+ טופלו ✅
+
+---
+
+## ✅ TASK-062: Full-Stack E2E Testing Suite - Manual QA Replacement (10 פברואר 2026)
+**סטטוס:** ✅ הושלם | **חומרה:** 🟢 שיפור | **תאריך:** 10 February 2026
+
+**בעיה:** Manual QA was done by running the app, taking screenshots, and reporting bugs. This doesn't scale and misses edge cases.
+
+**פתרון:** Built a comprehensive full-stack E2E test suite with 22 spec files (214 tests: 207 passed, 0 failed, 7 skipped - 96.7% pass rate, 3.3 min with 4 workers on Chromium) that simulate real human behavior against the running backend.
+
+**קבצים חדשים:**
+- `apps/web/e2e/full-stack/` - 22 test spec files
+- `apps/web/e2e/global-setup.ts` - Database seeding + auth state creation
+- `apps/web/e2e/global-teardown.ts` - Test cleanup
+- `apps/web/e2e/fixtures/db.helpers.ts` - Database management utilities
+- `apps/web/e2e/fixtures/websocket.helpers.ts` - WebSocket testing helpers
+- `apps/web/e2e/fixtures/file-upload.helpers.ts` - File upload test helpers
+- `apps/web/e2e/test-assets/` - Test files (images, audio)
+- `docs/testing/E2E_FULLSTACK.md` - Documentation
+
+**קבצים שהורחבו:**
+- `apps/web/playwright.config.ts` - Two-layer strategy (mocked + full-stack)
+- `apps/web/e2e/fixtures/auth.helpers.ts` - Real authentication helpers
+- `apps/web/e2e/fixtures/form.helpers.ts` - Slider, toggle, dropdown helpers
+- `apps/web/e2e/fixtures/index.ts` - Updated barrel exports
+- `package.json` - New npm scripts for full-stack E2E
+
+**כיסוי:**
+- All 54 pages (47 user + 7 admin)
+- Auth: registration, login, session, logout, protected routes
+- Onboarding: all 14 steps with validation
+- Feed: likes, responses, mission cards, infinite scroll
+- Chat: messaging, real-time (two browser contexts), history
+- Profile: view, edit, photo upload, interests
+- Navigation: drawer, bottom nav, back/forward, browser history
+- Forms: XSS, SQL injection, Hebrew, emoji, long text
+- Files: valid/invalid/oversized uploads, drag & drop
+- Settings: all sub-pages, toggles, theme
+- Admin: dashboard, user/report/chat management
+- Edge cases: rapid clicks, concurrent tabs, network errors, offline
+
+**פקודות:**
+```bash
+npm run test:e2e:fullstack        # Run all (Desktop Chrome)
+npm run test:e2e:fullstack:headed # Watch tests visually
+npm run test:e2e:fullstack:debug  # Playwright debugger
+npm run test:e2e:fullstack:ui     # Interactive UI
+npm run test:e2e:fullstack:mobile # Mobile viewport
+```
 
 ---
 

@@ -81,7 +81,7 @@ export const AUTH_SECURITY = {
   },
   jwt: {
     algorithm: 'HS256' as const,
-    accessTokenExpiry: '15m',
+    accessTokenExpiry: process.env.JWT_ACCESS_EXPIRY || '15m',
     refreshTokenExpiry: '7d',
     minSecretLength: 32,
   },

@@ -6,7 +6,6 @@ import { test, expect } from '@playwright/test';
 import {
   waitForPageLoad,
   FULLSTACK_AUTH,
-  waitForDialog,
 } from '../fixtures/index.js';
 
 test.describe('[P1][social] Discover Swiping - Full Stack', () => {
@@ -19,13 +18,13 @@ test.describe('[P1][social] Discover Swiping - Full Stack', () => {
     // Wait for profiles to load
     await page.waitForTimeout(3000);
 
-    // Should show a profile card or empty state
+    // Should show a profile card (img with user nickname alt) or empty state ("No more profiles")
     const hasProfiles = await page.locator(
-      'img[alt*="profile" i], img[alt*="photo" i], [class*="card"]',
+      'button[aria-label="Like this profile"], img[alt]:not([alt=""]), [class*="card"]',
     ).first().isVisible({ timeout: 10000 }).catch(() => false);
 
     const hasEmptyState = await page.locator(
-      'text=/no.*more.*profiles|no.*matches|check.*back|אין פרופילים/i',
+      'text=/no.*more.*profiles|check.*back.*later|אין פרופילים/i',
     ).isVisible().catch(() => false);
 
     expect(hasProfiles || hasEmptyState).toBe(true);
@@ -52,8 +51,9 @@ test.describe('[P1][social] Discover Swiping - Full Stack', () => {
     await waitForPageLoad(page);
     await page.waitForTimeout(3000);
 
+    // DiscoverCard uses aria-label="Like this profile"
     const likeBtn = page.locator(
-      'button[aria-label*="like" i]:not([aria-label*="super"]), button:has(svg[data-icon="heart"])',
+      'button[aria-label="Like this profile"]',
     ).first();
 
     if (await likeBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -68,8 +68,9 @@ test.describe('[P1][social] Discover Swiping - Full Stack', () => {
     await waitForPageLoad(page);
     await page.waitForTimeout(3000);
 
+    // DiscoverCard uses aria-label="Pass on this profile"
     const passBtn = page.locator(
-      'button[aria-label*="pass" i], button:has(svg[data-icon="x"]), button[aria-label*="skip" i]',
+      'button[aria-label="Pass on this profile"]',
     ).first();
 
     if (await passBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -83,16 +84,29 @@ test.describe('[P1][social] Discover Swiping - Full Stack', () => {
     await waitForPageLoad(page);
     await page.waitForTimeout(3000);
 
+    // DiscoverCard uses aria-label="Super like this profile"
     const superLikeBtn = page.locator(
-      'button[aria-label*="super" i], button:has(svg[data-icon="star"])',
+      'button[aria-label="Super like this profile"]',
     ).first();
 
     if (await superLikeBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       await superLikeBtn.click();
+      await page.waitForTimeout(1000);
 
-      // Modal should appear with message textarea
-      const modal = page.locator('[role="dialog"]').first();
-      await expect(modal).toBeVisible({ timeout: 5000 });
+      // Super Like modal is a custom bottom sheet (NOT role="dialog").
+      // It's a fixed overlay div with a bottom panel containing:
+      // - <h2>Send Super Like</h2>
+      // - textarea (placeholder "Write a message (optional)...")
+      // - "Cancel" and "Send Super Like" buttons
+      const modalHeading = page.locator('h2').filter({ hasText: /Send Super Like/i });
+      const cancelBtn = page.getByRole('button', { name: /cancel/i });
+      const sendBtn = page.getByRole('button', { name: /Send Super Like/i });
+
+      const headingVisible = await modalHeading.isVisible({ timeout: 5000 }).catch(() => false);
+      const cancelVisible = await cancelBtn.isVisible({ timeout: 3000 }).catch(() => false);
+      const sendVisible = await sendBtn.isVisible({ timeout: 3000 }).catch(() => false);
+
+      expect(headingVisible || cancelVisible || sendVisible).toBe(true);
     }
   });
 
@@ -100,20 +114,23 @@ test.describe('[P1][social] Discover Swiping - Full Stack', () => {
     await page.goto('/Discover');
     await waitForPageLoad(page);
 
-    // Click filter button
+    // Filter button is a ghost Button with SlidersHorizontal icon (no specific aria-label)
     const filterBtn = page.locator(
-      'button[aria-label*="filter" i], button:has(svg[data-icon="sliders"])',
+      'button:has(svg.lucide-sliders-horizontal), button[aria-label*="filter" i]',
     ).first();
 
     if (await filterBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       await filterBtn.click();
       await page.waitForTimeout(1000);
 
-      // Filter panel should appear
+      // DiscoverFilters panel should appear with age/distance fields
       const filterPanel = page.locator(
-        '[role="dialog"], [data-testid="filters"], text=/age|distance|gender|גיל|מרחק/i',
+        'text=/age|distance|gender|גיל|מרחק/i',
       ).first();
       await expect(filterPanel).toBeVisible({ timeout: 5000 });
+    } else {
+      // If filter button not visible, page still loads fine
+      await expect(page.locator('body')).toBeVisible();
     }
   });
 
@@ -131,13 +148,19 @@ test.describe('[P1][social] Discover Swiping - Full Stack', () => {
     await page.goto('/Discover');
     await waitForPageLoad(page);
 
-    // If no more profiles, empty state should appear
-    const emptyState = page.locator(
-      'text=/no.*more|check.*back|start.*over|אין עוד/i',
-    ).first();
-
-    // Either profiles or empty state should be visible eventually
+    // If no more profiles, empty state shows "No more profiles" / "Check back later"
+    // and a "Start Over" button
     await page.waitForTimeout(5000);
-    await expect(page.locator('body')).toBeVisible();
+
+    const hasProfiles = await page.locator(
+      'button[aria-label="Like this profile"]',
+    ).isVisible().catch(() => false);
+
+    const hasEmptyState = await page.locator(
+      'text=/no.*more.*profiles|check.*back|start.*over|אין עוד/i',
+    ).first().isVisible().catch(() => false);
+
+    // Either profiles or empty state should be visible
+    expect(hasProfiles || hasEmptyState).toBe(true);
   });
 });

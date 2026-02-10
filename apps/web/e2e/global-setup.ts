@@ -3,14 +3,18 @@
  *
  * Runs before all tests:
  * 1. Verifies Docker services are running
- * 2. Seeds the database with demo data
- * 3. Creates authenticated storage states for test users
+ * 2. Clears rate limits in Redis
+ * 3. Creates authenticated storage states via API login (not UI)
  */
-import { chromium, FullConfig } from '@playwright/test';
-import { resolve } from 'path';
+import { FullConfig } from '@playwright/test';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { createAuthStateViaAPI } from './setup-auth-state.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const API_BASE = process.env.E2E_API_URL || 'http://localhost:3000';
-const BASE_URL = process.env.E2E_BASE_URL || 'http://localhost:5173';
 const AUTH_DIR = resolve(__dirname, '../playwright/.auth');
 
 async function globalSetup(_config: FullConfig) {
@@ -27,37 +31,45 @@ async function globalSetup(_config: FullConfig) {
   }
   console.log('  ✓ API is healthy\n');
 
-  // Step 2: Create authenticated storage states
-  console.log('Step 2: Creating authenticated sessions...');
-  const browser = await chromium.launch();
-
+  // Step 1.5: Clear rate limits in Redis to prevent test flakiness
+  console.log('Step 1.5: Clearing rate limits in Redis...');
   try {
-    // Login as regular demo user
-    await createAuthState(browser, {
-      email: 'demo_sarah@bellor.app',
-      password: 'Demo123!',
-      storageStatePath: resolve(AUTH_DIR, 'user.json'),
-      label: 'demo user (Sarah)',
+    const { execSync } = await import('child_process');
+    execSync('docker exec bellor_redis redis-cli EVAL "local keys = redis.call(\'keys\', \'fastify-rate-limit*\') for i=1,#keys do redis.call(\'del\', keys[i]) end return #keys" 0', {
+      stdio: 'pipe',
+      timeout: 5000,
     });
-
-    // Login as second demo user (for two-user chat tests)
-    await createAuthState(browser, {
-      email: 'demo_david@bellor.app',
-      password: 'Demo123!',
-      storageStatePath: resolve(AUTH_DIR, 'user2.json'),
-      label: 'demo user (David)',
-    });
-
-    // Login as admin
-    await createAuthState(browser, {
-      email: 'admin@bellor.app',
-      password: 'Demo123!',
-      storageStatePath: resolve(AUTH_DIR, 'admin.json'),
-      label: 'admin',
-    });
-  } finally {
-    await browser.close();
+    console.log('  ✓ Rate limits cleared\n');
+  } catch {
+    console.log('  ⚠ Could not clear rate limits (non-critical)\n');
   }
+
+  // Step 2: Create authenticated storage states via API
+  console.log('Step 2: Creating authenticated sessions via API...');
+
+  const fs = await import('fs');
+  fs.mkdirSync(AUTH_DIR, { recursive: true });
+
+  await createAuthStateViaAPI({
+    email: 'demo_sarah@bellor.app',
+    password: 'Demo123!',
+    storageStatePath: resolve(AUTH_DIR, 'user.json'),
+    label: 'demo user (Sarah)',
+  });
+
+  await createAuthStateViaAPI({
+    email: 'demo_david@bellor.app',
+    password: 'Demo123!',
+    storageStatePath: resolve(AUTH_DIR, 'user2.json'),
+    label: 'demo user (David)',
+  });
+
+  await createAuthStateViaAPI({
+    email: 'admin@bellor.app',
+    password: 'Demo123!',
+    storageStatePath: resolve(AUTH_DIR, 'admin.json'),
+    label: 'admin',
+  });
 
   console.log('\n✅ Global Setup Complete!\n');
 }
@@ -73,61 +85,6 @@ async function checkApiHealth(): Promise<boolean> {
     await new Promise((r) => setTimeout(r, 2000));
   }
   return false;
-}
-
-async function createAuthState(
-  browser: import('@playwright/test').Browser,
-  options: {
-    email: string;
-    password: string;
-    storageStatePath: string;
-    label: string;
-  },
-): Promise<void> {
-  const { email, password, storageStatePath, label } = options;
-  console.log(`  Creating auth state for ${label}...`);
-
-  const context = await browser.newContext();
-  const page = await context.newPage();
-
-  try {
-    // Navigate to login
-    await page.goto(`${BASE_URL}/Login`);
-    await page.waitForLoadState('networkidle');
-
-    // Fill login form (supports Hebrew/English labels)
-    const emailInput = page.locator(
-      'input[type="email"], input[placeholder*="email" i], input[placeholder*="אימייל" i]',
-    ).first();
-    const passwordInput = page.locator(
-      'input[type="password"], input[placeholder*="password" i], input[placeholder*="סיסמ" i]',
-    ).first();
-
-    await emailInput.fill(email);
-    await passwordInput.fill(password);
-
-    // Submit
-    const submitButton = page.locator(
-      'button[type="submit"], button:has-text("login"), button:has-text("התחבר"), button:has-text("כניסה")',
-    ).first();
-    await submitButton.click();
-
-    // Wait for redirect to authenticated area
-    await page.waitForURL(/\/(Home|SharedSpace|Feed)/, { timeout: 15000 });
-
-    // Ensure auth dir exists
-    const fs = await import('fs');
-    fs.mkdirSync(resolve(storageStatePath, '..'), { recursive: true });
-
-    // Save storage state
-    await context.storageState({ path: storageStatePath });
-    console.log(`  ✓ Saved auth state for ${label}`);
-  } catch (error) {
-    console.error(`  ✗ Failed to create auth state for ${label}:`, error);
-    throw error;
-  } finally {
-    await context.close();
-  }
 }
 
 export default globalSetup;
