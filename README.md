@@ -35,6 +35,47 @@ npm run dev:all                            # Start frontend + backend
 | Prometheus Metrics | http://localhost:3000/metrics |
 | Prisma Studio | http://localhost:5555 (via `npm run prisma:studio`) |
 
+### Demo User Accounts
+
+All demo users have password: **Demo123!**
+
+| Language | Email | Name |
+|----------|-------|------|
+| English | demo_sarah@bellor.app | Sarah Johnson (F) |
+| English | demo_michael@bellor.app | Michael Chen (M) |
+| Hebrew | demo_yael@bellor.app | Yael Cohen (F) |
+| Hebrew | demo_david@bellor.app | David Levi (M) |
+| Spanish | demo_maria@bellor.app | Maria Garcia (F) |
+| Spanish | demo_carlos@bellor.app | Carlos Rodriguez (M) |
+| German | demo_anna@bellor.app | Anna Schmidt (F) |
+| German | demo_thomas@bellor.app | Thomas Muller (M) |
+| French | demo_sophie@bellor.app | Sophie Dubois (F) |
+| French | demo_pierre@bellor.app | Pierre Martin (M) |
+
+### Service Health Check
+
+Verify all services are running before starting work:
+
+```bash
+docker ps && curl -s http://localhost:3000/health
+```
+
+| Service | Port | Check | Expected |
+|---------|------|-------|----------|
+| PostgreSQL | 5432 | `docker ps \| grep postgres` | Container running |
+| Redis | 6379 | `docker ps \| grep redis` | Container running |
+| Backend API | 3000 | `curl localhost:3000/health` | `{"status":"ok"}` |
+| Frontend | 5173 | Open browser | App loads |
+
+### Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Docker services won't start | Verify Docker Desktop is running (`docker --version`). Check ports: `netstat -an \| grep 5432` |
+| Prisma Client errors | `npm run prisma:generate` or reset: `cd apps/api && npx prisma migrate reset` |
+| Port 5173 in use | `npx kill-port 5173` or set `VITE_PORT=5174` |
+| API not responding (port 3000) | `npm run dev:api` |
+
 ---
 
 ## Architecture
@@ -59,11 +100,22 @@ Bellor_MVP/
 │   ├── monitoring/          # Prometheus, Grafana, Loki, Alertmanager
 │   └── k6/                  # Load test scripts (smoke, stress, spike, WS, DB)
 ├── .github/workflows/       # CI/CD pipelines (ci, cd, docker-build, test)
-├── scripts/                 # Universal installers (Linux, macOS, Windows)
-└── docs/                    # 30+ documentation files
+├── scripts/                 # Utility scripts (analysis, deployment, Windows)
+│   └── windows/             # Windows-specific scripts (.bat, .ps1)
+└── docs/                    # 40+ documentation files
+    ├── architecture/        # System architecture diagrams
+    ├── api/                 # API endpoints & client docs
+    ├── product/             # PRD & requirements
+    ├── development/         # Development guidelines & rules
+    ├── security/            # Security checklist, plan, incident response
+    ├── deployment/          # Deployment guides (cloud, Docker, mobile)
+    ├── reports/             # Performance baselines & test reports
+    ├── project/             # Issue tracking & project status
+    ├── plans/               # Implementation plans
+    └── archive/             # Historical & completed documents
 ```
 
-For detailed architecture diagrams (Mermaid): [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+For detailed architecture diagrams (Mermaid): [docs/architecture/ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md)
 
 ---
 
@@ -115,7 +167,7 @@ For detailed architecture diagrams (Mermaid): [docs/ARCHITECTURE.md](docs/ARCHIT
 - Security headers (CSP, HSTS, CORS, X-Frame-Options)
 - Container hardening (non-root, read-only FS, capability dropping)
 - K8s NetworkPolicy + RBAC for pod-to-pod traffic restriction
-- Full audit: [docs/SECURITY_CHECKLIST.md](docs/SECURITY_CHECKLIST.md) (71/75 items verified)
+- Full audit: [docs/security/SECURITY_CHECKLIST.md](docs/security/SECURITY_CHECKLIST.md) (71/75 items verified)
 
 ---
 
@@ -132,7 +184,7 @@ For detailed architecture diagrams (Mermaid): [docs/ARCHITECTURE.md](docs/ARCHIT
 | **Database** | `npm run prisma:generate` | Generate Prisma client |
 | | `npm run prisma:migrate` | Run migrations (dev) |
 | | `npm run prisma:studio` | Prisma Studio (port 5555) |
-| | `npm run prisma:seed` | Seed 20 demo users |
+| | `npm run prisma:seed` | Seed 50 demo users |
 | **Test** | `npm run test` | All tests (3054+) |
 | | `npm run test:api` | Backend unit tests (1371) |
 | | `npm run test:web` | Frontend unit tests (1123) |
@@ -160,11 +212,11 @@ npm run docker:up && npm run dev:all
 docker compose -f docker-compose.prod.yml up -d
 
 # High-scale (3-20 API replicas, PgBouncer, nginx LB)
-docker compose -f docker-compose.production.yml up -d
-docker compose -f docker-compose.production.yml up -d --scale api=5
+docker compose -f infrastructure/docker/docker-compose.production.yml up -d
+docker compose -f infrastructure/docker/docker-compose.production.yml up -d --scale api=5
 
 # All-in-one (275MB minimum, DB included)
-docker compose -f docker-compose.all-in-one.yml up -d
+docker compose -f infrastructure/docker/docker-compose.all-in-one.yml up -d
 ```
 
 ### Production -- Kubernetes
@@ -207,7 +259,7 @@ Tracks: API request rates, p50/p95/p99 latency, error rates, WebSocket connectio
 
 Start monitoring stack:
 ```bash
-docker compose -f docker-compose.monitoring.yml up -d
+docker compose -f infrastructure/docker/docker-compose.monitoring.yml up -d
 ```
 
 ---
@@ -231,7 +283,7 @@ docker compose -f docker-compose.monitoring.yml up -d
 
 **Browsers (E2E):** Chromium, Mobile Chrome, Mobile Safari, Firefox (CI)
 
-**Performance baseline (k6):** p95 = 23ms (smoke), 230ms (stress). See [docs/PERFORMANCE_BASELINE.md](docs/PERFORMANCE_BASELINE.md).
+**Performance baseline (k6):** p95 = 23ms (smoke), 230ms (stress). See [docs/reports/PERFORMANCE_BASELINE.md](docs/reports/PERFORMANCE_BASELINE.md).
 
 ### Visual Regression Testing
 
@@ -362,15 +414,15 @@ VITE_WS_URL=ws://localhost:3000
 
 | Category | Documents |
 |----------|-----------|
-| **Project** | [GUIDELINES.md](GUIDELINES.md) -- Dev standards (15 sections) / [WORK_INSTRUCTIONS.md](WORK_INSTRUCTIONS.md) -- Project status reference |
-| **Product** | [docs/PRD.md](docs/PRD.md) -- Product requirements / [docs/MIGRATION_PLAN.md](docs/MIGRATION_PLAN.md) -- Migration strategy |
-| **Architecture** | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) -- 8 Mermaid diagrams / [apps/api/prisma/schema.prisma](apps/api/prisma/schema.prisma) -- DB schema |
-| **Security** | [docs/SECURITY_PLAN.md](docs/SECURITY_PLAN.md) / [docs/SECURITY_CHECKLIST.md](docs/SECURITY_CHECKLIST.md) / [docs/INCIDENT_RESPONSE.md](docs/INCIDENT_RESPONSE.md) |
-| **Deployment** | [docs/DEPLOYMENT_INFRASTRUCTURE_COMPLETE.md](docs/DEPLOYMENT_INFRASTRUCTURE_COMPLETE.md) / [docs/CLOUD_AGNOSTIC_DEPLOYMENT.md](docs/CLOUD_AGNOSTIC_DEPLOYMENT.md) / [docs/FREE_HOSTING_OPTIONS.md](docs/FREE_HOSTING_OPTIONS.md) |
-| **Performance** | [docs/PERFORMANCE_BASELINE.md](docs/PERFORMANCE_BASELINE.md) -- k6 load test results and scripts |
-| **Privacy** | [docs/DATA_RETENTION_POLICY.md](docs/DATA_RETENTION_POLICY.md) -- GDPR-compliant PII retention policy |
-| **Mobile** | [docs/GOOGLE_PLAY_DEPLOYMENT.md](docs/GOOGLE_PLAY_DEPLOYMENT.md) / [docs/MOBILE_RELEASE_CHECKLIST.md](docs/MOBILE_RELEASE_CHECKLIST.md) / [docs/MOBILE_APP_REQUIREMENTS.md](docs/MOBILE_APP_REQUIREMENTS.md) |
-| **Tracking** | [docs/OPEN_ISSUES.md](docs/OPEN_ISSUES.md) -- 523+ items tracked, all resolved |
+| **Project** | [docs/development/GUIDELINES.md](docs/development/GUIDELINES.md) -- Dev standards (15 sections) / [docs/project/PROJECT_STATUS.md](docs/project/PROJECT_STATUS.md) -- Project status reference |
+| **Product** | [docs/product/PRD.md](docs/product/PRD.md) -- Product requirements / [docs/archive/MIGRATION_PLAN.md](docs/archive/MIGRATION_PLAN.md) -- Migration strategy |
+| **Architecture** | [docs/architecture/ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md) -- 8 Mermaid diagrams / [apps/api/prisma/schema.prisma](apps/api/prisma/schema.prisma) -- DB schema |
+| **Security** | [docs/security/SECURITY_PLAN.md](docs/security/SECURITY_PLAN.md) / [docs/security/SECURITY_CHECKLIST.md](docs/security/SECURITY_CHECKLIST.md) / [docs/security/INCIDENT_RESPONSE.md](docs/security/INCIDENT_RESPONSE.md) |
+| **Deployment** | [docs/deployment/DEPLOYMENT_INFRASTRUCTURE_COMPLETE.md](docs/deployment/DEPLOYMENT_INFRASTRUCTURE_COMPLETE.md) / [docs/deployment/CLOUD_AGNOSTIC_DEPLOYMENT.md](docs/deployment/CLOUD_AGNOSTIC_DEPLOYMENT.md) / [docs/deployment/FREE_HOSTING_OPTIONS.md](docs/deployment/FREE_HOSTING_OPTIONS.md) |
+| **Performance** | [docs/reports/PERFORMANCE_BASELINE.md](docs/reports/PERFORMANCE_BASELINE.md) -- k6 load test results and scripts |
+| **Privacy** | [docs/security/DATA_RETENTION_POLICY.md](docs/security/DATA_RETENTION_POLICY.md) -- GDPR-compliant PII retention policy |
+| **Mobile** | [docs/deployment/GOOGLE_PLAY_DEPLOYMENT.md](docs/deployment/GOOGLE_PLAY_DEPLOYMENT.md) / [docs/deployment/MOBILE_RELEASE_CHECKLIST.md](docs/deployment/MOBILE_RELEASE_CHECKLIST.md) / [docs/product/MOBILE_APP_REQUIREMENTS.md](docs/product/MOBILE_APP_REQUIREMENTS.md) |
+| **Tracking** | [docs/project/OPEN_ISSUES.md](docs/project/OPEN_ISSUES.md) -- 523+ items tracked, all resolved |
 
 ---
 

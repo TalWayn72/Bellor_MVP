@@ -204,7 +204,7 @@ All users have password: **Demo123!**
 - **Easy to add more languages**
 
 ### Developer Experience
-- **Clear documentation** (README, QUICK_START, API docs)
+- **Clear documentation** (README, API docs)
 - **Demo data** for testing
 - **Docker Compose** for easy setup
 - **Seed scripts** for quick database population
@@ -313,7 +313,7 @@ Day 1 - February 3, 2026
 5. **Docker needed** - Start with `docker compose up -d`
 
 ### Files to Review
-- `QUICK_START.md` - Setup instructions
+- `README.md` - Project overview, setup instructions & troubleshooting
 - `docs/PHASE_3_STATUS.md` - Agent progress
 - `docs/PARALLEL_EXECUTION_LOG.md` - Real-time updates
 - `docs/api/API_ENDPOINTS.md` - API documentation

@@ -73,7 +73,7 @@ irm https://raw.githubusercontent.com/your-org/Bellor_MVP/main/scripts/install-a
 - ✅ Build caching optimized
 
 #### Docker Compose - Production
-**File:** [docker-compose.prod.yml](../docker-compose.prod.yml)
+**File:** [docker-compose.prod.yml](../../docker-compose.prod.yml)
 
 **Features:**
 - ✅ External PostgreSQL and Redis support
@@ -84,7 +84,7 @@ irm https://raw.githubusercontent.com/your-org/Bellor_MVP/main/scripts/install-a
 - ✅ Volume persistence
 
 #### Docker Compose - All-in-One
-**File:** [docker-compose.all-in-one.yml](../docker-compose.all-in-one.yml)
+**File:** [infrastructure/docker/docker-compose.all-in-one.yml](../infrastructure/docker/docker-compose.all-in-one.yml)
 
 **Features:**
 - ✅ Database included in container
@@ -146,7 +146,7 @@ irm https://raw.githubusercontent.com/your-org/Bellor_MVP/main/scripts/install-a
 
 ### 5. Free Hosting Guides (100%)
 
-**File:** [docs/FREE_HOSTING_OPTIONS.md](FREE_HOSTING_OPTIONS.md) (Hebrew)
+**File:** [docs/deployment/FREE_HOSTING_OPTIONS.md](FREE_HOSTING_OPTIONS.md) (Hebrew)
 
 **Covers 5 Free Options:**
 
@@ -195,7 +195,7 @@ irm https://raw.githubusercontent.com/your-org/Bellor_MVP/main/scripts/install-a
 
 ### 6. Cloud-Agnostic Architecture Guide (100%)
 
-**File:** [docs/CLOUD_AGNOSTIC_DEPLOYMENT.md](CLOUD_AGNOSTIC_DEPLOYMENT.md)
+**File:** [docs/deployment/CLOUD_AGNOSTIC_DEPLOYMENT.md](CLOUD_AGNOSTIC_DEPLOYMENT.md)
 
 **Features:**
 - ✅ Complete deployment strategy
@@ -218,7 +218,7 @@ irm https://raw.githubusercontent.com/your-org/Bellor_MVP/main/scripts/install-a
 
 ### 7. Quick Deploy Guide (100%)
 
-**File:** [docs/QUICK_DEPLOY_GUIDE.md](QUICK_DEPLOY_GUIDE.md) (Hebrew)
+**File:** [docs/deployment/QUICK_DEPLOY_GUIDE.md](QUICK_DEPLOY_GUIDE.md) (Hebrew)
 
 **Covers:**
 - ✅ 15-minute Docker Compose deployment
@@ -251,7 +251,7 @@ Bellor_MVP/
 │       ├── ingress.yaml            # ✅ SSL + Routing
 │       └── secrets.yaml.example    # ✅ Secrets template
 ├── docker-compose.prod.yml         # ✅ Production compose
-├── docker-compose.all-in-one.yml   # ✅ Self-contained compose
+├── infrastructure/docker/docker-compose.all-in-one.yml   # ✅ Self-contained compose
 └── docs/
     ├── CLOUD_AGNOSTIC_DEPLOYMENT.md    # ✅ Architecture guide
     ├── FREE_HOSTING_OPTIONS.md         # ✅ Free hosting (Hebrew)
@@ -320,7 +320,7 @@ irm https://raw.githubusercontent.com/.../install-anywhere.ps1 | iex
 ### ✅ Goal 5: All-in-One Container with Database
 **Status:** COMPLETE
 
-**File:** `docker-compose.all-in-one.yml`
+**File:** `infrastructure/docker/docker-compose.all-in-one.yml`
 
 - ✅ PostgreSQL included in deployment
 - ✅ Redis included in deployment

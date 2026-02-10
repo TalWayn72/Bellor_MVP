@@ -2287,7 +2287,7 @@ async uploadDrawing(file) {
 4. `apps/web/src/api/services/uploadService.js` - ✅ הוספת uploadDrawing()
 5. `apps/web/src/api/client/apiClient.js` - ✅ הוספת request transformer (snake_case → camelCase)
 6. `apps/web/src/pages/Onboarding.jsx` - ✅ שימוש ב-uploadDrawing בשלב 13
-7. `docs/PRD.md` סעיף 4.4.1 - ✅ הבהרה על ההפרדה בין photos ל-drawings
+7. `docs/product/PRD.md` סעיף 4.4.1 - ✅ הבהרה על ההפרדה בין photos ל-drawings
 
 #### פתרון שיושם
 ```

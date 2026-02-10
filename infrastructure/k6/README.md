@@ -531,7 +531,7 @@ When adding new tests:
 - [k6 Documentation](https://k6.io/docs/)
 - [k6 Examples](https://github.com/grafana/k6-learn)
 - [Performance Testing Best Practices](https://k6.io/docs/testing-guides/test-types/)
-- [Bellor PRD Performance Requirements](../../docs/PRD.md)
+- [Bellor PRD Performance Requirements](../../docs/product/PRD.md)
 
 ---
 

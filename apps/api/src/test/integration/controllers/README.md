@@ -169,4 +169,4 @@ Most failures are due to mock configuration nuances and will be addressed in sub
 - `../../setup.ts` - Test configuration and mocks
 - `../../build-test-app.ts` - Fastify test app builder
 - `../../../controllers/` - Controller implementations
-- `../../../../docs/PRD.md` - Section 10: Testing Strategy
+- `../../../../docs/product/PRD.md` - Section 10: Testing Strategy

@@ -224,5 +224,5 @@ git commit -m "test: update visual regression baselines after UI changes"
 ## References
 
 - [Playwright Visual Comparisons](https://playwright.dev/docs/test-snapshots)
-- [PRD.md Section 10.1](../../docs/PRD.md) - Testing Strategy
+- [PRD.md Section 10.1](../../docs/product/PRD.md) - Testing Strategy
 - [Playwright Config](../../playwright.config.ts) - Configuration

@@ -324,16 +324,16 @@ chmod 600 .env.production
 #### 7.1 Build הקונטיינרים
 ```bash
 # Build (ייקח כ-10 דקות בפעם הראשונה)
-docker compose -f docker-compose.all-in-one.yml --env-file .env.production build
+docker compose -f infrastructure/docker/docker-compose.all-in-one.yml --env-file .env.production build
 ```
 
 #### 7.2 הפעלת השירותים
 ```bash
 # הפעלה
-docker compose -f docker-compose.all-in-one.yml --env-file .env.production up -d
+docker compose -f infrastructure/docker/docker-compose.all-in-one.yml --env-file .env.production up -d
 
 # בדיקת סטטוס
-docker compose -f docker-compose.all-in-one.yml ps
+docker compose -f infrastructure/docker/docker-compose.all-in-one.yml ps
 ```
 
 #### 7.3 הרצת Migrations
@@ -342,10 +342,10 @@ docker compose -f docker-compose.all-in-one.yml ps
 sleep 30
 
 # הרץ migrations
-docker compose -f docker-compose.all-in-one.yml exec api npx prisma migrate deploy
+docker compose -f infrastructure/docker/docker-compose.all-in-one.yml exec api npx prisma migrate deploy
 
 # הרץ seed (משתמשי דמו)
-docker compose -f docker-compose.all-in-one.yml exec api npx prisma db seed
+docker compose -f infrastructure/docker/docker-compose.all-in-one.yml exec api npx prisma db seed
 ```
 
 #### 7.4 בדיקת תקינות
@@ -357,7 +357,7 @@ curl http://localhost:3000/health
 curl http://localhost:80/health
 
 # בדוק לוגים
-docker compose -f docker-compose.all-in-one.yml logs -f --tail=50
+docker compose -f infrastructure/docker/docker-compose.all-in-one.yml logs -f --tail=50
 ```
 
 **✅ Checkpoint:** האפליקציה רצה!
@@ -383,12 +383,12 @@ git fetch origin
 git reset --hard origin/main
 
 # Build and restart
-docker compose -f docker-compose.all-in-one.yml --env-file .env.production build
-docker compose -f docker-compose.all-in-one.yml --env-file .env.production up -d
+docker compose -f infrastructure/docker/docker-compose.all-in-one.yml --env-file .env.production build
+docker compose -f infrastructure/docker/docker-compose.all-in-one.yml --env-file .env.production up -d
 
 # Run migrations
 sleep 30
-docker compose -f docker-compose.all-in-one.yml exec -T api npx prisma migrate deploy
+docker compose -f infrastructure/docker/docker-compose.all-in-one.yml exec -T api npx prisma migrate deploy
 
 # Cleanup
 docker system prune -f
@@ -528,10 +528,10 @@ jobs:
             cd /opt/bellor
             git fetch origin
             git reset --hard origin/${{ github.ref_name }}
-            docker compose -f docker-compose.all-in-one.yml --env-file .env.production build
-            docker compose -f docker-compose.all-in-one.yml --env-file .env.production up -d
+            docker compose -f infrastructure/docker/docker-compose.all-in-one.yml --env-file .env.production build
+            docker compose -f infrastructure/docker/docker-compose.all-in-one.yml --env-file .env.production up -d
             sleep 30
-            docker compose -f docker-compose.all-in-one.yml exec -T api npx prisma migrate deploy
+            docker compose -f infrastructure/docker/docker-compose.all-in-one.yml exec -T api npx prisma migrate deploy
             docker system prune -f
             echo "Deployment completed!"
 
@@ -568,13 +568,13 @@ sudo apt install -y certbot
 #### 9.3 קבלת SSL Certificate
 ```bash
 # עצור את ה-web container זמנית
-docker compose -f docker-compose.all-in-one.yml stop web
+docker compose -f infrastructure/docker/docker-compose.all-in-one.yml stop web
 
 # קבל certificate
 sudo certbot certonly --standalone -d qa.bellor.app
 
 # הפעל מחדש
-docker compose -f docker-compose.all-in-one.yml start web
+docker compose -f infrastructure/docker/docker-compose.all-in-one.yml start web
 ```
 
 #### 9.4 הגדרת Nginx עם SSL (אופציונלי)
@@ -628,13 +628,13 @@ sudo nginx -t && sudo systemctl reload nginx
 #### 10.1 בדיקת המערכת
 ```bash
 # סטטוס כל הקונטיינרים
-docker compose -f docker-compose.all-in-one.yml ps
+docker compose -f infrastructure/docker/docker-compose.all-in-one.yml ps
 
 # צריכת משאבים
 docker stats
 
 # לוגים
-docker compose -f docker-compose.all-in-one.yml logs -f
+docker compose -f infrastructure/docker/docker-compose.all-in-one.yml logs -f
 
 # Health checks
 curl http://<PUBLIC_IP>:3000/health
@@ -670,7 +670,7 @@ cat > /opt/bellor/scripts/health-check.sh << 'EOF'
 if ! curl -sf http://localhost:3000/health > /dev/null; then
     echo "$(date) - API is down! Restarting..." >> /var/log/bellor-health.log
     cd /opt/bellor
-    docker compose -f docker-compose.all-in-one.yml restart api
+    docker compose -f infrastructure/docker/docker-compose.all-in-one.yml restart api
 fi
 EOF
 
@@ -708,24 +708,24 @@ chmod +x /opt/bellor/scripts/health-check.sh
 ```bash
 cd /opt/bellor
 git pull origin main
-docker compose -f docker-compose.all-in-one.yml --env-file .env.production up -d --build
+docker compose -f infrastructure/docker/docker-compose.all-in-one.yml --env-file .env.production up -d --build
 ```
 
 ### צפייה בלוגים
 ```bash
-docker compose -f docker-compose.all-in-one.yml logs -f api
-docker compose -f docker-compose.all-in-one.yml logs -f web
+docker compose -f infrastructure/docker/docker-compose.all-in-one.yml logs -f api
+docker compose -f infrastructure/docker/docker-compose.all-in-one.yml logs -f web
 ```
 
 ### גיבוי Database
 ```bash
-docker compose -f docker-compose.all-in-one.yml exec postgres \
+docker compose -f infrastructure/docker/docker-compose.all-in-one.yml exec postgres \
   pg_dump -U bellor bellor > backup_$(date +%Y%m%d).sql
 ```
 
 ### Restart שירותים
 ```bash
-docker compose -f docker-compose.all-in-one.yml restart
+docker compose -f infrastructure/docker/docker-compose.all-in-one.yml restart
 ```
 
 ### ניקוי Docker

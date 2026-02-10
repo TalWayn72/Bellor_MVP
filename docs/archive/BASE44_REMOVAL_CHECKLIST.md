@@ -321,7 +321,7 @@ apps/web/src/api/
 ## 🔗 Related Documents
 
 - [MIGRATION_PLAN.md](MIGRATION_PLAN.md) - Phase 4 details
-- [PRD.md](PRD.md) - Product requirements
+- [PRD.md](../product/PRD.md) - Product requirements
 - [NEW_API_CLIENT.md](NEW_API_CLIENT.md) - API client implementation (to be created)
 
 ---

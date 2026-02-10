@@ -144,7 +144,7 @@ Use this checklist before every release to verify security controls are in place
 - [x] Resource limits set (CPU, memory)
   > API: 512M/1.0 CPU. Web: 256M/0.5 CPU. Postgres: 1G/1.0 CPU. Redis: 256M/0.5 CPU. All defined in `docker-compose.prod.yml`.
 - [x] Network segmentation in place
-  > `docker-compose.production.yml` uses `bellor-public` (bridge) and `bellor-internal` (bridge, `internal: true`). Database and Redis only on internal network. nginx bridges public and internal.
+  > `infrastructure/docker/docker-compose.production.yml` uses `bellor-public` (bridge) and `bellor-internal` (bridge, `internal: true`). Database and Redis only on internal network. nginx bridges public and internal.
 - [x] No SSH access to production containers
   > Alpine-based images, no SSH server installed. Non-root users with no shell access. Read-only filesystem prevents installing SSH.
 - [x] Docker images scanned for vulnerabilities
@@ -176,7 +176,7 @@ Use this checklist before every release to verify security controls are in place
 - [x] Structured logging with IP, user agent, timestamp
   > `SecurityEvent` interface: `{ event, timestamp, ip, userAgent, userId, path, method, details }`. `LogEntry` interface includes request ID, method, URL, headers, body, response status, duration, error details.
 - [ ] Alert thresholds configured for suspicious patterns
-  > **NOT IMPLEMENTED.** Logging infrastructure is in place, but no automated alerting system (e.g., Prometheus AlertManager rules, PagerDuty integration, or threshold-based notifications) is configured. The `docker-compose.monitoring.yml` exists for Prometheus/Grafana setup, but alert rules have not been defined.
+  > **NOT IMPLEMENTED.** Logging infrastructure is in place, but no automated alerting system (e.g., Prometheus AlertManager rules, PagerDuty integration, or threshold-based notifications) is configured. The `infrastructure/docker/docker-compose.monitoring.yml` exists for Prometheus/Grafana setup, but alert rules have not been defined.
 - [x] npm audit run regularly
   > `ci.yml` runs `npm audit --audit-level=high` in the `security-scan` job on every push to main/develop and on pull requests.
 - [x] Docker image scan in CI/CD pipeline

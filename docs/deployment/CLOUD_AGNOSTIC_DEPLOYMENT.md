@@ -203,7 +203,7 @@ kubectl create secret generic bellor-secrets \
 **Setup:**
 ```bash
 # מוסיף ל-docker-compose
-docker compose -f docker-compose.monitoring.yml up -d
+docker compose -f infrastructure/docker/docker-compose.monitoring.yml up -d
 ```
 
 ---

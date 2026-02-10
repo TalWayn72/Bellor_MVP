@@ -232,7 +232,7 @@ export async function adminMiddleware(request, reply)
 1. `apps/api/src/middleware/auth.middleware.ts` - Added `adminMiddleware`
 2. `apps/api/src/routes/v1/index.ts` - Registered admin routes
 3. `apps/api/src/app.ts` - Integrated background jobs
-4. `docs/PRD.md` - Updated status to Phase 5 complete
+4. `docs/product/PRD.md` - Updated status to Phase 5 complete
 
 ---
 

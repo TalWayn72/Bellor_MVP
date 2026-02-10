@@ -209,7 +209,7 @@ Add to your CI pipeline:
 - **Prisma Schema**: `apps/api/prisma/schema.prisma`
 - **Migrations**: `apps/api/prisma/migrations/`
 - **Seed Data**: `apps/api/prisma/seed.ts`
-- **PRD**: `docs/PRD.md` (database design)
+- **PRD**: `docs/product/PRD.md` (database design)
 
 ## Support
 

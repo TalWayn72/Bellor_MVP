@@ -149,7 +149,7 @@
 
 ### שלב 1: הכנה (בתחילת כל שיחה)
 1. קרוא `CLAUDE.md` להנחיות עדכניות
-2. קרוא `FIGMA_IMPLEMENTATION_PLAN.md` לסטטוס
+2. קרוא `docs/archive/FIGMA_IMPLEMENTATION_PLAN.md` לסטטוס
 3. בחר קבוצה אחת (3-5 דפים) לעבודה
 
 ### שלב 2: קריאת עיצוב Figma
@@ -202,7 +202,7 @@ curl -H "X-Figma-Token: $FIGMA_TOKEN" \
 1. `npm run build` - וודא build תקין
 2. `npm run lint` - וודא אין שגיאות lint
 3. בדיקה ויזואלית של כל הדפים
-4. עדכן סטטוס ב-`FIGMA_IMPLEMENTATION_PLAN.md`
+4. עדכן סטטוס ב-`docs/archive/FIGMA_IMPLEMENTATION_PLAN.md`
 5. Commit ו-push סופי
 
 ---

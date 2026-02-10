@@ -303,7 +303,7 @@ apps/api/src/routes/v1/index.ts         - Register new routes
 apps/web/src/api/index.js               - Export new services
 apps/web/src/api/base44Client.js        - Connect services, then delete
 apps/web/src/pages/*.jsx                - 36 pages to migrate
-docs/PRD.md                             - Update status
+docs/product/PRD.md                      - Update status
 ```
 
 ---

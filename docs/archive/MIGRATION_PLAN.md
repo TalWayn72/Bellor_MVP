@@ -2002,7 +2002,7 @@ jobs:
 - `infrastructure/docker/Dockerfile.api` - Multi-stage API container (~150MB)
 - `infrastructure/docker/Dockerfile.web` - Frontend with nginx (~25MB)
 - `docker-compose.prod.yml` - Production orchestration
-- `docker-compose.all-in-one.yml` - Self-contained deployment with database (275MB min)
+- `infrastructure/docker/docker-compose.all-in-one.yml` - Self-contained deployment with database (275MB min)
 - `infrastructure/kubernetes/*.yaml` - Complete K8s manifests
 - `scripts/deploy.sh` - Universal deployment script (Docker/K8s)
 - `scripts/install-anywhere.sh` - One-command Bash installer (Linux/macOS)
@@ -2033,7 +2033,7 @@ irm https://raw.githubusercontent.com/your-org/Bellor_MVP/main/scripts/install-a
 - Oracle Cloud (24GB RAM free forever)
 - Supabase (free PostgreSQL)
 
-See [docs/FREE_HOSTING_OPTIONS.md](FREE_HOSTING_OPTIONS.md) for detailed setup guides.
+See [docs/deployment/FREE_HOSTING_OPTIONS.md](../deployment/FREE_HOSTING_OPTIONS.md) for detailed setup guides.
 
 ---
 

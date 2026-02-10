@@ -2,7 +2,7 @@
 
 **Version:** 1.0.0 | **Date:** February 8, 2026
 **Compliance:** GDPR (EU 2016/679), CCPA (Cal. Civ. Code 1798.100)
-**Related:** [SECURITY_PLAN.md](./SECURITY_PLAN.md), [GUIDELINES.md](../GUIDELINES.md) Section 8
+**Related:** [SECURITY_PLAN.md](./SECURITY_PLAN.md), [GUIDELINES.md](../development/GUIDELINES.md) Section 8
 
 ---
 
@@ -127,7 +127,7 @@
 
 ## 5. Compliance
 
-**GDPR:** Lawful basis via consent (registration) + legitimate interest. Data minimization enforced. Breach notification within 72 hours (Art. 33, see `docs/INCIDENT_RESPONSE.md`). DPO contact: `privacy@bellor.app`.
+**GDPR:** Lawful basis via consent (registration) + legitimate interest. Data minimization enforced. Breach notification within 72 hours (Art. 33, see `docs/security/INCIDENT_RESPONSE.md`). DPO contact: `privacy@bellor.app`.
 
 **CCPA:** Right to know (data export), right to delete (account deletion), right to opt-out (`doNotSell` flag), non-discrimination guaranteed.
 

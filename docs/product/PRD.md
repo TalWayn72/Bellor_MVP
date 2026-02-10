@@ -1,6 +1,6 @@
 # Bellor -- Product Requirements Document
 
-**Version:** 2.0.0 | **Date:** February 8, 2026 | **Status:** Production Ready (v1.0.0-beta) | **Classification:** Confidential
+**Document Version:** 2.0.0 | **Date:** February 10, 2026 | **App Version:** 1.0.0-beta | **Status:** Production Ready | **Classification:** Confidential
 
 ---
 
@@ -19,7 +19,7 @@
 | Temporary-to-permanent chat | Time-limited conversations; mutual interest converts them to permanent |
 | Fully self-hosted | Zero vendor lock-in -- any cloud, on-prem, or free-tier hosting |
 
-**Current state:** 9 of 10 phases complete. 750+ automated tests, zero TypeScript errors, multi-layer security, production-grade Docker/Kubernetes infrastructure.
+**Current state:** 9 of 10 phases complete. 3054+ automated tests, zero TypeScript errors, multi-layer security, production-grade Docker/Kubernetes infrastructure.
 
 ---
 
@@ -119,7 +119,7 @@ SharedSpace (feed), Matches, Notifications, Settings (theme/privacy/notification
 
 ## 5. Technical Architecture
 
-For detailed Mermaid diagrams see [docs/ARCHITECTURE.md](ARCHITECTURE.md) (8 diagrams: system overview, backend/frontend architecture, ER diagram, deployment, CI/CD, WebSocket flow, auth flow).
+For detailed Mermaid diagrams see [docs/architecture/ARCHITECTURE.md](../architecture/ARCHITECTURE.md) (8 diagrams: system overview, backend/frontend architecture, ER diagram, deployment, CI/CD, WebSocket flow, auth flow).
 
 | Layer | Technology | Version | Purpose |
 |-------|-----------|---------|---------|
@@ -281,7 +281,7 @@ PostgreSQL 16, Prisma ORM. **18 entities, 17 enums, 40+ indexes.** Full schema: 
 | | DB transaction safety | Atomic paired writes via `prisma.$transaction()` - responses, likes, chat messages |
 | | Circuit breaker | Fault tolerance for external APIs (Stripe, Firebase, Resend) - auto-open on failures |
 | | Global error handler | Standardized AppError class with code+status, unhandled rejection/exception capture |
-| | Incident response | P1-P4 procedures ([INCIDENT_RESPONSE.md](INCIDENT_RESPONSE.md)) |
+| | Incident response | P1-P4 procedures ([INCIDENT_RESPONSE.md](../security/INCIDENT_RESPONSE.md)) |
 | **Rate Limiting** | Endpoint-specific | Login 5/15min, register 3/hr, chat 30/min, search 20/min, upload 10/min |
 | **Caching** | Redis cache-aside | User profiles (5min), stories (2min), missions (5min), achievements (10min) |
 | **WebSocket** | Heartbeat | Ping 25s / timeout 20s, TTL 300s, stale socket cleanup every 60s |
@@ -305,15 +305,15 @@ PostgreSQL 16, Prisma ORM. **18 entities, 17 enums, 40+ indexes.** Full schema: 
 |--------|---------|-------|
 | Dev | `npm run docker:up && npm run dev:all` | Single |
 | Prod (Docker) | `docker compose -f docker-compose.prod.yml up -d` | Single |
-| Prod (scale) | `docker compose -f docker-compose.production.yml up -d --scale api=5` | 3-20 replicas |
-| All-in-one | `docker compose -f docker-compose.all-in-one.yml up -d` | 275 MB |
+| Prod (scale) | `docker compose -f infrastructure/docker/docker-compose.production.yml up -d --scale api=5` | 3-20 replicas |
+| All-in-one | `docker compose -f infrastructure/docker/docker-compose.all-in-one.yml up -d` | 275 MB |
 | Kubernetes | `kubectl apply -f infrastructure/kubernetes/` | 3-10+ HPA pods |
 
 **CI/CD (GitHub Actions):** `ci.yml` (lint, test, build, security), `test.yml` (unit+E2E), `docker-build.yml` (multi-platform build, Trivy, GHCR push on `v*.*.*`), `cd.yml` (deploy, migrate, verify).
 
 **Container Registry:** `ghcr.io/TalWayn72/bellor_mvp/{api,web}:<version>`
 
-**Monitoring:** Prometheus (:9090), Grafana (:3001), Loki (:3100), Alertmanager (:9093) via `docker-compose.monitoring.yml`.
+**Monitoring:** Prometheus (:9090), Grafana (:3001), Loki (:3100), Alertmanager (:9093) via `infrastructure/docker/docker-compose.monitoring.yml`.
 
 ---
 
@@ -346,7 +346,7 @@ Capacitor wraps the React web app for Android and iOS (single codebase).
 
 | Metric | Current | Target |
 |--------|---------|--------|
-| Automated tests | 530+ | > 600 |
+| Automated tests | 3054+ | > 3500 |
 | TypeScript errors | 0 | 0 |
 | Backend service coverage | 14/14 (100%) | 100% |
 | Security checklist | 71/75 | 75/75 |
@@ -379,25 +379,29 @@ Capacitor wraps the React web app for Android and iOS (single codebase).
 
 | Document | Path |
 |----------|------|
-| Architecture Diagrams (8 Mermaid) | `docs/ARCHITECTURE.md` |
-| Security Plan + Checklist | `docs/SECURITY_PLAN.md`, `docs/SECURITY_CHECKLIST.md` |
-| Incident Response (P1-P4) | `docs/INCIDENT_RESPONSE.md` |
-| Performance Baseline (k6) | `docs/PERFORMANCE_BASELINE.md` |
-| Open Issues (407+ tracked) | `docs/OPEN_ISSUES.md` |
+| Architecture Diagrams (8 Mermaid) | `docs/architecture/ARCHITECTURE.md` |
+| Security Plan + Checklist | `docs/security/SECURITY_PLAN.md`, `docs/security/SECURITY_CHECKLIST.md` |
+| Incident Response (P1-P4) | `docs/security/INCIDENT_RESPONSE.md` |
+| Performance Baseline (k6) | `docs/reports/PERFORMANCE_BASELINE.md` |
+| Open Issues (523+ tracked) | `docs/project/OPEN_ISSUES.md` |
 | Database Schema | `apps/api/prisma/schema.prisma` |
-| Development Guidelines | `GUIDELINES.md` |
-| Mobile Requirements | `docs/MOBILE_APP_REQUIREMENTS.md` |
+| Development Guidelines | `docs/development/GUIDELINES.md` |
+| Mobile Requirements | `docs/product/MOBILE_APP_REQUIREMENTS.md` |
 
 ### Test Coverage
 
 | Category | Count | Framework | Files |
 |----------|-------|-----------|-------|
-| Backend unit | 306 | Vitest | 27 |
-| Frontend unit | 18 | Vitest | 18 |
-| E2E | 224 | Playwright | 11 (4 browsers) |
-| Load tests | 5 | k6 | smoke, stress, spike, WS, DB |
-| **Total** | **530+** | | **56+** |
+| Backend unit + integration | 1371 | Vitest | 37 |
+| Database migration | 97 | Vitest + PostgreSQL | 3 |
+| Frontend unit + accessibility | 1123 | Vitest + axe | 27 |
+| E2E + accessibility | 280 | Playwright + axe-core | 12 |
+| Visual regression | 20+ | Playwright | 1 |
+| Load tests | 7 | k6 | smoke, sustained, stress, spike, WS, DB, memory |
+| Memory leak detection | Automated | Custom AST + Vitest | 5 |
+| Mutation testing | Critical services | Stryker | Auth, Chat, Security |
+| **Total** | **3054+** | | **81+** |
 
 ---
 
-**Document Owner:** Bellor Product Team | **Last Updated:** February 8, 2026 | **Repository:** github.com/TalWayn72/Bellor_MVP
+**Document Owner:** Bellor Product Team | **Last Updated:** February 10, 2026 | **Repository:** github.com/TalWayn72/Bellor_MVP

@@ -338,4 +338,4 @@ keytool -list -v -keystore bellor-upload.keystore -alias bellor
 ---
 
 **מסמך זה חלק מתוכנית הפיתוח של Bellor MVP.**
-**ראה גם:** [MOBILE_APP_REQUIREMENTS.md](MOBILE_APP_REQUIREMENTS.md) | [PRD.md](PRD.md)
+**ראה גם:** [MOBILE_APP_REQUIREMENTS.md](MOBILE_APP_REQUIREMENTS.md) | [PRD.md](../product/PRD.md)

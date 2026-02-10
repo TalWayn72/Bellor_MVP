@@ -408,7 +408,7 @@ logger.warn('SECURITY', 'Rate limit approached', { ip, endpoint, count });
 
 - Run Lighthouse CI on every PR; fail the build if LCP > 4s or CLS > 0.25.
 - Monitor bundle size with `vite-plugin-visualizer`; review any PR that increases it by > 10KB.
-- Use k6 load tests (`docs/PERFORMANCE_BASELINE.md`) before releases to validate backend targets.
+- Use k6 load tests (`docs/reports/PERFORMANCE_BASELINE.md`) before releases to validate backend targets.
 - Lazy-load routes and heavy components with `React.lazy()` and `Suspense`.
 
 ---
@@ -713,6 +713,31 @@ npm run test:api      # Backend only
 npm run test:web      # Frontend only
 npm run test:e2e      # Playwright E2E (Chromium, Firefox, Mobile)
 ```
+
+### 13.5 Testing Requirements by Change Type
+
+**New Backend Service:**
+- Unit tests for every public method (happy path + error cases + edge cases)
+- Integration tests if dependent on DB/Redis/external APIs
+- Minimum 80% coverage
+
+**New API Route:**
+- Unit tests for the associated service
+- Integration tests for the route (201 success, 401 auth, 400 validation, 403 forbidden)
+- Validation tests (Zod schema)
+
+**New WebSocket Event:**
+- Integration tests with socket.io-client
+- Auth on connection, send/receive events, error handling, room broadcast
+
+**New UI Component:**
+- Unit tests with Vitest + React Testing Library (render, interactions, a11y)
+- E2E tests via Playwright for critical flows
+
+**New Security Feature:**
+- Unit + integration tests, security-specific tests (injection, XSS)
+- Rate limiting tests if applicable
+- Add to `security.integration.test.ts`
 
 ---
 

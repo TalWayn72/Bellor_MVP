@@ -93,3 +93,8 @@ nul
 
 # Build logs
 *.tsbuildinfo
+
+# Test result artifacts
+load-test-results.json
+stress-test-results.json
+figma_design_system.json

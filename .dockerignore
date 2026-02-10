@@ -69,7 +69,7 @@ docker-compose.all-in-one.yml
 # Design files
 *.json.bak
 figma_design_system.json
-FIGMA_IMPLEMENTATION_PLAN.md
+docs/archive/FIGMA_IMPLEMENTATION_PLAN.md
 DESIGN_ALIGNMENT_PLAN.md
 
 # Scripts (not needed in runtime)

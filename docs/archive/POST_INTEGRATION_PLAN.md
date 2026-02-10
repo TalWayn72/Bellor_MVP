@@ -192,10 +192,8 @@ curl http://localhost:3000/api/v1/users \
    - Add example responses
    - Update authentication section
 
-4. **QUICK_START.md**
-   - Add testing instructions
-   - Update setup steps
-   - Add troubleshooting
+4. **README.md** (Quick Start section)
+   - Contains setup, demo users, health checks & troubleshooting
 
 ---
 
