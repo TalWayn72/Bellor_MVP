@@ -6,8 +6,13 @@
 // Test data
 export { testUser, newTestUser, STORAGE_STATE_PATH } from './test-data.js';
 
-// Auth fixtures
-export { test, TestFixtures, setupAuthenticatedUser } from './auth.helpers.js';
+// Auth fixtures (mocked + full-stack)
+export {
+  test, TestFixtures, setupAuthenticatedUser,
+  fullstackTest, FULLSTACK_AUTH,
+  loginWithRealCredentials, registerNewUser,
+  getAuthTokens, isAuthenticated,
+} from './auth.helpers.js';
 
 // API mocking
 export {
@@ -22,8 +27,13 @@ export {
   clearLocalStorage, getLocalStorageItem, setLocalStorageItem,
 } from './navigation.helpers.js';
 
-// Forms
-export { fillLoginForm, submitForm, fillForm, clickButton } from './form.helpers.js';
+// Forms (basic + full-stack interaction helpers)
+export {
+  fillLoginForm, submitForm, fillForm, clickButton,
+  moveSlider, toggleSwitch, selectDropdownOption, selectDate,
+  SPECIAL_INPUTS, fillWithSpecialInput,
+  getAllClickableElements, getAllFormInputs,
+} from './form.helpers.js';
 
 // UI
 export {
@@ -31,6 +41,27 @@ export {
   closeDialog, scrollToElement, checkAccessibility, isMobileView,
   takeDebugScreenshot,
 } from './ui.helpers.js';
+
+// Database helpers (full-stack)
+export {
+  SEEDED_USERS, getSeededUserCredentials,
+  seedTestDatabase, isApiHealthy,
+  createTestUserViaAPI, loginViaAPI, cleanupTestUsers,
+  generateTestEmail,
+} from './db.helpers.js';
+
+// File upload helpers
+export {
+  getTestFilePath, TEST_FILES,
+  uploadTestFile, uploadViaFileChooser, uploadViaDragDrop,
+} from './file-upload.helpers.js';
+
+// WebSocket helpers
+export {
+  waitForWebSocketConnection, sendChatMessage,
+  waitForMessage, waitForTypingIndicator,
+  openChat, setupTwoUserChat,
+} from './websocket.helpers.js';
 
 // Factories
 export {

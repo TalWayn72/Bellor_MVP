@@ -1,17 +1,18 @@
 /**
  * Playwright E2E Test Configuration
  *
- * @see PRD.md Section 14 - Development Guidelines
- * @see PRD.md Section 10.1 Phase 6 - Testing
+ * Two-layer testing strategy:
+ * 1. Mocked tests (e2e/*.spec.ts) - Fast UI smoke tests with API mocking
+ * 2. Full-stack tests (e2e/full-stack/*.spec.ts) - Real backend integration
  *
- * Covers critical user flows:
- * - User registration and login
- * - Mission responses
- * - Chat functionality
- * - Profile management
+ * @see docs/testing/E2E_FULLSTACK.md
  */
 
 import { defineConfig, devices } from '@playwright/test';
+import { resolve } from 'path';
+
+const isCI = !!process.env.CI;
+const isFullStack = !!process.env.FULLSTACK;
 
 export default defineConfig({
   // Look for test files in the e2e directory
@@ -21,13 +22,13 @@ export default defineConfig({
   fullyParallel: true,
 
   // Fail the build on CI if you accidentally left test.only in the source code
-  forbidOnly: !!process.env.CI,
+  forbidOnly: isCI,
 
   // Retry on CI only
-  retries: process.env.CI ? 2 : 0,
+  retries: isCI ? 2 : 0,
 
   // Opt out of parallel tests on CI
-  workers: process.env.CI ? 1 : undefined,
+  workers: isCI ? 1 : undefined,
 
   // Reporter to use
   reporter: [
@@ -59,47 +60,95 @@ export default defineConfig({
 
   // Configure projects for major browsers
   projects: [
-    // Desktop Chrome
+    // === Mocked E2E Tests (fast, no backend needed) ===
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      testIgnore: /full-stack/,
     },
-
-    // Mobile Chrome (Android)
     {
       name: 'Mobile Chrome',
       use: { ...devices['Pixel 5'] },
+      testIgnore: /full-stack/,
     },
-
-    // Mobile Safari (iOS)
     {
       name: 'Mobile Safari',
       use: { ...devices['iPhone 12'] },
+      testIgnore: /full-stack/,
     },
-
-    // Desktop Firefox (optional, for CI)
-    ...(process.env.CI
+    ...(isCI
       ? [
           {
             name: 'firefox',
             use: { ...devices['Desktop Firefox'] },
+            testIgnore: /full-stack/,
           },
         ]
       : []),
+
+    // === Full-Stack E2E Tests (real backend required) ===
+    {
+      name: 'fullstack-setup',
+      testMatch: /global-setup\.ts/,
+      teardown: 'fullstack-teardown',
+    },
+    {
+      name: 'fullstack-teardown',
+      testMatch: /global-teardown\.ts/,
+    },
+    {
+      name: 'fullstack-chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: resolve(__dirname, 'playwright/.auth/user.json'),
+      },
+      testMatch: /full-stack\/.*\.spec\.ts/,
+      dependencies: isFullStack ? ['fullstack-setup'] : [],
+    },
+    {
+      name: 'fullstack-mobile',
+      use: {
+        ...devices['Pixel 5'],
+        storageState: resolve(__dirname, 'playwright/.auth/user.json'),
+      },
+      testMatch: /full-stack\/.*\.spec\.ts/,
+      dependencies: isFullStack ? ['fullstack-setup'] : [],
+    },
   ],
 
   // Run your local dev server before starting the tests
-  webServer: process.env.CI
+  webServer: isCI
     ? undefined
-    : {
-        command: 'npm run dev',
-        url: 'http://localhost:5173',
-        reuseExistingServer: !process.env.CI,
-        timeout: 120000,
-      },
+    : [
+        {
+          command: 'npm run dev',
+          url: 'http://localhost:5173',
+          reuseExistingServer: true,
+          timeout: 120000,
+        },
+        // For full-stack tests, also start the API
+        ...(isFullStack
+          ? [
+              {
+                command: 'npm run dev:api',
+                url: 'http://localhost:3000/health',
+                reuseExistingServer: true,
+                timeout: 120000,
+              },
+            ]
+          : []),
+      ],
 
   // Global timeout for each test
   timeout: 60000,
+
+  // Global setup/teardown for full-stack tests
+  ...(isFullStack
+    ? {
+        globalSetup: resolve(__dirname, 'e2e/global-setup.ts'),
+        globalTeardown: resolve(__dirname, 'e2e/global-teardown.ts'),
+      }
+    : {}),
 
   // Expect timeout
   expect: {
