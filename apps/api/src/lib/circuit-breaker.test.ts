@@ -26,7 +26,7 @@ const createBreaker = (overrides: Partial<CircuitBreakerOptions> = {}): CircuitB
   });
 };
 
-describe('CircuitBreaker', () => {
+describe('[P2][infra] CircuitBreaker', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.restoreAllMocks();

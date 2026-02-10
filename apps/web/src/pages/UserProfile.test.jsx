@@ -51,7 +51,7 @@ const createWrapper = () => {
   );
 };
 
-describe('UserProfile', () => {
+describe('[P2][profile] UserProfile', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

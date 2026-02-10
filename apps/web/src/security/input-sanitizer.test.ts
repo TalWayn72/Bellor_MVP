@@ -13,7 +13,7 @@ import {
   type InputSecurityConfig,
 } from './input-sanitizer';
 
-describe('input-sanitizer', () => {
+describe('[P0][safety] input-sanitizer', () => {
   describe('stripHtmlTags', () => {
     it('should strip simple HTML tags', () => {
       expect(stripHtmlTags('<b>bold</b>')).toBe('bold');

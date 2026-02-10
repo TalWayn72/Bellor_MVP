@@ -46,7 +46,7 @@ const createMockStory = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-describe('StoriesService', () => {
+describe('[P1][content] StoriesService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

@@ -24,7 +24,7 @@ const createWrapper = () => {
   );
 };
 
-describe('HelpSupport', () => {
+describe('[P3][profile] HelpSupport', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

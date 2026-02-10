@@ -6,7 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import { AppError } from './app-error.js';
 
-describe('AppError', () => {
+describe('[P2][infra] AppError', () => {
   describe('constructor', () => {
     it('should set all properties correctly', () => {
       const error = new AppError(500, 'INTERNAL_ERROR', 'Something went wrong');

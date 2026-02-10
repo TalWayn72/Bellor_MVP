@@ -7,7 +7,7 @@
 
 import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
 import { FastifyInstance } from 'fastify';
-import { buildTestApp, authHeader, generateTestToken } from '../../build-test-app.js';
+import { buildTestApp, authHeader } from '../../build-test-app.js';
 import { prisma } from '../../../lib/prisma.js';
 import { createMockUser } from '../../setup.js';
 
@@ -28,7 +28,7 @@ beforeEach(() => {
 // ============================================
 // REGISTRATION
 // ============================================
-describe('POST /api/v1/auth/register - User Registration', () => {
+describe('[P0][auth] POST /api/v1/auth/register - User Registration', () => {
   it('should register new user successfully', async () => {
     const mockUser = createMockUser({ email: 'newuser@example.com' });
     vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
@@ -47,7 +47,7 @@ describe('POST /api/v1/auth/register - User Registration', () => {
       },
     });
 
-    expect([201, 409, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(201);
   });
 
   it('should reject registration with weak password', async () => {
@@ -129,14 +129,14 @@ describe('POST /api/v1/auth/register - User Registration', () => {
       },
     });
 
-    expect([201, 400, 409, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 });
 
 // ============================================
 // LOGIN
 // ============================================
-describe('POST /api/v1/auth/login - User Login', () => {
+describe('[P0][auth] POST /api/v1/auth/login - User Login', () => {
   it('should login with valid credentials', async () => {
     const mockUser = createMockUser();
     vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser);
@@ -150,7 +150,8 @@ describe('POST /api/v1/auth/login - User Login', () => {
       },
     });
 
-    expect([200, 401, 500]).toContain(response.statusCode);
+    // TODO: Fix mock setup for exact assertion - requires mocking AuthService.login or using bcrypt-hashed passwordHash
+    expect(response.statusCode).toBeLessThan(500);
   });
 
   it('should reject login with invalid email', async () => {
@@ -165,7 +166,7 @@ describe('POST /api/v1/auth/login - User Login', () => {
       },
     });
 
-    expect([401, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(401);
   });
 
   it('should reject login with invalid password', async () => {
@@ -181,7 +182,7 @@ describe('POST /api/v1/auth/login - User Login', () => {
       },
     });
 
-    expect([401, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(401);
   });
 
   it('should validate input format', async () => {
@@ -213,7 +214,7 @@ describe('POST /api/v1/auth/login - User Login', () => {
 // ============================================
 // REFRESH TOKEN
 // ============================================
-describe('POST /api/v1/auth/refresh - Refresh Token', () => {
+describe('[P0][auth] POST /api/v1/auth/refresh - Refresh Token', () => {
   it('should refresh token with valid refresh token', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -223,7 +224,7 @@ describe('POST /api/v1/auth/refresh - Refresh Token', () => {
       },
     });
 
-    expect([200, 401, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 
   it('should reject refresh with invalid token', async () => {
@@ -252,7 +253,7 @@ describe('POST /api/v1/auth/refresh - Refresh Token', () => {
 // ============================================
 // LOGOUT
 // ============================================
-describe('POST /api/v1/auth/logout - Logout', () => {
+describe('[P0][auth] POST /api/v1/auth/logout - Logout', () => {
   it('should logout authenticated user', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -260,7 +261,7 @@ describe('POST /api/v1/auth/logout - Logout', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([200, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 
   it('should reject logout without authentication', async () => {
@@ -276,7 +277,7 @@ describe('POST /api/v1/auth/logout - Logout', () => {
 // ============================================
 // GET ME
 // ============================================
-describe('GET /api/v1/auth/me - Get Current User', () => {
+describe('[P0][auth] GET /api/v1/auth/me - Get Current User', () => {
   it('should get current user profile', async () => {
     const mockUser = createMockUser();
     vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser);
@@ -287,12 +288,16 @@ describe('GET /api/v1/auth/me - Get Current User', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([200, 404, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 
   it('should not expose password hash', async () => {
+    // Mock user without passwordHash to simulate Prisma select behavior
     const mockUser = createMockUser();
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser);
+    const userWithoutHash = Object.fromEntries(
+      Object.entries(mockUser).filter(([key]) => key !== 'passwordHash')
+    );
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(userWithoutHash as ReturnType<typeof createMockUser>);
 
     const response = await app.inject({
       method: 'GET',
@@ -338,7 +343,7 @@ describe('GET /api/v1/auth/me - Get Current User', () => {
 // ============================================
 // CHANGE PASSWORD
 // ============================================
-describe('POST /api/v1/auth/change-password - Change Password', () => {
+describe('[P0][auth] POST /api/v1/auth/change-password - Change Password', () => {
   it('should change password with valid credentials', async () => {
     const mockUser = createMockUser();
     vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser);
@@ -354,7 +359,8 @@ describe('POST /api/v1/auth/change-password - Change Password', () => {
       },
     });
 
-    expect([200, 400, 500]).toContain(response.statusCode);
+    // TODO: Fix mock setup for exact assertion - requires mocking AuthService.changePassword or using bcrypt-hashed passwordHash
+    expect(response.statusCode).toBeLessThan(500);
   });
 
   it('should reject change password with weak new password', async () => {
@@ -398,14 +404,14 @@ describe('POST /api/v1/auth/change-password - Change Password', () => {
       },
     });
 
-    expect([400, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(400);
   });
 });
 
 // ============================================
 // FORGOT PASSWORD
 // ============================================
-describe('POST /api/v1/auth/forgot-password - Forgot Password', () => {
+describe('[P0][auth] POST /api/v1/auth/forgot-password - Forgot Password', () => {
   it('should send reset email for existing user', async () => {
     const mockUser = createMockUser();
     vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser);
@@ -418,7 +424,7 @@ describe('POST /api/v1/auth/forgot-password - Forgot Password', () => {
       },
     });
 
-    expect([200, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 
   it('should not reveal if email exists (security)', async () => {
@@ -451,7 +457,7 @@ describe('POST /api/v1/auth/forgot-password - Forgot Password', () => {
 // ============================================
 // RESET PASSWORD
 // ============================================
-describe('POST /api/v1/auth/reset-password - Reset Password', () => {
+describe('[P0][auth] POST /api/v1/auth/reset-password - Reset Password', () => {
   it('should reset password with valid token', async () => {
     const mockUser = createMockUser();
     vi.mocked(prisma.user.findFirst).mockResolvedValue(mockUser);
@@ -466,7 +472,8 @@ describe('POST /api/v1/auth/reset-password - Reset Password', () => {
       },
     });
 
-    expect([200, 400, 500]).toContain(response.statusCode);
+    // TODO: Fix mock setup for exact assertion - requires mocking AuthService.resetPassword or valid reset token flow
+    expect(response.statusCode).toBeLessThan(500);
   });
 
   it('should reject reset with invalid token', async () => {
@@ -481,7 +488,7 @@ describe('POST /api/v1/auth/reset-password - Reset Password', () => {
       },
     });
 
-    expect([400, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(400);
   });
 
   it('should reject reset with weak password', async () => {

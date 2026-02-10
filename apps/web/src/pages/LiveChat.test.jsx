@@ -36,7 +36,7 @@ const createWrapper = () => {
   );
 };
 
-describe('LiveChat', () => {
+describe('[P1][chat] LiveChat', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

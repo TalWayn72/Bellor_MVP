@@ -5,6 +5,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { Client } from 'pg';
 import {
+  canConnectToDatabase,
   createTestDatabase,
   dropTestDatabase,
   createClient,
@@ -22,7 +23,9 @@ import {
   getForeignKeys
 } from './migration-helpers.js';
 
-describe('Migration Integrity Tests', () => {
+const dbAvailable = await canConnectToDatabase();
+
+describe.skipIf(!dbAvailable)('[P2][infra] Migration Integrity Tests', () => {
   let dbName: string;
   let client: Client;
 
@@ -39,8 +42,8 @@ describe('Migration Integrity Tests', () => {
   });
 
   afterAll(async () => {
-    await client.end();
-    await dropTestDatabase(dbName);
+    if (client) await client.end();
+    if (dbName) await dropTestDatabase(dbName);
   });
 
   describe('Migration Application', () => {

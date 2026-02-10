@@ -84,7 +84,7 @@ async function createTestApp(): Promise<FastifyInstance> {
 // Tests
 // ============================================
 
-describe('registerSecurityMiddleware', () => {
+describe('[P0][safety] registerSecurityMiddleware', () => {
   let app: FastifyInstance;
 
   beforeEach(async () => {
@@ -398,7 +398,7 @@ describe('registerSecurityMiddleware', () => {
       // Simulate multipart request by setting content-type header
       // Fastify inject does not support actual multipart uploads,
       // but the hook checks the content-type header
-      const response = await app.inject({
+      await app.inject({
         method: 'POST',
         url: '/test',
         headers: { 'content-type': 'multipart/form-data; boundary=----FormBoundary' },
@@ -697,7 +697,7 @@ describe('registerSecurityMiddleware', () => {
 // (mocks configured to behave like real sanitizers)
 // ============================================
 
-describe('registerSecurityMiddleware (realistic sanitization)', () => {
+describe('[P0][safety] registerSecurityMiddleware (realistic sanitization)', () => {
   let app: FastifyInstance;
 
   beforeEach(async () => {

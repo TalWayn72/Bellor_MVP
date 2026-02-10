@@ -8,10 +8,25 @@ import { getOnlineUsers, setUserOnline } from './presence-tracker.js';
 import { redis } from '../../lib/redis.js';
 import { prisma } from '../../lib/prisma.js';
 
-vi.mock('../../lib/redis.js');
-vi.mock('../../lib/prisma.js');
+vi.mock('../../lib/redis.js', () => ({
+  redis: {
+    keys: vi.fn().mockResolvedValue([]),
+    setex: vi.fn(),
+    del: vi.fn(),
+    get: vi.fn(),
+    expire: vi.fn(),
+  },
+}));
 
-describe('Presence Tracker - Memory Leak Prevention', () => {
+vi.mock('../../lib/prisma.js', () => ({
+  prisma: {
+    user: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+  },
+}));
+
+describe('[P1][chat] Presence Tracker - Memory Leak Prevention', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

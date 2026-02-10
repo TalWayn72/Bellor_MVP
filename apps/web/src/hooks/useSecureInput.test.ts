@@ -23,7 +23,7 @@ vi.mock('../security/paste-guard', async () => {
   return actual;
 });
 
-describe('useSecureInput', () => {
+describe('[P0][safety] useSecureInput', () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });

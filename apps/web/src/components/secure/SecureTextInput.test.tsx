@@ -8,7 +8,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { SecureTextInput } from './SecureTextInput';
 
-describe('SecureTextInput', () => {
+describe('[P0][safety] SecureTextInput', () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });

@@ -8,7 +8,7 @@ import { io } from 'socket.io-client';
 
 vi.mock('socket.io-client');
 
-describe('Socket Service - Memory Leak Prevention', () => {
+describe('[P1][chat] Socket Service - Memory Leak Prevention', () => {
   let mockSocket;
   let SocketService;
 

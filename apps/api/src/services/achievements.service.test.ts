@@ -50,7 +50,7 @@ const createMockUserAchievement = (overrides: Record<string, unknown> = {}) => (
   ...overrides,
 });
 
-describe('AchievementsService', () => {
+describe('[P2][social] AchievementsService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

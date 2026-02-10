@@ -12,7 +12,7 @@ import { createMockUser } from './users-test-helpers.js';
 import { UsersService } from './users.service.js';
 import { prisma } from '../lib/prisma.js';
 
-describe('UsersService - searchUsers', () => {
+describe('[P2][profile] UsersService - searchUsers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -24,7 +24,7 @@ describe('UsersService - searchUsers', () => {
   it('should search users by first name', async () => {
     const mockUsers = [createMockUser({ firstName: 'John' })];
 
-    vi.mocked(prisma.user.findMany).mockResolvedValue(mockUsers as any);
+    vi.mocked(prisma.user.findMany).mockResolvedValue(mockUsers as unknown);
     vi.mocked(prisma.user.count).mockResolvedValue(1);
 
     const result = await UsersService.searchUsers({ query: 'John' });
@@ -36,7 +36,7 @@ describe('UsersService - searchUsers', () => {
   it('should search users by last name', async () => {
     const mockUsers = [createMockUser({ lastName: 'Smith' })];
 
-    vi.mocked(prisma.user.findMany).mockResolvedValue(mockUsers as any);
+    vi.mocked(prisma.user.findMany).mockResolvedValue(mockUsers as unknown);
     vi.mocked(prisma.user.count).mockResolvedValue(1);
 
     const result = await UsersService.searchUsers({ query: 'Smith' });
@@ -47,7 +47,7 @@ describe('UsersService - searchUsers', () => {
   it('should search users by email', async () => {
     const mockUsers = [createMockUser({ email: 'john@example.com' })];
 
-    vi.mocked(prisma.user.findMany).mockResolvedValue(mockUsers as any);
+    vi.mocked(prisma.user.findMany).mockResolvedValue(mockUsers as unknown);
     vi.mocked(prisma.user.count).mockResolvedValue(1);
 
     const result = await UsersService.searchUsers({ query: 'john@example' });
@@ -128,7 +128,7 @@ describe('UsersService - searchUsers', () => {
   });
 
   it('should calculate hasMore correctly', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([createMockUser()] as any);
+    vi.mocked(prisma.user.findMany).mockResolvedValue([createMockUser()] as unknown);
     vi.mocked(prisma.user.count).mockResolvedValue(50);
 
     const result = await UsersService.searchUsers({ query: 'test', limit: 10, offset: 0 });
@@ -137,7 +137,7 @@ describe('UsersService - searchUsers', () => {
   });
 });
 
-describe('UsersService - deactivateUser', () => {
+describe('[P2][profile] UsersService - deactivateUser', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -149,8 +149,8 @@ describe('UsersService - deactivateUser', () => {
   it('should deactivate user successfully', async () => {
     const mockUser = createMockUser({ isBlocked: false });
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, isBlocked: true } as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, isBlocked: true } as unknown);
 
     const result = await UsersService.deactivateUser('test-user-id');
 
@@ -160,8 +160,8 @@ describe('UsersService - deactivateUser', () => {
   it('should set isBlocked to true', async () => {
     const mockUser = createMockUser();
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as unknown);
 
     await UsersService.deactivateUser('test-user-id');
 
@@ -182,7 +182,7 @@ describe('UsersService - deactivateUser', () => {
 
     try {
       await UsersService.deactivateUser('non-existent-id');
-    } catch (e) {
+    } catch {
       // Expected
     }
 
@@ -190,7 +190,7 @@ describe('UsersService - deactivateUser', () => {
   });
 });
 
-describe('UsersService - reactivateUser', () => {
+describe('[P2][profile] UsersService - reactivateUser', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -202,8 +202,8 @@ describe('UsersService - reactivateUser', () => {
   it('should reactivate user successfully', async () => {
     const mockUser = createMockUser({ isBlocked: true });
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, isBlocked: false } as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, isBlocked: false } as unknown);
 
     const result = await UsersService.reactivateUser('test-user-id');
 
@@ -213,8 +213,8 @@ describe('UsersService - reactivateUser', () => {
   it('should set isBlocked to false', async () => {
     const mockUser = createMockUser({ isBlocked: true });
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as unknown);
 
     await UsersService.reactivateUser('test-user-id');
 
@@ -235,7 +235,7 @@ describe('UsersService - reactivateUser', () => {
 
     try {
       await UsersService.reactivateUser('non-existent-id');
-    } catch (e) {
+    } catch {
       // Expected
     }
 

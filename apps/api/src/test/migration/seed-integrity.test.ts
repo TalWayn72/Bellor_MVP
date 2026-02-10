@@ -5,6 +5,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { Client } from 'pg';
 import {
+  canConnectToDatabase,
   createTestDatabase,
   dropTestDatabase,
   createClient,
@@ -13,7 +14,9 @@ import {
   getTableRowCount
 } from './migration-helpers.js';
 
-describe('Seed Integrity Tests', () => {
+const dbAvailable = await canConnectToDatabase();
+
+describe.skipIf(!dbAvailable)('[P2][infra] Seed Integrity Tests', () => {
   let dbName: string;
   let client: Client;
 
@@ -32,8 +35,8 @@ describe('Seed Integrity Tests', () => {
   });
 
   afterAll(async () => {
-    await client.end();
-    await dropTestDatabase(dbName);
+    if (client) await client.end();
+    if (dbName) await dropTestDatabase(dbName);
   });
 
   describe('Seed Execution', () => {

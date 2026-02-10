@@ -79,7 +79,7 @@ const mockAuthResponse = {
 // ============================================
 // REGISTER - REQUEST/RESPONSE VALIDATION
 // ============================================
-describe('register() - Request/Response Validation', () => {
+describe('[P0][auth] register() - Request/Response Validation', () => {
   it('validates request data against RegisterRequestSchema', async () => {
     const registerData = {
       email: 'newuser@example.com',

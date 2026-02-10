@@ -44,7 +44,7 @@ const createWrapper = () => {
   );
 };
 
-describe('Premium', () => {
+describe('[P0][payments] Premium', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

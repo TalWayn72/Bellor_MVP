@@ -35,7 +35,7 @@ const createWrapper = () => {
   );
 };
 
-describe('DateIdeas', () => {
+describe('[P3][social] DateIdeas', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

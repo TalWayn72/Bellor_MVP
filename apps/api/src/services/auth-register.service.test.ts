@@ -16,7 +16,7 @@ import { prisma } from '../lib/prisma.js';
 import { redis } from '../lib/redis.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt.util.js';
 
-describe('AuthService - register', () => {
+describe('[P0][auth] AuthService - register', () => {
   const validInput = {
     email: 'test@example.com',
     password: 'Test123456!',
@@ -47,7 +47,7 @@ describe('AuthService - register', () => {
     };
 
     vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-    vi.mocked(prisma.user.create).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.create).mockResolvedValue(mockUser as unknown);
 
     const result = await AuthService.register(validInput);
 
@@ -65,7 +65,7 @@ describe('AuthService - register', () => {
       id: 'test-id',
       email: validInput.email,
       preferredLanguage: 'ENGLISH',
-    } as any);
+    } as unknown);
 
     await AuthService.register(validInput);
 
@@ -80,7 +80,7 @@ describe('AuthService - register', () => {
       email: validInput.email,
     };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(existingUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(existingUser as unknown);
 
     await expect(AuthService.register(validInput)).rejects.toThrow(
       'User with this email already exists'
@@ -99,7 +99,7 @@ describe('AuthService - register', () => {
         firstName: data.firstName,
         lastName: data.lastName,
         preferredLanguage: 'ENGLISH',
-      } as any;
+      } as unknown;
     });
 
     await AuthService.register(validInput);
@@ -115,7 +115,7 @@ describe('AuthService - register', () => {
     };
 
     vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-    vi.mocked(prisma.user.create).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.create).mockResolvedValue(mockUser as unknown);
 
     await AuthService.register(validInput);
 
@@ -136,7 +136,7 @@ describe('AuthService - register', () => {
         id: 'test-user-id',
         email: data.email,
         preferredLanguage: data.preferredLanguage,
-      } as any;
+      } as unknown;
     });
 
     await AuthService.register(validInput);
@@ -152,7 +152,7 @@ describe('AuthService - register', () => {
         id: 'test-user-id',
         email: data.email,
         preferredLanguage: data.preferredLanguage,
-      } as any;
+      } as unknown;
     });
 
     await AuthService.register(inputWithLanguage);
@@ -162,7 +162,7 @@ describe('AuthService - register', () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
     vi.mocked(prisma.user.create).mockImplementation(async ({ data }) => {
       expect(data.isBlocked).toBe(false);
-      return { id: 'test-user-id', email: data.email, preferredLanguage: 'ENGLISH' } as any;
+      return { id: 'test-user-id', email: data.email, preferredLanguage: 'ENGLISH' } as unknown;
     });
 
     await AuthService.register(validInput);
@@ -172,7 +172,7 @@ describe('AuthService - register', () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
     vi.mocked(prisma.user.create).mockImplementation(async ({ data }) => {
       expect(data.isVerified).toBe(false);
-      return { id: 'test-user-id', email: data.email, preferredLanguage: 'ENGLISH' } as any;
+      return { id: 'test-user-id', email: data.email, preferredLanguage: 'ENGLISH' } as unknown;
     });
 
     await AuthService.register(validInput);

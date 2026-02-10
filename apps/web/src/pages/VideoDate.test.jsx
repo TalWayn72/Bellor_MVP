@@ -48,7 +48,7 @@ const createWrapper = () => {
   );
 };
 
-describe('VideoDate', () => {
+describe('[P3][social] VideoDate', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {
@@ -72,5 +72,40 @@ describe('VideoDate', () => {
     useCurrentUser.mockReturnValue({ currentUser: null, isLoading: true });
     render(<VideoDate />, { wrapper: createWrapper() });
     expect(screen.getByText('Loading...')).toBeInTheDocument();
+  });
+
+  describe('media stream cleanup on unmount', () => {
+    it('should stop media tracks on unmount', async () => {
+      const mockStop = vi.fn();
+      const mockStream = { getTracks: () => [{ stop: mockStop }, { stop: mockStop }] };
+      navigator.mediaDevices.getUserMedia.mockResolvedValue(mockStream);
+
+      const { unmount } = render(<VideoDate />, { wrapper: createWrapper() });
+
+      // Wait for getUserMedia to resolve
+      await new Promise(r => setTimeout(r, 0));
+
+      unmount();
+
+      expect(mockStop).toHaveBeenCalledTimes(2);
+    });
+
+    it('should stop orphaned stream when unmount happens during getUserMedia', async () => {
+      const mockStop = vi.fn();
+      let resolveGetUserMedia;
+      const mediaPromise = new Promise(resolve => { resolveGetUserMedia = resolve; });
+      navigator.mediaDevices.getUserMedia.mockReturnValue(mediaPromise);
+
+      const { unmount } = render(<VideoDate />, { wrapper: createWrapper() });
+
+      // Unmount BEFORE getUserMedia resolves
+      unmount();
+
+      // Now resolve - the stream should still be stopped (isMounted guard)
+      resolveGetUserMedia({ getTracks: () => [{ stop: mockStop }] });
+      await new Promise(r => setTimeout(r, 0));
+
+      expect(mockStop).toHaveBeenCalledTimes(1);
+    });
   });
 });

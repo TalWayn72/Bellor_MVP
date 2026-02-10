@@ -43,7 +43,7 @@ const createWrapper = () => {
   );
 };
 
-describe('FollowingList', () => {
+describe('[P1][social] FollowingList', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

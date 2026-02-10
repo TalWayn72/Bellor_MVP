@@ -25,7 +25,7 @@ const wrapper = ({ children }) => (
   </BrowserRouter>
 );
 
-describe('DrawerMenu', () => {
+describe('[P2][infra] DrawerMenu', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders nothing when isOpen is false', () => {

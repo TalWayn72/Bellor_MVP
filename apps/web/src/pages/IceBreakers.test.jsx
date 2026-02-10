@@ -34,7 +34,7 @@ const createWrapper = () => {
   );
 };
 
-describe('IceBreakers', () => {
+describe('[P3][social] IceBreakers', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

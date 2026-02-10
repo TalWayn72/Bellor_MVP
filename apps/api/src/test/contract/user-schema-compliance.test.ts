@@ -10,9 +10,9 @@ import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vites
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
+import type { User } from '@prisma/client';
 import {
   UserResponseSchema,
-  ListUsersQuery,
   UpdateProfileSchema,
   SearchUsersQuery,
 } from '@bellor/shared/schemas';
@@ -72,9 +72,9 @@ const mockUser = {
 // ============================================
 // GET USER BY ID - SCHEMA COMPLIANCE
 // ============================================
-describe('GET /api/v1/users/:id - Schema Compliance', () => {
+describe('[P2][profile] GET /api/v1/users/:id - Schema Compliance', () => {
   it('returns data matching UserResponseSchema', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
 
     const response = await app.inject({
       method: 'GET',
@@ -90,7 +90,6 @@ describe('GET /api/v1/users/:id - Schema Compliance', () => {
     const result = UserResponseSchema.safeParse(body.data);
 
     if (!result.success) {
-      // eslint-disable-next-line no-console
       console.error('Schema validation errors:', result.error.errors);
     }
 
@@ -104,7 +103,7 @@ describe('GET /api/v1/users/:id - Schema Compliance', () => {
       gender: 'INVALID_GENDER', // Invalid enum
     };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(invalidUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(invalidUser as unknown as User);
 
     const response = await app.inject({
       method: 'GET',
@@ -125,9 +124,9 @@ describe('GET /api/v1/users/:id - Schema Compliance', () => {
 // ============================================
 // LIST USERS - SCHEMA COMPLIANCE
 // ============================================
-describe('GET /api/v1/users - Schema Compliance', () => {
+describe('[P2][profile] GET /api/v1/users - Schema Compliance', () => {
   it('returns paginated list matching UserResponseSchema', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([mockUser] as any);
+    vi.mocked(prisma.user.findMany).mockResolvedValue([mockUser] as unknown as User[]);
     vi.mocked(prisma.user.count).mockResolvedValue(1);
 
     const response = await app.inject({
@@ -147,7 +146,6 @@ describe('GET /api/v1/users - Schema Compliance', () => {
       const result = UserResponseSchema.safeParse(user);
 
       if (!result.success) {
-        // eslint-disable-next-line no-console
         console.error('User schema validation errors:', result.error.errors);
       }
 
@@ -164,13 +162,13 @@ describe('GET /api/v1/users - Schema Compliance', () => {
 // ============================================
 // UPDATE PROFILE - REQUEST SCHEMA COMPLIANCE
 // ============================================
-describe('PATCH /api/v1/users/:id - Request Schema Compliance', () => {
+describe('[P2][profile] PATCH /api/v1/users/:id - Request Schema Compliance', () => {
   it('accepts valid UpdateProfileSchema data', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
     vi.mocked(prisma.user.update).mockResolvedValue({
       ...mockUser,
       firstName: 'Updated',
-    } as any);
+    } as unknown as User);
 
     const validUpdate = {
       firstName: 'Updated',
@@ -214,9 +212,9 @@ describe('PATCH /api/v1/users/:id - Request Schema Compliance', () => {
 // ============================================
 // SEARCH USERS - QUERY SCHEMA COMPLIANCE
 // ============================================
-describe('GET /api/v1/users/search - Query Schema Compliance', () => {
+describe('[P2][profile] GET /api/v1/users/search - Query Schema Compliance', () => {
   it('accepts valid SearchUsersQuery params', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([mockUser] as any);
+    vi.mocked(prisma.user.findMany).mockResolvedValue([mockUser] as unknown as User[]);
     vi.mocked(prisma.user.count).mockResolvedValue(1);
 
     const validQuery: SearchUsersQuery = {
@@ -245,7 +243,7 @@ describe('GET /api/v1/users/search - Query Schema Compliance', () => {
 // ============================================
 // USER STATS - RESPONSE STRUCTURE
 // ============================================
-describe('GET /api/v1/users/:id/stats - Response Structure', () => {
+describe('[P2][profile] GET /api/v1/users/:id/stats - Response Structure', () => {
   it('returns consistent stats structure', async () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       id: 'test-user-id',
@@ -257,7 +255,7 @@ describe('GET /api/v1/users/:id/stats - Response Structure', () => {
         chatsAsUser1: 3,
         chatsAsUser2: 2,
       },
-    } as any);
+    } as unknown as User);
 
     const response = await app.inject({
       method: 'GET',
@@ -279,7 +277,7 @@ describe('GET /api/v1/users/:id/stats - Response Structure', () => {
 // ============================================
 // GDPR EXPORT - DATA STRUCTURE
 // ============================================
-describe('GET /api/v1/users/:id/export - Data Structure', () => {
+describe('[P2][profile] GET /api/v1/users/:id/export - Data Structure', () => {
   it('returns consistent GDPR export structure', async () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       ...mockUser,
@@ -288,7 +286,7 @@ describe('GET /api/v1/users/:id/export - Data Structure', () => {
       responses: [],
       stories: [],
       achievements: [],
-    } as any);
+    } as unknown as User);
 
     const response = await app.inject({
       method: 'GET',
@@ -307,7 +305,10 @@ describe('GET /api/v1/users/:id/export - Data Structure', () => {
     // Validate structure of nested objects
     expect(body.data.personalInformation).toHaveProperty('id');
     expect(body.data.personalInformation).toHaveProperty('email');
-    expect(body.data.preferences).toHaveProperty('language');
+    // The GDPR export has preferredLanguage in personalInformation, not language in preferences
+    expect(body.data.personalInformation).toHaveProperty('preferredLanguage');
+    // Preferences contain lookingFor, ageRangeMin, ageRangeMax, maxDistance
+    expect(body.data.preferences).toHaveProperty('lookingFor');
     expect(body.data.content).toHaveProperty('messages');
     expect(body.data.content).toHaveProperty('responses');
     expect(body.data.content).toHaveProperty('stories');

@@ -20,7 +20,7 @@ const createWrapper = () => {
   );
 };
 
-describe('Splash', () => {
+describe('[P0][auth] Splash', () => {
   beforeEach(() => { vi.clearAllMocks(); vi.useFakeTimers(); });
 
   afterEach(() => { vi.useRealTimers(); });

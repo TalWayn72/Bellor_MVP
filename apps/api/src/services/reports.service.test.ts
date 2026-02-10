@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ReportsService } from './reports.service.js';
 import { prisma } from '../lib/prisma.js';
-import { ReportReason, ReportStatus, ContentType } from '@prisma/client';
+import { ReportReason, ReportStatus } from '@prisma/client';
 
 // Type the mocked prisma
 const mockPrisma = prisma as unknown as {
@@ -54,7 +54,7 @@ const createMockReport = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-describe('ReportsService', () => {
+describe('[P0][safety] ReportsService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

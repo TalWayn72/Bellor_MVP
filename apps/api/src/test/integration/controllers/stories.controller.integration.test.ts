@@ -9,6 +9,7 @@ import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vites
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../../build-test-app.js';
 import { prisma } from '../../../lib/prisma.js';
+import type { Story } from '@prisma/client';
 
 let app: FastifyInstance;
 
@@ -24,11 +25,14 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-const mockStory = {
+const mockStory: Story = {
   id: 'story-1',
   userId: 'test-user-id',
   mediaUrl: 'https://example.com/story.jpg',
-  mediaType: 'IMAGE' as const,
+  mediaType: 'IMAGE',
+  thumbnailUrl: null,
+  caption: null,
+  viewCount: 0,
   createdAt: new Date(),
   expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
 };
@@ -36,9 +40,9 @@ const mockStory = {
 // ============================================
 // CREATE STORY
 // ============================================
-describe('POST /api/v1/stories - Create Story', () => {
+describe('[P1][content] POST /api/v1/stories - Create Story', () => {
   it('should create story successfully', async () => {
-    vi.mocked(prisma.story.create).mockResolvedValue(mockStory as any);
+    vi.mocked(prisma.story.create).mockResolvedValue(mockStory);
 
     const response = await app.inject({
       method: 'POST',
@@ -50,7 +54,7 @@ describe('POST /api/v1/stories - Create Story', () => {
       },
     });
 
-    expect([201, 400, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(201);
   });
 
   it('should require authentication', async () => {
@@ -92,9 +96,9 @@ describe('POST /api/v1/stories - Create Story', () => {
 // ============================================
 // GET STORY BY ID
 // ============================================
-describe('GET /api/v1/stories/:id - Get Story By ID', () => {
+describe('[P1][content] GET /api/v1/stories/:id - Get Story By ID', () => {
   it('should get story by id', async () => {
-    vi.mocked(prisma.story.findUnique).mockResolvedValue(mockStory as any);
+    vi.mocked(prisma.story.findUnique).mockResolvedValue(mockStory);
 
     const response = await app.inject({
       method: 'GET',
@@ -102,7 +106,7 @@ describe('GET /api/v1/stories/:id - Get Story By ID', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([200, 404, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 
   it('should return 404 for non-existent story', async () => {
@@ -130,9 +134,9 @@ describe('GET /api/v1/stories/:id - Get Story By ID', () => {
 // ============================================
 // GET STORIES FEED
 // ============================================
-describe('GET /api/v1/stories/feed - Get Stories Feed', () => {
+describe('[P1][content] GET /api/v1/stories/feed - Get Stories Feed', () => {
   it('should get stories feed', async () => {
-    vi.mocked(prisma.story.findMany).mockResolvedValue([mockStory as any]);
+    vi.mocked(prisma.story.findMany).mockResolvedValue([mockStory]);
 
     const response = await app.inject({
       method: 'GET',
@@ -140,7 +144,7 @@ describe('GET /api/v1/stories/feed - Get Stories Feed', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([200, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 
   it('should require authentication', async () => {
@@ -161,7 +165,7 @@ describe('GET /api/v1/stories/feed - Get Stories Feed', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([200, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 
   it('should return only active stories (not expired)', async () => {
@@ -173,16 +177,16 @@ describe('GET /api/v1/stories/feed - Get Stories Feed', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([200, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 });
 
 // ============================================
 // GET MY STORIES
 // ============================================
-describe('GET /api/v1/stories/my - Get My Stories', () => {
+describe('[P1][content] GET /api/v1/stories/my - Get My Stories', () => {
   it('should get own stories', async () => {
-    vi.mocked(prisma.story.findMany).mockResolvedValue([mockStory as any]);
+    vi.mocked(prisma.story.findMany).mockResolvedValue([mockStory]);
 
     const response = await app.inject({
       method: 'GET',
@@ -190,7 +194,7 @@ describe('GET /api/v1/stories/my - Get My Stories', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([200, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 
   it('should require authentication', async () => {
@@ -211,16 +215,16 @@ describe('GET /api/v1/stories/my - Get My Stories', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([200, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 });
 
 // ============================================
 // GET USER STORIES
 // ============================================
-describe('GET /api/v1/stories/user/:userId - Get User Stories', () => {
+describe('[P1][content] GET /api/v1/stories/user/:userId - Get User Stories', () => {
   it('should get user stories', async () => {
-    vi.mocked(prisma.story.findMany).mockResolvedValue([mockStory as any]);
+    vi.mocked(prisma.story.findMany).mockResolvedValue([mockStory]);
 
     const response = await app.inject({
       method: 'GET',
@@ -228,7 +232,7 @@ describe('GET /api/v1/stories/user/:userId - Get User Stories', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([200, 404, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 
   it('should require authentication', async () => {
@@ -249,17 +253,17 @@ describe('GET /api/v1/stories/user/:userId - Get User Stories', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([200, 404, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 });
 
 // ============================================
 // DELETE STORY
 // ============================================
-describe('DELETE /api/v1/stories/:id - Delete Story', () => {
+describe('[P1][content] DELETE /api/v1/stories/:id - Delete Story', () => {
   it('should delete own story', async () => {
-    vi.mocked(prisma.story.findUnique).mockResolvedValue(mockStory as any);
-    vi.mocked(prisma.story.delete).mockResolvedValue(mockStory as any);
+    vi.mocked(prisma.story.findUnique).mockResolvedValue(mockStory);
+    vi.mocked(prisma.story.delete).mockResolvedValue(mockStory);
 
     const response = await app.inject({
       method: 'DELETE',
@@ -267,12 +271,12 @@ describe('DELETE /api/v1/stories/:id - Delete Story', () => {
       headers: { authorization: authHeader('test-user-id') },
     });
 
-    expect([200, 404, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 
   it('should not delete other user story', async () => {
-    const otherUserStory = { ...mockStory, userId: 'other-user-id' };
-    vi.mocked(prisma.story.findUnique).mockResolvedValue(otherUserStory as any);
+    const otherUserStory: Story = { ...mockStory, userId: 'other-user-id' };
+    vi.mocked(prisma.story.findUnique).mockResolvedValue(otherUserStory);
 
     const response = await app.inject({
       method: 'DELETE',
@@ -280,7 +284,7 @@ describe('DELETE /api/v1/stories/:id - Delete Story', () => {
       headers: { authorization: authHeader('test-user-id') },
     });
 
-    expect([403, 404, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(403);
   });
 
   it('should return 404 for non-existent story', async () => {
@@ -292,7 +296,7 @@ describe('DELETE /api/v1/stories/:id - Delete Story', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 404]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(404);
   });
 
   it('should require authentication', async () => {
@@ -308,10 +312,10 @@ describe('DELETE /api/v1/stories/:id - Delete Story', () => {
 // ============================================
 // VIEW STORY (TRACK VIEW)
 // ============================================
-describe('POST /api/v1/stories/:id/view - Track Story View', () => {
+describe('[P1][content] POST /api/v1/stories/:id/view - Track Story View', () => {
   it('should track story view', async () => {
-    vi.mocked(prisma.story.findUnique).mockResolvedValue(mockStory as any);
-    vi.mocked(prisma.story.update).mockResolvedValue(mockStory as any);
+    vi.mocked(prisma.story.findUnique).mockResolvedValue(mockStory);
+    vi.mocked(prisma.story.update).mockResolvedValue(mockStory);
 
     const response = await app.inject({
       method: 'POST',
@@ -319,7 +323,7 @@ describe('POST /api/v1/stories/:id/view - Track Story View', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([200, 404, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 
   it('should require authentication', async () => {
@@ -340,6 +344,6 @@ describe('POST /api/v1/stories/:id/view - Track Story View', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 404]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(404);
   });
 });

@@ -9,7 +9,7 @@
  * @see config/security-validation.config.ts (DANGEROUS_PATTERNS, INPUT_RULES)
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 // We import from the actual module — no mocks, so we test real behavior
 import {
@@ -27,7 +27,7 @@ import {
 // stripHtml
 // ============================================
 
-describe('stripHtml', () => {
+describe('[P0][safety] stripHtml', () => {
   it('should strip basic HTML tags', () => {
     expect(stripHtml('<b>bold</b>')).toBe('bold');
     expect(stripHtml('<p>paragraph</p>')).toBe('paragraph');
@@ -93,7 +93,7 @@ describe('stripHtml', () => {
 // encodeHtmlEntities
 // ============================================
 
-describe('encodeHtmlEntities', () => {
+describe('[P0][safety] encodeHtmlEntities', () => {
   it('should encode ampersand', () => {
     expect(encodeHtmlEntities('Tom & Jerry')).toBe('Tom &amp; Jerry');
   });
@@ -140,7 +140,7 @@ describe('encodeHtmlEntities', () => {
 // stripControlChars
 // ============================================
 
-describe('stripControlChars', () => {
+describe('[P0][safety] stripControlChars', () => {
   it('should strip null bytes', () => {
     expect(stripControlChars('hello\x00world')).toBe('helloworld');
   });
@@ -183,7 +183,7 @@ describe('stripControlChars', () => {
 // detectInjection
 // ============================================
 
-describe('detectInjection', () => {
+describe('[P0][safety] detectInjection', () => {
   // ---- XSS ----
 
   describe('XSS patterns', () => {
@@ -428,7 +428,7 @@ describe('detectInjection', () => {
 // checkPrototypePollution
 // ============================================
 
-describe('checkPrototypePollution', () => {
+describe('[P0][safety] checkPrototypePollution', () => {
   it('should detect __proto__ key', () => {
     // Use Object.create(null) since JS engine strips __proto__ from object literals
     const obj = Object.create(null);
@@ -485,7 +485,7 @@ describe('checkPrototypePollution', () => {
 // validatePasswordStrength
 // ============================================
 
-describe('validatePasswordStrength', () => {
+describe('[P0][safety] validatePasswordStrength', () => {
   it('should accept a strong password', () => {
     const result = validatePasswordStrength('MyP@ssw0rd!');
     expect(result.valid).toBe(true);
@@ -552,7 +552,7 @@ describe('validatePasswordStrength', () => {
 // sanitizeInput
 // ============================================
 
-describe('sanitizeInput', () => {
+describe('[P0][safety] sanitizeInput', () => {
   it('should return clean text unchanged', () => {
     const result = sanitizeInput('Hello, World!');
     expect(result.blocked).toBe(false);
@@ -662,7 +662,7 @@ describe('sanitizeInput', () => {
 // sanitizeObject
 // ============================================
 
-describe('sanitizeObject', () => {
+describe('[P0][safety] sanitizeObject', () => {
   it('should sanitize string values in a flat object', () => {
     const result = sanitizeObject({ name: '<b>John</b>', age: 30 });
     expect(result.blocked).toBe(false);

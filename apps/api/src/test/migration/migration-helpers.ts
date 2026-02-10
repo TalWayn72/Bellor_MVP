@@ -104,8 +104,9 @@ export async function runMigrations(dbName: string): Promise<string> {
       stdio: 'pipe'
     });
     return output;
-  } catch (error: any) {
-    throw new Error(`Migration failed: ${error.message}\n${error.stdout || ''}\n${error.stderr || ''}`);
+  } catch (error: unknown) {
+    const execError = error as { message: string; stdout?: string; stderr?: string };
+    throw new Error(`Migration failed: ${execError.message}\n${execError.stdout || ''}\n${execError.stderr || ''}`);
   }
 }
 
@@ -123,8 +124,9 @@ export async function resetDatabase(dbName: string): Promise<void> {
       encoding: 'utf-8',
       stdio: 'pipe'
     });
-  } catch (error: any) {
-    throw new Error(`Reset failed: ${error.message}`);
+  } catch (error: unknown) {
+    const execError = error as { message: string };
+    throw new Error(`Reset failed: ${execError.message}`);
   }
 }
 
@@ -143,8 +145,9 @@ export async function runSeed(dbName: string): Promise<string> {
       stdio: 'pipe'
     });
     return output;
-  } catch (error: any) {
-    throw new Error(`Seed failed: ${error.message}\n${error.stdout || ''}\n${error.stderr || ''}`);
+  } catch (error: unknown) {
+    const execError = error as { message: string; stdout?: string; stderr?: string };
+    throw new Error(`Seed failed: ${execError.message}\n${execError.stdout || ''}\n${execError.stderr || ''}`);
   }
 }
 
@@ -268,9 +271,16 @@ export async function indexExists(client: Client, indexName: string): Promise<bo
 /**
  * Gets the current migration status from _prisma_migrations table
  */
-export async function getMigrationStatus(client: Client): Promise<any[]> {
+export interface MigrationRecord {
+  migration_name: string;
+  finished_at: string | null;
+  applied_steps_count: number;
+  logs: string | null;
+}
+
+export async function getMigrationStatus(client: Client): Promise<MigrationRecord[]> {
   try {
-    const result = await client.query(`
+    const result = await client.query<MigrationRecord>(`
       SELECT
         migration_name,
         finished_at,
@@ -280,7 +290,7 @@ export async function getMigrationStatus(client: Client): Promise<any[]> {
       ORDER BY started_at
     `);
     return result.rows;
-  } catch (error) {
+  } catch {
     return [];
   }
 }
@@ -315,8 +325,17 @@ export async function getEnumValues(client: Client, enumName: string): Promise<s
 /**
  * Gets all foreign keys in the database
  */
-export async function getForeignKeys(client: Client): Promise<any[]> {
-  const result = await client.query(`
+export interface ForeignKeyInfo {
+  table_name: string;
+  column_name: string;
+  foreign_table_name: string;
+  foreign_column_name: string;
+  update_rule: string;
+  delete_rule: string;
+}
+
+export async function getForeignKeys(client: Client): Promise<ForeignKeyInfo[]> {
+  const result = await client.query<ForeignKeyInfo>(`
     SELECT
       tc.table_name,
       kcu.column_name,
@@ -337,6 +356,24 @@ export async function getForeignKeys(client: Client): Promise<any[]> {
     ORDER BY tc.table_name
   `);
   return result.rows;
+}
+
+/**
+ * Checks if the Docker PostgreSQL database is reachable.
+ * Returns true if connection succeeds, false otherwise.
+ * Used by test files to gracefully skip when no DB is available.
+ */
+export async function canConnectToDatabase(): Promise<boolean> {
+  try {
+    execSync('docker exec bellor_postgres pg_isready -U bellor', {
+      stdio: 'pipe',
+      encoding: 'utf-8',
+      timeout: 5000
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**

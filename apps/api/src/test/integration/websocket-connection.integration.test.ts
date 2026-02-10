@@ -17,7 +17,7 @@ import { mockUser1, mockUser2, SocketAck } from './websocket-test-helpers.js';
 const TEST_PORT = 3097;
 const TEST_URL = `http://localhost:${TEST_PORT}`;
 
-describe('WebSocket - Connection & Authentication', () => {
+describe('[P1][chat] WebSocket - Connection & Authentication', () => {
   let httpServer: HttpServer;
   let io: SocketIOServer;
   let clientSocket1: ClientSocket;
@@ -138,7 +138,7 @@ describe('WebSocket - Connection & Authentication', () => {
   });
 });
 
-describe('WebSocket - Disconnection', () => {
+describe('[P1][chat] WebSocket - Disconnection', () => {
   let httpServer: HttpServer;
   let io: SocketIOServer;
   let clientSocket1: ClientSocket;

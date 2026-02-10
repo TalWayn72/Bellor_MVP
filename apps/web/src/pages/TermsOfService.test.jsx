@@ -24,7 +24,7 @@ const createWrapper = () => {
   );
 };
 
-describe('TermsOfService', () => {
+describe('[P3][profile] TermsOfService', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

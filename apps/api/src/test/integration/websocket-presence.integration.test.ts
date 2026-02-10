@@ -20,7 +20,7 @@ import { mockUser1, mockUser2, SocketAck } from './websocket-test-helpers.js';
 const TEST_PORT = 3098;
 const TEST_URL = `http://localhost:${TEST_PORT}`;
 
-describe('WebSocket - Presence Handlers', () => {
+describe('[P1][chat] WebSocket - Presence Handlers', () => {
   let httpServer: HttpServer;
   let io: SocketIOServer;
   let clientSocket1: ClientSocket;

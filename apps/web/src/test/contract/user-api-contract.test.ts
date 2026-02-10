@@ -65,7 +65,7 @@ const mockUserResponse = {
 // ============================================
 // GET USER BY ID - SCHEMA VALIDATION
 // ============================================
-describe('getUserById() - Schema Validation', () => {
+describe('[P2][profile] getUserById() - Schema Validation', () => {
   it('parses response matching UserResponseSchema', async () => {
     vi.mocked(apiClient.get).mockResolvedValue({
       data: { data: mockUserResponse },

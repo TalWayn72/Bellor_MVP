@@ -34,7 +34,7 @@ const createWrapper = () => {
   );
 };
 
-describe('FeedPost', () => {
+describe('[P1][content] FeedPost', () => {
   const mockCurrentUser = {
     id: 'user-1',
     nickname: 'TestUser',

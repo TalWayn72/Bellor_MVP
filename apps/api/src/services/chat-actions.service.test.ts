@@ -8,7 +8,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { chatService } from './chat.service.js';
 import { mockPrisma, createMockChat, createMockMessage } from './chat-test-helpers.js';
 
-describe('chatService - markMessageAsRead', () => {
+describe('[P1][chat] chatService - markMessageAsRead', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -79,7 +79,7 @@ describe('chatService - markMessageAsRead', () => {
   });
 });
 
-describe('chatService - deleteMessage', () => {
+describe('[P1][chat] chatService - deleteMessage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

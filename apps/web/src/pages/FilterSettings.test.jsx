@@ -40,7 +40,7 @@ const createWrapper = () => {
   );
 };
 
-describe('FilterSettings', () => {
+describe('[P2][profile] FilterSettings', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

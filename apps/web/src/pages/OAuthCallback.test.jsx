@@ -48,7 +48,7 @@ const createMemoryWrapper = (initialEntries = ['/oauth/callback']) => {
   );
 };
 
-describe('OAuthCallback', () => {
+describe('[P0][auth] OAuthCallback', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockNavigate.mockReset();

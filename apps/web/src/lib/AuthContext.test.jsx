@@ -84,7 +84,7 @@ function renderAuthHook() {
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
-describe('AuthContext', () => {
+describe('[P0][auth] AuthContext', () => {
   let originalLocation;
   let consoleErrorSpy;
 

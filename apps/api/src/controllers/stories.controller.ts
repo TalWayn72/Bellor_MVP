@@ -23,6 +23,15 @@ function zodError(reply: FastifyReply, error: z.ZodError) {
   return reply.status(400).send({ error: 'Validation failed', details: error.errors });
 }
 
+function handleServiceError(reply: FastifyReply, error: unknown, statusMap?: Record<string, number>) {
+  if (error instanceof z.ZodError) return zodError(reply, error);
+  const message = error instanceof Error ? error.message : 'Unknown error';
+  for (const [keyword, status] of Object.entries(statusMap ?? {})) {
+    if (message.includes(keyword)) return reply.status(status).send({ error: message });
+  }
+  return reply.status(400).send({ error: message });
+}
+
 export const StoriesController = {
   /** POST /api/v1/stories */
   async createStory(request: FastifyRequest<{ Body: CreateStoryBody }>, reply: FastifyReply) {
@@ -35,11 +44,7 @@ export const StoriesController = {
       const body = createStoryBodySchema.parse(request.body);
       const story = await StoriesService.createStory({ userId, ...body });
       return reply.status(201).send({ message: 'Story created successfully', data: story });
-    } catch (error: unknown) {
-      if (error instanceof z.ZodError) return zodError(reply, error);
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(400).send({ error: message });
-    }
+    } catch (error: unknown) { return handleServiceError(reply, error); }
   },
 
   /** GET /api/v1/stories/:id */
@@ -48,11 +53,7 @@ export const StoriesController = {
       const params = storyIdParamsSchema.parse(request.params);
       const story = await StoriesService.getStoryById(params.id);
       return reply.send({ data: story });
-    } catch (error: unknown) {
-      if (error instanceof z.ZodError) return zodError(reply, error);
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(404).send({ error: message });
-    }
+    } catch (error: unknown) { return handleServiceError(reply, error, { 'not found': 404 }); }
   },
 
   /** GET /api/v1/stories/feed */
@@ -68,11 +69,7 @@ export const StoriesController = {
         limit: query.limit, offset: query.offset,
       });
       return reply.send({ data: feed });
-    } catch (error: unknown) {
-      if (error instanceof z.ZodError) return zodError(reply, error);
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(500).send({ error: message });
-    }
+    } catch (error: unknown) { return handleServiceError(reply, error); }
   },
 
   /** GET /api/v1/stories/my */
@@ -85,10 +82,7 @@ export const StoriesController = {
       }
       const stories = await StoriesService.getStoriesByUser(userId);
       return reply.send({ data: stories });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(500).send({ error: message });
-    }
+    } catch (error: unknown) { return handleServiceError(reply, error); }
   },
 
   /** GET /api/v1/stories/user/:userId */
@@ -97,11 +91,7 @@ export const StoriesController = {
       const params = storyUserParamsSchema.parse(request.params);
       const stories = await StoriesService.getStoriesByUser(params.userId);
       return reply.send({ data: stories });
-    } catch (error: unknown) {
-      if (error instanceof z.ZodError) return zodError(reply, error);
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(500).send({ error: message });
-    }
+    } catch (error: unknown) { return handleServiceError(reply, error); }
   },
 
   /** POST /api/v1/stories/:id/view */
@@ -115,11 +105,7 @@ export const StoriesController = {
       const params = storyIdParamsSchema.parse(request.params);
       const story = await StoriesService.viewStory(params.id, userId);
       return reply.send({ data: story });
-    } catch (error: unknown) {
-      if (error instanceof z.ZodError) return zodError(reply, error);
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(400).send({ error: message });
-    }
+    } catch (error: unknown) { return handleServiceError(reply, error, { 'not found': 404 }); }
   },
 
   /** DELETE /api/v1/stories/:id */
@@ -134,9 +120,7 @@ export const StoriesController = {
       await StoriesService.deleteStory(params.id, userId);
       return reply.send({ message: 'Story deleted successfully' });
     } catch (error: unknown) {
-      if (error instanceof z.ZodError) return zodError(reply, error);
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(400).send({ error: message });
+      return handleServiceError(reply, error, { 'not found': 404, 'Unauthorized': 403 });
     }
   },
 

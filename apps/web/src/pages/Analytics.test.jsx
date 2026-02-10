@@ -53,7 +53,7 @@ const createWrapper = () => {
   );
 };
 
-describe('Analytics', () => {
+describe('[P2][admin] Analytics', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

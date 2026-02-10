@@ -37,7 +37,7 @@ const createWrapper = () => {
   );
 };
 
-describe('AdminDashboard', () => {
+describe('[P2][admin] AdminDashboard', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

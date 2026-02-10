@@ -57,7 +57,7 @@ const createWrapper = () => {
   );
 };
 
-describe('SharedSpace - Demo User Handling', () => {
+describe('[P1][content] SharedSpace - Demo User Handling', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

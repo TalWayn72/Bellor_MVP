@@ -9,15 +9,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import bcrypt from 'bcrypt';
 
 // Mock setup via helpers
-import './auth-test-helpers.js';
+import { mockPrisma, mockRedis } from './auth-test-helpers.js';
 
 // Import after mocking
 import { AuthService } from './auth.service.js';
-import { prisma } from '../lib/prisma.js';
-import { redis } from '../lib/redis.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt.util.js';
 
-describe('AuthService - login', () => {
+describe('[P0][auth] AuthService - login', () => {
   const loginInput = {
     email: 'test@example.com',
     password: 'Test123456!',
@@ -45,8 +43,8 @@ describe('AuthService - login', () => {
       isBlocked: false,
     };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+    mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+    mockPrisma.user.update.mockResolvedValue(mockUser);
 
     const result = await AuthService.login(loginInput);
 
@@ -66,12 +64,12 @@ describe('AuthService - login', () => {
       preferredLanguage: 'ENGLISH',
     };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+    mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+    mockPrisma.user.update.mockResolvedValue(mockUser);
 
     await AuthService.login(loginInput);
 
-    expect(prisma.user.update).toHaveBeenCalledWith({
+    expect(mockPrisma.user.update).toHaveBeenCalledWith({
       where: { id: mockUser.id },
       data: { lastActiveAt: expect.any(Date) },
     });
@@ -87,12 +85,12 @@ describe('AuthService - login', () => {
       preferredLanguage: 'ENGLISH',
     };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+    mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+    mockPrisma.user.update.mockResolvedValue(mockUser);
 
     await AuthService.login(loginInput);
 
-    expect(redis.setex).toHaveBeenCalledWith(
+    expect(mockRedis.setex).toHaveBeenCalledWith(
       `refresh_token:${mockUser.id}`,
       7 * 24 * 60 * 60,
       'mock-refresh-token'
@@ -100,7 +98,7 @@ describe('AuthService - login', () => {
   });
 
   it('should throw error if user does not exist', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    mockPrisma.user.findUnique.mockResolvedValue(null);
 
     await expect(AuthService.login(loginInput)).rejects.toThrow(
       'Invalid email or password'
@@ -115,7 +113,7 @@ describe('AuthService - login', () => {
       isBlocked: false,
     };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    mockPrisma.user.findUnique.mockResolvedValue(mockUser);
 
     await expect(AuthService.login(loginInput)).rejects.toThrow(
       'Invalid email or password'
@@ -131,7 +129,7 @@ describe('AuthService - login', () => {
       isBlocked: true,
     };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    mockPrisma.user.findUnique.mockResolvedValue(mockUser);
 
     await expect(AuthService.login(loginInput)).rejects.toThrow(
       'Account is deactivated'
@@ -150,8 +148,8 @@ describe('AuthService - login', () => {
       preferredLanguage: 'ENGLISH',
     };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+    mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+    mockPrisma.user.update.mockResolvedValue(mockUser);
 
     const result = await AuthService.login(loginInput);
 
@@ -160,7 +158,7 @@ describe('AuthService - login', () => {
   });
 });
 
-describe('AuthService - logout', () => {
+describe('[P0][auth] AuthService - logout', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -172,7 +170,7 @@ describe('AuthService - logout', () => {
   it('should delete refresh token from Redis', async () => {
     await AuthService.logout('test-user-id');
 
-    expect(redis.del).toHaveBeenCalledWith('refresh_token:test-user-id');
+    expect(mockRedis.del).toHaveBeenCalledWith('refresh_token:test-user-id');
   });
 
   it('should handle different user IDs correctly', async () => {
@@ -180,6 +178,6 @@ describe('AuthService - logout', () => {
 
     await AuthService.logout(userId);
 
-    expect(redis.del).toHaveBeenCalledWith(`refresh_token:${userId}`);
+    expect(mockRedis.del).toHaveBeenCalledWith(`refresh_token:${userId}`);
   });
 });

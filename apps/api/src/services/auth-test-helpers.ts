@@ -5,6 +5,9 @@
  */
 
 import { vi } from 'vitest';
+import { prisma } from '../lib/prisma.js';
+import { redis } from '../lib/redis.js';
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt.util.js';
 
 // Mock modules before importing the service
 vi.mock('../lib/prisma.js', () => ({
@@ -31,12 +34,27 @@ vi.mock('../utils/jwt.util.js', () => ({
   verifyRefreshToken: vi.fn().mockReturnValue({ userId: 'test-user-id' }),
 }));
 
+// Type the mocked prisma (avoids `as any` in test files)
+export const mockPrisma = prisma as unknown as {
+  user: {
+    findUnique: ReturnType<typeof vi.fn>;
+    create: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+  };
+};
+
+// Type the mocked redis (avoids `as any` in test files)
+export const mockRedis = redis as unknown as {
+  setex: ReturnType<typeof vi.fn>;
+  get: ReturnType<typeof vi.fn>;
+  del: ReturnType<typeof vi.fn>;
+};
+
 /**
  * Reset mock return values after clearAllMocks.
  * Call this in beforeEach after vi.clearAllMocks().
  */
 export function resetAuthMocks() {
-  const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require('../utils/jwt.util.js');
   vi.mocked(generateAccessToken).mockReturnValue('mock-access-token');
   vi.mocked(generateRefreshToken).mockReturnValue('mock-refresh-token');
   vi.mocked(verifyRefreshToken).mockReturnValue({ userId: 'test-user-id' });

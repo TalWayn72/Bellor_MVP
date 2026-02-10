@@ -13,7 +13,7 @@ import { mockPrisma, createMockUser, createMockChat, createMockMessage } from '.
 // getUserChats
 // ============================================
 
-describe('chatService.getUserChats', () => {
+describe('[P1][chat] chatService.getUserChats', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -255,7 +255,7 @@ describe('chatService.getUserChats', () => {
 // getChatById
 // ============================================
 
-describe('chatService.getChatById', () => {
+describe('[P1][chat] chatService.getChatById', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -358,7 +358,7 @@ describe('chatService.getChatById', () => {
 // createOrGetChat
 // ============================================
 
-describe('chatService.createOrGetChat', () => {
+describe('[P1][chat] chatService.createOrGetChat', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Default: target user exists
@@ -503,7 +503,7 @@ describe('chatService.createOrGetChat', () => {
 // Orchestrator: delegated method exports
 // ============================================
 
-describe('chatService - orchestrator delegation', () => {
+describe('[P1][chat] chatService - orchestrator delegation', () => {
   it('should expose getMessages method', () => {
     expect(typeof chatService.getMessages).toBe('function');
   });

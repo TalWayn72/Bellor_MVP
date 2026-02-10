@@ -12,7 +12,7 @@ import {
   type PasteGuardConfig,
 } from './paste-guard';
 
-describe('paste-guard', () => {
+describe('[P0][safety] paste-guard', () => {
   describe('validatePastedText', () => {
     describe('plain text handling', () => {
       it('should allow normal plain text', () => {

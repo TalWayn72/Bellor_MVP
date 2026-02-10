@@ -30,7 +30,7 @@ const createWrapper = () => {
   );
 };
 
-describe('AdminSystemSettings', () => {
+describe('[P2][admin] AdminSystemSettings', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

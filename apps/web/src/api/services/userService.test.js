@@ -13,7 +13,7 @@ vi.mock('../client/apiClient', () => ({
 import { userService } from './userService';
 import { apiClient } from '../client/apiClient';
 
-describe('userService', () => {
+describe('[P2][profile] userService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -159,7 +159,7 @@ describe('userService', () => {
   });
 });
 
-describe('Task Pages - User Update Pattern', () => {
+describe('[P2][profile] Task Pages - User Update Pattern', () => {
   describe('Correct usage pattern', () => {
     it('should always pass currentUser.id as first param to updateProfile', () => {
       // Simulating correct pattern from AudioTask/VideoTask

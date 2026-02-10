@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Test the API call format and component logic without rendering
-describe('StarSendersModal - API Call Format', () => {
+describe('[P1][social] StarSendersModal - API Call Format', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -86,7 +86,7 @@ describe('StarSendersModal - API Call Format', () => {
   });
 });
 
-describe('StarSendersModal - User Authorization', () => {
+describe('[P1][social] StarSendersModal - User Authorization', () => {
   it('should only show modal to response owner', () => {
     const response = { id: 'response-1', user_id: 'user-1' };
     const currentUser = { id: 'user-1' };
@@ -118,7 +118,7 @@ describe('StarSendersModal - User Authorization', () => {
   });
 });
 
-describe('StarSendersModal - Query enabled logic', () => {
+describe('[P1][social] StarSendersModal - Query enabled logic', () => {
   it('should only fetch when modal is open and user is owner', () => {
     const testCases = [
       { isOpen: true, responseId: 'r1', currentUserId: 'u1', responseUserId: 'u1', expected: true },

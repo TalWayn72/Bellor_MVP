@@ -17,7 +17,7 @@ import {
   getDeviceInfo,
 } from './platform';
 
-describe('Platform Detection Utilities', () => {
+describe('[P2][infra] Platform Detection Utilities', () => {
   const originalWindow = global.window;
   const originalNavigator = global.navigator;
 
@@ -214,7 +214,7 @@ describe('Platform Detection Utilities', () => {
   });
 });
 
-describe('Platform Detection - Edge Cases', () => {
+describe('[P2][infra] Platform Detection - Edge Cases', () => {
   describe('SSR environment (no window)', () => {
     it('should handle undefined window gracefully', () => {
       // These functions check for window/navigator internally

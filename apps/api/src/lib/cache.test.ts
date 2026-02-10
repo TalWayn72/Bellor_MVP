@@ -43,7 +43,7 @@ const mockLogger = logger as unknown as {
   debug: ReturnType<typeof vi.fn>;
 };
 
-describe('Cache Utility', () => {
+describe('[P2][infra] Cache Utility', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

@@ -50,7 +50,7 @@ const createWrapper = () => {
   );
 };
 
-describe('SafetyCenter', () => {
+describe('[P0][safety] SafetyCenter', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

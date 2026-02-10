@@ -18,7 +18,7 @@ import type { Chat, Message } from '@prisma/client';
 const TEST_PORT = 3096;
 const TEST_URL = `http://localhost:${TEST_PORT}`;
 
-describe('WebSocket - Chat Join/Leave & Messaging', () => {
+describe('[P1][chat] WebSocket - Chat Join/Leave & Messaging', () => {
   let httpServer: HttpServer;
   let io: SocketIOServer;
   let clientSocket1: ClientSocket;

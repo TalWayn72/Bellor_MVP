@@ -26,7 +26,7 @@ import {
   getDemoAnalytics,
 } from "./demoData";
 
-describe("demoData Constants", () => {
+describe("[P2][infra] demoData Constants", () => {
   describe("DEMO_USERS", () => {
     it("should have 5 demo users", () => {
       expect(Object.keys(DEMO_USERS)).toHaveLength(5);
@@ -64,7 +64,7 @@ describe("demoData Constants", () => {
   });
 });
 
-describe("isDemoUser", () => {
+describe("[P2][infra] isDemoUser", () => {
   it("should return true for demo-* prefixed IDs", () => {
     expect(isDemoUser("demo-user-1")).toBe(true);
     expect(isDemoUser("demo-user-123")).toBe(true);
@@ -87,7 +87,7 @@ describe("isDemoUser", () => {
   });
 });
 
-describe("isDemoId", () => {
+describe("[P2][infra] isDemoId", () => {
   it("should detect any demo- prefixed ID", () => {
     expect(isDemoId("demo-chat-1")).toBe(true);
     expect(isDemoId("demo-response-1")).toBe(true);
@@ -98,7 +98,7 @@ describe("isDemoId", () => {
   });
 });
 
-describe("getDemoUser", () => {
+describe("[P2][infra] getDemoUser", () => {
   it("should return demo user by standard ID", () => {
     const user = getDemoUser("demo-user-1");
     expect(user).not.toBeNull();
@@ -123,21 +123,21 @@ describe("getDemoUser", () => {
   });
 });
 
-describe("getAllDemoUsers", () => {
+describe("[P2][infra] getAllDemoUsers", () => {
   it("should return all 5 demo users", () => {
     const users = getAllDemoUsers();
     expect(users).toHaveLength(5);
   });
 });
 
-describe("getDemoProfiles", () => {
+describe("[P2][infra] getDemoProfiles", () => {
   it("should return all demo users", () => {
     const profiles = getDemoProfiles();
     expect(profiles).toHaveLength(5);
   });
 });
 
-describe("getDemoResponses", () => {
+describe("[P2][infra] getDemoResponses", () => {
   it("should return responses with user objects", () => {
     const responses = getDemoResponses();
     expect(responses.length).toBeGreaterThan(0);
@@ -147,7 +147,7 @@ describe("getDemoResponses", () => {
   });
 });
 
-describe("getDemoLikes", () => {
+describe("[P2][infra] getDemoLikes", () => {
   it("should return romantic likes", () => {
     const likes = getDemoLikes("romantic", "test-user");
     expect(Array.isArray(likes)).toBe(true);
@@ -159,7 +159,7 @@ describe("getDemoLikes", () => {
   });
 });
 
-describe("getDemoChatUsers", () => {
+describe("[P2][infra] getDemoChatUsers", () => {
   it("should return chat users with name and image", () => {
     const chatUsers = getDemoChatUsers();
     expect(chatUsers.length).toBeGreaterThan(0);
@@ -170,7 +170,7 @@ describe("getDemoChatUsers", () => {
   });
 });
 
-describe("getDemoTempChats", () => {
+describe("[P2][infra] getDemoTempChats", () => {
   it("should return temp chats with otherUser info", () => {
     const tempChats = getDemoTempChats("test-user");
     expect(tempChats.length).toBeGreaterThan(0);
@@ -182,7 +182,7 @@ describe("getDemoTempChats", () => {
   });
 });
 
-describe("getDemoFollows", () => {
+describe("[P2][infra] getDemoFollows", () => {
   it("should return followers for demo user", () => {
     const followers = getDemoFollows("demo-user-1", "followers");
     expect(Array.isArray(followers)).toBe(true);
@@ -190,7 +190,7 @@ describe("getDemoFollows", () => {
   });
 });
 
-describe("createDemoChat", () => {
+describe("[P2][infra] createDemoChat", () => {
   it("should create a chat object with otherUser", () => {
     const chat = createDemoChat("demo-user-1");
     expect(chat).toHaveProperty("id");
@@ -201,7 +201,7 @@ describe("createDemoChat", () => {
   });
 });
 
-describe("getDemoAnalytics", () => {
+describe("[P2][infra] getDemoAnalytics", () => {
   it("should return analytics data structure", () => {
     const analytics = getDemoAnalytics();
     expect(analytics).toHaveProperty("likes");

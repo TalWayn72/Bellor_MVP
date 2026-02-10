@@ -28,10 +28,14 @@ export async function buildTestApp(): Promise<FastifyInstance> {
 /**
  * Generate a valid JWT access token for testing authenticated endpoints
  */
-export function generateTestToken(userId = 'test-user-id', email = 'test@example.com'): string {
+export function generateTestToken(
+  userId = 'test-user-id',
+  email = 'test@example.com',
+  options: { isAdmin?: boolean } = {}
+): string {
   const secret = process.env.JWT_SECRET || 'test-jwt-secret-min-32-chars-for-testing-12345678';
   return jwt.sign(
-    { userId, id: userId, email },
+    { userId, id: userId, email, isAdmin: options.isAdmin ?? false },
     secret,
     { expiresIn: '15m' }
   );
@@ -40,6 +44,20 @@ export function generateTestToken(userId = 'test-user-id', email = 'test@example
 /**
  * Generate authorization header for testing
  */
-export function authHeader(userId = 'test-user-id', email = 'test@example.com'): string {
-  return `Bearer ${generateTestToken(userId, email)}`;
+export function authHeader(
+  userId = 'test-user-id',
+  email = 'test@example.com',
+  options: { isAdmin?: boolean } = {}
+): string {
+  return `Bearer ${generateTestToken(userId, email, options)}`;
+}
+
+/**
+ * Generate admin authorization header for testing admin-only endpoints
+ */
+export function adminAuthHeader(
+  userId = 'admin-user-id',
+  email = 'admin@example.com'
+): string {
+  return authHeader(userId, email, { isAdmin: true });
 }

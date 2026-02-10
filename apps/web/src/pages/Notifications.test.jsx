@@ -45,7 +45,7 @@ const createWrapper = () => {
   );
 };
 
-describe('Notifications', () => {
+describe('[P1][social] Notifications', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

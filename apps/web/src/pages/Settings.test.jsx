@@ -49,7 +49,7 @@ const createWrapper = () => {
   );
 };
 
-describe('Settings', () => {
+describe('[P2][profile] Settings', () => {
   beforeEach(() => { vi.clearAllMocks(); mockLogout.mockResolvedValue(undefined); mockNavigate.mockReset(); });
 
   it('renders without crashing', () => {

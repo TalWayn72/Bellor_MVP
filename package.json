@@ -41,7 +41,18 @@
     "load:spike": "k6 run infrastructure/k6/spike-test.js",
     "load:memory": "k6 run infrastructure/k6/memory-leak-test.js",
     "load:db": "k6 run infrastructure/k6/db-performance-test.js",
-    "load:websocket": "k6 run infrastructure/k6/websocket-test.js"
+    "load:websocket": "k6 run infrastructure/k6/websocket-test.js",
+    "test:p0": "npx vitest run --testNamePattern=\"\\[P0\\]\"",
+    "test:p0:api": "npx vitest run --config apps/api/vitest.config.ts --testNamePattern=\"\\[P0\\]\"",
+    "test:p0:web": "npx vitest run --config apps/web/vitest.config.js --testNamePattern=\"\\[P0\\]\"",
+    "test:p1": "npx vitest run --testNamePattern=\"\\[P[01]\\]\"",
+    "test:domain:auth": "npx vitest run --testNamePattern=\"\\[auth\\]\"",
+    "test:domain:chat": "npx vitest run --testNamePattern=\"\\[chat\\]\"",
+    "test:domain:safety": "npx vitest run --testNamePattern=\"\\[safety\\]\"",
+    "test:domain:content": "npx vitest run --testNamePattern=\"\\[content\\]\"",
+    "test:domain:social": "npx vitest run --testNamePattern=\"\\[social\\]\"",
+    "test:domain:profile": "npx vitest run --testNamePattern=\"\\[profile\\]\"",
+    "test:smoke": "npx vitest run --testNamePattern=\"\\[P0\\]\" --reporter=verbose"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",

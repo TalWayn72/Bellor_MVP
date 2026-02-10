@@ -53,7 +53,7 @@ function buildReply(): FastifyReply {
 
 // ---------- authMiddleware ----------
 
-describe('authMiddleware', () => {
+describe('[P0][auth] authMiddleware', () => {
   let reply: FastifyReply;
 
   beforeEach(() => {
@@ -201,7 +201,7 @@ describe('authMiddleware', () => {
 
 // ---------- optionalAuthMiddleware ----------
 
-describe('optionalAuthMiddleware', () => {
+describe('[P0][auth] optionalAuthMiddleware', () => {
   let reply: FastifyReply;
 
   beforeEach(() => {
@@ -294,7 +294,7 @@ describe('optionalAuthMiddleware', () => {
 
 // ---------- adminMiddleware ----------
 
-describe('adminMiddleware', () => {
+describe('[P0][auth] adminMiddleware', () => {
   let reply: FastifyReply;
 
   beforeEach(() => {

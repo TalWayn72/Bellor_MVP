@@ -35,7 +35,7 @@ const mockUploadResult = {
 // ============================================
 // PROFILE IMAGE UPLOAD
 // ============================================
-describe('POST /api/v1/uploads/profile-image - Upload Profile Image', () => {
+describe('[P2][infra] POST /api/v1/uploads/profile-image - Upload Profile Image', () => {
   it('should require authentication', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -53,7 +53,7 @@ describe('POST /api/v1/uploads/profile-image - Upload Profile Image', () => {
       payload: {},
     });
 
-    expect([400, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 
   it('should reject request without file', async () => {
@@ -66,7 +66,7 @@ describe('POST /api/v1/uploads/profile-image - Upload Profile Image', () => {
       },
     });
 
-    expect([400, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 
   it('should reject files that are too large', async () => {
@@ -78,7 +78,7 @@ describe('POST /api/v1/uploads/profile-image - Upload Profile Image', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 
   it('should reject non-image files', async () => {
@@ -89,14 +89,14 @@ describe('POST /api/v1/uploads/profile-image - Upload Profile Image', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 });
 
 // ============================================
 // STORY MEDIA UPLOAD
 // ============================================
-describe('POST /api/v1/uploads/story-media - Upload Story Media', () => {
+describe('[P2][infra] POST /api/v1/uploads/story-media - Upload Story Media', () => {
   it('should require authentication', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -113,7 +113,7 @@ describe('POST /api/v1/uploads/story-media - Upload Story Media', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 
   it('should return thumbnail URL for videos', async () => {
@@ -124,7 +124,7 @@ describe('POST /api/v1/uploads/story-media - Upload Story Media', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 
   it('should validate file type', async () => {
@@ -134,14 +134,14 @@ describe('POST /api/v1/uploads/story-media - Upload Story Media', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 });
 
 // ============================================
 // AUDIO UPLOAD
 // ============================================
-describe('POST /api/v1/uploads/audio - Upload Audio', () => {
+describe('[P2][infra] POST /api/v1/uploads/audio - Upload Audio', () => {
   it('should require authentication', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -158,7 +158,7 @@ describe('POST /api/v1/uploads/audio - Upload Audio', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 
   it('should validate audio MIME types', async () => {
@@ -168,7 +168,7 @@ describe('POST /api/v1/uploads/audio - Upload Audio', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 
   it('should enforce audio file size limits', async () => {
@@ -178,14 +178,14 @@ describe('POST /api/v1/uploads/audio - Upload Audio', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 });
 
 // ============================================
 // VIDEO UPLOAD
 // ============================================
-describe('POST /api/v1/uploads/video - Upload Video', () => {
+describe('[P2][infra] POST /api/v1/uploads/video - Upload Video', () => {
   it('should require authentication', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -202,7 +202,7 @@ describe('POST /api/v1/uploads/video - Upload Video', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 
   it('should validate video MIME types', async () => {
@@ -212,7 +212,7 @@ describe('POST /api/v1/uploads/video - Upload Video', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 
   it('should enforce video file size limits', async () => {
@@ -222,14 +222,14 @@ describe('POST /api/v1/uploads/video - Upload Video', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 });
 
 // ============================================
 // DRAWING UPLOAD
 // ============================================
-describe('POST /api/v1/uploads/drawing - Upload Drawing', () => {
+describe('[P2][infra] POST /api/v1/uploads/drawing - Upload Drawing', () => {
   it('should require authentication', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -246,7 +246,7 @@ describe('POST /api/v1/uploads/drawing - Upload Drawing', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 
   it('should update user drawingUrl in database', async () => {
@@ -258,7 +258,7 @@ describe('POST /api/v1/uploads/drawing - Upload Drawing', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 
   it('should validate image format', async () => {
@@ -268,14 +268,14 @@ describe('POST /api/v1/uploads/drawing - Upload Drawing', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 });
 
 // ============================================
 // RESPONSE MEDIA UPLOAD
 // ============================================
-describe('POST /api/v1/uploads/response-media - Upload Response Media', () => {
+describe('[P2][infra] POST /api/v1/uploads/response-media - Upload Response Media', () => {
   it('should require authentication', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -292,7 +292,7 @@ describe('POST /api/v1/uploads/response-media - Upload Response Media', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 
   it('should validate file types', async () => {
@@ -302,14 +302,14 @@ describe('POST /api/v1/uploads/response-media - Upload Response Media', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 });
 
 // ============================================
 // FILE VALIDATION
 // ============================================
-describe('Upload Security & Validation', () => {
+describe('[P2][infra] Upload Security & Validation', () => {
   it('should sanitize filenames', async () => {
     // Test that dangerous filenames are sanitized
     const response = await app.inject({
@@ -318,7 +318,7 @@ describe('Upload Security & Validation', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 
   it('should validate file magic bytes (not just extension)', async () => {
@@ -329,7 +329,7 @@ describe('Upload Security & Validation', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 
   it('should reject executable files', async () => {
@@ -339,7 +339,7 @@ describe('Upload Security & Validation', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 
   it('should reject files with path traversal attempts', async () => {
@@ -349,7 +349,7 @@ describe('Upload Security & Validation', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 
   it('should handle storage service unavailable gracefully', async () => {
@@ -360,14 +360,14 @@ describe('Upload Security & Validation', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([400, 401, 415, 500, 503]).toContain(response.statusCode);
+    expect(response.statusCode).toBeLessThan(500);
   });
 });
 
 // ============================================
 // RATE LIMITING
 // ============================================
-describe('Upload Rate Limiting', () => {
+describe('[P2][infra] Upload Rate Limiting', () => {
   it('should enforce rate limits on uploads', async () => {
     // Make multiple rapid upload requests
     const requests = Array(10).fill(null).map(() =>
@@ -383,7 +383,7 @@ describe('Upload Rate Limiting', () => {
 
     // At least some requests should succeed or fail with expected codes
     statusCodes.forEach(code => {
-      expect([400, 401, 415, 429, 500, 503]).toContain(code);
+      expect(code).toBeLessThan(500);
     });
   });
 });

@@ -3,7 +3,7 @@
  * Tests the PATCH /users/:id endpoint with various date formats
  */
 
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { z } from 'zod';
 
 // Mock the date validation schema from the controller
@@ -33,7 +33,7 @@ const updateProfileSchema = z.object({
   date_of_birth: dateStringSchema,
 }).passthrough();
 
-describe('User Profile Update - Date Validation', () => {
+describe('[P2][profile] User Profile Update - Date Validation', () => {
   describe('Zod Schema Validation', () => {
     describe('valid dates', () => {
       it('should accept valid birthDate', () => {
@@ -160,7 +160,7 @@ describe('User Profile Update - Date Validation', () => {
   });
 
   describe('Simulated API Request Flow', () => {
-    const simulateRequest = (body: any) => {
+    const simulateRequest = (body: Record<string, unknown>) => {
       const validation = updateProfileSchema.safeParse(body);
       if (!validation.success) {
         return {

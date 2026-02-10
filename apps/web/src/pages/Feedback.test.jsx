@@ -40,7 +40,7 @@ const createWrapper = () => {
   );
 };
 
-describe('Feedback', () => {
+describe('[P3][profile] Feedback', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

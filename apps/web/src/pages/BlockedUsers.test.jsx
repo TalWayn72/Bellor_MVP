@@ -39,7 +39,7 @@ const createWrapper = () => {
   );
 };
 
-describe('BlockedUsers', () => {
+describe('[P0][safety] BlockedUsers', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

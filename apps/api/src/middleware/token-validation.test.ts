@@ -42,7 +42,7 @@ function buildReply(): FastifyReply {
 
 // ---------- extractBearerToken ----------
 
-describe('extractBearerToken', () => {
+describe('[P0][auth] extractBearerToken', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -129,7 +129,7 @@ describe('extractBearerToken', () => {
 
 // ---------- sendAuthError ----------
 
-describe('sendAuthError', () => {
+describe('[P0][auth] sendAuthError', () => {
   let reply: FastifyReply;
 
   beforeEach(() => {
@@ -236,7 +236,7 @@ describe('sendAuthError', () => {
 
 // ---------- requireRole ----------
 
-describe('requireRole', () => {
+describe('[P0][auth] requireRole', () => {
   let reply: FastifyReply;
 
   beforeEach(() => {

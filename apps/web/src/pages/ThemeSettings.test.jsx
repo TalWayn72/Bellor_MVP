@@ -45,7 +45,7 @@ const createWrapper = () => {
   );
 };
 
-describe('ThemeSettings', () => {
+describe('[P2][profile] ThemeSettings', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

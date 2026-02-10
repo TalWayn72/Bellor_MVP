@@ -6,7 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import { RATE_LIMITS } from './rate-limits.js';
 
-describe('RATE_LIMITS', () => {
+describe('[P2][infra] RATE_LIMITS', () => {
   describe('categories exist', () => {
     it('should have default rate limit', () => {
       expect(RATE_LIMITS.default).toBeDefined();

@@ -44,7 +44,7 @@ const createWrapper = () => {
   );
 };
 
-describe('Achievements', () => {
+describe('[P2][social] Achievements', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

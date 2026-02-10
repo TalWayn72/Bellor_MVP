@@ -43,7 +43,7 @@ const createWrapper = () => {
   );
 };
 
-describe('VirtualEvents', () => {
+describe('[P3][social] VirtualEvents', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

@@ -116,7 +116,7 @@ const waitForProfiles = async () => {
   });
 };
 
-describe('Discover', () => {
+describe('[P1][social] Discover', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseCurrentUser.mockReturnValue({
@@ -324,6 +324,25 @@ describe('Discover', () => {
       await waitFor(() => {
         expect(screen.getByTestId('discover-card')).toBeInTheDocument();
       });
+    });
+  });
+
+  describe('Rapid actions - stale closure prevention', () => {
+    it('should correctly advance through profiles on rapid pass clicks', async () => {
+      const user = userEvent.setup();
+      render(<Discover />, { wrapper: createWrapper() });
+      await waitForProfiles();
+
+      // First profile is Alice
+      expect(screen.getByTestId('profile-nickname')).toHaveTextContent('Alice');
+
+      // Pass Alice -> Bob
+      await user.click(screen.getByTestId('pass-button'));
+      expect(screen.getByTestId('profile-nickname')).toHaveTextContent('Bob');
+
+      // Pass Bob -> empty state (only 2 demo profiles)
+      await user.click(screen.getByTestId('pass-button'));
+      expect(screen.getByText('No more profiles')).toBeInTheDocument();
     });
   });
 

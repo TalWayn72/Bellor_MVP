@@ -18,7 +18,7 @@ import { mockUser1, mockUser2, mockChat, mockMessage, SocketAck } from './websoc
 const TEST_PORT = 3095;
 const TEST_URL = `http://localhost:${TEST_PORT}`;
 
-describe('WebSocket - Chat Read/Unread/Delete', () => {
+describe('[P1][chat] WebSocket - Chat Read/Unread/Delete', () => {
   let httpServer: HttpServer;
   let io: SocketIOServer;
   let clientSocket1: ClientSocket;

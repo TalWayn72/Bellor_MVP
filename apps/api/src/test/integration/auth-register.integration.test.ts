@@ -9,6 +9,7 @@ import { FastifyInstance } from 'fastify';
 import { buildTestApp } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
 import { redis } from '../../lib/redis.js';
+import type { User } from '@prisma/client';
 
 let app: FastifyInstance;
 
@@ -24,7 +25,7 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe('POST /api/v1/auth/register', () => {
+describe('[P0][auth] POST /api/v1/auth/register', () => {
   const validRegistration = {
     email: 'newuser@example.com',
     password: 'StrongP@ss1',
@@ -48,7 +49,7 @@ describe('POST /api/v1/auth/register', () => {
       isVerified: false,
       isPremium: false,
       createdAt: new Date(),
-    } as any);
+    } as unknown as User);
     vi.mocked(redis.setex).mockResolvedValue('OK');
 
     const response = await app.inject({
@@ -124,7 +125,7 @@ describe('POST /api/v1/auth/register', () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       id: 'existing-user',
       email: 'newuser@example.com',
-    } as any);
+    } as unknown as User);
 
     const response = await app.inject({
       method: 'POST',
@@ -155,7 +156,7 @@ describe('POST /api/v1/auth/register', () => {
       firstName: 'John',
       lastName: 'Doe',
       preferredLanguage: 'HEBREW',
-    } as any);
+    } as unknown as User);
     vi.mocked(redis.setex).mockResolvedValue('OK');
 
     const response = await app.inject({

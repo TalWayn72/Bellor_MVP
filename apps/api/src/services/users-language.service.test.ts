@@ -11,7 +11,7 @@ import { createMockUser } from './users-test-helpers.js';
 import { UsersService } from './users.service.js';
 import { prisma } from '../lib/prisma.js';
 
-describe('UsersService - updateUserLanguage', () => {
+describe('[P2][profile] UsersService - updateUserLanguage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -23,8 +23,8 @@ describe('UsersService - updateUserLanguage', () => {
   it('should update language to HEBREW', async () => {
     const mockUser = createMockUser();
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, preferredLanguage: 'HEBREW' } as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, preferredLanguage: 'HEBREW' } as unknown);
 
     const result = await UsersService.updateUserLanguage('test-user-id', 'HEBREW');
 
@@ -34,8 +34,8 @@ describe('UsersService - updateUserLanguage', () => {
   it('should update language to SPANISH', async () => {
     const mockUser = createMockUser();
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, preferredLanguage: 'SPANISH' } as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, preferredLanguage: 'SPANISH' } as unknown);
 
     const result = await UsersService.updateUserLanguage('test-user-id', 'SPANISH');
 
@@ -45,8 +45,8 @@ describe('UsersService - updateUserLanguage', () => {
   it('should update language to GERMAN', async () => {
     const mockUser = createMockUser();
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, preferredLanguage: 'GERMAN' } as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, preferredLanguage: 'GERMAN' } as unknown);
 
     const result = await UsersService.updateUserLanguage('test-user-id', 'GERMAN');
 
@@ -56,8 +56,8 @@ describe('UsersService - updateUserLanguage', () => {
   it('should update language to FRENCH', async () => {
     const mockUser = createMockUser();
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, preferredLanguage: 'FRENCH' } as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, preferredLanguage: 'FRENCH' } as unknown);
 
     const result = await UsersService.updateUserLanguage('test-user-id', 'FRENCH');
 
@@ -75,8 +75,8 @@ describe('UsersService - updateUserLanguage', () => {
   it('should call prisma update with correct data', async () => {
     const mockUser = createMockUser();
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as unknown);
 
     await UsersService.updateUserLanguage('test-user-id', 'HEBREW');
 

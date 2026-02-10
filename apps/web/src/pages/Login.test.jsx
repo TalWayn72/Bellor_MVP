@@ -62,7 +62,7 @@ const createMemoryWrapper = (initialEntries = ['/login']) => {
   );
 };
 
-describe('Login', () => {
+describe('[P0][auth] Login', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockLogin.mockReset();

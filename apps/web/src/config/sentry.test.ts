@@ -9,7 +9,7 @@ vi.mock('@sentry/react', () => ({
   replayIntegration: vi.fn(() => ({ name: 'Replay' })),
 }));
 
-describe('Sentry Frontend Configuration', () => {
+describe('[P2][infra] Sentry Frontend Configuration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 

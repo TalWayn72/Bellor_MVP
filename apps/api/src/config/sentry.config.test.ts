@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 
-describe('Sentry Backend Configuration', () => {
+describe('[P2][infra] Sentry Backend Configuration', () => {
   it('should not initialize Sentry in test environment', () => {
     // Mock Sentry and env for test environment
     const mockInit = vi.fn();
@@ -21,7 +21,7 @@ describe('Sentry Backend Configuration', () => {
 
   it('should sanitize sensitive data before sending to Sentry', () => {
     // Test the sanitization logic directly
-    const beforeSend = (event: any) => {
+    const beforeSend = (event: { request?: { headers?: Record<string, string>; query_string?: string } }) => {
       // Remove sensitive headers
       if (event.request?.headers) {
         delete event.request.headers.authorization;

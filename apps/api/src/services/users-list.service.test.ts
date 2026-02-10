@@ -12,7 +12,7 @@ import { createMockUser } from './users-test-helpers.js';
 import { UsersService } from './users.service.js';
 import { prisma } from '../lib/prisma.js';
 
-describe('UsersService - listUsers', () => {
+describe('[P2][profile] UsersService - listUsers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -24,7 +24,7 @@ describe('UsersService - listUsers', () => {
   it('should list users with default pagination', async () => {
     const mockUsers = [createMockUser(), createMockUser({ id: 'user-2', email: 'user2@example.com' })];
 
-    vi.mocked(prisma.user.findMany).mockResolvedValue(mockUsers as any);
+    vi.mocked(prisma.user.findMany).mockResolvedValue(mockUsers as unknown);
     vi.mocked(prisma.user.count).mockResolvedValue(2);
 
     const result = await UsersService.listUsers();
@@ -125,7 +125,7 @@ describe('UsersService - listUsers', () => {
   });
 
   it('should calculate hasMore correctly when more users exist', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([createMockUser()] as any);
+    vi.mocked(prisma.user.findMany).mockResolvedValue([createMockUser()] as unknown);
     vi.mocked(prisma.user.count).mockResolvedValue(100);
 
     const result = await UsersService.listUsers({ limit: 20, offset: 0 });
@@ -134,7 +134,7 @@ describe('UsersService - listUsers', () => {
   });
 
   it('should calculate hasMore correctly when no more users', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([createMockUser()] as any);
+    vi.mocked(prisma.user.findMany).mockResolvedValue([createMockUser()] as unknown);
     vi.mocked(prisma.user.count).mockResolvedValue(1);
 
     const result = await UsersService.listUsers({ limit: 20, offset: 0 });

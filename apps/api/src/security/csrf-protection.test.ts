@@ -28,7 +28,6 @@ import {
   setCsrfCookie,
   csrfProtection,
 } from './csrf-protection.js';
-import { env } from '../config/env.js';
 import { securityLogger } from './logger.js';
 
 const mockSecurityLogger = vi.mocked(securityLogger);
@@ -63,7 +62,7 @@ function createMockRequest(overrides: Partial<{
 // generateCsrfToken
 // ============================================
 
-describe('generateCsrfToken', () => {
+describe('[P0][safety] generateCsrfToken', () => {
   it('should return a hex string', () => {
     const token = generateCsrfToken();
     expect(token).toMatch(/^[a-f0-9]+$/);
@@ -97,7 +96,7 @@ describe('generateCsrfToken', () => {
 // setCsrfCookie
 // ============================================
 
-describe('setCsrfCookie', () => {
+describe('[P0][safety] setCsrfCookie', () => {
   it('should set a cookie named __bellor_csrf on the reply', () => {
     const reply = createMockReply();
     setCsrfCookie(reply);
@@ -159,7 +158,7 @@ describe('setCsrfCookie', () => {
 // csrfProtection middleware
 // ============================================
 
-describe('csrfProtection', () => {
+describe('[P0][safety] csrfProtection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

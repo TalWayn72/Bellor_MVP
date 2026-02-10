@@ -5,18 +5,20 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { Client } from 'pg';
 import {
+  canConnectToDatabase,
   createTestDatabase,
   dropTestDatabase,
   createClient,
   runMigrations,
-  resetDatabase,
   getTables,
   getTableRowCount,
   getMigrationStatus,
   tableExists
 } from './migration-helpers.js';
 
-describe('Migration Rollback Tests', () => {
+const dbAvailable = await canConnectToDatabase();
+
+describe.skipIf(!dbAvailable)('[P2][infra] Migration Rollback Tests', () => {
   let dbName: string;
   let client: Client;
 
@@ -33,8 +35,8 @@ describe('Migration Rollback Tests', () => {
   });
 
   afterAll(async () => {
-    await client.end();
-    await dropTestDatabase(dbName);
+    if (client) await client.end();
+    if (dbName) await dropTestDatabase(dbName);
   });
 
   describe('Migration Idempotency', () => {
@@ -228,7 +230,7 @@ describe('Migration Rollback Tests', () => {
 
       try {
         await client.query('INVALID SQL STATEMENT');
-      } catch (error) {
+      } catch {
         // Expected to fail
       }
 
@@ -239,7 +241,7 @@ describe('Migration Rollback Tests', () => {
     it('should allow new migrations after error recovery', async () => {
       try {
         await client.query('SELECT * FROM nonexistent_table');
-      } catch (error) {
+      } catch {
         // Expected to fail
       }
 

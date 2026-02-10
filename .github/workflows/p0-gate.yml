@@ -1,0 +1,40 @@
+name: P0 Gate (Fast)
+
+on:
+  pull_request:
+    branches: [main, master, develop]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  p0-critical-tests:
+    name: P0 Critical Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate
+
+      - name: Run P0 Critical Tests (Backend)
+        run: npx vitest run --config apps/api/vitest.config.ts --testNamePattern='\[P0\]' --reporter=verbose
+        env:
+          NODE_ENV: test
+
+      - name: Run P0 Critical Tests (Frontend)
+        run: npx vitest run --config apps/web/vitest.config.js --testNamePattern='\[P0\]' --reporter=verbose
+        env:
+          NODE_ENV: test

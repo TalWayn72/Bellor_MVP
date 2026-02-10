@@ -45,7 +45,7 @@ const createWrapper = () => {
   );
 };
 
-describe('CompatibilityQuiz', () => {
+describe('[P3][social] CompatibilityQuiz', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

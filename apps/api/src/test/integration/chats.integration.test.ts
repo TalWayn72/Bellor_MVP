@@ -9,6 +9,7 @@ import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vites
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
+import type { User, Chat, Message } from '@prisma/client';
 
 let app: FastifyInstance;
 
@@ -54,7 +55,7 @@ const mockMessage = {
 // ============================================
 // GET USER'S CHATS
 // ============================================
-describe('GET /api/v1/chats', () => {
+describe('[P1][chat] GET /api/v1/chats', () => {
   it('should return 401 without authorization', async () => {
     const response = await app.inject({
       method: 'GET',
@@ -65,7 +66,7 @@ describe('GET /api/v1/chats', () => {
   });
 
   it('should return user chats list', async () => {
-    vi.mocked(prisma.chat.findMany).mockResolvedValue([mockChat] as any);
+    vi.mocked(prisma.chat.findMany).mockResolvedValue([mockChat] as unknown as Chat[]);
     vi.mocked(prisma.chat.count).mockResolvedValue(1);
 
     const response = await app.inject({
@@ -97,7 +98,7 @@ describe('GET /api/v1/chats', () => {
 // ============================================
 // GET CHAT BY ID
 // ============================================
-describe('GET /api/v1/chats/:chatId', () => {
+describe('[P1][chat] GET /api/v1/chats/:chatId', () => {
   it('should return 401 without authorization', async () => {
     const response = await app.inject({
       method: 'GET',
@@ -108,7 +109,7 @@ describe('GET /api/v1/chats/:chatId', () => {
   });
 
   it('should return chat details when user is participant', async () => {
-    vi.mocked(prisma.chat.findUnique).mockResolvedValue(mockChat as any);
+    vi.mocked(prisma.chat.findUnique).mockResolvedValue(mockChat as unknown as Chat);
 
     const response = await app.inject({
       method: 'GET',
@@ -136,7 +137,7 @@ describe('GET /api/v1/chats/:chatId', () => {
 // ============================================
 // CREATE CHAT
 // ============================================
-describe('POST /api/v1/chats', () => {
+describe('[P1][chat] POST /api/v1/chats', () => {
   it('should return 401 without authorization', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -149,11 +150,11 @@ describe('POST /api/v1/chats', () => {
 
   it('should create a new chat', async () => {
     // Mock target user lookup (createOrGetChat validates user exists)
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'other-user-id' } as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'other-user-id' } as unknown as User);
     vi.mocked(prisma.chat.findFirst)
       .mockResolvedValueOnce(null) // No existing chat
-      .mockResolvedValueOnce(mockChat as any); // getChatById after create
-    vi.mocked(prisma.chat.create).mockResolvedValue(mockChat as any);
+      .mockResolvedValueOnce(mockChat as unknown as Chat); // getChatById after create
+    vi.mocked(prisma.chat.create).mockResolvedValue(mockChat as unknown as Chat);
 
     const response = await app.inject({
       method: 'POST',
@@ -170,8 +171,8 @@ describe('POST /api/v1/chats', () => {
 
   it('should return existing chat if one exists', async () => {
     // Mock target user lookup (createOrGetChat validates user exists)
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'other-user-id' } as any);
-    vi.mocked(prisma.chat.findFirst).mockResolvedValue(mockChat as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'other-user-id' } as unknown as User);
+    vi.mocked(prisma.chat.findFirst).mockResolvedValue(mockChat as unknown as Chat);
 
     const response = await app.inject({
       method: 'POST',
@@ -199,7 +200,7 @@ describe('POST /api/v1/chats', () => {
 // ============================================
 // GET MESSAGES
 // ============================================
-describe('GET /api/v1/chats/:chatId/messages', () => {
+describe('[P1][chat] GET /api/v1/chats/:chatId/messages', () => {
   it('should return 401 without authorization', async () => {
     const response = await app.inject({
       method: 'GET',
@@ -211,8 +212,8 @@ describe('GET /api/v1/chats/:chatId/messages', () => {
 
   it('should return messages list', async () => {
     // Mock chat lookup for access check
-    vi.mocked(prisma.chat.findUnique).mockResolvedValue(mockChat as any);
-    vi.mocked(prisma.message.findMany).mockResolvedValue([mockMessage] as any);
+    vi.mocked(prisma.chat.findUnique).mockResolvedValue(mockChat as unknown as Chat);
+    vi.mocked(prisma.message.findMany).mockResolvedValue([mockMessage] as unknown as Message[]);
     vi.mocked(prisma.message.count).mockResolvedValue(1);
 
     const response = await app.inject({
@@ -231,7 +232,7 @@ describe('GET /api/v1/chats/:chatId/messages', () => {
 // ============================================
 // SEND MESSAGE
 // ============================================
-describe('POST /api/v1/chats/:chatId/messages', () => {
+describe('[P1][chat] POST /api/v1/chats/:chatId/messages', () => {
   it('should return 401 without authorization', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -243,9 +244,9 @@ describe('POST /api/v1/chats/:chatId/messages', () => {
   });
 
   it('should send a message', async () => {
-    vi.mocked(prisma.chat.findUnique).mockResolvedValue(mockChat as any);
-    vi.mocked(prisma.message.create).mockResolvedValue(mockMessage as any);
-    vi.mocked(prisma.chat.update).mockResolvedValue(mockChat as any);
+    vi.mocked(prisma.chat.findUnique).mockResolvedValue(mockChat as unknown as Chat);
+    vi.mocked(prisma.message.create).mockResolvedValue(mockMessage as unknown as Message);
+    vi.mocked(prisma.chat.update).mockResolvedValue(mockChat as unknown as Chat);
 
     const response = await app.inject({
       method: 'POST',
@@ -275,7 +276,7 @@ describe('POST /api/v1/chats/:chatId/messages', () => {
 // ============================================
 // MARK MESSAGE AS READ
 // ============================================
-describe('PATCH /api/v1/chats/:chatId/messages/:messageId/read', () => {
+describe('[P1][chat] PATCH /api/v1/chats/:chatId/messages/:messageId/read', () => {
   it('should return 401 without authorization', async () => {
     const response = await app.inject({
       method: 'PATCH',
@@ -289,13 +290,13 @@ describe('PATCH /api/v1/chats/:chatId/messages/:messageId/read', () => {
     vi.mocked(prisma.message.findUnique).mockResolvedValue({
       ...mockMessage,
       senderId: 'other-user-id', // Sent by someone else
-    } as any);
+    } as unknown as Message);
     vi.mocked(prisma.message.update).mockResolvedValue({
       ...mockMessage,
       isRead: true,
-    } as any);
+    } as unknown as Message);
     // Mock chat for user access validation
-    vi.mocked(prisma.chat.findUnique).mockResolvedValue(mockChat as any);
+    vi.mocked(prisma.chat.findUnique).mockResolvedValue(mockChat as unknown as Chat);
 
     const response = await app.inject({
       method: 'PATCH',
@@ -310,7 +311,7 @@ describe('PATCH /api/v1/chats/:chatId/messages/:messageId/read', () => {
 // ============================================
 // DELETE MESSAGE
 // ============================================
-describe('DELETE /api/v1/chats/:chatId/messages/:messageId', () => {
+describe('[P1][chat] DELETE /api/v1/chats/:chatId/messages/:messageId', () => {
   it('should return 401 without authorization', async () => {
     const response = await app.inject({
       method: 'DELETE',
@@ -321,12 +322,12 @@ describe('DELETE /api/v1/chats/:chatId/messages/:messageId', () => {
   });
 
   it('should delete own message', async () => {
-    vi.mocked(prisma.message.findUnique).mockResolvedValue(mockMessage as any);
+    vi.mocked(prisma.message.findUnique).mockResolvedValue(mockMessage as unknown as Message);
     vi.mocked(prisma.message.update).mockResolvedValue({
       ...mockMessage,
       isDeleted: true,
-    } as any);
-    vi.mocked(prisma.chat.findUnique).mockResolvedValue(mockChat as any);
+    } as unknown as Message);
+    vi.mocked(prisma.chat.findUnique).mockResolvedValue(mockChat as unknown as Chat);
 
     const response = await app.inject({
       method: 'DELETE',

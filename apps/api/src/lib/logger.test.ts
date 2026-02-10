@@ -2,10 +2,10 @@
  * Tests for Logger and Date Validation
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { validateAndParseDate } from './logger.js';
 
-describe('validateAndParseDate', () => {
+describe('[P2][infra] validateAndParseDate', () => {
   describe('valid dates', () => {
     it('should accept valid yyyy-MM-dd format', () => {
       const result = validateAndParseDate('1990-05-15', 'birthDate');

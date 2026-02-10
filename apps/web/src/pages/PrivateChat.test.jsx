@@ -145,7 +145,7 @@ const createWrapper = () => {
   );
 };
 
-describe('PrivateChat', () => {
+describe('[P1][chat] PrivateChat', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     capturedOnSend = null;

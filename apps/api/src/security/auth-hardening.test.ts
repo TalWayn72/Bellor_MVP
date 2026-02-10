@@ -68,7 +68,7 @@ function createMockReply(): FastifyReply {
 // recordFailedAttempt
 // ============================================
 
-describe('recordFailedAttempt', () => {
+describe('[P0][safety] recordFailedAttempt', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -122,7 +122,7 @@ describe('recordFailedAttempt', () => {
 // isLockedOut
 // ============================================
 
-describe('isLockedOut', () => {
+describe('[P0][safety] isLockedOut', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -180,7 +180,7 @@ describe('isLockedOut', () => {
 // clearFailedAttempts
 // ============================================
 
-describe('clearFailedAttempts', () => {
+describe('[P0][safety] clearFailedAttempts', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -202,7 +202,7 @@ describe('clearFailedAttempts', () => {
 // getRemainingAttempts
 // ============================================
 
-describe('getRemainingAttempts', () => {
+describe('[P0][safety] getRemainingAttempts', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -252,7 +252,7 @@ describe('getRemainingAttempts', () => {
 // bruteForceProtection middleware
 // ============================================
 
-describe('bruteForceProtection', () => {
+describe('[P0][safety] bruteForceProtection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -376,7 +376,7 @@ describe('bruteForceProtection', () => {
 // handleFailedLogin
 // ============================================
 
-describe('handleFailedLogin', () => {
+describe('[P0][safety] handleFailedLogin', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -454,7 +454,7 @@ describe('handleFailedLogin', () => {
 // handleSuccessfulLogin
 // ============================================
 
-describe('handleSuccessfulLogin', () => {
+describe('[P0][safety] handleSuccessfulLogin', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -491,7 +491,7 @@ describe('handleSuccessfulLogin', () => {
 // IP-based tracking isolation
 // ============================================
 
-describe('IP-based tracking isolation', () => {
+describe('[P0][safety] IP-based tracking isolation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -539,7 +539,7 @@ describe('IP-based tracking isolation', () => {
 // Lockout timeout (TTL-based expiry)
 // ============================================
 
-describe('lockout timeout behavior', () => {
+describe('[P0][safety] lockout timeout behavior', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -586,7 +586,7 @@ describe('lockout timeout behavior', () => {
 // Full flow simulation
 // ============================================
 
-describe('full login flow simulation', () => {
+describe('[P0][safety] full login flow simulation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

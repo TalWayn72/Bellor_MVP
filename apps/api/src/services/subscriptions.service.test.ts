@@ -34,7 +34,7 @@ vi.mock('../lib/prisma.js', () => ({
 // Access mocked prisma through the imported module
 const mockPrisma = vi.mocked(prisma);
 
-describe('SubscriptionsService', () => {
+describe('[P0][payments] SubscriptionsService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

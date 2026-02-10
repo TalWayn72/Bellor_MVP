@@ -31,7 +31,7 @@ const createWrapper = () => {
   );
 };
 
-describe('Welcome', () => {
+describe('[P0][auth] Welcome', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockNavigate.mockReset();

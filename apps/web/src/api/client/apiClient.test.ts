@@ -51,7 +51,7 @@ let apiClient: typeof import('./apiClient')['apiClient'];
 // Section 1 - Transformation functions (imported from REAL source)
 // ---------------------------------------------------------------------------
 
-describe('Transformation Functions (from apiTransformers)', () => {
+describe('[P0][infra] Transformation Functions (from apiTransformers)', () => {
   describe('camelToSnake', () => {
     it('converts camelCase to snake_case', () => {
       expect(camelToSnake('createdAt')).toBe('created_at');
@@ -253,7 +253,7 @@ describe('Transformation Functions (from apiTransformers)', () => {
 // Section 2 - API Client interceptors and HTTP methods
 // ---------------------------------------------------------------------------
 
-describe('ApiClient (interceptors & HTTP methods)', () => {
+describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
   let mock: MockAdapter;
 
   beforeEach(async () => {

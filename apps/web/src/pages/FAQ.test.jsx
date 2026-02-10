@@ -32,7 +32,7 @@ const createWrapper = () => {
   );
 };
 
-describe('FAQ', () => {
+describe('[P3][profile] FAQ', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

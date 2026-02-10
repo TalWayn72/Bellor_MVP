@@ -17,7 +17,7 @@ import { mockUser1, SocketAck } from './websocket-test-helpers.js';
 const TEST_PORT = 3117;
 const TEST_URL = `http://localhost:${TEST_PORT}`;
 
-describe('WebSocket - Edge Cases & Error Handling', () => {
+describe('[P1][chat] WebSocket - Edge Cases & Error Handling', () => {
   let httpServer: HttpServer;
   let io: SocketIOServer;
   let clientSocket1: ClientSocket;

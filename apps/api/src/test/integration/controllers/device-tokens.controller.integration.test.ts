@@ -7,8 +7,15 @@
 
 import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
 import { FastifyInstance } from 'fastify';
-import { buildTestApp, authHeader } from '../../build-test-app.js';
+import { buildTestApp, authHeader, adminAuthHeader } from '../../build-test-app.js';
 import { prisma } from '../../../lib/prisma.js';
+import type { DeviceToken } from '@prisma/client';
+
+// Mock notification-sender to avoid Firebase dependency
+vi.mock('../../../services/push-notifications/notification-sender.js', () => ({
+  sendToTokens: vi.fn().mockResolvedValue({ sent: 1, failed: 0 }),
+  sendBroadcast: vi.fn().mockResolvedValue({ sent: 1, failed: 0 }),
+}));
 
 let app: FastifyInstance;
 
@@ -24,24 +31,25 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-const mockDeviceToken = {
+const mockDeviceToken: DeviceToken = {
   id: 'device-token-1',
   userId: 'test-user-id',
   token: 'expo-push-token-xyz',
-  platform: 'IOS' as const,
+  platform: 'IOS',
   deviceId: 'device-123',
   deviceName: 'iPhone 12',
   isActive: true,
   lastUsedAt: new Date(),
   createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 // ============================================
 // REGISTER DEVICE
 // ============================================
-describe('POST /api/v1/device-tokens/register - Register Device', () => {
+describe('[P1][social] POST /api/v1/device-tokens/register - Register Device', () => {
   it('should register device successfully', async () => {
-    vi.mocked(prisma.deviceToken.upsert).mockResolvedValue(mockDeviceToken as any);
+    vi.mocked(prisma.deviceToken.upsert).mockResolvedValue(mockDeviceToken);
 
     const response = await app.inject({
       method: 'POST',
@@ -55,7 +63,7 @@ describe('POST /api/v1/device-tokens/register - Register Device', () => {
       },
     });
 
-    expect([201, 400, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(201);
   });
 
   it('should require authentication', async () => {
@@ -97,10 +105,10 @@ describe('POST /api/v1/device-tokens/register - Register Device', () => {
   });
 
   it('should accept all valid platforms (IOS, ANDROID, WEB)', async () => {
-    const platforms = ['IOS', 'ANDROID', 'WEB'];
+    const platforms = ['IOS', 'ANDROID', 'WEB'] as const;
 
     for (const platform of platforms) {
-      vi.mocked(prisma.deviceToken.upsert).mockResolvedValue({ ...mockDeviceToken, platform } as any);
+      vi.mocked(prisma.deviceToken.upsert).mockResolvedValue({ ...mockDeviceToken, platform });
 
       const response = await app.inject({
         method: 'POST',
@@ -112,7 +120,7 @@ describe('POST /api/v1/device-tokens/register - Register Device', () => {
         },
       });
 
-      expect([201, 400, 500]).toContain(response.statusCode);
+      expect(response.statusCode).toBe(201);
     }
   });
 });
@@ -120,9 +128,9 @@ describe('POST /api/v1/device-tokens/register - Register Device', () => {
 // ============================================
 // UNREGISTER DEVICE
 // ============================================
-describe('POST /api/v1/device-tokens/unregister - Unregister Device', () => {
+describe('[P1][social] POST /api/v1/device-tokens/unregister - Unregister Device', () => {
   it('should unregister device successfully', async () => {
-    vi.mocked(prisma.deviceToken.deleteMany).mockResolvedValue({ count: 1 } as any);
+    vi.mocked(prisma.deviceToken.updateMany).mockResolvedValue({ count: 1 });
 
     const response = await app.inject({
       method: 'POST',
@@ -133,7 +141,7 @@ describe('POST /api/v1/device-tokens/unregister - Unregister Device', () => {
       },
     });
 
-    expect([200, 400, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 
   it('should require token field', async () => {
@@ -148,7 +156,7 @@ describe('POST /api/v1/device-tokens/unregister - Unregister Device', () => {
   });
 
   it('should accept unregister even if token not found', async () => {
-    vi.mocked(prisma.deviceToken.deleteMany).mockResolvedValue({ count: 0 } as any);
+    vi.mocked(prisma.deviceToken.updateMany).mockResolvedValue({ count: 0 });
 
     const response = await app.inject({
       method: 'POST',
@@ -159,16 +167,16 @@ describe('POST /api/v1/device-tokens/unregister - Unregister Device', () => {
       },
     });
 
-    expect([200, 400, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 });
 
 // ============================================
 // GET MY DEVICES
 // ============================================
-describe('GET /api/v1/device-tokens/my - Get My Devices', () => {
+describe('[P1][social] GET /api/v1/device-tokens/my - Get My Devices', () => {
   it('should get user devices', async () => {
-    vi.mocked(prisma.deviceToken.findMany).mockResolvedValue([mockDeviceToken as any]);
+    vi.mocked(prisma.deviceToken.findMany).mockResolvedValue([mockDeviceToken]);
 
     const response = await app.inject({
       method: 'GET',
@@ -176,7 +184,7 @@ describe('GET /api/v1/device-tokens/my - Get My Devices', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([200, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 
   it('should require authentication', async () => {
@@ -197,11 +205,11 @@ describe('GET /api/v1/device-tokens/my - Get My Devices', () => {
       headers: { authorization: authHeader() },
     });
 
-    expect([200, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 
   it('should not expose token values in response', async () => {
-    vi.mocked(prisma.deviceToken.findMany).mockResolvedValue([mockDeviceToken as any]);
+    vi.mocked(prisma.deviceToken.findMany).mockResolvedValue([mockDeviceToken]);
 
     const response = await app.inject({
       method: 'GET',
@@ -221,9 +229,9 @@ describe('GET /api/v1/device-tokens/my - Get My Devices', () => {
 // ============================================
 // SEND TEST NOTIFICATION
 // ============================================
-describe('POST /api/v1/device-tokens/test - Send Test Notification', () => {
+describe('[P1][social] POST /api/v1/device-tokens/test - Send Test Notification', () => {
   it('should send test notification', async () => {
-    vi.mocked(prisma.deviceToken.findMany).mockResolvedValue([mockDeviceToken as any]);
+    vi.mocked(prisma.deviceToken.findMany).mockResolvedValue([mockDeviceToken]);
 
     const response = await app.inject({
       method: 'POST',
@@ -235,7 +243,7 @@ describe('POST /api/v1/device-tokens/test - Send Test Notification', () => {
       },
     });
 
-    expect([200, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 
   it('should require authentication', async () => {
@@ -252,7 +260,7 @@ describe('POST /api/v1/device-tokens/test - Send Test Notification', () => {
   });
 
   it('should use default values if not provided', async () => {
-    vi.mocked(prisma.deviceToken.findMany).mockResolvedValue([mockDeviceToken as any]);
+    vi.mocked(prisma.deviceToken.findMany).mockResolvedValue([mockDeviceToken]);
 
     const response = await app.inject({
       method: 'POST',
@@ -261,28 +269,28 @@ describe('POST /api/v1/device-tokens/test - Send Test Notification', () => {
       payload: {},
     });
 
-    expect([200, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 });
 
 // ============================================
 // SEND BROADCAST (ADMIN)
 // ============================================
-describe('POST /api/v1/device-tokens/broadcast - Send Broadcast (Admin)', () => {
+describe('[P1][social] POST /api/v1/device-tokens/broadcast - Send Broadcast (Admin)', () => {
   it('should send broadcast as admin', async () => {
-    vi.mocked(prisma.deviceToken.findMany).mockResolvedValue([mockDeviceToken as any]);
+    vi.mocked(prisma.deviceToken.findMany).mockResolvedValue([mockDeviceToken]);
 
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/device-tokens/broadcast',
-      headers: { authorization: authHeader('admin-user-id') },
+      headers: { authorization: adminAuthHeader() },
       payload: {
         title: 'System Announcement',
         body: 'Important update',
       },
     });
 
-    expect([200, 403, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 
   it('should reject non-admin access', async () => {
@@ -316,31 +324,31 @@ describe('POST /api/v1/device-tokens/broadcast - Send Broadcast (Admin)', () => 
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/device-tokens/broadcast',
-      headers: { authorization: authHeader('admin-user-id') },
+      headers: { authorization: adminAuthHeader() },
       payload: {},
     });
 
-    expect([400, 403, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(400);
   });
 });
 
 // ============================================
 // CLEANUP INACTIVE TOKENS (ADMIN)
 // ============================================
-describe('POST /api/v1/device-tokens/cleanup - Cleanup Inactive Tokens (Admin)', () => {
+describe('[P1][social] POST /api/v1/device-tokens/cleanup - Cleanup Inactive Tokens (Admin)', () => {
   it('should cleanup inactive tokens as admin', async () => {
-    vi.mocked(prisma.deviceToken.deleteMany).mockResolvedValue({ count: 5 } as any);
+    vi.mocked(prisma.deviceToken.deleteMany).mockResolvedValue({ count: 5 });
 
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/device-tokens/cleanup',
-      headers: { authorization: authHeader('admin-user-id') },
+      headers: { authorization: adminAuthHeader() },
       payload: {
         daysOld: 30,
       },
     });
 
-    expect([200, 403, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 
   it('should reject non-admin access', async () => {
@@ -369,15 +377,15 @@ describe('POST /api/v1/device-tokens/cleanup - Cleanup Inactive Tokens (Admin)',
   });
 
   it('should use default value if daysOld not provided', async () => {
-    vi.mocked(prisma.deviceToken.deleteMany).mockResolvedValue({ count: 3 } as any);
+    vi.mocked(prisma.deviceToken.deleteMany).mockResolvedValue({ count: 3 });
 
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/device-tokens/cleanup',
-      headers: { authorization: authHeader('admin-user-id') },
+      headers: { authorization: adminAuthHeader() },
       payload: {},
     });
 
-    expect([200, 403, 500]).toContain(response.statusCode);
+    expect(response.statusCode).toBe(200);
   });
 });

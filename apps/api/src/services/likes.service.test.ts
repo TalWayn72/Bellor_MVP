@@ -42,7 +42,7 @@ const createMockLike = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-describe('LikesService', () => {
+describe('[P1][social] LikesService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Mock target user lookup (validation added to likeUser)

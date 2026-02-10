@@ -9,6 +9,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.js'],
     include: ['src/**/*.test.{js,jsx,ts,tsx}'],
+    exclude: ['src/test/tiers/**'],
     poolOptions: {
       threads: {
         maxThreads: 1,
@@ -29,10 +30,10 @@ export default defineConfig({
         'src/components/ui/**',
       ],
       thresholds: {
-        lines: 40,
-        functions: 40,
-        branches: 35,
-        statements: 40,
+        lines: 45,
+        functions: 45,
+        branches: 40,
+        statements: 45,
       },
     },
   },

@@ -47,7 +47,7 @@ const createWrapper = () => {
   );
 };
 
-describe('Stories', () => {
+describe('[P1][content] Stories', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

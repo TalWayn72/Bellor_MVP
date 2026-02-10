@@ -9,6 +9,7 @@ import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vites
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
+import type { User } from '@prisma/client';
 
 let app: FastifyInstance;
 
@@ -44,7 +45,7 @@ const mockUser = {
 // ============================================
 // LIST USERS
 // ============================================
-describe('GET /api/v1/users', () => {
+describe('[P2][profile] GET /api/v1/users', () => {
   it('should return 401 without authorization', async () => {
     const response = await app.inject({
       method: 'GET',
@@ -55,7 +56,7 @@ describe('GET /api/v1/users', () => {
   });
 
   it('should return paginated user list', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([mockUser] as any);
+    vi.mocked(prisma.user.findMany).mockResolvedValue([mockUser] as unknown as User[]);
     vi.mocked(prisma.user.count).mockResolvedValue(1);
 
     const response = await app.inject({
@@ -91,7 +92,7 @@ describe('GET /api/v1/users', () => {
 // ============================================
 // GET USER BY ID
 // ============================================
-describe('GET /api/v1/users/:id', () => {
+describe('[P2][profile] GET /api/v1/users/:id', () => {
   it('should return 401 without authorization', async () => {
     const response = await app.inject({
       method: 'GET',
@@ -102,7 +103,7 @@ describe('GET /api/v1/users/:id', () => {
   });
 
   it('should return user details', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
 
     const response = await app.inject({
       method: 'GET',
@@ -132,7 +133,7 @@ describe('GET /api/v1/users/:id', () => {
 // ============================================
 // UPDATE USER PROFILE
 // ============================================
-describe('PATCH /api/v1/users/:id', () => {
+describe('[P2][profile] PATCH /api/v1/users/:id', () => {
   it('should return 401 without authorization', async () => {
     const response = await app.inject({
       method: 'PATCH',
@@ -144,11 +145,11 @@ describe('PATCH /api/v1/users/:id', () => {
   });
 
   it('should update user profile', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
     vi.mocked(prisma.user.update).mockResolvedValue({
       ...mockUser,
       firstName: 'Updated',
-    } as any);
+    } as unknown as User);
 
     const response = await app.inject({
       method: 'PATCH',
@@ -163,11 +164,11 @@ describe('PATCH /api/v1/users/:id', () => {
   });
 
   it('should update bio field', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
     vi.mocked(prisma.user.update).mockResolvedValue({
       ...mockUser,
       bio: 'New bio text',
-    } as any);
+    } as unknown as User);
 
     const response = await app.inject({
       method: 'PATCH',
@@ -180,8 +181,8 @@ describe('PATCH /api/v1/users/:id', () => {
   });
 
   it('should handle snake_case fields from frontend', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as unknown as User);
 
     const response = await app.inject({
       method: 'PATCH',
@@ -212,13 +213,13 @@ describe('PATCH /api/v1/users/:id', () => {
 // ============================================
 // UPDATE LANGUAGE
 // ============================================
-describe('PATCH /api/v1/users/:id/language', () => {
+describe('[P2][profile] PATCH /api/v1/users/:id/language', () => {
   it('should update user language', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
     vi.mocked(prisma.user.update).mockResolvedValue({
       ...mockUser,
       preferredLanguage: 'HEBREW',
-    } as any);
+    } as unknown as User);
 
     const response = await app.inject({
       method: 'PATCH',
@@ -244,7 +245,7 @@ describe('PATCH /api/v1/users/:id/language', () => {
 // ============================================
 // USER STATS
 // ============================================
-describe('GET /api/v1/users/:id/stats', () => {
+describe('[P2][profile] GET /api/v1/users/:id/stats', () => {
   it('should return user statistics', async () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       id: 'test-user-id',
@@ -256,7 +257,7 @@ describe('GET /api/v1/users/:id/stats', () => {
         chatsAsUser1: 3,
         chatsAsUser2: 2,
       },
-    } as any);
+    } as unknown as User);
 
     const response = await app.inject({
       method: 'GET',
@@ -284,9 +285,9 @@ describe('GET /api/v1/users/:id/stats', () => {
 // ============================================
 // SEARCH USERS
 // ============================================
-describe('GET /api/v1/users/search', () => {
+describe('[P2][profile] GET /api/v1/users/search', () => {
   it('should search users by query', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([mockUser] as any);
+    vi.mocked(prisma.user.findMany).mockResolvedValue([mockUser] as unknown as User[]);
     vi.mocked(prisma.user.count).mockResolvedValue(1);
 
     const response = await app.inject({
@@ -313,7 +314,7 @@ describe('GET /api/v1/users/search', () => {
 // ============================================
 // DEACTIVATE USER
 // ============================================
-describe('DELETE /api/v1/users/:id', () => {
+describe('[P2][profile] DELETE /api/v1/users/:id', () => {
   it('should return 401 without authorization', async () => {
     const response = await app.inject({
       method: 'DELETE',
@@ -324,8 +325,8 @@ describe('DELETE /api/v1/users/:id', () => {
   });
 
   it('should deactivate user', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, isBlocked: true } as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
+    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, isBlocked: true } as unknown as User);
 
     const response = await app.inject({
       method: 'DELETE',
@@ -342,7 +343,7 @@ describe('DELETE /api/v1/users/:id', () => {
 // ============================================
 // GDPR DATA EXPORT
 // ============================================
-describe('GET /api/v1/users/:id/export', () => {
+describe('[P2][profile] GET /api/v1/users/:id/export', () => {
   it('should return 401 without authorization', async () => {
     const response = await app.inject({
       method: 'GET',
@@ -368,7 +369,7 @@ describe('GET /api/v1/users/:id/export', () => {
       responses: [],
       stories: [],
       achievements: [],
-    } as any);
+    } as unknown as User);
 
     const response = await app.inject({
       method: 'GET',
@@ -388,7 +389,7 @@ describe('GET /api/v1/users/:id/export', () => {
 // ============================================
 // GDPR DELETE
 // ============================================
-describe('DELETE /api/v1/users/:id/gdpr', () => {
+describe('[P2][profile] DELETE /api/v1/users/:id/gdpr', () => {
   it('should return 401 without authorization', async () => {
     const response = await app.inject({
       method: 'DELETE',
@@ -399,8 +400,8 @@ describe('DELETE /api/v1/users/:id/gdpr', () => {
   });
 
   it('should permanently delete user data (GDPR Article 17)', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.$transaction).mockImplementation(async (cb: any) => {
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
+    vi.mocked(prisma.$transaction).mockImplementation(async (cb: (tx: unknown) => Promise<unknown>) => {
       const tx = {
         message: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         response: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },

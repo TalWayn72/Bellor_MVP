@@ -24,7 +24,7 @@ const createWrapper = () => {
   );
 };
 
-describe('PrivacyPolicy', () => {
+describe('[P3][profile] PrivacyPolicy', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

@@ -28,7 +28,7 @@ const createWrapper = () => {
   );
 };
 
-describe('AdminPreRegistration', () => {
+describe('[P2][admin] AdminPreRegistration', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

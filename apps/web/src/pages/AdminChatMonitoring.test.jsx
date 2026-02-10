@@ -41,7 +41,7 @@ const createWrapper = () => {
   );
 };
 
-describe('AdminChatMonitoring', () => {
+describe('[P2][admin] AdminChatMonitoring', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

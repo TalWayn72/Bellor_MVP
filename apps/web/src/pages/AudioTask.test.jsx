@@ -49,7 +49,7 @@ const createWrapper = () => {
   );
 };
 
-describe('AudioTask', () => {
+describe('[P1][content] AudioTask', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

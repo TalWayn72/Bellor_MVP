@@ -42,7 +42,7 @@ const createMockNotification = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-describe('NotificationsService', () => {
+describe('[P1][social] NotificationsService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

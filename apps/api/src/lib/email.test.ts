@@ -57,7 +57,7 @@ import { env } from '../config/env.js';
 // sendEmail
 // ============================================
 
-describe('sendEmail', () => {
+describe('[P2][infra] sendEmail', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Default: circuit breaker delegates to the callback
@@ -143,7 +143,7 @@ describe('sendEmail', () => {
   });
 });
 
-describe('sendEmail - when RESEND_API_KEY is not configured', () => {
+describe('[P2][infra] sendEmail - when RESEND_API_KEY is not configured', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
@@ -195,7 +195,7 @@ describe('sendEmail - when RESEND_API_KEY is not configured', () => {
 // sendPasswordResetEmail
 // ============================================
 
-describe('sendPasswordResetEmail', () => {
+describe('[P2][infra] sendPasswordResetEmail', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockEmailBreakerExecute.mockImplementation(
@@ -319,7 +319,7 @@ describe('sendPasswordResetEmail', () => {
 // Circuit breaker integration
 // ============================================
 
-describe('sendEmail - circuit breaker integration', () => {
+describe('[P2][infra] sendEmail - circuit breaker integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

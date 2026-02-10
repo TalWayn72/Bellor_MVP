@@ -35,7 +35,7 @@ vi.mock('prom-client', () => {
 
 import { metrics, promClient } from './metrics.js';
 
-describe('Metrics', () => {
+describe('[P2][infra] Metrics', () => {
   // ==================== default metrics (must run first) ====================
   // collectDefaultMetrics is called at module-load time in metrics.ts.
   // The global test setup's afterEach clears mock call history, so this
@@ -82,6 +82,12 @@ describe('Metrics', () => {
         'userRegistrations',
         'activeWebsockets',
         'paymentAttempts',
+        'memoryHeapUsed',
+        'memoryHeapTotal',
+        'memoryRss',
+        'memoryExternal',
+        'memoryArrayBuffers',
+        'gcDuration',
       ];
       expect(Object.keys(metrics)).toEqual(expect.arrayContaining(expectedKeys));
       expect(Object.keys(metrics)).toHaveLength(expectedKeys.length);

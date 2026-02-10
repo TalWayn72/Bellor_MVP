@@ -11,7 +11,7 @@ import {
   validateRequiredParams,
 } from './validation';
 
-describe('validation utilities', () => {
+describe('[P0][safety] validation utilities', () => {
   beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
   });

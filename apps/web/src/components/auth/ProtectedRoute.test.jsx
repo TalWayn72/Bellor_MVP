@@ -20,7 +20,7 @@ import { Navigate } from 'react-router-dom';
 import { reportAuthRedirect, reportAdminDenied } from '@/security/securityEventReporter';
 import ProtectedRoute from './ProtectedRoute';
 
-describe('ProtectedRoute', () => {
+describe('[P0][auth] ProtectedRoute', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

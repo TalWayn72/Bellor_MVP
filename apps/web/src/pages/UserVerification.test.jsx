@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -57,7 +58,7 @@ const createWrapper = () => {
   );
 };
 
-describe('UserVerification', () => {
+describe('[P0][safety] UserVerification', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {
@@ -90,5 +91,33 @@ describe('UserVerification', () => {
     useCurrentUser.mockReturnValue({ currentUser: null, isLoading: true });
     render(<UserVerification />, { wrapper: createWrapper() });
     expect(screen.getByText('Loading...')).toBeInTheDocument();
+  });
+
+  describe('media stream cleanup on unmount', () => {
+    it('should stop camera stream tracks on unmount after starting camera', async () => {
+      // Reset useCurrentUser mock explicitly (previous test may have changed it)
+      const { useCurrentUser } = await import('../components/hooks/useCurrentUser');
+      useCurrentUser.mockReturnValue({
+        currentUser: { id: 'user-1', nickname: 'TestUser', is_verified: false },
+        isLoading: false,
+      });
+
+      const user = userEvent.setup();
+      const mockStop = vi.fn();
+      const mockStream = {
+        getTracks: () => [{ stop: mockStop }],
+      };
+      navigator.mediaDevices.getUserMedia.mockResolvedValue(mockStream);
+
+      const { unmount } = render(<UserVerification />, { wrapper: createWrapper() });
+
+      // Click Start Camera
+      await user.click(screen.getByText('Start Camera'));
+      await new Promise(r => setTimeout(r, 0));
+
+      // Unmount should stop the stream
+      unmount();
+      expect(mockStop).toHaveBeenCalled();
+    });
   });
 });

@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+const mockUpdateUser = vi.fn().mockResolvedValue({ data: {} });
 vi.mock('@/api', () => ({
-  userService: { updateUser: vi.fn().mockResolvedValue({ data: {} }) },
+  userService: { updateUser: (...args) => mockUpdateUser(...args) },
 }));
 
 vi.mock('../components/hooks/useCurrentUser', () => ({
@@ -44,8 +46,8 @@ const createWrapper = () => {
   );
 };
 
-describe('EditProfile', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+describe('[P2][profile] EditProfile', () => {
+  beforeEach(() => { vi.clearAllMocks(); mockUpdateUser.mockResolvedValue({ data: {} }); });
 
   it('renders without crashing', () => {
     const { container } = render(<EditProfile />, { wrapper: createWrapper() });
@@ -70,5 +72,32 @@ describe('EditProfile', () => {
   it('renders profile form', () => {
     render(<EditProfile />, { wrapper: createWrapper() });
     expect(screen.getByTestId('edit-form')).toBeInTheDocument();
+  });
+
+  describe('save - no setState after navigate (finally block removed)', () => {
+    it('should call updateUser API on save click', async () => {
+      const user = userEvent.setup();
+      render(<EditProfile />, { wrapper: createWrapper() });
+
+      await user.click(screen.getByText('Save Changes'));
+
+      await waitFor(() => {
+        expect(mockUpdateUser).toHaveBeenCalled();
+      });
+    });
+
+    it('should re-enable save button on error (setIsSaving in catch only)', async () => {
+      const user = userEvent.setup();
+      mockUpdateUser.mockRejectedValue(new Error('Save failed'));
+
+      render(<EditProfile />, { wrapper: createWrapper() });
+
+      await user.click(screen.getByText('Save Changes'));
+
+      // After error, save button should be re-enabled (isSaving reset in catch, not finally)
+      await waitFor(() => {
+        expect(screen.getByText('Save Changes')).not.toBeDisabled();
+      });
+    });
   });
 });

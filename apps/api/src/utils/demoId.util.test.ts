@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { isDemoUserId, isDemoId, rejectDemoId, DemoIdError } from './demoId.util.js';
 
-describe('isDemoUserId', () => {
+describe('[P2][infra] isDemoUserId', () => {
   describe('demo user IDs', () => {
     it('should return true for demo-user-* prefixed IDs', () => {
       expect(isDemoUserId('demo-user-1')).toBe(true);
@@ -57,7 +57,7 @@ describe('isDemoUserId', () => {
   });
 });
 
-describe('isDemoId', () => {
+describe('[P2][infra] isDemoId', () => {
   describe('demo IDs', () => {
     it('should return true for demo-* prefixed IDs', () => {
       expect(isDemoId('demo-chat-1')).toBe(true);
@@ -93,7 +93,7 @@ describe('isDemoId', () => {
   });
 });
 
-describe('rejectDemoId', () => {
+describe('[P2][infra] rejectDemoId', () => {
   describe('demo IDs', () => {
     it('should throw DemoIdError for demo IDs', () => {
       expect(() => rejectDemoId('demo-user-1')).toThrow(DemoIdError);
@@ -135,7 +135,7 @@ describe('rejectDemoId', () => {
   });
 });
 
-describe('DemoIdError', () => {
+describe('[P2][infra] DemoIdError', () => {
   it('should have correct name', () => {
     const error = new DemoIdError('test message');
     expect(error.name).toBe('DemoIdError');

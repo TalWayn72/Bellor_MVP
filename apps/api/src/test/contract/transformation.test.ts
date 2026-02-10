@@ -11,6 +11,7 @@ import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vites
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
+import type { User } from '@prisma/client';
 import { UserResponseSchema } from '@bellor/shared/schemas';
 
 let app: FastifyInstance;
@@ -75,9 +76,9 @@ const mockDbUser = {
 // ============================================
 // DATABASE TO API TRANSFORMATION
 // ============================================
-describe('Database to API Transformation', () => {
+describe('[P2][infra] Database to API Transformation', () => {
   it('transforms DB fields to camelCase API response', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as unknown as User);
 
     const response = await app.inject({
       method: 'GET',
@@ -140,14 +141,14 @@ describe('Database to API Transformation', () => {
 // ============================================
 // FRONTEND TO API TRANSFORMATION (UPDATE)
 // ============================================
-describe('Frontend to API Transformation (Profile Update)', () => {
+describe('[P2][infra] Frontend to API Transformation (Profile Update)', () => {
   it('accepts snake_case fields from legacy frontend', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as unknown as User);
     vi.mocked(prisma.user.update).mockResolvedValue({
       ...mockDbUser,
       firstName: 'Updated',
       bio: 'New bio',
-    } as any);
+    } as unknown as User);
 
     // Legacy frontend sends snake_case
     const snakeCaseUpdate = {
@@ -174,12 +175,12 @@ describe('Frontend to API Transformation (Profile Update)', () => {
   });
 
   it('accepts camelCase fields from modern frontend', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as unknown as User);
     vi.mocked(prisma.user.update).mockResolvedValue({
       ...mockDbUser,
       firstName: 'Modern',
       bio: 'Modern bio',
-    } as any);
+    } as unknown as User);
 
     // Modern frontend sends camelCase
     const camelCaseUpdate = {
@@ -206,11 +207,11 @@ describe('Frontend to API Transformation (Profile Update)', () => {
   });
 
   it('handles mixed camelCase and snake_case fields', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as unknown as User);
     vi.mocked(prisma.user.update).mockResolvedValue({
       ...mockDbUser,
       firstName: 'Mixed',
-    } as any);
+    } as unknown as User);
 
     // Mixed format (shouldn't happen but should be handled gracefully)
     const mixedUpdate = {
@@ -234,13 +235,13 @@ describe('Frontend to API Transformation (Profile Update)', () => {
 // ============================================
 // DATE FIELD TRANSFORMATIONS
 // ============================================
-describe('Date Field Transformations', () => {
+describe('[P2][infra] Date Field Transformations', () => {
   it('accepts birthDate in camelCase', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as unknown as User);
     vi.mocked(prisma.user.update).mockResolvedValue({
       ...mockDbUser,
       birthDate: new Date('1995-05-15'),
-    } as any);
+    } as unknown as User);
 
     const response = await app.inject({
       method: 'PATCH',
@@ -253,11 +254,11 @@ describe('Date Field Transformations', () => {
   });
 
   it('accepts date_of_birth in snake_case (legacy)', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as unknown as User);
     vi.mocked(prisma.user.update).mockResolvedValue({
       ...mockDbUser,
       birthDate: new Date('1995-05-15'),
-    } as any);
+    } as unknown as User);
 
     const response = await app.inject({
       method: 'PATCH',
@@ -270,8 +271,8 @@ describe('Date Field Transformations', () => {
   });
 
   it('accepts age and converts to birthDate', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockDbUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as unknown as User);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockDbUser as unknown as User);
 
     const response = await app.inject({
       method: 'PATCH',
@@ -287,13 +288,13 @@ describe('Date Field Transformations', () => {
 // ============================================
 // ENUM TRANSFORMATIONS
 // ============================================
-describe('Enum Transformations', () => {
+describe('[P2][infra] Enum Transformations', () => {
   it('transforms lowercase gender to uppercase enum', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as unknown as User);
     vi.mocked(prisma.user.update).mockResolvedValue({
       ...mockDbUser,
       gender: 'FEMALE',
-    } as any);
+    } as unknown as User);
 
     const response = await app.inject({
       method: 'PATCH',
@@ -306,8 +307,8 @@ describe('Enum Transformations', () => {
   });
 
   it('transforms looking_for string to lookingFor array', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockDbUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as unknown as User);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockDbUser as unknown as User);
 
     const response = await app.inject({
       method: 'PATCH',
@@ -320,8 +321,8 @@ describe('Enum Transformations', () => {
   });
 
   it('transforms "both" to both genders array', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockDbUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as unknown as User);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockDbUser as unknown as User);
 
     const response = await app.inject({
       method: 'PATCH',
@@ -337,10 +338,10 @@ describe('Enum Transformations', () => {
 // ============================================
 // LOCATION TRANSFORMATIONS
 // ============================================
-describe('Location Transformations', () => {
+describe('[P2][infra] Location Transformations', () => {
   it('transforms string location to object', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockDbUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as unknown as User);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockDbUser as unknown as User);
 
     const response = await app.inject({
       method: 'PATCH',
@@ -353,8 +354,8 @@ describe('Location Transformations', () => {
   });
 
   it('accepts location object with coordinates', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockDbUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as unknown as User);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockDbUser as unknown as User);
 
     const response = await app.inject({
       method: 'PATCH',
@@ -377,17 +378,19 @@ describe('Location Transformations', () => {
 // ============================================
 // ARRAY FIELD TRANSFORMATIONS
 // ============================================
-describe('Array Field Transformations', () => {
+describe('[P2][infra] Array Field Transformations', () => {
   it('filters out empty strings from profileImages', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockDbUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as unknown as User);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockDbUser as unknown as User);
 
+    // The updateProfileSchema uses z.array(z.string()) which does not accept null values.
+    // Only valid string values (including empty strings) are accepted by the schema.
     const response = await app.inject({
       method: 'PATCH',
       url: '/api/v1/users/test-user-id',
       headers: { authorization: authHeader() },
       payload: {
-        profileImages: ['https://example.com/1.jpg', '', 'https://example.com/2.jpg', null],
+        profileImages: ['https://example.com/1.jpg', '', 'https://example.com/2.jpg'],
       },
     });
 
@@ -395,8 +398,8 @@ describe('Array Field Transformations', () => {
   });
 
   it('handles interests array', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockDbUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as unknown as User);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockDbUser as unknown as User);
 
     const response = await app.inject({
       method: 'PATCH',
@@ -414,10 +417,10 @@ describe('Array Field Transformations', () => {
 // ============================================
 // BACKWARD COMPATIBILITY
 // ============================================
-describe('Backward Compatibility with Legacy Fields', () => {
+describe('[P2][infra] Backward Compatibility with Legacy Fields', () => {
   it('ignores unknown legacy fields gracefully', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockDbUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockDbUser as unknown as User);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockDbUser as unknown as User);
 
     const legacyPayload = {
       firstName: 'Test',

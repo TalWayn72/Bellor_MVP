@@ -65,7 +65,7 @@ const createMemoryWrapper = (initialEntries = ['/Onboarding']) => {
   );
 };
 
-describe('Onboarding', () => {
+describe('[P0][auth] Onboarding', () => {
   beforeEach(() => { vi.clearAllMocks(); vi.useFakeTimers(); });
 
   afterEach(() => { vi.useRealTimers(); });

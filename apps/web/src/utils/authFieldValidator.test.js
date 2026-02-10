@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { validateAuthUserFields, assertSnakeCaseField } from './authFieldValidator';
 
-describe('authFieldValidator', () => {
+describe('[P0][auth] authFieldValidator', () => {
   let warnSpy;
   let errorSpy;
 

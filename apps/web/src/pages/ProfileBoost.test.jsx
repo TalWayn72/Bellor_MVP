@@ -39,7 +39,7 @@ const createWrapper = () => {
   );
 };
 
-describe('ProfileBoost', () => {
+describe('[P2][payments] ProfileBoost', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

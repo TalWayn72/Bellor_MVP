@@ -9,6 +9,7 @@ import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vites
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader, generateTestToken } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
+import type { User, Chat, Message } from '@prisma/client';
 
 let app: FastifyInstance;
 
@@ -27,7 +28,7 @@ beforeEach(() => {
 // ============================================
 // JWT VALIDATION
 // ============================================
-describe('JWT Security', () => {
+describe('[P0][safety] JWT Security', () => {
   it('should reject expired tokens', async () => {
     const jwt = await import('jsonwebtoken');
     const secret = process.env.JWT_SECRET || 'test-jwt-secret-min-32-chars-for-testing-12345678';
@@ -113,7 +114,7 @@ describe('JWT Security', () => {
 // ============================================
 // SQL INJECTION PREVENTION
 // ============================================
-describe('SQL Injection Prevention', () => {
+describe('[P0][safety] SQL Injection Prevention', () => {
   it('should safely handle SQL injection in user search', async () => {
     vi.mocked(prisma.user.findMany).mockResolvedValue([]);
     vi.mocked(prisma.user.count).mockResolvedValue(0);
@@ -145,7 +146,7 @@ describe('SQL Injection Prevention', () => {
 // ============================================
 // XSS PREVENTION
 // ============================================
-describe('XSS Prevention', () => {
+describe('[P0][safety] XSS Prevention', () => {
   it('should not reflect script tags in error responses', async () => {
     const response = await app.inject({
       method: 'GET',
@@ -180,13 +181,13 @@ describe('XSS Prevention', () => {
       id: 'chat-1',
       user1Id: 'test-user-id',
       user2Id: 'other-user',
-    } as any);
+    } as unknown as Chat);
     vi.mocked(prisma.message.create).mockResolvedValue({
       id: 'msg-1',
       content: '<script>alert(1)</script>',
       senderId: 'test-user-id',
-    } as any);
-    vi.mocked(prisma.chat.update).mockResolvedValue({} as any);
+    } as unknown as Message);
+    vi.mocked(prisma.chat.update).mockResolvedValue({} as unknown as Chat);
 
     const response = await app.inject({
       method: 'POST',
@@ -204,7 +205,7 @@ describe('XSS Prevention', () => {
 // ============================================
 // AUTHORIZATION / ACCESS CONTROL
 // ============================================
-describe('Authorization & Access Control', () => {
+describe('[P0][safety] Authorization & Access Control', () => {
   it('should prevent users from updating other users profiles', async () => {
     const response = await app.inject({
       method: 'PATCH',
@@ -253,7 +254,7 @@ describe('Authorization & Access Control', () => {
 // ============================================
 // INPUT VALIDATION
 // ============================================
-describe('Input Validation', () => {
+describe('[P0][safety] Input Validation', () => {
   it('should reject registration with weak password', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -323,7 +324,7 @@ describe('Input Validation', () => {
 // ============================================
 // SENSITIVE DATA EXPOSURE
 // ============================================
-describe('Sensitive Data Exposure Prevention', () => {
+describe('[P0][safety] Sensitive Data Exposure Prevention', () => {
   it('should not expose password hash in user responses', async () => {
     // Prisma select clause prevents passwordHash from being returned
     // Mock reflects what Prisma actually returns with the select clause
@@ -342,7 +343,7 @@ describe('Sensitive Data Exposure Prevention', () => {
       isPremium: false,
       createdAt: new Date(),
       lastActiveAt: new Date(),
-    } as any);
+    } as unknown as User);
 
     const response = await app.inject({
       method: 'GET',

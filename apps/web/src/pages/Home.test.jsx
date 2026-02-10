@@ -26,7 +26,7 @@ const createWrapper = () => {
   );
 };
 
-describe('Home', () => {
+describe('[P1][content] Home', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

@@ -44,7 +44,7 @@ const createWrapper = () => {
   );
 };
 
-describe('PrivacySettings', () => {
+describe('[P2][profile] PrivacySettings', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

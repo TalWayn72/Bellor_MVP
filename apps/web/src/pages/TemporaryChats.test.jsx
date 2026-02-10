@@ -47,7 +47,7 @@ const createWrapper = () => {
   );
 };
 
-describe('TemporaryChats', () => {
+describe('[P1][chat] TemporaryChats', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

@@ -37,7 +37,7 @@ const createWrapper = () => {
   );
 };
 
-describe('ReferralProgram', () => {
+describe('[P3][social] ReferralProgram', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

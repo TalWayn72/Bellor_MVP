@@ -6,7 +6,7 @@ import {
   transformStory, transformFollow,
 } from './responseTransformer';
 
-describe('responseTransformer', () => {
+describe('[P1][content] responseTransformer', () => {
   describe('transformResponse', () => {
     it('returns null/undefined as-is', () => {
       expect(transformResponse(null)).toBeNull();

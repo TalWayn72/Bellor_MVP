@@ -141,12 +141,12 @@ function mockGoogleTokenExchange(): void {
 // Tests
 // ============================================
 
-describe('GoogleOAuthService', () => {
+describe('[P0][auth] GoogleOAuthService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
     // Reset the static client to ensure fresh OAuth2Client per test
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     (GoogleOAuthService as Record<string, unknown>)['client'] = null;
 
     // Re-establish OAuth2Client constructor mock after clearAllMocks

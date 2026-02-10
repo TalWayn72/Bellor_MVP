@@ -20,7 +20,7 @@ import {
 } from './securityEventReporter';
 import { tokenStorage } from '@/api/client/tokenStorage';
 
-describe('securityEventReporter', () => {
+describe('[P0][safety] securityEventReporter', () => {
   let fetchSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {

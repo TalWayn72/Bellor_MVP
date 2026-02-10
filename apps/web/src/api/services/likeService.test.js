@@ -12,7 +12,7 @@ vi.mock('../client/apiClient', () => ({
 import { likeService } from './likeService';
 import { apiClient } from '../client/apiClient';
 
-describe('likeService', () => {
+describe('[P1][social] likeService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

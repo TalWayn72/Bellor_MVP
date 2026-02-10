@@ -10,6 +10,7 @@ import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
 import { redis } from '../../lib/redis.js';
+import type { User } from '@prisma/client';
 
 let app: FastifyInstance;
 
@@ -25,7 +26,7 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe('POST /api/v1/auth/login', () => {
+describe('[P0][auth] POST /api/v1/auth/login', () => {
   it('should login with valid credentials', async () => {
     // The AuthService.login is called, which checks prisma + bcrypt
     // Since AuthService uses the mocked prisma, we mock the user lookup
@@ -38,8 +39,8 @@ describe('POST /api/v1/auth/login', () => {
       isBlocked: false,
       isVerified: false,
       isPremium: false,
-    } as any);
-    vi.mocked(prisma.user.update).mockResolvedValue({} as any);
+    } as unknown as User);
+    vi.mocked(prisma.user.update).mockResolvedValue({} as unknown as User);
     vi.mocked(redis.setex).mockResolvedValue('OK');
 
     // Note: This will fail bcrypt check since we can't easily mock bcrypt here.
@@ -109,7 +110,7 @@ describe('POST /api/v1/auth/login', () => {
       email: 'blocked@example.com',
       passwordHash: 'hash',
       isBlocked: true,
-    } as any);
+    } as unknown as User);
 
     const response = await app.inject({
       method: 'POST',
@@ -121,7 +122,7 @@ describe('POST /api/v1/auth/login', () => {
   });
 });
 
-describe('POST /api/v1/auth/refresh', () => {
+describe('[P0][auth] POST /api/v1/auth/refresh', () => {
   it('should return 400 for missing refresh token', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -143,7 +144,7 @@ describe('POST /api/v1/auth/refresh', () => {
   });
 });
 
-describe('GET /api/v1/auth/me', () => {
+describe('[P0][auth] GET /api/v1/auth/me', () => {
   it('should return 401 without authorization header', async () => {
     const response = await app.inject({
       method: 'GET',
@@ -184,7 +185,7 @@ describe('GET /api/v1/auth/me', () => {
       lastActiveAt: new Date(),
     };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
 
     const response = await app.inject({
       method: 'GET',

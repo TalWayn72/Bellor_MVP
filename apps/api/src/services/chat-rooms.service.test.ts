@@ -8,7 +8,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { chatService } from './chat.service.js';
 import { mockPrisma, createMockUser, createMockChat, createMockMessage } from './chat-test-helpers.js';
 
-describe('chatService - getUserChats', () => {
+describe('[P1][chat] chatService - getUserChats', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -117,7 +117,7 @@ describe('chatService - getUserChats', () => {
   });
 });
 
-describe('chatService - getChatById', () => {
+describe('[P1][chat] chatService - getChatById', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -177,7 +177,7 @@ describe('chatService - getChatById', () => {
   });
 });
 
-describe('chatService - createOrGetChat', () => {
+describe('[P1][chat] chatService - createOrGetChat', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Mock target user lookup (validation added to createOrGetChat)

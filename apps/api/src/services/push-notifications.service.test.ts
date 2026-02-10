@@ -46,7 +46,7 @@ vi.mock('firebase-admin', () => ({
   },
 }));
 
-describe('PushNotificationsService', () => {
+describe('[P1][social] PushNotificationsService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

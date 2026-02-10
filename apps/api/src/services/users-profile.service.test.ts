@@ -12,7 +12,7 @@ import { createMockUser } from './users-test-helpers.js';
 import { UsersService } from './users.service.js';
 import { prisma } from '../lib/prisma.js';
 
-describe('UsersService - updateUserProfile', () => {
+describe('[P2][profile] UsersService - updateUserProfile', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -25,8 +25,8 @@ describe('UsersService - updateUserProfile', () => {
     const mockUser = createMockUser();
     const updateInput = { firstName: 'Jane', lastName: 'Smith', bio: 'Updated bio' };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, ...updateInput } as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, ...updateInput } as unknown);
 
     const result = await UsersService.updateUserProfile('test-user-id', updateInput);
 
@@ -46,8 +46,8 @@ describe('UsersService - updateUserProfile', () => {
   it('should only update firstName when provided', async () => {
     const mockUser = createMockUser();
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as unknown);
 
     await UsersService.updateUserProfile('test-user-id', { firstName: 'NewName' });
 
@@ -63,8 +63,8 @@ describe('UsersService - updateUserProfile', () => {
   it('should only update lastName when provided', async () => {
     const mockUser = createMockUser();
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as unknown);
 
     await UsersService.updateUserProfile('test-user-id', { lastName: 'NewLastName' });
 
@@ -80,8 +80,8 @@ describe('UsersService - updateUserProfile', () => {
   it('should only update bio when provided', async () => {
     const mockUser = createMockUser();
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as unknown);
 
     await UsersService.updateUserProfile('test-user-id', { bio: 'New bio text' });
 
@@ -97,8 +97,8 @@ describe('UsersService - updateUserProfile', () => {
   it('should return updated user with selected fields', async () => {
     const mockUser = createMockUser();
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as unknown);
 
     await UsersService.updateUserProfile('test-user-id', { firstName: 'Test' });
 
@@ -118,8 +118,8 @@ describe('UsersService - updateUserProfile', () => {
     const mockUser = createMockUser();
     const updateInput = { firstName: 'New', lastName: 'Name', bio: 'New bio' };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, ...updateInput } as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, ...updateInput } as unknown);
 
     await UsersService.updateUserProfile('test-user-id', updateInput);
 
@@ -133,8 +133,8 @@ describe('UsersService - updateUserProfile', () => {
   it('should always set lastActiveAt when updating profile', async () => {
     const mockUser = createMockUser();
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as unknown);
 
     await UsersService.updateUserProfile('test-user-id', { firstName: 'Test' });
 
@@ -150,8 +150,8 @@ describe('UsersService - updateUserProfile', () => {
   it('should store nickname in nickname field', async () => {
     const mockUser = createMockUser();
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as unknown);
 
     await UsersService.updateUserProfile('test-user-id', { nickname: 'NickName' });
 
@@ -166,8 +166,8 @@ describe('UsersService - updateUserProfile', () => {
     const mockUser = createMockUser();
     const images = ['https://example.com/img1.jpg', 'https://example.com/img2.jpg'];
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as unknown);
 
     await UsersService.updateUserProfile('test-user-id', { profile_images: images });
 
@@ -181,8 +181,8 @@ describe('UsersService - updateUserProfile', () => {
   it('should convert gender to uppercase', async () => {
     const mockUser = createMockUser();
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as unknown);
 
     await UsersService.updateUserProfile('test-user-id', { gender: 'male' });
 
@@ -196,8 +196,8 @@ describe('UsersService - updateUserProfile', () => {
   it('should convert age to birthDate', async () => {
     const mockUser = createMockUser();
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as unknown);
 
     await UsersService.updateUserProfile('test-user-id', { age: 25 });
 
@@ -211,8 +211,8 @@ describe('UsersService - updateUserProfile', () => {
   it('should convert string location to object', async () => {
     const mockUser = createMockUser();
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as unknown);
 
     await UsersService.updateUserProfile('test-user-id', { location: 'Tel Aviv' });
 
@@ -226,8 +226,8 @@ describe('UsersService - updateUserProfile', () => {
   it('should include expanded select fields', async () => {
     const mockUser = createMockUser();
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as unknown);
 
     await UsersService.updateUserProfile('test-user-id', { bio: 'test' });
 

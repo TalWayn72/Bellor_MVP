@@ -30,7 +30,7 @@ const createMockFollow = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-describe('FollowsService', () => {
+describe('[P1][social] FollowsService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

@@ -31,7 +31,7 @@ const createWrapper = () => {
   );
 };
 
-describe('EmailSupport', () => {
+describe('[P3][profile] EmailSupport', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

@@ -83,7 +83,7 @@ const createWrapper = () => {
   );
 };
 
-describe('Profile', () => {
+describe('[P2][profile] Profile', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseCurrentUser.mockReturnValue({

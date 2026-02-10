@@ -10,6 +10,7 @@ import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
 import { redis } from '../../lib/redis.js';
+import type { User } from '@prisma/client';
 
 let app: FastifyInstance;
 
@@ -25,7 +26,7 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe('POST /api/v1/auth/logout', () => {
+describe('[P0][auth] POST /api/v1/auth/logout', () => {
   it('should return 401 without authorization', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -50,7 +51,7 @@ describe('POST /api/v1/auth/logout', () => {
   });
 });
 
-describe('POST /api/v1/auth/change-password', () => {
+describe('[P0][auth] POST /api/v1/auth/change-password', () => {
   it('should return 401 without authorization', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -90,14 +91,14 @@ describe('POST /api/v1/auth/change-password', () => {
   });
 });
 
-describe('POST /api/v1/auth/forgot-password', () => {
+describe('[P0][auth] POST /api/v1/auth/forgot-password', () => {
   it('should return 200 for valid email (user exists)', async () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       id: 'test-user-id',
       email: 'test@example.com',
       firstName: 'Test',
       isBlocked: false,
-    } as any);
+    } as unknown as User);
     vi.mocked(redis.setex).mockResolvedValue('OK');
 
     const response = await app.inject({
@@ -153,7 +154,7 @@ describe('POST /api/v1/auth/forgot-password', () => {
       email: 'blocked@example.com',
       firstName: 'Blocked',
       isBlocked: true,
-    } as any);
+    } as unknown as User);
 
     const response = await app.inject({
       method: 'POST',
@@ -166,7 +167,7 @@ describe('POST /api/v1/auth/forgot-password', () => {
   });
 });
 
-describe('POST /api/v1/auth/reset-password', () => {
+describe('[P0][auth] POST /api/v1/auth/reset-password', () => {
   it('should return 400 for invalid/expired token', async () => {
     vi.mocked(redis.get).mockResolvedValue(null);
 
@@ -222,7 +223,7 @@ describe('POST /api/v1/auth/reset-password', () => {
   });
 });
 
-describe('GET /api/v1/health', () => {
+describe('[P0][auth] GET /api/v1/health', () => {
   it('should return health status', async () => {
     const response = await app.inject({
       method: 'GET',

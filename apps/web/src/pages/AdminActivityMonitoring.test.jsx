@@ -44,7 +44,7 @@ const createWrapper = () => {
   );
 };
 
-describe('AdminActivityMonitoring', () => {
+describe('[P2][admin] AdminActivityMonitoring', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

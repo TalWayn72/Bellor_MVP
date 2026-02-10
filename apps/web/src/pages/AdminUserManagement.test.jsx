@@ -41,7 +41,7 @@ const createWrapper = () => {
   );
 };
 
-describe('AdminUserManagement', () => {
+describe('[P2][admin] AdminUserManagement', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

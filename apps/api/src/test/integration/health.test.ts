@@ -63,7 +63,7 @@ function buildHealthApp(): FastifyInstance {
   return app;
 }
 
-describe('Health Endpoints', () => {
+describe('[P2][infra] Health Endpoints', () => {
   let app: FastifyInstance;
 
   beforeAll(async () => {

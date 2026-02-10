@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { memoryMonitor } from './memory-monitor.js';
 
-describe('MemoryMonitor', () => {
+describe('[P2][infra] MemoryMonitor', () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });

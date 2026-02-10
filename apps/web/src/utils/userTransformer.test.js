@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { calculateAge, formatLocation, transformUser } from './userTransformer.js';
 
-describe('userTransformer', () => {
+describe('[P2][profile] userTransformer', () => {
   describe('calculateAge', () => {
     it('should calculate age correctly from birth date', () => {
       // Person born 25 years ago

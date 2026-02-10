@@ -58,7 +58,7 @@ vi.mock('../config/env.js', () => ({
 import { storageService } from './storage.service.js';
 import sharp from 'sharp';
 
-describe('StorageService', () => {
+describe('[P2][infra] StorageService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset mock implementations

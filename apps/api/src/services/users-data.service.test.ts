@@ -11,7 +11,7 @@ import { createMockUser } from './users-test-helpers.js';
 import { UsersService } from './users.service.js';
 import { prisma } from '../lib/prisma.js';
 
-describe('UsersService - getUserStats', () => {
+describe('[P2][profile] UsersService - getUserStats', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -29,7 +29,7 @@ describe('UsersService - getUserStats', () => {
       _count: { sentMessages: 100, chatsAsUser1: 5, chatsAsUser2: 3 },
     };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
 
     const result = await UsersService.getUserStats('test-user-id');
 
@@ -51,7 +51,7 @@ describe('UsersService - getUserStats', () => {
       id: 'test-user-id', isPremium: false, createdAt: new Date(), lastActiveAt: null,
       _count: { sentMessages: 0, chatsAsUser1: 0, chatsAsUser2: 0 },
     };
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
     await UsersService.getUserStats('test-user-id');
     expect(prisma.user.findUnique).toHaveBeenCalledWith({
       where: { id: 'test-user-id' },
@@ -64,7 +64,7 @@ describe('UsersService - getUserStats', () => {
       id: 'test-user-id', isPremium: false, createdAt: new Date(), lastActiveAt: null,
       _count: { sentMessages: 0, chatsAsUser1: 0, chatsAsUser2: 0 },
     };
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
     const result = await UsersService.getUserStats('test-user-id');
     expect(result.messagesCount).toBe(0);
     expect(result.chatsCount).toBe(0);
@@ -75,13 +75,13 @@ describe('UsersService - getUserStats', () => {
       id: 'test-user-id', isPremium: false, createdAt: new Date(), lastActiveAt: null,
       _count: { sentMessages: 0, chatsAsUser1: 0, chatsAsUser2: 0 },
     };
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
     const result = await UsersService.getUserStats('test-user-id');
     expect(result.lastLogin).toBeNull();
   });
 });
 
-describe('UsersService - exportUserData (GDPR Article 20)', () => {
+describe('[P2][profile] UsersService - exportUserData (GDPR Article 20)', () => {
   const createFullMockUser = (overrides = {}) => ({
     ...createMockUser(),
     location: { city: 'Tel Aviv', country: 'Israel' },
@@ -108,7 +108,7 @@ describe('UsersService - exportUserData (GDPR Article 20)', () => {
   afterEach(() => { vi.restoreAllMocks(); });
 
   it('should export all user data successfully', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createFullMockUser() as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(createFullMockUser() as never);
     const result = await UsersService.exportUserData('test-user-id');
     expect(result).toHaveProperty('personalInformation');
     expect(result).toHaveProperty('preferences');
@@ -119,7 +119,7 @@ describe('UsersService - exportUserData (GDPR Article 20)', () => {
   });
 
   it('should include personal information in export', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createFullMockUser() as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(createFullMockUser() as never);
     const result = await UsersService.exportUserData('test-user-id');
     expect(result.personalInformation).toEqual({
       id: 'test-user-id', email: 'test@example.com', firstName: 'John', lastName: 'Doe',
@@ -131,14 +131,14 @@ describe('UsersService - exportUserData (GDPR Article 20)', () => {
   });
 
   it('should include messages in export', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createFullMockUser() as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(createFullMockUser() as never);
     const result = await UsersService.exportUserData('test-user-id');
     expect(result.content.messages).toHaveLength(2);
     expect(result.content.messages[0].content).toBe('Hello');
   });
 
   it('should include achievements in export', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createFullMockUser() as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(createFullMockUser() as never);
     const result = await UsersService.exportUserData('test-user-id');
     expect(result.achievements).toHaveLength(1);
     expect(result.achievements[0].name).toBe('First Match');
@@ -146,7 +146,7 @@ describe('UsersService - exportUserData (GDPR Article 20)', () => {
   });
 
   it('should include statistics in export', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createFullMockUser() as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(createFullMockUser() as never);
     const result = await UsersService.exportUserData('test-user-id');
     expect(result.statistics).toEqual({ responseCount: 5, chatCount: 3, missionCompletedCount: 2 });
   });
@@ -157,7 +157,7 @@ describe('UsersService - exportUserData (GDPR Article 20)', () => {
   });
 
   it('should query with include for related data', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createFullMockUser() as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(createFullMockUser() as never);
     await UsersService.exportUserData('test-user-id');
     expect(prisma.user.findUnique).toHaveBeenCalledWith({
       where: { id: 'test-user-id' },
@@ -170,7 +170,7 @@ describe('UsersService - exportUserData (GDPR Article 20)', () => {
 
   it('should handle user with no content', async () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue(
-      createFullMockUser({ sentMessages: [], responses: [], stories: [], achievements: [] }) as any
+      createFullMockUser({ sentMessages: [], responses: [], stories: [], achievements: [] }) as never
     );
     const result = await UsersService.exportUserData('test-user-id');
     expect(result.content.messages).toHaveLength(0);

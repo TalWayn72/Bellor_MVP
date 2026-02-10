@@ -16,7 +16,7 @@ import { prisma } from '../lib/prisma.js';
 import { redis } from '../lib/redis.js';
 import { generateAccessToken, verifyRefreshToken } from '../utils/jwt.util.js';
 
-describe('AuthService - refresh', () => {
+describe('[P0][auth] AuthService - refresh', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(generateAccessToken).mockReturnValue('mock-access-token');
@@ -28,7 +28,7 @@ describe('AuthService - refresh', () => {
   it('should verify refresh token with JWT utility', async () => {
     const mockUser = { id: 'test-user-id', email: 'test@example.com', isBlocked: false };
     vi.mocked(redis.get).mockResolvedValue('mock-refresh-token');
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
     await AuthService.refresh('mock-refresh-token');
     expect(verifyRefreshToken).toHaveBeenCalledWith('mock-refresh-token');
   });
@@ -36,7 +36,7 @@ describe('AuthService - refresh', () => {
   it('should check refresh token in Redis', async () => {
     const mockUser = { id: 'test-user-id', email: 'test@example.com', isBlocked: false };
     vi.mocked(redis.get).mockResolvedValue('mock-refresh-token');
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
     await AuthService.refresh('mock-refresh-token');
     expect(redis.get).toHaveBeenCalledWith('refresh_token:test-user-id');
   });
@@ -59,35 +59,35 @@ describe('AuthService - refresh', () => {
 
   it('should throw error if user is blocked', async () => {
     vi.mocked(redis.get).mockResolvedValue('mock-refresh-token');
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'test-user-id', email: 'test@example.com', isBlocked: true } as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'test-user-id', email: 'test@example.com', isBlocked: true } as unknown);
     await expect(AuthService.refresh('mock-refresh-token')).rejects.toThrow('User not found or inactive');
   });
 
   it('should generate new access token on success', async () => {
     const mockUser = { id: 'test-user-id', email: 'test@example.com', isBlocked: false, isAdmin: false };
     vi.mocked(redis.get).mockResolvedValue('mock-refresh-token');
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
     const result = await AuthService.refresh('mock-refresh-token');
     expect(result).toHaveProperty('accessToken');
     expect(generateAccessToken).toHaveBeenCalledWith(mockUser.id, mockUser.email, mockUser.isAdmin);
   });
 });
 
-describe('AuthService - verifyPassword', () => {
+describe('[P0][auth] AuthService - verifyPassword', () => {
   beforeEach(() => { vi.clearAllMocks(); });
   afterEach(() => { vi.restoreAllMocks(); });
 
   it('should return true for correct password', async () => {
     const password = 'Test123456!';
     const hashedPassword = await bcrypt.hash(password, 12);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'test-user-id', passwordHash: hashedPassword } as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'test-user-id', passwordHash: hashedPassword } as unknown);
     const result = await AuthService.verifyPassword('test-user-id', password);
     expect(result).toBe(true);
   });
 
   it('should return false for incorrect password', async () => {
     const hashedPassword = await bcrypt.hash('correct-password', 12);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'test-user-id', passwordHash: hashedPassword } as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'test-user-id', passwordHash: hashedPassword } as unknown);
     const result = await AuthService.verifyPassword('test-user-id', 'wrong-password');
     expect(result).toBe(false);
   });
@@ -99,7 +99,7 @@ describe('AuthService - verifyPassword', () => {
   });
 
   it('should return false if user has no password hash', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'test-user-id', passwordHash: null } as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'test-user-id', passwordHash: null } as unknown);
     const result = await AuthService.verifyPassword('test-user-id', 'password');
     expect(result).toBe(false);
   });

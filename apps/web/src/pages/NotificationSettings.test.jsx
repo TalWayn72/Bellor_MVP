@@ -36,7 +36,7 @@ const createWrapper = () => {
   );
 };
 
-describe('NotificationSettings', () => {
+describe('[P2][profile] NotificationSettings', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('renders without crashing', () => {

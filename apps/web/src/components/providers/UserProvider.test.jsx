@@ -77,7 +77,7 @@ function createDeferred() {
 
 // --- Tests ---
 
-describe('UserProvider', () => {
+describe('[P0][auth] UserProvider', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, 'error').mockImplementation(() => {});

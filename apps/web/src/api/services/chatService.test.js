@@ -12,7 +12,7 @@ vi.mock('../client/apiClient', () => ({
   }
 }));
 
-describe('chatService', () => {
+describe('[P1][chat] chatService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

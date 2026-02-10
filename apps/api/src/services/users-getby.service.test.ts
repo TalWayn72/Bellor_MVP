@@ -12,7 +12,7 @@ import { createMockUser } from './users-test-helpers.js';
 import { UsersService } from './users.service.js';
 import { prisma } from '../lib/prisma.js';
 
-describe('UsersService - getUserById', () => {
+describe('[P2][profile] UsersService - getUserById', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -23,7 +23,7 @@ describe('UsersService - getUserById', () => {
 
   it('should return user when found', async () => {
     const mockUser = createMockUser();
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
 
     const result = await UsersService.getUserById('test-user-id');
 
@@ -42,7 +42,7 @@ describe('UsersService - getUserById', () => {
 
   it('should include isVerified in user details', async () => {
     const mockUser = createMockUser({ isVerified: true });
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
 
     await UsersService.getUserById('test-user-id');
 
@@ -56,7 +56,7 @@ describe('UsersService - getUserById', () => {
   });
 
   it('should select comprehensive user fields', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createMockUser() as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(createMockUser() as unknown);
 
     await UsersService.getUserById('test-user-id');
 

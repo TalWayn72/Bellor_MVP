@@ -9,6 +9,7 @@ import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vites
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
+import type { User, Like, Follow, Notification, Mission } from '@prisma/client';
 
 let app: FastifyInstance;
 
@@ -27,7 +28,7 @@ beforeEach(() => {
 // ============================================
 // LIKES
 // ============================================
-describe('Likes Endpoints', () => {
+describe('[P2][infra] Likes Endpoints', () => {
   describe('POST /api/v1/likes/user', () => {
     it('should return 401 without authorization', async () => {
       const response = await app.inject({
@@ -41,7 +42,7 @@ describe('Likes Endpoints', () => {
 
     it('should like a user', async () => {
       // Mock target user lookup (likeUser validates user exists)
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'user-2' } as any);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'user-2' } as unknown as User);
       vi.mocked(prisma.like.findUnique).mockResolvedValue(null); // No existing like
       vi.mocked(prisma.like.findFirst).mockResolvedValue(null); // No mutual like
       vi.mocked(prisma.like.create).mockResolvedValue({
@@ -50,8 +51,8 @@ describe('Likes Endpoints', () => {
         targetUserId: 'user-2',
         likeType: 'POSITIVE',
         createdAt: new Date(),
-      } as any);
-      vi.mocked(prisma.notification.create).mockResolvedValue({} as any);
+      } as unknown as Like);
+      vi.mocked(prisma.notification.create).mockResolvedValue({} as unknown as Notification);
 
       const response = await app.inject({
         method: 'POST',
@@ -109,7 +110,7 @@ describe('Likes Endpoints', () => {
 // ============================================
 // FOLLOWS
 // ============================================
-describe('Follows Endpoints', () => {
+describe('[P2][infra] Follows Endpoints', () => {
   describe('POST /api/v1/follows', () => {
     it('should return 401 without authorization', async () => {
       const response = await app.inject({
@@ -128,8 +129,8 @@ describe('Follows Endpoints', () => {
         followerId: 'test-user-id',
         followingId: 'user-2',
         createdAt: new Date(),
-      } as any);
-      vi.mocked(prisma.notification.create).mockResolvedValue({} as any);
+      } as unknown as Follow);
+      vi.mocked(prisma.notification.create).mockResolvedValue({} as unknown as Notification);
 
       const response = await app.inject({
         method: 'POST',
@@ -157,8 +158,8 @@ describe('Follows Endpoints', () => {
         id: 'follow-1',
         followerId: 'test-user-id',
         followingId: 'user-2',
-      } as any);
-      vi.mocked(prisma.follow.delete).mockResolvedValue({} as any);
+      } as unknown as Follow);
+      vi.mocked(prisma.follow.delete).mockResolvedValue({} as unknown as Follow);
 
       const response = await app.inject({
         method: 'DELETE',
@@ -204,7 +205,7 @@ describe('Follows Endpoints', () => {
 // ============================================
 // NOTIFICATIONS
 // ============================================
-describe('Notifications Endpoints', () => {
+describe('[P2][infra] Notifications Endpoints', () => {
   describe('GET /api/v1/notifications', () => {
     it('should return 401 without authorization', async () => {
       const response = await app.inject({
@@ -258,7 +259,7 @@ describe('Notifications Endpoints', () => {
 // ============================================
 // MISSIONS
 // ============================================
-describe('Missions Endpoints', () => {
+describe('[P2][infra] Missions Endpoints', () => {
   const mockMission = {
     id: 'mission-1',
     title: 'Daily Challenge',
@@ -281,7 +282,7 @@ describe('Missions Endpoints', () => {
     });
 
     it('should return missions list', async () => {
-      vi.mocked(prisma.mission.findMany).mockResolvedValue([mockMission] as any);
+      vi.mocked(prisma.mission.findMany).mockResolvedValue([mockMission] as unknown as Mission[]);
       vi.mocked(prisma.mission.count).mockResolvedValue(1);
 
       const response = await app.inject({
@@ -296,8 +297,8 @@ describe('Missions Endpoints', () => {
 
   describe('GET /api/v1/missions/today', () => {
     it('should return todays mission', async () => {
-      vi.mocked(prisma.mission.findMany).mockResolvedValue([mockMission] as any);
-      vi.mocked(prisma.mission.findFirst).mockResolvedValue(mockMission as any);
+      vi.mocked(prisma.mission.findMany).mockResolvedValue([mockMission] as unknown as Mission[]);
+      vi.mocked(prisma.mission.findFirst).mockResolvedValue(mockMission as unknown as Mission);
 
       const response = await app.inject({
         method: 'GET',
@@ -313,7 +314,7 @@ describe('Missions Endpoints', () => {
 // ============================================
 // RESPONSES
 // ============================================
-describe('Responses Endpoints', () => {
+describe('[P2][infra] Responses Endpoints', () => {
   describe('GET /api/v1/responses', () => {
     it('should return 401 without authorization', async () => {
       const response = await app.inject({
@@ -358,7 +359,7 @@ describe('Responses Endpoints', () => {
 // ============================================
 // STORIES
 // ============================================
-describe('Stories Endpoints', () => {
+describe('[P2][infra] Stories Endpoints', () => {
   describe('GET /api/v1/stories/feed', () => {
     it('should return 401 without authorization', async () => {
       const response = await app.inject({
@@ -400,7 +401,7 @@ describe('Stories Endpoints', () => {
 // ============================================
 // ACHIEVEMENTS
 // ============================================
-describe('Achievements Endpoints', () => {
+describe('[P2][infra] Achievements Endpoints', () => {
   describe('GET /api/v1/achievements', () => {
     it('should return 401 without authorization', async () => {
       const response = await app.inject({
