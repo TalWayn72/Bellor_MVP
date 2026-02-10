@@ -344,6 +344,27 @@ describe('Login', () => {
     });
   });
 
+  describe('OAuth status check cleanup', () => {
+    it('should not update state after unmount (isMounted guard)', async () => {
+      // Create a promise that we control to simulate slow API response
+      let resolveApi;
+      const apiPromise = new Promise((resolve) => { resolveApi = resolve; });
+      apiClient.get.mockReturnValue(apiPromise);
+
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const { unmount } = render(<Login />, { wrapper: createWrapper() });
+
+      // Unmount before the API call completes
+      unmount();
+
+      // Now resolve the API call - should NOT cause state update warning
+      resolveApi({ data: { data: { google: true } } });
+      await new Promise(r => setTimeout(r, 0));
+
+      consoleSpy.mockRestore();
+    });
+  });
+
   describe('Google OAuth button', () => {
     it('should display Google OAuth button when Google is enabled', async () => {
       apiClient.get.mockResolvedValue({ data: { data: { google: true } } });

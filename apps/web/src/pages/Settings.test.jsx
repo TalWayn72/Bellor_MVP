@@ -1,10 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+const mockLogout = vi.fn().mockResolvedValue(undefined);
+const mockNavigate = vi.fn();
+
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return { ...actual, useNavigate: () => mockNavigate };
+});
+
 vi.mock('@/lib/AuthContext', () => ({
-  useAuth: vi.fn(() => ({ logout: vi.fn() })),
+  useAuth: vi.fn(() => ({ logout: mockLogout })),
 }));
 
 vi.mock('../components/hooks/useCurrentUser', () => ({
@@ -41,7 +50,7 @@ const createWrapper = () => {
 };
 
 describe('Settings', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => { vi.clearAllMocks(); mockLogout.mockResolvedValue(undefined); mockNavigate.mockReset(); });
 
   it('renders without crashing', () => {
     const { container } = render(<Settings />, { wrapper: createWrapper() });
@@ -71,5 +80,35 @@ describe('Settings', () => {
   it('renders version info', () => {
     render(<Settings />, { wrapper: createWrapper() });
     expect(screen.getByText('Bellor v1.0.0')).toBeInTheDocument();
+  });
+
+  describe('logout - no double navigation', () => {
+    it('should call logout but NOT navigate (logout handles redirect via window.location)', async () => {
+      const user = userEvent.setup();
+      render(<Settings />, { wrapper: createWrapper() });
+
+      await user.click(screen.getByText('Logout'));
+
+      await waitFor(() => {
+        expect(mockLogout).toHaveBeenCalledTimes(1);
+      });
+      // navigate should NOT be called - logout() already redirects via window.location.href
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('should not crash when logout fails', async () => {
+      const user = userEvent.setup();
+      mockLogout.mockRejectedValue(new Error('Logout failed'));
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      render(<Settings />, { wrapper: createWrapper() });
+      await user.click(screen.getByText('Logout'));
+
+      await waitFor(() => {
+        expect(mockLogout).toHaveBeenCalledTimes(1);
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
   });
 });

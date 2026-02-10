@@ -17,7 +17,7 @@ export default function Settings() {
   const { currentUser, isLoading } = useCurrentUser();
 
   const handleLogout = async () => {
-    try { await logout(); navigate(createPageUrl('Welcome')); }
+    try { await logout(); }
     catch (error) { console.error('Error logging out:', error); }
   };
 

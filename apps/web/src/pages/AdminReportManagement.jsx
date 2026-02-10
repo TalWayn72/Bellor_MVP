@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { reportService, userService, responseService, adminService } from '@/api';
 import { Button } from '@/components/ui/button';
@@ -11,17 +12,17 @@ import { useToast } from '@/components/ui/use-toast';
 export default function AdminReportManagement() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [selectedReport, setSelectedReport] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
   const [reportedContent, setReportedContent] = useState({});
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const statusParam = params.get('status');
-    const reportIdParam = params.get('reportId');
+    const statusParam = searchParams.get('status');
+    const reportIdParam = searchParams.get('reportId');
     if (statusParam) setFilterStatus(statusParam);
     if (reportIdParam) setSelectedReport(reportIdParam);
-  }, []);
+  }, [searchParams]);
 
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ['admin-reports'],

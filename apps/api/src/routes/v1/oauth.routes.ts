@@ -21,7 +21,7 @@ export default async function oauthRoutes(app: FastifyInstance) {
 
       // Get return URL from query params
       const query = request.query as { returnUrl?: string };
-      const state = query.returnUrl ? encodeURIComponent(query.returnUrl) : '';
+      const state = query.returnUrl || '';
 
       const authUrl = GoogleOAuthService.getAuthorizationUrl(state);
 

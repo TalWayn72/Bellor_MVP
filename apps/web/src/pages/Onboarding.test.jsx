@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 vi.mock('@/api', () => ({
@@ -54,6 +54,17 @@ const createWrapper = () => {
   );
 };
 
+const createMemoryWrapper = (initialEntries = ['/Onboarding']) => {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  return ({ children }) => (
+    <QueryClientProvider client={qc}>
+      <MemoryRouter initialEntries={initialEntries} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        {children}
+      </MemoryRouter>
+    </QueryClientProvider>
+  );
+};
+
 describe('Onboarding', () => {
   beforeEach(() => { vi.clearAllMocks(); vi.useFakeTimers(); });
 
@@ -67,5 +78,32 @@ describe('Onboarding', () => {
   it('renders splash step by default (step 0)', () => {
     const { getByTestId } = render(<Onboarding />, { wrapper: createWrapper() });
     expect(getByTestId('step-splash')).toBeInTheDocument();
+  });
+
+  describe('race condition prevention (useSearchParams)', () => {
+    it('renders correct step from URL search params', () => {
+      const { getByTestId } = render(<Onboarding />, {
+        wrapper: createMemoryWrapper(['/Onboarding?step=1']),
+      });
+      expect(getByTestId('step-welcome')).toBeInTheDocument();
+    });
+
+    it('renders step 14 from URL search params', () => {
+      const { getByTestId } = render(<Onboarding />, {
+        wrapper: createMemoryWrapper(['/Onboarding?step=14']),
+      });
+      expect(getByTestId('step-question')).toBeInTheDocument();
+    });
+
+    it('step 0 auto-redirect timer is cleaned up on unmount', () => {
+      const { unmount, getByTestId } = render(<Onboarding />, {
+        wrapper: createMemoryWrapper(['/Onboarding']),
+      });
+      expect(getByTestId('step-splash')).toBeInTheDocument();
+
+      // Unmount before timer fires (1.5s) - should NOT throw
+      unmount();
+      vi.advanceTimersByTime(2000);
+    });
   });
 });

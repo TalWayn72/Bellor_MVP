@@ -5,7 +5,7 @@ A modern dating and social networking platform built for scale. Fully standalone
 [![CI](https://github.com/TalWayn72/Bellor_MVP/workflows/CI/badge.svg)](https://github.com/TalWayn72/Bellor_MVP/actions)
 ![Version](https://img.shields.io/badge/version-1.0.0--beta-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)
-![Tests](https://img.shields.io/badge/tests-3054%2B-green)
+![Tests](https://img.shields.io/badge/tests-3060%2B-green)
 ![License](https://img.shields.io/badge/license-Private-red)
 
 ---

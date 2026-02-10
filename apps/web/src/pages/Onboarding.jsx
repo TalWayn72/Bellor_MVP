@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { userService } from '@/api';
 import { useAuth } from '@/lib/AuthContext';
 import { createPageUrl } from '@/utils';
@@ -26,7 +26,8 @@ export default function Onboarding() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user: authUser, isAuthenticated } = useAuth();
-  const searchParams = new URLSearchParams(window.location.search);
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const emailFromUrl = searchParams.get('email') || '';
   const stepFromUrl = searchParams.get('step');
   const currentStep = stepFromUrl ? parseFloat(stepFromUrl) : 0;
@@ -64,11 +65,11 @@ export default function Onboarding() {
   }, [currentStep, isAuthenticated, authUser]);
 
   useEffect(() => {
-    if (currentStep === 0) {
+    if (currentStep === 0 && location.pathname.includes('Onboarding')) {
       const timer = setTimeout(() => navigate(createPageUrl('Onboarding') + '?step=1', { replace: true }), 1500);
       return () => clearTimeout(timer);
     }
-  }, [currentStep, navigate]);
+  }, [currentStep, navigate, location.pathname]);
 
   const saveProfileData = async (partialData) => {
     if (!authUser?.id) return false;
@@ -105,7 +106,8 @@ export default function Onboarding() {
       } catch (error) {
         const errorMessage = error?.response?.data?.error?.message || error?.response?.data?.message || error?.message || 'Error saving data. Please try again.';
         toast({ title: 'Error', description: errorMessage, variant: 'destructive' });
-      } finally { setIsLoading(false); }
+        setIsLoading(false);
+      }
     }
   };
 

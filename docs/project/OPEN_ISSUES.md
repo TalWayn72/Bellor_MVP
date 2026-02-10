@@ -109,8 +109,9 @@
 | **TASK-059: File Size Enforcement - 150 Line Max (Wave 2) (Feb 10)** | 34 files | 🟢 שיפור | ✅ הושלם |
 | **TASK-059: WebSocket Integration Tests - Memory Leak Cleanup (Feb 9)** | 5 | 🟡 בינוני | ✅ הושלם |
 | **TASK-060: Production Memory Monitoring - Real-time Metrics & Alerts (Feb 9)** | 5 | 🟢 שיפור | ✅ הושלם |
+| **ISSUE-033: Onboarding→SharedSpace Redirect Race Condition (Feb 10)** | 8 | 🔴 קריטי | ✅ תוקן |
 
-**סה"כ:** 2530+ פריטים זוהו → 2530+ טופלו ✅
+**סה"כ:** 2538+ פריטים זוהו → 2538+ טופלו ✅
 
 ---
 
@@ -131,6 +132,43 @@
 | G2 | GDPR Data Export/Deletion | User data export (JSON) and account deletion endpoints | 🔴 קריטי |
 | G3 | Discovery Algorithm | Weighted scoring for match suggestions (preferences, activity, compatibility) | 🟡 בינוני |
 | G4 | Notification Preferences | Per-category notification settings (chat, matches, likes, system) | 🟢 נמוך |
+
+---
+
+## ✅ ISSUE-033: Onboarding→SharedSpace Redirect Race Condition (10 פברואר 2026)
+
+**סטטוס:** ✅ תוקן | **חומרה:** 🔴 קריטי | **תאריך:** 10 February 2026
+
+### בעיה
+After clicking "MEET PEOPLE" on Onboarding step 14, the user is briefly redirected to SharedSpace then bounced back to `Onboarding?step=1`.
+
+### שורש הבעיה
+`Onboarding.jsx:29` used `window.location.search` instead of React Router's `useSearchParams()`. With `v7_startTransition: true` in App.jsx, when `navigate('/SharedSpace')` is called:
+1. Browser URL changes immediately to `/SharedSpace`
+2. `finally { setIsLoading(false) }` triggers a re-render of Onboarding
+3. During re-render, `window.location.search` is empty → `currentStep = 0`
+4. Step 0 useEffect fires a 1.5s timer to redirect to `Onboarding?step=1`
+5. If SharedSpace (lazy-loaded) takes >1.5s to load, the timer fires before cleanup
+
+### תיקונים (8 קבצים)
+
+| # | קובץ | שינוי | חומרה |
+|---|-------|--------|--------|
+| 1 | `apps/web/src/pages/Onboarding.jsx` | `window.location.search` → `useSearchParams()` + route guard + moved `setIsLoading` from `finally` to `catch` | 🔴 קריטי |
+| 2 | `apps/web/src/pages/shared-space/SharedSpace.jsx` | `window.location.search` → `useSearchParams()` | 🟡 בינוני |
+| 3 | `apps/web/src/pages/AdminReportManagement.jsx` | `window.location.search` → `useSearchParams()` | 🟢 נמוך |
+| 4 | `apps/web/src/pages/Settings.jsx` | Removed duplicate `navigate()` after `logout()` (logout already redirects via `window.location.href`) | 🟡 בינוני |
+| 5 | `apps/web/src/pages/Login.jsx` | Added `isMounted` guard to OAuth status check useEffect | 🟢 נמוך |
+| 6 | `apps/api/src/routes/v1/oauth.routes.ts` | Removed redundant `encodeURIComponent()` on returnUrl (was causing double-encoding) | 🟡 בינוני |
+
+### בדיקות
+- `Onboarding.test.jsx` - 3 new tests: step rendering via URL params, timer cleanup on unmount
+- `Settings.test.jsx` - 2 new tests: logout without navigate, logout error handling
+- `Login.test.jsx` - 1 new test: OAuth status check cleanup on unmount
+- All 46 tests pass ✅
+
+### כלל שנלמד
+**Never use `window.location.search` in React components** - always use `useSearchParams()` from React Router. With `v7_startTransition`, `window.location` updates immediately but React state transitions are deferred, creating race conditions.
 
 ---
 

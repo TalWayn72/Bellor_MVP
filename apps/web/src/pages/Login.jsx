@@ -24,11 +24,13 @@ export default function Login() {
   const [formData, setFormData] = useState({ email: '', password: '', firstName: '', lastName: '' });
 
   useEffect(() => {
+    let isMounted = true;
     const checkOAuthStatus = async () => {
-      try { const response = await apiClient.get('/oauth/status'); const data = response.data.data || response.data; setIsGoogleEnabled(data.google === true); }
-      catch { setIsGoogleEnabled(false); }
+      try { const response = await apiClient.get('/oauth/status'); const data = response.data.data || response.data; if (isMounted) setIsGoogleEnabled(data.google === true); }
+      catch { if (isMounted) setIsGoogleEnabled(false); }
     };
     checkOAuthStatus();
+    return () => { isMounted = false; };
   }, []);
 
   useEffect(() => {

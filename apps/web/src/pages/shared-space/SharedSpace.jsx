@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { chatService } from '@/api';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import { useTheme } from '@/components/providers/ThemeProvider';
@@ -28,14 +28,15 @@ export default function SharedSpace() {
 
   const { todayMission, allResponses, userTodayResponse, activeChatUsers } = useSharedSpaceData(currentUser);
 
+  const [urlSearchParams, setUrlSearchParams] = useSearchParams();
+
   React.useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('openTaskSelector') === 'true') {
+    if (urlSearchParams.get('openTaskSelector') === 'true') {
       setIsTaskSelectorOpen(true);
-      const timer = setTimeout(() => { window.history.replaceState({}, '', window.location.pathname); }, 100);
+      const timer = setTimeout(() => { setUrlSearchParams({}, { replace: true }); }, 100);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [urlSearchParams, setUrlSearchParams]);
 
   useEffect(() => {
     if (currentUser) {
