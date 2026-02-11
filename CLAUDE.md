@@ -1,225 +1,270 @@
 # Bellor - AI Assistant Configuration
 
-## הקשר הפרויקט
-- **סוג:** אפליקציית היכרויות/חברתית - Production
-- **Stack:** React + Vite + TypeScript + Tailwind + Radix UI | Fastify + Prisma + PostgreSQL 16 + Redis 7
+## Project Context
+- **Type:** Dating/Social App - Production MVP
+- **Stack:** React 18 + Vite 6 + Tailwind + Radix UI | Fastify 5 + Prisma + PostgreSQL 16 + Redis 7
+- **Monorepo:** npm workspaces - `apps/web`, `apps/api`, `packages/shared`, `packages/ui`
 - **Repository:** https://github.com/TalWayn72/Bellor_MVP
-- **ארכיטקטורה:** Monorepo (npm workspaces) - `apps/web`, `apps/api`, `packages/shared`, `packages/ui`
-- **מבנה תיקיות:** `docs/` לתיעוד, `infrastructure/docker/` ל-Docker, `scripts/` לכלי עזר
+- **Node:** >=18.0.0 | **npm:** >=9.0.0
 
-## גבולות - אסור לגשת לפרויקטים ישנים
-| נתיב | סיבה |
-|------|-------|
-| `C:\Users\talwa\bellor` | פרויקט ישן - אסור לקרוא/לשנות |
-| `C:\Users\talwa\bellor_OLD.zip` | ארכיון ישן - אסור לגשת |
-
-**פרויקט פעיל יחיד:** `C:\Users\talwa\.claude\projects\Bellor_MVP`
-
-## הרשאות
-- **אישור אוטומטי לכל פעולה** - אין צורך לשאול לפני ביצוע
-- קבצים (קריאה, כתיבה, עריכה) - מאושר
-- Git (add, commit, push) - מאושר
-- npm, bash, docker - מאושר
-- התקנת VS Code extensions - מאושר
-
-## שפה
-- **תקשורת עם המשתמש:** עברית
-- **קוד ותיעוד:** אנגלית
-
-## חוקי עבודה מרכזיים
-1. קרא את CLAUDE.md בתחילת כל שיחה
-2. פעל באופן עצמאי - אין צורך באישורים (למעט commit)
-3. תמיד קרא קובץ לפני שינוי - אף פעם אל תכתוב בלי לקרוא קודם
-4. תקן שגיאות אוטומטית - זהה ותקן בעיות ללא שאלות
-5. עדכן תיעוד בסוף כל משימה - סנכרן מספרים בין CLAUDE.md ל-README.md
-6. תעד כל משימה ב-`docs/project/OPEN_ISSUES.md` עם מעקב סטטוס
-7. **מקסימום 150 שורות לקובץ** - חריגים: קבצי בדיקות, Prisma schema, Radix UI wrappers (`apps/web/src/components/ui/`), entry points
-8. צור barrel files (`index.ts`) בכל פיצול קובץ - לשמירת תאימות imports
-9. השתמש ב-VS Code extensions (Vitest, Playwright, Docker, PostgreSQL Client)
-10. הקפד על TypeScript, ESLint, Prettier - ללא `any`, ללא `console.log` (השתמש ב-Logger)
-
-## הרצה מקבילית (Agents)
-- לפני כל משימה - בדוק אם ניתן לפצל לחלקים בלתי-תלויים
-- משימות ללא תלות הדדית - הרץ במקביל באמצעות Agents (Task tool)
-- **תמיד העדף הרצה מקבילית על טורית** כשאין תלות בין המשימות
-- כל תוצר מ-Agent חייב לעבור בדיקת אבטחה לפני מיזוג
-
-### מעקב Agents - טבלת סטטוס (חובה)
-**כשמופעלת הרצה מקבילית**, יש להציג טבלת מעקב בסשן ולעדכן אותה **כל 3 דקות**:
-
-| Agent | משימה | כלים | Tokens | % הערכה | סטטוס |
-|-------|--------|------|--------|---------|--------|
-| Agent-1 | תיאור המשימה | Read, Edit, Grep | ~2K | 40% | 🟡 בריצה |
-| Agent-2 | תיאור המשימה | Bash, Read | ~1.5K | 100% | ✅ הושלם |
-| Agent-3 | תיאור המשימה | Glob, Read, Edit | ~3K | 70% | 🟡 בריצה |
-
-**סטטוסים:** ⏳ ממתין | 🟡 בריצה | ✅ הושלם | 🔴 נכשל
-
-### הגנת Heap - מניעת JavaScript Heap Out of Memory
-**כל 5 דקות** במהלך הרצה מקבילית, בדוק אם יש סימני OOM:
-- חפש `FATAL ERROR: Ineffective mark-compacts near heap limit` בפלט של Agents/Bash
-- חפש `JavaScript heap out of memory` בפלט
-
-**כשמזוהה OOM:**
-
-| מצב | פעולה |
-|-----|--------|
-| OOM ראשון | הפחת Agents ב-20% (מ-5 ל-4, מ-4 ל-3, וכו') |
-| OOM שני | הפחת שוב ב-20% |
-| OOM חוזר | המשך להפחית עד **Agent אחד בלבד** |
-| Agent יחיד + OOM | הגדל heap: `NODE_OPTIONS=--max-old-space-size=8192` |
-
-**כללי מניעה:**
-- אל תריץ `npx vitest run` על כל ה-monorepo במקביל - הרץ `apps/web` ו-`apps/api` בנפרד
-- העדף הרצת קבצי בדיקה ספציפיים (`npx vitest run file1 file2`) על הרצת כל הבדיקות
-- כש-Agent מריץ בדיקות כבדות, צמצם Agents אחרים שרצים במקביל
-
-## אבטחה
-
-### שער ביקורת - כל קוד חדש לפני commit:
-
-| בדיקה | תיאור |
-|--------|-------|
-| XSS | אין הזרקת HTML/JS ללא sanitization |
-| SQL Injection | כל שאילתה דרך Prisma ORM בלבד |
-| Command Injection | אין הרצת פקודות מ-input של משתמש |
-| Secrets | אין סודות, מפתחות API, או סיסמאות בקוד |
-| Input Validation | כל input מסונן ומאומת (client + server) |
-| File Upload | בדיקת magic bytes, סינון שמות קבצים |
-
-### סקירה בסיום עבודה (לפני commit):
-1. ודא שהקוד החדש עומד ב-6 הבדיקות למעלה
-2. ודא שלא הוסרו/הוחלשו מנגנוני אבטחה קיימים (auth, validation, sanitization)
-3. חפש imports שנמחקו, middleware שהוסר, validation שדולג
-4. סרוק מול `docs/security/SECURITY_CHECKLIST.md`
-5. תעד שינויי אבטחה ב-OPEN_ISSUES.md
-
-**כלל ברזל:** שום שינוי לא יעבור commit אם הוא פוגע באבטחה קיימת.
-
-## מחזור חיי שירותים
-
-### התחלת שיחה - הפעלת שירותים (חובה)
-| שלב | פקודה | בדיקה |
-|------|--------|-------|
-| 1. Docker | `npm run docker:up` | `docker ps` - bellor_postgres + bellor_redis |
-| 2. Backend API | `npm run dev:api` | `curl http://localhost:3000/health` |
-| 3. Frontend (אופציונלי) | `npm run dev` | http://localhost:5173 |
-
-**DB ריק?** הרץ `cd apps/api && npx prisma db seed`
-
-### סיום עבודה - רשימת אימות
-1. Docker רץ (PostgreSQL + Redis)
-2. Backend API פעיל על פורט 3000
-3. Frontend פעיל על פורט 5173
-4. הרץ בדיקות: `npm run test`
-5. באגים שתוקנו: תועדו ב-OPEN_ISSUES.md + נוצרו בדיקות
-6. סקירת אבטחה (ראה סקשן "אבטחה" למעלה)
-7. תיעוד עודכן (CLAUDE.md, README.md) אם נדרש
-
-### פתרון בעיות
-| בעיה | פתרון |
+## Boundaries
+| Path | Reason |
 |------|--------|
-| Docker לא רץ | `npm run docker:up` |
-| API לא רץ (3000) | `npm run dev:api` |
-| Frontend לא רץ (5173) | `npm run dev` |
-| DB ריק | `cd apps/api && npx prisma db seed` |
+| `C:\Users\talwa\bellor` | Old project - DO NOT access |
+| `C:\Users\talwa\bellor_OLD.zip` | Old archive - DO NOT access |
 
-## מדיניות Git
-**Repository:** https://github.com/TalWayn72/Bellor_MVP
+**Active project only:** `C:\Users\talwa\.claude\projects\Bellor_MVP`
 
-| מצב | פעולה |
-|-----|--------|
-| תיקון באג | Commit מיידי |
-| פיצ'ר שלם | Commit בסיום |
-| Refactoring | Commit אחרי שינוי לוגי שלם |
-| סוף יום עבודה | Commit + Push לגיבוי |
+## Language & Permissions
+- **Communication:** Hebrew | **Code & Docs:** English
+- **Auto-approved:** File ops, Git, npm, bash, docker, VS Code extensions
+- **Requires user approval:** Git commit only
 
-**תהליך:** Claude מציע commit --> המשתמש מאשר --> Claude מבצע.
-**אסור לעשות commit אוטומטי ללא אישור המשתמש.**
+## Architecture & Patterns
 
-## פרוטוקול תיקון באגים (חובה)
+### Backend (`apps/api`)
+- **Pattern:** Routes → Controllers (thin) → Services (business logic) → Prisma ORM
+- **Routes:** Versioned under `/v1/` (auth, users, chats, missions, uploads, etc.)
+- **Validation:** Zod schemas on auth routes, input sanitization middleware globally
+- **Auth:** JWT (15m access + 7d refresh), bcrypt 12 rounds, brute force protection, Google OAuth
+- **Logging:** Pino logger (NOT console.log) - levels: trace/debug/info/warn/error/fatal
+- **WebSocket:** Socket.io for real-time chat
+- **Middleware stack:** security → logging → auth → rate-limit → route handler
 
-### שלב ראשון: חקירת לוגים
-**לפני כל תיקון באג - קרא את הלוגים קודם!**
+### Frontend (`apps/web`)
+- **State:** TanStack React Query for server state, React contexts for app state
+- **Forms:** React Hook Form + Zod resolvers
+- **API Client:** Axios with interceptors (`src/api/client/apiClient.ts`) + service layer (`src/api/services/`)
+- **Routing:** React Router v6
+- **UI:** Radix UI primitives wrapped in `packages/ui/` + Tailwind + CVA
+- **Path alias:** `@/*` maps to `src/*`
+- **Mobile:** Capacitor 8 (Android + iOS) - `npm run cap:sync`, `npm run cap:build`
 
-| # | צעד |
-|---|------|
-| 1 | **חפש בלוגים** - קרא לוגים רלוונטיים (API, DB, Redis, Frontend console) לאיתור השגיאה |
-| 2 | **נתח את הלוג** - זהה stack trace, error codes, timestamps, ו-context של השגיאה |
-| 3 | **אם אין לוג לאירוע** - הבן למה אין logging, והוסף logging מתאים כחלק מהתיקון כדי שבעתיד הבאג ייתפס |
-| 4 | **שפר logging קיים** - אם הלוג לא מספיק מפורט, הוסף פרטים (user ID, request params, context) |
+### Shared Packages
+- `packages/shared` - TypeScript types, utilities
+- `packages/ui` - 50+ Radix UI component wrappers (exempt from 150-line limit)
 
-**כלל ברזל:** לעולם אל תתקן באג בלי לקרוא קודם את הלוגים. אם אין לוגים - זה חלק מהבאג.
+## Core Rules
+1. Always read a file before modifying it
+2. Auto-fix errors without asking - identify and resolve issues autonomously
+3. **Max 150 lines per file** - exceptions: tests, Prisma schema, `packages/ui/`, entry points
+4. Create barrel files (`index.ts`) when splitting files - preserve import compatibility
+5. TypeScript strict, ESLint, Prettier - no `any`, no `console.log` (use Logger)
+6. All DB queries via Prisma ORM only - never raw SQL
+7. Document every task in `docs/project/OPEN_ISSUES.md` with status tracking
+8. Update docs at end of each task - sync numbers between CLAUDE.md and README.md
 
-### שלב שני: תיעוד ומעקב
-לאחר כל תיקון באג, יש לבצע את **כל** הצעדים:
+## Environment Setup
 
-| # | צעד |
-|---|------|
-| 1 | תעד ב-`docs/project/OPEN_ISSUES.md` מיד לאחר תיקון |
-| 2 | צור בדיקות אוטומטיות (unit / integration) |
-| 3 | עדכן סטטוס: 🔴 פתוח --> 🟡 בטיפול --> ✅ תוקן |
-| 4 | עדכן טבלת סיכום בראש המסמך |
-| 5 | הוסף להיסטוריית תיקונים בסוף המסמך |
+### Required `.env` Variables (copy from `.env.example`)
+| Category | Key Variables |
+|----------|--------------|
+| Frontend | `VITE_API_URL`, `VITE_WS_URL` |
+| Backend | `NODE_ENV`, `PORT`, `HOST`, `FRONTEND_URL` |
+| Database | `DATABASE_URL` (PostgreSQL connection string) |
+| Redis | `REDIS_URL` |
+| JWT | `JWT_SECRET`, `JWT_REFRESH_SECRET` (min 32 chars each) |
+| Storage | `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `CDN_URL` |
+| Email | `SENDGRID_API_KEY` |
+| OAuth | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
 
-### תבנית תיעוד באג:
-```markdown
-### ISSUE-XXX: תיאור קצר
-**סטטוס:** ✅ תוקן | **חומרה:** 🔴 קריטי / 🟡 בינוני / 🟢 נמוך | **תאריך:** DD Month YYYY
-**קבצים:** `path/to/file.ts:line`
-**בעיה:** מה קרה ולמה
-**פתרון:** מה תוקן ואיך
-**בדיקות:** `file.test.ts` - תיאור כיסוי
-```
+### Service Startup (required at session start)
+| Step | Command | Verify |
+|------|---------|--------|
+| 1. Docker | `npm run docker:up` | `docker ps` - bellor_postgres + bellor_redis |
+| 2. API | `npm run dev:api` | `curl http://localhost:3000/health` |
+| 3. Frontend | `npm run dev` | http://localhost:5173 |
 
-## חובת בדיקות
-| סוג שינוי | דרישת בדיקות |
-|-----------|---------------|
-| פיצ'ר חדש | Unit + Integration + Memory Leak Detection |
-| תיקון באג | בדיקת רגרסיה + Memory Leak Detection |
-| שינוי API | בדיקות אינטגרציה לכל endpoint |
-| שינוי UI | בדיקות קומפוננטות + E2E |
-| שינוי Config | בדיקות תקינות הגדרות |
-| **קוד עם Intervals/Timers** | **חובה: Memory Leak Detection** |
-| **קוד עם Event Listeners** | **חובה: Memory Leak Detection** |
-| **קוד עם WebSockets** | **חובה: Memory Leak Detection** |
+**Empty DB?** → `cd apps/api && npx prisma db seed`
 
-### מיקום קבצי בדיקות
-| סוג | מיקום |
-|-----|-------|
-| Backend Unit | `apps/api/src/services/*.test.ts` |
-| Backend Integration | `apps/api/src/test/integration/*.test.ts` |
-| Frontend Unit | `apps/web/src/**/*.test.{ts,tsx}` |
+## Commands Reference
+
+### Development
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Frontend (port 5173) |
+| `npm run dev:api` | Backend (port 3000) |
+| `npm run dev:all` | Both (concurrently) |
+| `npm run build` | Build all workspaces |
+| `npm run lint` / `lint:fix` | Lint all workspaces |
+
+### Database (Prisma)
+| Command | Description |
+|---------|-------------|
+| `npm run prisma:generate` | Generate Prisma client after schema changes |
+| `npm run prisma:migrate` | Create and apply migrations |
+| `npm run prisma:studio` | Open Prisma Studio GUI |
+| `cd apps/api && npx prisma db seed` | Seed database |
+
+### Testing
+| Command | Description |
+|---------|-------------|
+| `npm run test` | All tests |
+| `npm run test:api` / `test:web` | Backend / Frontend only |
+| `npm run test:e2e` | E2E (Playwright mocked) |
+| `npm run test:e2e:fullstack` | E2E with real backend |
+| `npm run test:e2e:fullstack:headed` | E2E headed mode (debug) |
+| `npm run test:visual` | Visual regression (Playwright) |
+| `npm run test:mutation` | Mutation testing (Stryker) |
+| `npm run test:memory-leak` | Memory leak detection |
+| `npm run check:memory-leaks` | AST-based leak scanning |
+| `npm run test:p0` | Critical P0 smoke tests |
+| `npm run test:domain:auth` | Domain: auth tests |
+| `npm run test:domain:chat` | Domain: chat tests |
+| `npm run test:domain:safety` | Domain: safety tests |
+| `npm run test:domain:profile` | Domain: profile tests |
+| `npm run check:file-length` | Enforce 150-line limit |
+
+### Load Testing (k6)
+| Command | Description |
+|---------|-------------|
+| `npm run load:smoke` | Quick smoke test |
+| `npm run load:sustained` | Sustained load |
+| `npm run load:stress` | Stress test |
+| `npm run load:spike` | Spike test |
+| `npm run load:memory` | Memory leak test |
+| `npm run load:db` | DB performance |
+| `npm run load:websocket` | WebSocket test |
+
+### Mobile (Capacitor)
+| Command | Description |
+|---------|-------------|
+| `npm run cap:build` | Build + sync to mobile |
+| `npm run cap:sync` | Sync web assets to native |
+| `npm run cap:open:android` / `ios` | Open in Android Studio / Xcode |
+
+## Code Conventions
+
+### Error Handling
+- **Backend:** Fastify error handler + typed error responses. Throw `FastifyError` or custom errors with status codes
+- **Frontend:** React Error Boundaries for UI crashes, try/catch in API calls, toast notifications for user errors
+- **Always** return meaningful error messages - never expose internal details to client
+
+### Validation
+- **Auth routes:** Zod schemas (`apps/api/src/routes/v1/auth/auth-schemas.ts`)
+- **All other routes:** Input sanitization via security middleware + field-level validation in services
+- **Frontend:** React Hook Form + Zod for client-side validation before API calls
+
+### Logging
+- **Backend only:** Use Pino logger (`import { logger } from '../lib/logger'`)
+- **Never** use `console.log` in production code
+- **Log levels:** `error` for failures, `warn` for recoverable issues, `info` for key events, `debug` for development
+
+## Testing Requirements
+
+| Change Type | Required Tests |
+|-------------|---------------|
+| New feature | Unit + Integration + Memory Leak Detection |
+| Bug fix | Regression test + Memory Leak Detection |
+| API change | Integration tests for affected endpoints |
+| UI change | Component tests + E2E |
+| Code with timers/listeners/WebSocket | **Mandatory:** Memory Leak Detection |
+
+### Test File Locations
+| Type | Location |
+|------|----------|
+| Backend unit | `apps/api/src/services/*.test.ts` |
+| Backend integration | `apps/api/src/test/integration/*.test.ts` |
+| Frontend unit | `apps/web/src/**/*.test.{ts,tsx}` |
 | E2E | `apps/web/e2e/*.spec.ts` |
-| **Memory Leak Detection** | `apps/api/src/test/memory-leak-detection.test.ts`<br>`apps/web/src/test/memory-leak-detection.test.ts` |
+| Full-stack E2E | `apps/web/e2e/full-stack/*.spec.ts` |
+| Memory leak | `apps/*/src/test/memory-leak-detection.test.ts` |
 
-### פקודות בדיקה
-| פקודה | תיאור |
-|--------|-------|
-| `npm run test` | כל הבדיקות |
-| `npm run test:api` | Backend בלבד |
-| `npm run test:web` | Frontend בלבד |
-| `npm run test:e2e` | E2E בלבד |
-| **`npm run test:memory-leak`** | **בדיקות דליפות זכרון (Backend + Frontend)** |
-| **`npm run check:memory-leaks`** | **סריקה אוטומטית לדפוסי דליפות בקוד (AST-based)** |
-| **`npm run check:memory-leaks -- --verbose`** | **סריקה מפורטת עם פרטי debug** |
+**No merge/deploy without passing tests + memory leak checks.**
 
-**אין לבצע merge או deploy ללא בדיקות מלאות + בדיקות דליפות זכרון.**
+## Security
 
-**הסקריפט משתמש ב-AST parsing (TypeScript Compiler API) במקום regex לזיהוי מדויק יותר ופחות false positives.**
+### Pre-commit Gate (every code change)
+| Check | Rule |
+|-------|------|
+| XSS | No unsanitized HTML/JS injection |
+| SQL Injection | All queries via Prisma ORM only |
+| Command Injection | Never execute user input as commands |
+| Secrets | No API keys, passwords, or tokens in code |
+| Input Validation | All input validated (client + server) |
+| File Upload | Magic bytes validation, filename sanitization |
 
-**לפרטים מלאים על דפוסי דליפות, חוקי כתיבה, ו-CI/CD:** ראה README.md > Memory Leak Detection.
+**Iron rule:** No commit may weaken existing security (auth, validation, sanitization, middleware).
+**Full checklist:** `docs/security/SECURITY_CHECKLIST.md`
 
-## סנכרון תיעוד
-| קובץ | מתי לעדכן | מה לסנכרן |
-|-------|-----------|-----------|
-| `CLAUDE.md` | שינוי בחוקי עבודה | הוראות AI, הרשאות |
-| `README.md` | שינוי בסטטוס/מספרים **או הוספת יכולת חדשה** | מספר בדיקות, סטטוס שלבים, Features חדשים בסקשן Features |
-| `docs/product/PRD.md` | **הוספת פיצ'ר/יכולת חדשה** | תיעוד הפיצ'ר, user stories, דרישות טכניות |
-| `docs/project/OPEN_ISSUES.md` | כל משימה/באג | סטטוס, היסטוריה |
+## CI/CD (GitHub Actions)
 
-**כללי סנכרון:**
-- כשמספרים משתנים (בדיקות, באגים, קבצים) - עדכן README + OPEN_ISSUES יחד
-- **כשנוספת יכולת/פיצ'ר חדש** - עדכן README (סקשן Features) + PRD (סקשן רלוונטי) + OPEN_ISSUES
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| `ci.yml` | Push/PR to main/develop | Lint + type check |
+| `test.yml` | Push/PR | Full test suite (PostgreSQL + Redis services) |
+| `p0-gate.yml` | Push/PR | Critical P0 smoke tests gate |
+| `docker-build.yml` | Push/PR | Multi-stage Docker builds |
+| `cd.yml` | Push to main | Deployment pipeline |
+| `mutation.yml` | Manual/scheduled | Stryker mutation testing |
+| `memory-leak-check.yml` | Manual/scheduled | Memory leak detection |
 
-**רשימת פקודות מלאה:** ראה README.md > Commands.
+**Pre-commit hooks (Husky + lint-staged):** Auto-runs ESLint fix + file length check on staged files.
+
+## Git Policy
+
+| Trigger | Action |
+|---------|--------|
+| Bug fix | Commit immediately |
+| Complete feature | Commit at completion |
+| Refactoring | Commit after logical change |
+| End of day | Commit + Push for backup |
+
+**Flow:** Claude proposes commit → User approves → Claude executes.
+**Never auto-commit without user approval.**
+
+## Bug Fix Protocol
+
+1. **Read logs first** - API, DB, Redis, Frontend console. No fix without reading logs
+2. **If no logs exist** - add logging as part of the fix
+3. **Fix** the root cause
+4. **Create regression tests** (unit/integration)
+5. **Document** in `docs/project/OPEN_ISSUES.md`:
+   - Status: 🔴 Open → 🟡 In Progress → ✅ Fixed
+   - Severity: 🔴 Critical / 🟡 Medium / 🟢 Low
+   - Files, problem, solution, tests
+
+**Iron rule:** Never fix a bug without reading the logs first. No logs = part of the bug.
+
+## Parallel Execution (Agents)
+
+- Before each task - check if it can be split into independent parts
+- **Always prefer parallel over sequential** when no dependencies exist
+- Every Agent output must pass security review before merging
+- **Never** run `npx vitest run` on entire monorepo in parallel - run `apps/web` and `apps/api` separately
+
+### Agent Tracking Table (required when running parallel)
+| Column | Values |
+|--------|--------|
+| Agent | Agent-N |
+| Task | Description |
+| Status | ⏳ Waiting / 🟡 Running / ✅ Done / 🔴 Failed |
+
+### OOM Protection
+| Event | Action |
+|-------|--------|
+| First OOM | Reduce agents by 20% |
+| Repeated OOM | Continue reducing until 1 agent |
+| Single agent + OOM | `NODE_OPTIONS=--max-old-space-size=8192` |
+
+## Documentation Sync
+
+| File | When to Update | What to Sync |
+|------|---------------|--------------|
+| `CLAUDE.md` | Work rules change | AI instructions, permissions |
+| `README.md` | Stats/numbers change or new feature | Test counts, stage status, Features section |
+| `docs/product/PRD.md` | New feature added | Feature docs, user stories, technical requirements |
+| `docs/project/OPEN_ISSUES.md` | Every task/bug | Status, history |
+
+## Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| Docker not running | `npm run docker:up` |
+| API down (3000) | `npm run dev:api` |
+| Frontend down (5173) | `npm run dev` |
+| Empty DB | `cd apps/api && npx prisma db seed` |
+| Prisma schema out of sync | `npm run prisma:generate` |
+| Migration needed | `npm run prisma:migrate` |
+| OOM during tests | Run `apps/web` and `apps/api` tests separately |
+| Pre-commit hook fails | Run `npm run lint:fix` then re-stage |

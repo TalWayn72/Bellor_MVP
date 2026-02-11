@@ -32,10 +32,12 @@ export default function EditProfileForm({ formData, setFormData, newInterest, se
               <label className="block text-sm text-muted-foreground mb-1">Bio</label>
               <Textarea value={formData.bio} onChange={(e) => setFormData({ ...formData, bio: e.target.value })} placeholder="Tell us about yourself..." className="w-full h-24" />
             </div>
-            <div>
-              <label className="block text-sm text-muted-foreground mb-1">Age</label>
-              <Input type="number" value={formData.age} onChange={(e) => setFormData({ ...formData, age: e.target.value })} className="w-full" />
-            </div>
+            {formData.age && (
+              <div>
+                <label className="block text-sm text-muted-foreground mb-1">Age</label>
+                <p className="h-10 px-3 flex items-center rounded-md bg-muted/50 text-foreground text-sm">{formData.age}</p>
+              </div>
+            )}
             <div>
               <label className="block text-sm text-muted-foreground mb-1">Gender</label>
               <select value={formData.gender} onChange={(e) => setFormData({ ...formData, gender: e.target.value })} className="w-full h-10 px-3 rounded-md border border-border bg-background text-foreground">
