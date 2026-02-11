@@ -305,6 +305,76 @@ test.describe('Chat & Messaging', () => {
   });
 });
 
+test.describe('UserProfile Send Message Dialog (ISSUE-069)', () => {
+  const otherUser = createMockUser({ id: 'other-user-1', nickname: 'TestUser', firstName: 'Test', lastName: 'User' });
+
+  test.beforeEach(async ({ page }) => {
+    await setupAuthenticatedUser(page);
+    await mockApiResponse(page, '**/api/v1/users/other-user-1', { user: otherUser });
+    await mockApiResponse(page, '**/api/v1/likes/check/*', { liked: false });
+    await mockApiResponse(page, '**/api/v1/follows/other-user-1/followers*', { followers: [], pagination: { total: 0 } });
+    await mockApiResponse(page, '**/api/v1/follows/other-user-1/following*', { following: [], pagination: { total: 0 } });
+    await mockApiResponse(page, '**/api/v1/responses/user/other-user-1*', { responses: [] });
+  });
+
+  test('should allow typing in the message textarea', async ({ page }) => {
+    await page.goto('/UserProfile?id=other-user-1');
+    await waitForPageLoad(page);
+    await waitForLoadingComplete(page);
+
+    // Open message dialog
+    const messageButton = page.locator('button').filter({ has: page.locator('.lucide-message-circle') });
+    await messageButton.click();
+
+    // Textarea should be visible and typeable
+    const textarea = page.getByPlaceholder(/write your message|כתוב הודעה/i);
+    await expect(textarea).toBeVisible({ timeout: 5000 });
+    await textarea.fill('Hello, this is a test message!');
+    await expect(textarea).toHaveValue('Hello, this is a test message!');
+  });
+
+  test('should navigate to PrivateChat after sending message', async ({ page }) => {
+    await mockApiResponse(page, '**/api/v1/chats', { chat: { id: 'new-chat-1' } });
+    await mockApiResponse(page, '**/api/v1/chats/new-chat-1/messages', { message: createMockMessage({ content: 'Hello!' }) });
+    await mockApiResponse(page, '**/api/v1/chats/new-chat-1', { chat: { id: 'new-chat-1', participants: [otherUser] } });
+    await mockChatMessages(page, 'new-chat-1', []);
+
+    await page.goto('/UserProfile?id=other-user-1');
+    await waitForPageLoad(page);
+    await waitForLoadingComplete(page);
+
+    // Open dialog, type, send
+    const messageButton = page.locator('button').filter({ has: page.locator('.lucide-message-circle') });
+    await messageButton.click();
+    const textarea = page.getByPlaceholder(/write your message|כתוב הודעה/i);
+    await textarea.fill('Hello!');
+    const sendButton = page.getByRole('button', { name: /send|שלח/i });
+    await sendButton.click();
+
+    // Should navigate to PrivateChat
+    await expect(page).toHaveURL(/.*privatechat.*chatId=new-chat-1/i, { timeout: 10000 });
+  });
+
+  test('should disable send button when textarea is empty', async ({ page }) => {
+    await page.goto('/UserProfile?id=other-user-1');
+    await waitForPageLoad(page);
+    await waitForLoadingComplete(page);
+
+    // Open dialog
+    const messageButton = page.locator('button').filter({ has: page.locator('.lucide-message-circle') });
+    await messageButton.click();
+
+    // Send button should be disabled
+    const sendButton = page.getByRole('button', { name: /send|שלח/i });
+    await expect(sendButton).toBeDisabled();
+
+    // Type something - button should be enabled
+    const textarea = page.getByPlaceholder(/write your message|כתוב הודעה/i);
+    await textarea.fill('Hello');
+    await expect(sendButton).toBeEnabled();
+  });
+});
+
 test.describe('Chat - Mobile', () => {
   test.use({ viewport: { width: 375, height: 667 } });
 

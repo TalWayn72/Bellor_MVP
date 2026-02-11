@@ -23,6 +23,7 @@ export default function UserProfile() {
   const { currentUser, isLoading } = useCurrentUser();
   const [isLiked, setIsLiked] = useState(false);
   const [showMessageDialog, setShowMessageDialog] = useState(false);
+  const [messageText, setMessageText] = useState('');
 
   useEffect(() => {
     if (!userId || userId === 'undefined' || userId === 'null') navigate(createPageUrl('SharedSpace'), { replace: true });
@@ -79,7 +80,7 @@ export default function UserProfile() {
   };
 
   const handleSendMessage = async (message) => {
-    try { const r = await chatService.createOrGetChat(userId); await chatService.sendMessage(r.chat.id, { content: message, type: 'text' }); setShowMessageDialog(false); toast({ title: 'Success', description: 'Message sent successfully!' }); }
+    try { const r = await chatService.createOrGetChat(userId); await chatService.sendMessage(r.chat.id, { content: message, type: 'text' }); setShowMessageDialog(false); setMessageText(''); toast({ title: 'Success', description: 'Message sent successfully!' }); navigate(createPageUrl('PrivateChat') + `?chatId=${r.chat.id}&userId=${userId}`); }
     catch { toast({ title: 'Error', description: 'Error sending message', variant: 'destructive' }); }
   };
 
@@ -133,10 +134,10 @@ export default function UserProfile() {
             <DialogTitle>Send message to {viewedUser.nickname}</DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">Write a private message to start a conversation</DialogDescription>
           </DialogHeader>
-          <textarea id="messageInput" placeholder="Write your message..." className="w-full h-32 border-2 border-input rounded-xl p-3 text-sm resize-none focus:border-primary focus:ring-primary" />
+          <textarea value={messageText} onChange={(e) => setMessageText(e.target.value)} placeholder="Write your message..." className="w-full h-32 border-2 border-input rounded-xl p-3 text-sm resize-none focus:border-primary focus:ring-primary" />
           <DialogFooter className="flex-row gap-3 sm:justify-end">
-            <Button onClick={() => setShowMessageDialog(false)} variant="outline" size="lg" className="flex-1 sm:flex-none">Cancel</Button>
-            <Button onClick={() => { const msg = document.getElementById('messageInput').value; if (msg.trim()) handleSendMessage(msg); }} size="lg" className="flex-1 sm:flex-none">Send</Button>
+            <Button onClick={() => { setShowMessageDialog(false); setMessageText(''); }} variant="outline" size="lg" className="flex-1 sm:flex-none">Cancel</Button>
+            <Button onClick={() => { if (messageText.trim()) handleSendMessage(messageText); }} size="lg" className="flex-1 sm:flex-none" disabled={!messageText.trim()}>Send</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

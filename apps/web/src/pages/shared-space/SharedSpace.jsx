@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { chatService } from '@/api';
+import { createPageUrl } from '@/utils';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { FeedSkeleton } from '@/components/states';
@@ -53,7 +54,7 @@ export default function SharedSpace() {
   const handleSendChatRequest = async () => {
     if (!chatRequestUser) return;
     if (!chatRequestUser.id || chatRequestUser.id.startsWith('demo-')) { setChatRequestUser(null); return; }
-    try { await chatService.createOrGetChat(chatRequestUser.id); setChatRequestUser(null); } catch {}
+    try { const r = await chatService.createOrGetChat(chatRequestUser.id); setChatRequestUser(null); navigate(createPageUrl('PrivateChat') + `?chatId=${r.chat.id}&userId=${chatRequestUser.id}`); } catch {}
   };
 
   if (isLoading) return <div className="min-h-screen bg-background"><div className="max-w-2xl mx-auto px-4 py-6"><FeedSkeleton count={3} /></div></div>;

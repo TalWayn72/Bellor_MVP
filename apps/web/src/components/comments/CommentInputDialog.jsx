@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
@@ -11,10 +12,12 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { MessageSquare } from 'lucide-react';
 import { chatService } from '@/api';
+import { createPageUrl } from '@/utils';
 import { useToast } from '@/components/ui/use-toast';
 
 export default function CommentInputDialog({ isOpen, onClose, response, currentUser }) {
   const [commentText, setCommentText] = React.useState('');
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -22,13 +25,15 @@ export default function CommentInputDialog({ isOpen, onClose, response, currentU
     mutationFn: async (text) => {
       const chatResult = await chatService.createOrGetChat(response.user_id);
       await chatService.sendMessage(chatResult.chat.id, { content: text, type: 'text' });
+      return chatResult;
     },
-    onSuccess: () => {
+    onSuccess: (chatResult) => {
       setCommentText('');
       onClose();
       toast({ title: 'Comment sent', description: 'Your comment was sent as a message' });
       queryClient.invalidateQueries({ queryKey: ['comments', response.id] });
       queryClient.invalidateQueries({ queryKey: ['hasNewComments'] });
+      navigate(createPageUrl('PrivateChat') + `?chatId=${chatResult.chat.id}&userId=${response.user_id}`);
     },
     onError: () => {
       toast({ title: 'Error', description: 'Failed to send comment', variant: 'destructive' });

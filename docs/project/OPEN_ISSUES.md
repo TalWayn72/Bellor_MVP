@@ -1,6 +1,6 @@
 # תקלות פתוחות - Bellor MVP
 
-**תאריך עדכון:** 10 פברואר 2026
+**תאריך עדכון:** 11 פברואר 2026
 **מצב:** ✅ Memory Leaks Fixed - WebSocket & Presence Tracking + Backend WebSocket Handlers
 
 ---
@@ -119,8 +119,9 @@
 | **ISSUE-065: StepBirthDate Year Field Not Editable (Feb 11)** | 1 | 🟡 בינוני | ✅ תוקן |
 | **ISSUE-066: Toast Notifications Cannot Be Closed (Feb 11)** | 3 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-067: Profile Fields Not Persisted After Onboarding (Feb 11)** | 6 | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-069: Send Message Dialog - Cannot Type + No Chat Navigation (Feb 11)** | 4 | 🔴 קריטי | ✅ תוקן |
 
-**סה"כ:** 2981+ פריטים זוהו → 2981+ טופלו ✅
+**סה"כ:** 2985+ פריטים זוהו → 2985+ טופלו ✅
 
 ---
 
@@ -4185,3 +4186,43 @@ curl http://localhost:3000/health/memory
 | Input Validation | ✅ אין שינוי - הועבר כמות שהוא |
 | Barrel Files | ✅ כל re-exports שומרים על API קיים |
 ✅ **Production-ready monitoring system**
+
+---
+
+## ISSUE-069: Send Message Dialog - Cannot Type + No Chat Navigation (Feb 11)
+
+**סטטוס:** ✅ תוקן
+**חומרה:** 🔴 קריטי
+**תאריך דיווח:** 11 פברואר 2026
+
+### בעיה
+1. **לא ניתן להקליד בתיבת הטקסט** - ה-textarea בדיאלוג "Send message" בדף UserProfile היה אלמנט HTML לא מבוקר (uncontrolled), מה שגרם לבעיית focus בתוך Radix Dialog
+2. **לא ניתן לראות התכתבויות עבר** - אחרי שליחת הודעה, הדיאלוג נסגר בלי לנווט לדף הצ'אט
+
+### שורש הבעיה
+- `UserProfile.jsx:136` - textarea עם `id="messageInput"` ו-`document.getElementById` במקום React controlled component
+- `handleSendMessage` סגר רק את הדיאלוג בלי ניווט ל-PrivateChat
+
+### פתרון
+| קובץ | שינוי |
+|-------|--------|
+| `apps/web/src/pages/UserProfile.jsx` | הוספת state `messageText`, שימוש ב-controlled textarea עם `value`/`onChange`, ניווט ל-PrivateChat אחרי שליחה |
+| `apps/web/e2e/chat.spec.ts` | 3 regression tests: typing, navigation, disabled button |
+
+### שינויים
+1. **Controlled textarea** - `value={messageText} onChange={(e) => setMessageText(e.target.value)}`
+2. **Navigation** - `navigate(createPageUrl('PrivateChat') + '?chatId=...')` אחרי שליחה מוצלחת
+3. **UX** - כפתור Send מושבת כשהטקסט ריק
+4. **Cleanup** - ניקוי `messageText` בביטול ובשליחה
+
+### בעיות דומות שתוקנו (סריקת codebase)
+| קובץ | בעיה | תיקון |
+|-------|-------|--------|
+| `components/comments/CommentInputDialog.jsx` | `createOrGetChat` + `sendMessage` בלי ניווט לצ'אט | הוספת `navigate` ל-PrivateChat ב-`onSuccess` |
+| `pages/shared-space/SharedSpace.jsx` | `createOrGetChat` בלי ניווט לצ'אט | הוספת `navigate` ל-PrivateChat אחרי יצירת צ'אט |
+
+### טסטים
+- `chat.spec.ts` → "UserProfile Send Message Dialog (ISSUE-069)" - 3 tests:
+  - `should allow typing in the message textarea`
+  - `should navigate to PrivateChat after sending message`
+  - `should disable send button when textarea is empty`
