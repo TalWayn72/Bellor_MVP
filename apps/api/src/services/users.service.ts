@@ -21,7 +21,8 @@ const USER_LIST_SELECT = {
 
 const USER_DETAIL_SELECT = {
   ...USER_LIST_SELECT,
-  drawingUrl: true, sketchMethod: true, location: true, lookingFor: true,
+  nickname: true, drawingUrl: true, sketchMethod: true, location: true,
+  lookingFor: true, phone: true, occupation: true, education: true, interests: true,
 } as const;
 
 export class UsersService {

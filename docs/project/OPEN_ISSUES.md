@@ -118,8 +118,29 @@
 | **TASK-065: E2E Console Warning Detection + Full Page Coverage (Feb 10)** | 29 specs, 54 pages | 🟡 בינוני | ✅ הושלם |
 | **ISSUE-065: StepBirthDate Year Field Not Editable (Feb 11)** | 1 | 🟡 בינוני | ✅ תוקן |
 | **ISSUE-066: Toast Notifications Cannot Be Closed (Feb 11)** | 3 | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-067: Profile Fields Not Persisted After Onboarding (Feb 11)** | 6 | 🔴 קריטי | ✅ תוקן |
 
-**סה"כ:** 2975+ פריטים זוהו → 2975+ טופלו ✅
+**סה"כ:** 2981+ פריטים זוהו → 2981+ טופלו ✅
+
+---
+
+## ✅ ISSUE-067: Profile Fields Not Persisted After Onboarding (11 פברואר 2026)
+**סטטוס:** ✅ תוקן | **חומרה:** 🔴 קריטי | **תאריך:** 11 February 2026
+**קבצים:** `Onboarding.jsx`, `onboardingUtils.js`, `users.service.ts`
+
+**בעיה:** Profile fields (occupation, education, phone, interests) entered during onboarding step 6 were collected in formData but **never saved to the database**. Three root causes:
+1. **Missing fields in final save** — `Onboarding.jsx:98-103` built `userData` without occupation/education/phone/interests
+2. **Wrong step-save mapping** — Step 5 (Location) tried to save `gender` instead of location; Step 6 (AboutYou) tried to save `lookingFor` instead of occupation/education/phone/bio/interests; Steps 7/7.7 (Gender/LookingFor) had no partial save at all
+3. **Missing fields in authUser load** — useEffect didn't populate occupation/education/phone/interests from authUser
+4. **GET `/users/:id` missing fields** — `USER_DETAIL_SELECT` didn't include nickname/phone/occupation/education/interests
+
+**פתרון:**
+1. **`onboardingUtils.js`** — Extracted `buildStepSaveData()` and `buildFinalUserData()` with correct step→field mapping
+2. **`Onboarding.jsx`** — Refactored handleNext to use extracted helpers; added missing fields to useEffect authUser load; reduced from 169 to 140 lines
+3. **`users.service.ts`** — Added nickname/phone/occupation/education/interests to `USER_DETAIL_SELECT`
+
+**בדיקות:**
+- `edge-cases.spec.ts` — new E2E test: "should persist profile data after save on EditProfile"
 
 ---
 

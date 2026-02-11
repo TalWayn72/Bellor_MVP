@@ -63,3 +63,40 @@ export function validateDateOfBirth(dateStr) {
 }
 
 export const TOTAL_STEPS = 12;
+
+/** Build partial save data for a given onboarding step */
+export function buildStepSaveData(step, formData) {
+  if (step === 3 && formData.nickname) return { nickname: formData.nickname };
+  if (step === 4 && formData.date_of_birth) return { birthDate: formData.date_of_birth };
+  if (step === 5 && (formData.location_city || formData.location)) {
+    return { location: formData.location_city && formData.location_state ? { city: formData.location_city, country: formData.location_state } : formData.location };
+  }
+  if (step === 6) {
+    const d = {};
+    if (formData.occupation) d.occupation = formData.occupation;
+    if (formData.education) d.education = formData.education;
+    if (formData.phone) d.phone = formData.phone;
+    if (formData.bio) d.bio = formData.bio;
+    if (formData.interests?.length > 0) d.interests = formData.interests;
+    return Object.keys(d).length > 0 ? d : null;
+  }
+  if (step === 7 && formData.gender) return { gender: formData.gender };
+  if (step === 7.7 && formData.looking_for) {
+    const arr = Array.isArray(formData.looking_for) ? formData.looking_for : [formData.looking_for];
+    return { lookingFor: arr };
+  }
+  if (step === 8 && formData.profile_images?.length > 0) return { profileImages: formData.profile_images };
+  return null;
+}
+
+/** Build full user data for the final onboarding save */
+export function buildFinalUserData(formData) {
+  const lookingForArray = formData.looking_for ? (Array.isArray(formData.looking_for) ? formData.looking_for : [formData.looking_for]) : [];
+  return {
+    nickname: formData.nickname, birthDate: formData.date_of_birth, gender: formData.gender, lookingFor: lookingForArray,
+    location: formData.location_city && formData.location_state ? { city: formData.location_city, country: formData.location_state } : formData.location,
+    profileImages: formData.profile_images || [], sketchMethod: formData.sketch_method, drawingUrl: formData.drawing_url,
+    bio: formData.bio, occupation: formData.occupation || null, education: formData.education || null,
+    phone: formData.phone || null, interests: formData.interests || [], lastActiveAt: new Date().toISOString(),
+  };
+}

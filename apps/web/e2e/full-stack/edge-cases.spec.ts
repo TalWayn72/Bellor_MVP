@@ -281,4 +281,42 @@ test.describe('[P2][infra] Edge Cases - Full Stack', () => {
 
     await expect(page.locator('body')).toBeVisible();
   });
+
+  test('should persist profile data after save on EditProfile', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
+    await page.goto('/EditProfile', { waitUntil: 'domcontentloaded' });
+    await waitForPageLoad(page);
+
+    const header = page.locator('h1').filter({ hasText: 'Edit Profile' });
+    const anyField = page.locator('textarea, input').first();
+    const formVisible = await header.or(anyField).isVisible({ timeout: 15000 }).catch(() => false);
+    if (!formVisible) return;
+
+    // Find the bio textarea and set a unique value
+    const bioField = page.locator('textarea').first();
+    if (!(await bioField.isVisible({ timeout: 5000 }).catch(() => false))) return;
+
+    const uniqueBio = `Persistence test ${Date.now()}`;
+    await bioField.clear();
+    await bioField.fill(uniqueBio);
+
+    // Save
+    const saveBtn = page.getByRole('button', { name: /save|שמור/i }).first();
+    await saveBtn.click();
+    await page.waitForTimeout(3000);
+
+    // Navigate away and come back
+    await page.goto('/SharedSpace', { waitUntil: 'domcontentloaded' });
+    await waitForPageLoad(page);
+    await page.goto('/EditProfile', { waitUntil: 'domcontentloaded' });
+    await waitForPageLoad(page);
+
+    // Verify bio persisted
+    const bioAfter = page.locator('textarea').first();
+    if (await bioAfter.isVisible({ timeout: 15000 }).catch(() => false)) {
+      const value = await bioAfter.inputValue();
+      expect(value).toContain('Persistence test');
+    }
+    cc.assertClean();
+  });
 });

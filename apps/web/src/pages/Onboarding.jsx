@@ -4,7 +4,7 @@ import { userService } from '@/api';
 import { useAuth } from '@/lib/AuthContext';
 import { createPageUrl } from '@/utils';
 import BackButton from '@/components/navigation/BackButton';
-import { formatDateForInput, validateDateOfBirth, TOTAL_STEPS } from '@/components/onboarding/utils/onboardingUtils';
+import { formatDateForInput, validateDateOfBirth, buildStepSaveData, buildFinalUserData } from '@/components/onboarding/utils/onboardingUtils';
 import StepSplash from '@/components/onboarding/steps/StepSplash';
 import StepWelcome from '@/components/onboarding/steps/StepWelcome';
 import StepAuth from '@/components/onboarding/steps/StepAuth';
@@ -53,7 +53,9 @@ export default function Onboarding() {
         profile_images: (authUser.profile_images?.length > 0) ? authUser.profile_images : prev.profile_images,
         main_profile_image_url: authUser.profile_images?.[0] || prev.main_profile_image_url,
         sketch_method: authUser.sketch_method || prev.sketch_method, drawing_url: authUser.drawing_url || prev.drawing_url,
-        bio: authUser.bio || prev.bio,
+        bio: authUser.bio || prev.bio, occupation: authUser.occupation || prev.occupation,
+        education: authUser.education || prev.education, phone: authUser.phone || prev.phone,
+        interests: authUser.interests?.length > 0 ? authUser.interests : prev.interests,
       }));
     }
   }, [isAuthenticated, authUser]);
@@ -77,15 +79,11 @@ export default function Onboarding() {
   };
 
   const handleNext = async () => {
-    if (currentStep === 7.5 || currentStep === 7.7) { navigate(createPageUrl('Onboarding') + '?step=8'); }
-    else if (currentStep < 14) {
-      if (authUser?.id) {
-        if (currentStep === 3 && formData.nickname) await saveProfileData({ nickname: formData.nickname });
-        if (currentStep === 4 && formData.date_of_birth) await saveProfileData({ birthDate: formData.date_of_birth });
-        if (currentStep === 5 && formData.gender) await saveProfileData({ gender: formData.gender });
-        if (currentStep === 6 && formData.looking_for) { const arr = Array.isArray(formData.looking_for) ? formData.looking_for : [formData.looking_for]; await saveProfileData({ lookingFor: arr }); }
-        if (currentStep === 8 && formData.profile_images?.length > 0) await saveProfileData({ profileImages: formData.profile_images });
-      }
+    if (currentStep === 7.5 || currentStep === 7.7) {
+      if (authUser?.id) { const d = buildStepSaveData(currentStep, formData); if (d) await saveProfileData(d); }
+      navigate(createPageUrl('Onboarding') + '?step=8');
+    } else if (currentStep < 14) {
+      if (authUser?.id) { const d = buildStepSaveData(currentStep, formData); if (d) await saveProfileData(d); }
       navigate(createPageUrl('Onboarding') + '?step=' + (currentStep + 1));
     } else {
       if (!authUser) { toast({ title: 'Error', description: 'Please log in to complete onboarding', variant: 'destructive' }); return; }
@@ -94,14 +92,7 @@ export default function Onboarding() {
       try {
         const dateValidation = validateDateOfBirth(formData.date_of_birth);
         if (!dateValidation.isValid) { toast({ title: 'Validation', description: `Invalid date of birth: ${dateValidation.error}`, variant: 'destructive' }); setIsLoading(false); return; }
-        const lookingForArray = formData.looking_for ? (Array.isArray(formData.looking_for) ? formData.looking_for : [formData.looking_for]) : [];
-        const userData = {
-          nickname: formData.nickname, birthDate: formData.date_of_birth, gender: formData.gender, lookingFor: lookingForArray,
-          location: formData.location_city && formData.location_state ? { city: formData.location_city, country: formData.location_state } : formData.location,
-          profileImages: formData.profile_images || [], sketchMethod: formData.sketch_method, drawingUrl: formData.drawing_url,
-          bio: formData.bio, lastActiveAt: new Date().toISOString(),
-        };
-        await userService.updateUser(authUser.id, userData);
+        await userService.updateUser(authUser.id, buildFinalUserData(formData));
         navigate(createPageUrl('SharedSpace'));
       } catch (error) {
         const errorMessage = error?.response?.data?.error?.message || error?.response?.data?.message || error?.message || 'Error saving data. Please try again.';
@@ -112,7 +103,6 @@ export default function Onboarding() {
   };
 
   const handleBack = () => navigate(-1);
-
   const stepProps = { formData, setFormData, handleNext, handleBack, isLoading, setIsLoading, navigate, isAuthenticated, authUser };
 
   const renderStep = () => {
