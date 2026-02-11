@@ -122,8 +122,32 @@
 | **ISSUE-069: Send Message Dialog - Cannot Type + No Chat Navigation (Feb 11)** | 4 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-070: PrivateChat usePresence Crash + Input Not Typeable (Feb 11)** | 4 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-071: Onboarding Step 5 Data Loss + Global Text Contrast (Feb 11)** | 15 files | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-072: SharedSpace Crash - Location Object Rendered as React Child (Feb 11)** | 2 | 🔴 קריטי | ✅ תוקן |
 
-**סה"כ:** 3004+ פריטים זוהו → 3004+ טופלו ✅
+**סה"כ:** 3006+ פריטים זוהו → 3006+ טופלו ✅
+
+---
+
+## ✅ ISSUE-072: SharedSpace Crash - Location Object Rendered as React Child (11 פברואר 2026)
+**סטטוס:** ✅ תוקן | **חומרה:** 🔴 קריטי | **תאריך:** 11 February 2026
+**קבצים:** `TemporaryChatRequestDialog.jsx`, `Profile.test.jsx`
+
+**בעיה:**
+SharedSpace page crashes with: `Objects are not valid as a React child (found: object with keys {lat, lng, city, country})`.
+The `TemporaryChatRequestDialog` component rendered `user?.location` directly in JSX, but `location` is a database object `{lat, lng, city, country}`, not a string.
+
+**שורש הבעיה:**
+- `TemporaryChatRequestDialog.jsx:32` — `{user?.location || 'NY • Tribeca'}` rendered location object directly as React child
+- `Profile.test.jsx:47` — Mock component rendered `{currentUser.location}` without formatting (latent bug)
+
+**פתרון:**
+1. `TemporaryChatRequestDialog.jsx`: Added `import { formatLocation } from '@/utils'` and changed to `{formatLocation(user?.location) || 'NY • Tribeca'}`
+2. `Profile.test.jsx`: Changed mock to `{typeof currentUser.location === 'object' ? currentUser.location?.city : currentUser.location}`
+
+**סריקת קוד מלאה:**
+All other production components confirmed using `formatLocation()` correctly: `ProfileAboutTab`, `UserProfileAbout`, `FollowingCard`, `DiscoverCard`, `UserBioDialog`, `DrawerMenu`, `UserDetailSections`.
+
+**לוגים:** React console error visible in browser DevTools — stack trace pointed to `TemporaryChatRequestDialog` → `SharedSpace` → `GlobalErrorBoundary`.
 
 ---
 

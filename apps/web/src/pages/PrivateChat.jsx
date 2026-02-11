@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { chatService, userService, socketService } from '@/api';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { chatService, userService } from '@/api';
+import { useQuery } from '@tanstack/react-query';
 import { useChatRoom, usePresence } from '@/api/hooks/useSocket';
 import { ChatSkeleton } from '@/components/states';
 import { createPageUrl } from '@/utils';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
+import { usePrivateChatActions } from '@/components/hooks/usePrivateChatActions';
 import { getDemoMessages } from '@/data/demoData';
 import PrivateChatHeader from '@/components/chat/PrivateChatHeader';
 import MessageList from '@/components/chat/MessageList';
@@ -16,17 +17,19 @@ import { useToast } from '@/components/ui/use-toast';
 export default function PrivateChat() {
   const { toast } = useToast();
   const navigate = useNavigate(), location = useLocation();
-  const messagesEndRef = useRef(null), typingTimeoutRef = useRef(null);
+  const messagesEndRef = useRef(null);
   const { currentUser, isLoading } = useCurrentUser();
-  const [message, setMessage] = useState('');
   const [showActions, setShowActions] = useState(false);
   const [showIceBreakers, setShowIceBreakers] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
   const params = new URLSearchParams(location.search);
   const chatId = params.get('chatId') || params.get('id'), otherUserId = params.get('userId');
   const isDemo = chatId?.startsWith('demo-');
 
   const { messages: realtimeMessages, typingUsers, isJoined, sendMessage: sendSocketMessage, sendTyping } = useChatRoom(chatId);
+  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+
+  const { message, isUploading, handleTyping, handleSendMessage, handleSendImage, handleSendVoice, handleBlockUser, cleanup } =
+    usePrivateChatActions({ chatId, currentUser, isJoined, sendSocketMessage, sendTyping, scrollToBottom, toast, navigate });
 
   const { data: chat, isError: chatError } = useQuery({
     queryKey: ['chat', chatId],
@@ -73,41 +76,8 @@ export default function PrivateChat() {
   const isOtherUserOnline = presenceId ? isOnline(presenceId) : false;
   const isOtherUserTyping = presenceId ? typingUsers[presenceId] : false;
 
-  const handleTyping = useCallback((value) => {
-    setMessage(value);
-    try {
-      if (!isTyping) { setIsTyping(true); sendTyping(true); }
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = setTimeout(() => { setIsTyping(false); sendTyping(false); }, 2000);
-    } catch { /* socket not connected - typing indicator is non-critical */ }
-  }, [isTyping, sendTyping]);
-
-  const sendMessageMutation = useMutation({
-    mutationFn: async (data) => {
-      if (isJoined && socketService.isConnected()) {
-        const r = await sendSocketMessage(data.content);
-        if (r.success) return r.data;
-      }
-      return await chatService.sendMessage(chatId, data);
-    },
-    onSuccess: () => { setMessage(''); setIsTyping(false); sendTyping(false); scrollToBottom(); },
-  });
-
-  const handleSendMessage = () => {
-    if (!message.trim() || !chatId || !currentUser) return;
-    sendMessageMutation.mutate({ content: message, type: 'text' });
-  };
-
-  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   useEffect(() => { scrollToBottom(); }, [messages]);
-
-  useEffect(() => () => { if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current); }, []);
-
-  const handleBlockUser = async () => {
-    if (!confirm('Are you sure you want to block this user?')) return;
-    try { await userService.blockUser(otherUserId); toast({ title: 'Success', description: 'User blocked successfully' }); navigate(createPageUrl('SharedSpace')); }
-    catch { toast({ title: 'Error', description: 'Error blocking user', variant: 'destructive' }); }
-  };
+  useEffect(() => () => cleanup(), []);
 
   const goBack = () => navigate(createPageUrl('SharedSpace'));
   const loadingSkeleton = <div className="min-h-screen bg-background p-4"><ChatSkeleton count={6} /></div>;
@@ -130,14 +100,15 @@ export default function PrivateChat() {
         isTemporary={isTemporary} timeLeft={timeLeft}
         isOtherUserOnline={isOtherUserOnline} isOtherUserTyping={isOtherUserTyping}
         showActions={showActions} onToggleActions={() => setShowActions(!showActions)}
-        onNavigate={navigate} onBlockUser={handleBlockUser}
+        onNavigate={navigate} onBlockUser={() => handleBlockUser(otherUserId)}
       />
       <MessageList ref={messagesEndRef} messages={messages} currentUserId={currentUser.id} isOtherUserTyping={isOtherUserTyping} otherUserNickname={otherUser?.nickname} />
       <ChatInput
         message={message} onMessageChange={handleTyping} onSend={handleSendMessage}
         showIceBreakers={showIceBreakers} onToggleIceBreakers={() => setShowIceBreakers(!showIceBreakers)}
         iceBreakers={ICE_BREAKERS} showIceBreakerPanel={showIceBreakers && messages.length === 0}
-        onSelectIceBreaker={(text) => { setMessage(text); setShowIceBreakers(false); }}
+        onSelectIceBreaker={(text) => { handleTyping(text); setShowIceBreakers(false); }}
+        onSendImage={handleSendImage} onSendVoice={handleSendVoice} isUploading={isUploading}
       />
     </div>
   );

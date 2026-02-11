@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import { formatLocation } from '@/utils';
 
 export default function TemporaryChatRequestDialog({ user, isOpen, onClose, onSend }) {
   if (!isOpen) return null;
@@ -29,7 +30,7 @@ export default function TemporaryChatRequestDialog({ user, isOpen, onClose, onSe
                 </div>
               )}
             </div>
-            <p className="text-xs text-gray-500">{user?.location || 'NY • Tribeca'}</p>
+            <p className="text-xs text-gray-500">{formatLocation(user?.location) || 'NY • Tribeca'}</p>
           </div>
         </div>
 

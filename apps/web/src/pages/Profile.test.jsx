@@ -44,7 +44,7 @@ vi.mock('@/components/profile/ProfileAboutTab', () => ({
   default: ({ currentUser }) => (
     <div data-testid="about-tab">
       <span>{currentUser.bio}</span>
-      <span>{currentUser.location}</span>
+      <span>{typeof currentUser.location === 'object' ? currentUser.location?.city : currentUser.location}</span>
     </div>
   ),
 }));
