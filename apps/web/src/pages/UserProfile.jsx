@@ -5,7 +5,6 @@ import { useQuery } from '@tanstack/react-query';
 import { Heart, X, MessageCircle, Star } from 'lucide-react';
 import BackButton from '@/components/navigation/BackButton';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ProfileSkeleton } from '@/components/states';
 import { createPageUrl, transformUser } from '@/utils';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
@@ -22,8 +21,7 @@ export default function UserProfile() {
   const [activeTab, setActiveTab] = useState('about');
   const { currentUser, isLoading } = useCurrentUser();
   const [isLiked, setIsLiked] = useState(false);
-  const [showMessageDialog, setShowMessageDialog] = useState(false);
-  const [messageText, setMessageText] = useState('');
+  const [isSendingChat, setIsSendingChat] = useState(false);
 
   useEffect(() => {
     if (!userId || userId === 'undefined' || userId === 'null') navigate(createPageUrl('SharedSpace'), { replace: true });
@@ -79,9 +77,12 @@ export default function UserProfile() {
     try { await likeService.likeUser(userId, type); toast({ title: 'Success', description: type === 'ROMANTIC' ? '\u05d4\u05e8\u05d0\u05ea \u05e2\u05e0\u05d9\u05d9\u05df \u05e8\u05d5\u05de\u05e0\u05d8\u05d9!' : '\u05e0\u05ea\u05ea \u05e4\u05d9\u05d3\u05d1\u05e7 \u05d7\u05d9\u05d5\u05d1\u05d9!' }); } catch (e) { /* Ignore */ }
   };
 
-  const handleSendMessage = async (message) => {
-    try { const r = await chatService.createOrGetChat(userId); await chatService.sendMessage(r.chat.id, { content: message, type: 'text' }); setShowMessageDialog(false); setMessageText(''); toast({ title: 'Success', description: 'Message sent successfully!' }); navigate(createPageUrl('PrivateChat') + `?chatId=${r.chat.id}&userId=${userId}`); }
-    catch { toast({ title: 'Error', description: 'Error sending message', variant: 'destructive' }); }
+  const handleOpenChat = async () => {
+    if (isSendingChat) return;
+    setIsSendingChat(true);
+    try { const r = await chatService.createOrGetChat(userId); navigate(createPageUrl('PrivateChat') + `?chatId=${r.chat.id}&userId=${userId}`); }
+    catch { toast({ title: 'Error', description: 'Error opening chat', variant: 'destructive' }); }
+    finally { setIsSendingChat(false); }
   };
 
   if (isLoading || !viewedUser) return <ProfileSkeleton />;
@@ -122,25 +123,12 @@ export default function UserProfile() {
           <Button onClick={() => handleLike('POSITIVE')} variant="premium" size="xl" className="flex-1 gap-2">
             <Star className="w-5 h-5" />{'\u05e4\u05d9\u05d3\u05d1\u05e7 \u05d7\u05d9\u05d5\u05d1\u05d9'}
           </Button>
-          <Button onClick={() => setShowMessageDialog(true)} variant="outline" size="icon-lg" className="rounded-full border-info text-info hover:bg-info/10">
+          <Button onClick={handleOpenChat} disabled={isSendingChat} variant="outline" size="icon-lg" className="rounded-full border-info text-info hover:bg-info/10">
             <MessageCircle className="w-6 h-6" />
           </Button>
         </div>
       </div>
 
-      <Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Send message to {viewedUser.nickname}</DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground">Write a private message to start a conversation</DialogDescription>
-          </DialogHeader>
-          <textarea value={messageText} onChange={(e) => setMessageText(e.target.value)} placeholder="Write your message..." className="w-full h-32 border-2 border-input rounded-xl p-3 text-sm resize-none focus:border-primary focus:ring-primary" />
-          <DialogFooter className="flex-row gap-3 sm:justify-end">
-            <Button onClick={() => { setShowMessageDialog(false); setMessageText(''); }} variant="outline" size="lg" className="flex-1 sm:flex-none">Cancel</Button>
-            <Button onClick={() => { if (messageText.trim()) handleSendMessage(messageText); }} size="lg" className="flex-1 sm:flex-none" disabled={!messageText.trim()}>Send</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

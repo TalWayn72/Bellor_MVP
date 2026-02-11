@@ -4189,40 +4189,34 @@ curl http://localhost:3000/health/memory
 
 ---
 
-## ISSUE-069: Send Message Dialog - Cannot Type + No Chat Navigation (Feb 11)
+## ISSUE-069: Send Message Dialog - White-on-White Text + No Past Conversations (Feb 11)
 
 **סטטוס:** ✅ תוקן
 **חומרה:** 🔴 קריטי
 **תאריך דיווח:** 11 פברואר 2026
 
 ### בעיה
-1. **לא ניתן להקליד בתיבת הטקסט** - ה-textarea בדיאלוג "Send message" בדף UserProfile היה אלמנט HTML לא מבוקר (uncontrolled), מה שגרם לבעיית focus בתוך Radix Dialog
-2. **לא ניתן לראות התכתבויות עבר** - אחרי שליחת הודעה, הדיאלוג נסגר בלי לנווט לדף הצ'אט
+1. **טקסט לבן על לבן** - ה-textarea בדיאלוג "Send message" ירש צבע טקסט לבן מ-dark mode, אבל רקע textarea היה לבן (ברירת מחדל דפדפן) → טקסט בלתי נראה
+2. **לא ניתן לראות התכתבויות עבר** - הדיאלוג היה ריק ללא הצגת שיחה קודמת עם המשתמש
 
 ### שורש הבעיה
-- `UserProfile.jsx:136` - textarea עם `id="messageInput"` ו-`document.getElementById` במקום React controlled component
-- `handleSendMessage` סגר רק את הדיאלוג בלי ניווט ל-PrivateChat
+- `UserProfile.jsx` השתמש ב-raw `<textarea>` HTML בתוך Radix Dialog → 3 בעיות: focus trap, white-on-white text, no design system
+- דיאלוג מיותר שחסם גישה לשיחות קיימות
 
-### פתרון
+### פתרון - הסרת הדיאלוג לטובת ניווט ישיר
 | קובץ | שינוי |
 |-------|--------|
-| `apps/web/src/pages/UserProfile.jsx` | הוספת state `messageText`, שימוש ב-controlled textarea עם `value`/`onChange`, ניווט ל-PrivateChat אחרי שליחה |
-| `apps/web/e2e/chat.spec.ts` | 3 regression tests: typing, navigation, disabled button |
+| `apps/web/src/pages/UserProfile.jsx` | **הוסר הדיאלוג לגמרי** - כפתור הודעה מנווט ישירות ל-PrivateChat דרך `createOrGetChat` |
+| `components/comments/CommentInputDialog.jsx` | הוספת ניווט ל-PrivateChat אחרי שליחת תגובה |
+| `pages/shared-space/SharedSpace.jsx` | הוספת ניווט ל-PrivateChat אחרי יצירת צ'אט |
+| `apps/web/e2e/chat.spec.ts` | 2 regression tests: direct navigation, past messages visible |
 
-### שינויים
-1. **Controlled textarea** - `value={messageText} onChange={(e) => setMessageText(e.target.value)}`
-2. **Navigation** - `navigate(createPageUrl('PrivateChat') + '?chatId=...')` אחרי שליחה מוצלחת
-3. **UX** - כפתור Send מושבת כשהטקסט ריק
-4. **Cleanup** - ניקוי `messageText` בביטול ובשליחה
-
-### בעיות דומות שתוקנו (סריקת codebase)
-| קובץ | בעיה | תיקון |
-|-------|-------|--------|
-| `components/comments/CommentInputDialog.jsx` | `createOrGetChat` + `sendMessage` בלי ניווט לצ'אט | הוספת `navigate` ל-PrivateChat ב-`onSuccess` |
-| `pages/shared-space/SharedSpace.jsx` | `createOrGetChat` בלי ניווט לצ'אט | הוספת `navigate` ל-PrivateChat אחרי יצירת צ'אט |
+### למה הסרת הדיאלוג ולא תיקון CSS?
+- דף PrivateChat כבר מטפל **גם** בשיחות חדשות (ice breakers) **וגם** בשיחות קיימות (היסטוריית הודעות)
+- הדיאלוג שיכפל פונקציונליות שכבר קיימת ב-PrivateChat
+- ניווט ישיר פותר את כל הבעיות: אין textarea בעייתי, רואים שיחות עבר, UX עקבי
 
 ### טסטים
-- `chat.spec.ts` → "UserProfile Send Message Dialog (ISSUE-069)" - 3 tests:
-  - `should allow typing in the message textarea`
-  - `should navigate to PrivateChat after sending message`
-  - `should disable send button when textarea is empty`
+- `chat.spec.ts` → "UserProfile Message Button - Direct Chat Navigation (ISSUE-069)":
+  - `should navigate directly to PrivateChat when clicking message button`
+  - `should show past messages when navigating to existing chat`
