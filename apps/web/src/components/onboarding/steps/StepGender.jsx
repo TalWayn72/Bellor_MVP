@@ -17,14 +17,14 @@ export default function StepGender({ formData, setFormData, handleNext, subStep 
 
   if (subStep === 7.5) {
     return (
-      <div className="flex-1 flex flex-col bg-card">
+      <div className="flex-1 flex flex-col bg-white">
         <div className="relative h-80 bg-muted overflow-hidden">
           <img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800" alt="Background" className="w-full h-full object-cover opacity-50" />
         </div>
         <div className="flex-1 px-6 py-8">
           <div className="w-full max-w-md mx-auto">
             <ProgressBar currentStep={5} totalSteps={TOTAL_STEPS} />
-            <p className="text-sm text-muted-foreground mb-4">Other Options</p>
+            <p className="text-sm text-gray-500 mb-4">Other Options</p>
             <div className="space-y-3">
               {['GENDERQUEER', 'NON-BINARY', 'ANDROGYNE', 'TRANS', 'DEMI-BOY', 'MALE', 'OTHER', 'QUESTIONING'].map((option) => (
                 <button key={option} onClick={() => { setFormData({ ...formData, gender: 'other', gender_other: option }); navigate(createPageUrl('Onboarding') + '?step=7.7'); }} className="w-full h-12 bg-white border-2 border-gray-200 rounded-xl hover:border-primary text-sm font-medium text-gray-800">
@@ -46,14 +46,14 @@ export default function StepGender({ formData, setFormData, handleNext, subStep 
 
   if (subStep === 7.7) {
     return (
-      <div className="flex-1 flex flex-col bg-card">
+      <div className="flex-1 flex flex-col bg-white">
         <div className="relative h-80 bg-muted overflow-hidden">
           <img src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=800" alt="Background" className="w-full h-full object-cover opacity-50" />
         </div>
         <div className="flex-1 px-6 py-8">
           <div className="w-full max-w-md mx-auto">
             <ProgressBar currentStep={5} totalSteps={TOTAL_STEPS} />
-            <p className="text-sm text-muted-foreground mb-4">I'm looking for</p>
+            <p className="text-sm text-gray-500 mb-4">I'm looking for</p>
             <div className="space-y-3">
               {[{ label: 'WOMEN', value: 'female' }, { label: 'MEN', value: 'male' }, { label: 'EVERYONE', value: 'other' }].map(({ label, value }) => (
                 <button key={value} onClick={() => { setFormData({ ...formData, looking_for: value }); handleNext(); }} className="w-full h-12 bg-white border-2 border-gray-200 rounded-xl hover:border-primary text-sm font-medium text-gray-800 flex items-center justify-between px-4">
@@ -70,14 +70,14 @@ export default function StepGender({ formData, setFormData, handleNext, subStep 
 
   // Default: subStep === 7
   return (
-    <div className="flex-1 flex flex-col bg-card">
+    <div className="flex-1 flex flex-col bg-white">
       <div className="relative h-80 bg-muted overflow-hidden">
         <img src={formData.gender === 'male' ? "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800" : "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800"} alt="Background" className="w-full h-full object-cover opacity-50" />
       </div>
       <div className="flex-1 px-6 py-8">
         <div className="w-full max-w-md mx-auto">
           <ProgressBar currentStep={5} totalSteps={TOTAL_STEPS} />
-          <p className="text-sm text-muted-foreground mb-4">Gender Selection</p>
+          <p className="text-sm text-gray-500 mb-4">Gender Selection</p>
           <div className="space-y-3">
             <button onClick={() => { setFormData({ ...formData, gender: 'female' }); navigate(createPageUrl('Onboarding') + '?step=7.7'); }} className="w-full h-12 bg-white border-2 border-gray-200 rounded-xl hover:border-primary text-sm font-medium text-gray-800 flex items-center justify-between px-4">
               <span>FEMALE</span>

@@ -131,7 +131,7 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col" dir="ltr">
+    <div className="min-h-screen bg-white text-gray-900 flex flex-col" dir="ltr">
       {currentStep > 2 && <BackButton onClick={handleBack} />}
       {renderStep()}
     </div>

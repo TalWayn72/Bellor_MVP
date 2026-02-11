@@ -7,7 +7,7 @@ import { TOTAL_STEPS } from '@/components/onboarding/utils/onboardingUtils';
 
 export default function StepNickname({ formData, setFormData, handleNext }) {
   return (
-    <div className="flex-1 flex flex-col bg-card">
+    <div className="flex-1 flex flex-col bg-white">
       <div className="relative h-80 bg-muted overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=800"
@@ -20,7 +20,7 @@ export default function StepNickname({ formData, setFormData, handleNext }) {
         <div className="w-full max-w-md mx-auto">
           <ProgressBar currentStep={1} totalSteps={TOTAL_STEPS} />
 
-          <label className="block text-sm text-muted-foreground mb-2">Your nickname</label>
+          <label className="block text-sm text-gray-500 mb-2">Your nickname</label>
           <Input
             placeholder="Nickname"
             value={formData.nickname}
@@ -34,7 +34,7 @@ export default function StepNickname({ formData, setFormData, handleNext }) {
             maxLength={15}
           />
           {formData.nickname && formData.nickname.length < 3 && (
-            <p className="text-xs text-muted-foreground mt-1">Minimum 3 characters required</p>
+            <p className="text-xs text-gray-500 mt-1">Minimum 3 characters required</p>
           )}
         </div>
       </div>

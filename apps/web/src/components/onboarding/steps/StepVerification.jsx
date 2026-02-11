@@ -38,7 +38,7 @@ export default function StepVerification({ formData, setFormData, handleNext, ha
 
   if (subStep === 10) {
     return (
-      <div className="flex-1 flex flex-col bg-card">
+      <div className="flex-1 flex flex-col bg-white">
         <div className="flex-1 px-6 py-8 flex flex-col items-center justify-center">
           <div className="w-full max-w-md">
             <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center mx-auto mb-8">
@@ -46,10 +46,10 @@ export default function StepVerification({ formData, setFormData, handleNext, ha
             </div>
             <div className="bg-muted rounded-2xl p-6 mb-6 text-left">
               <h3 className="font-bold text-base mb-4">Photo Verification</h3>
-              <p className="text-sm text-foreground leading-relaxed mb-4"><strong>Is the real you, we want to see!</strong></p>
-              <p className="text-xs text-muted-foreground leading-relaxed mb-4">Take a selfie that matches one of the photos on your profile. Once verified, a badge like this one will appear in your profile.</p>
-              <p className="text-xs text-muted-foreground leading-relaxed mb-4"><strong>Important to know:</strong></p>
-              <ul className="text-xs text-muted-foreground leading-relaxed space-y-2 list-disc pl-4">
+              <p className="text-sm text-gray-900 leading-relaxed mb-4"><strong>Is the real you, we want to see!</strong></p>
+              <p className="text-xs text-gray-500 leading-relaxed mb-4">Take a selfie that matches one of the photos on your profile. Once verified, a badge like this one will appear in your profile.</p>
+              <p className="text-xs text-gray-500 leading-relaxed mb-4"><strong>Important to know:</strong></p>
+              <ul className="text-xs text-gray-500 leading-relaxed space-y-2 list-disc pl-4">
                 <li>Your verification photo will be visible on your profile</li>
                 <li>It may take up to 48hrs for our team to review your photo</li>
                 <li>Your verification photo will not be used for anything else</li>
@@ -69,7 +69,7 @@ export default function StepVerification({ formData, setFormData, handleNext, ha
   if (subStep === 11) {
     const fallbackImg = formData.gender === 'male' ? "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400" : "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400";
     return (
-      <div className="flex-1 flex flex-col bg-card">
+      <div className="flex-1 flex flex-col bg-white">
         <div className="flex-1 px-6 py-8 flex flex-col items-center justify-center">
           <div className="w-full max-w-md">
             <ProgressBar currentStep={8} totalSteps={TOTAL_STEPS} />
@@ -90,7 +90,7 @@ export default function StepVerification({ formData, setFormData, handleNext, ha
 
   // Default: subStep === 9 (camera selfie)
   return (
-    <div className="flex-1 flex flex-col bg-card">
+    <div className="flex-1 flex flex-col bg-white">
       <div className="flex-1 px-6 py-8 flex flex-col items-center justify-center">
         <div className="w-full max-w-md">
           <ProgressBar currentStep={7} totalSteps={TOTAL_STEPS} />
@@ -117,7 +117,7 @@ export default function StepVerification({ formData, setFormData, handleNext, ha
           </div>
           <div className="bg-muted rounded-2xl p-4 mb-6">
             <h3 className="font-semibold text-sm mb-2">Photo Verification</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">Take a selfie that matches your profile photos. This helps verify your identity.</p>
+            <p className="text-xs text-gray-500 leading-relaxed">Take a selfie that matches your profile photos. This helps verify your identity.</p>
           </div>
           <div className="flex gap-3">
             {verificationPhoto ? (

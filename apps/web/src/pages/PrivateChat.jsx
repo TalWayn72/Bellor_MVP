@@ -75,9 +75,11 @@ export default function PrivateChat() {
 
   const handleTyping = useCallback((value) => {
     setMessage(value);
-    if (!isTyping) { setIsTyping(true); sendTyping(true); }
-    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-    typingTimeoutRef.current = setTimeout(() => { setIsTyping(false); sendTyping(false); }, 2000);
+    try {
+      if (!isTyping) { setIsTyping(true); sendTyping(true); }
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => { setIsTyping(false); sendTyping(false); }, 2000);
+    } catch { /* socket not connected - typing indicator is non-critical */ }
   }, [isTyping, sendTyping]);
 
   const sendMessageMutation = useMutation({
@@ -99,13 +101,7 @@ export default function PrivateChat() {
   const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   useEffect(() => { scrollToBottom(); }, [messages]);
 
-  useEffect(() => {
-    return () => {
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-    };
-  }, []);
+  useEffect(() => () => { if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current); }, []);
 
   const handleBlockUser = async () => {
     if (!confirm('Are you sure you want to block this user?')) return;

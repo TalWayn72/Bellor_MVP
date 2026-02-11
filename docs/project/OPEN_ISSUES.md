@@ -120,8 +120,78 @@
 | **ISSUE-066: Toast Notifications Cannot Be Closed (Feb 11)** | 3 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-067: Profile Fields Not Persisted After Onboarding (Feb 11)** | 6 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-069: Send Message Dialog - Cannot Type + No Chat Navigation (Feb 11)** | 4 | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-070: PrivateChat usePresence Crash + Input Not Typeable (Feb 11)** | 4 | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-071: Onboarding Step 5 Data Loss + Global Text Contrast (Feb 11)** | 15 files | 🔴 קריטי | ✅ תוקן |
 
-**סה"כ:** 2985+ פריטים זוהו → 2985+ טופלו ✅
+**סה"כ:** 3004+ פריטים זוהו → 3004+ טופלו ✅
+
+---
+
+## ✅ ISSUE-071: Onboarding Step 5 Data Loss + Global Text Contrast (11 פברואר 2026)
+**סטטוס:** ✅ תוקן | **חומרה:** 🔴 קריטי | **תאריך:** 11 February 2026
+**קבצים:** `onboardingUtils.js`, `StepLocation.jsx`, `Onboarding.jsx`, + 12 Step*.jsx files
+
+**בעיה (3 חלקים):**
+1. **City not saved on step 5** — Country select only set `formData.location` but `buildStepSaveData(5)` checked `formData.location_state`. City was always lost.
+2. **Toggle buttons not saved** — `can_currently_relocate` and `can_language_travel` were tracked in formData but never included in `buildStepSaveData` or `buildFinalUserData`.
+3. **Recurring text contrast issue** — All onboarding steps used `bg-card` and `text-muted-foreground` CSS variables. In dark mode, `bg-card` resolves to dark background and `text-muted-foreground` resolves to light text, causing white-on-white on white backgrounds.
+
+**שורשי הבעיה:**
+- `StepLocation.jsx` country select `onChange` set `location` but not `location_state`
+- `buildStepSaveData(5)` and `buildFinalUserData()` never included `canCurrentlyRelocate`/`canLanguageTravel`
+- 15 step components used Tailwind CSS variable classes (`bg-card`, `text-muted-foreground`, `text-foreground`) that resolve differently in dark mode instead of explicit colors
+
+**פתרון:**
+1. **StepLocation**: Added `location_state: e.target.value` to country select onChange
+2. **onboardingUtils.js**: Added `canCurrentlyRelocate` and `canLanguageTravel` to both `buildStepSaveData(5)` and `buildFinalUserData()`
+3. **Global contrast fix** across ALL 15 onboarding step components:
+   - Replaced `bg-card` → `bg-white` (explicit white background)
+   - Replaced `text-muted-foreground` → `text-gray-500` (explicit gray text)
+   - Replaced `text-foreground` → `text-gray-900` (explicit dark text)
+   - Added `text-white drop-shadow-lg` to headings on image overlays (StepSketchMode, StepFirstQuestion)
+   - Added `text-gray-900` to headings inside white cards
+4. **Onboarding.jsx**: Container changed from `bg-white` to `bg-white text-gray-900`
+
+**Files changed:**
+- `apps/web/src/components/onboarding/utils/onboardingUtils.js`
+- `apps/web/src/components/onboarding/steps/StepLocation.jsx`
+- `apps/web/src/components/onboarding/steps/StepAboutYou.jsx`
+- `apps/web/src/components/onboarding/steps/StepBirthDate.jsx`
+- `apps/web/src/components/onboarding/steps/StepDrawing.jsx`
+- `apps/web/src/components/onboarding/steps/StepFirstQuestion.jsx`
+- `apps/web/src/components/onboarding/steps/StepGender.jsx`
+- `apps/web/src/components/onboarding/steps/StepNickname.jsx`
+- `apps/web/src/components/onboarding/steps/StepPhoneLogin.jsx`
+- `apps/web/src/components/onboarding/steps/StepPhoneVerify.jsx`
+- `apps/web/src/components/onboarding/steps/StepPhotos.jsx`
+- `apps/web/src/components/onboarding/steps/StepSketchMode.jsx`
+- `apps/web/src/components/onboarding/steps/StepSplash.jsx`
+- `apps/web/src/components/onboarding/steps/StepVerification.jsx`
+- `apps/web/src/pages/Onboarding.jsx`
+
+**טסטים:**
+- 13 unit tests: `onboardingUtils.test.js` — city/country saving, toggle fields, all step save data
+- 18 E2E tests: `onboarding.spec.ts` — step 5 UI, toggle buttons, contrast class verification across 11 steps
+
+---
+
+## ✅ ISSUE-070: PrivateChat usePresence Crash + Input Not Typeable (11 פברואר 2026)
+**סטטוס:** ✅ תוקן | **חומרה:** 🔴 קריטי | **תאריך:** 11 February 2026
+**קבצים:** `usePresence.js`, `socketService.js`, `PrivateChat.jsx`, `useNotifications.js`
+
+**בעיה:** PrivateChat crashes with "Cannot read properties of undefined (reading 'demo-user-2')". After error boundary reload, chat renders but text input is not typeable.
+
+**שורשי הבעיה:**
+1. **usePresence.js:20** — `setOnlineStatus(response.data.onlineUsers)` sets state to `undefined`/`null` when server returns no `onlineUsers`, then `onlineStatus['demo-user-2']` crashes
+2. **socketService.js:97** — `connect().then(...)` without `.catch()` creates unhandled promise rejection that disrupts event handling
+3. **PrivateChat.jsx:78** — `sendTyping()` in `handleTyping` not wrapped in try-catch, socket errors can block state update
+4. **useNotifications.js:19** — Same nullable response pattern `response.data.unreadCount` without guard
+
+**פתרון:**
+1. Added `response.data?.onlineUsers` guard + type check in `isOnline` callback
+2. Added `.catch()` to `emit()` method's reconnect promise chain
+3. Wrapped `handleTyping` socket operations in try-catch (message `setMessage` runs first)
+4. Added `response.data` null check + nullish coalescing in notifications hook
 
 ---
 

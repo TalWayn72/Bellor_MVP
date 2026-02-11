@@ -15,8 +15,8 @@ export function useRealtimeNotifications() {
     socketService.connect()
       .then(() => socketService.getUnreadCount())
       .then((response) => {
-        if (response.success) {
-          setUnreadCount(response.data.unreadCount);
+        if (response.success && response.data) {
+          setUnreadCount(response.data.unreadCount ?? 0);
         }
       })
       .catch(console.error);

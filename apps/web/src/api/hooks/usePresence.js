@@ -16,7 +16,7 @@ export function usePresence(userIds = []) {
     socketService.connect()
       .then(() => socketService.checkUsersOnline(userIds))
       .then((response) => {
-        if (response.success) {
+        if (response.success && response.data?.onlineUsers) {
           setOnlineStatus(response.data.onlineUsers);
         }
       })
@@ -45,6 +45,7 @@ export function usePresence(userIds = []) {
   }, [userIds.join(',')]);
 
   const isOnline = useCallback((userId) => {
+    if (!onlineStatus || typeof onlineStatus !== 'object') return false;
     return onlineStatus[userId] || false;
   }, [onlineStatus]);
 

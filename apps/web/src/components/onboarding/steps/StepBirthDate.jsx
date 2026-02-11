@@ -15,7 +15,7 @@ export default function StepBirthDate({ formData, setFormData, handleNext }) {
   })();
 
   return (
-    <div className="flex-1 flex flex-col bg-card">
+    <div className="flex-1 flex flex-col bg-white">
       <div className="relative h-80 bg-muted overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=800"
@@ -28,7 +28,7 @@ export default function StepBirthDate({ formData, setFormData, handleNext }) {
         <div className="w-full max-w-md mx-auto">
           <ProgressBar currentStep={2} totalSteps={TOTAL_STEPS} />
 
-          <label className="block text-sm text-muted-foreground mb-2">Date of birth</label>
+          <label className="block text-sm text-gray-500 mb-2">Date of birth</label>
           <Input
             type="date"
             value={formData.date_of_birth}
@@ -37,7 +37,7 @@ export default function StepBirthDate({ formData, setFormData, handleNext }) {
             max={maxDate}
             className="w-full h-12 text-base"
           />
-          <p className="text-xs text-muted-foreground mt-1">You must be at least 18 years old</p>
+          <p className="text-xs text-gray-500 mt-1">You must be at least 18 years old</p>
         </div>
       </div>
 

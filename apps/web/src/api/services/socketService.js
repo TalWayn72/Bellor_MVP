@@ -94,7 +94,9 @@ class SocketService {
   emit(event, data, callback) {
     if (!this.socket?.connected) {
       if (import.meta.env.DEV) console.debug('[Socket] not connected, attempting to connect...');
-      this.connect().then(() => { this.socket.emit(event, data, callback); });
+      this.connect()
+        .then(() => { this.socket.emit(event, data, callback); })
+        .catch(() => { /* silently ignore - socket will retry on next action */ });
       return;
     }
     this.socket.emit(event, data, callback);

@@ -402,6 +402,98 @@ test.describe('Full Onboarding Flow', () => {
   });
 });
 
+test.describe('ISSUE-070: Step 5 Location Data & Toggle Saving', () => {
+  test('should show country and city selects on step 5', async ({ page }) => {
+    await page.goto('/onboarding?step=5');
+    await waitForPageLoad(page);
+
+    const countrySelect = page.locator('select').first();
+    await expect(countrySelect).toBeVisible({ timeout: 10000 });
+
+    const citySelect = page.locator('select').nth(1);
+    await expect(citySelect).toBeVisible({ timeout: 10000 });
+  });
+
+  test('should update city options when country changes', async ({ page }) => {
+    await page.goto('/onboarding?step=5');
+    await waitForPageLoad(page);
+
+    const countrySelect = page.locator('select').first();
+    await countrySelect.selectOption('Israel');
+
+    const citySelect = page.locator('select').nth(1);
+    await expect(citySelect.locator('option', { hasText: 'Tel Aviv' })).toBeAttached();
+    await expect(citySelect.locator('option', { hasText: 'Jerusalem' })).toBeAttached();
+  });
+
+  test('should display toggle buttons for relocate and language-travel', async ({ page }) => {
+    await page.goto('/onboarding?step=5');
+    await waitForPageLoad(page);
+
+    const relocateText = page.locator('text=/relocate/i');
+    await expect(relocateText).toBeVisible({ timeout: 10000 });
+
+    const languageTravelText = page.locator('text=/language-travel/i');
+    await expect(languageTravelText).toBeVisible({ timeout: 10000 });
+  });
+
+  test('should toggle relocate button on click', async ({ page }) => {
+    await page.goto('/onboarding?step=5');
+    await waitForPageLoad(page);
+
+    const toggleContainer = page.locator('text=Can currently relocate?').locator('..');
+    const toggle = toggleContainer.locator('button');
+    if (await toggle.isVisible()) {
+      await toggle.click();
+      await expect(toggle).toHaveClass(/bg-primary/);
+    }
+  });
+});
+
+test.describe('ISSUE-070: Text Contrast in Onboarding Steps', () => {
+  const stepsToCheck = [3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14];
+
+  for (const step of stepsToCheck) {
+    test(`step ${step} should not use bg-card or text-muted-foreground`, async ({ page }) => {
+      await page.goto(`/onboarding?step=${step}`);
+      await waitForPageLoad(page);
+
+      const bgCardElements = await page.locator('[class*="bg-card"]').count();
+      expect(bgCardElements).toBe(0);
+
+      const mutedFgElements = await page.locator('[class*="text-muted-foreground"]').count();
+      expect(mutedFgElements).toBe(0);
+    });
+  }
+
+  test('step 14 heading should have explicit dark text color', async ({ page }) => {
+    await page.goto('/onboarding?step=14');
+    await waitForPageLoad(page);
+
+    const heading = page.locator('text=How do you usually express yourself?');
+    await expect(heading).toBeVisible({ timeout: 10000 });
+    await expect(heading).toHaveClass(/text-gray-900/);
+  });
+
+  test('step 12 headings on image background should be white', async ({ page }) => {
+    await page.goto('/onboarding?step=12');
+    await waitForPageLoad(page);
+
+    const sketchHeading = page.locator('text=Choose your Sketch Mode');
+    await expect(sketchHeading).toBeVisible({ timeout: 10000 });
+    await expect(sketchHeading).toHaveClass(/text-white/);
+  });
+
+  test('step 5 labels should use text-gray-500 for visibility', async ({ page }) => {
+    await page.goto('/onboarding?step=5');
+    await waitForPageLoad(page);
+
+    const label = page.locator('text=Location for you matching');
+    await expect(label).toBeVisible({ timeout: 10000 });
+    await expect(label).toHaveClass(/text-gray-500/);
+  });
+});
+
 test.describe('Onboarding - Mobile', () => {
   test.use({ viewport: { width: 375, height: 667 } });
 

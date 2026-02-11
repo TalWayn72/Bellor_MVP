@@ -11,7 +11,7 @@ export default function StepPhoneVerify({ formData, setFormData, isLoading, setI
   const { toast } = useToast();
 
   return (
-    <div className="flex-1 flex flex-col bg-card">
+    <div className="flex-1 flex flex-col bg-white">
       <div className="relative h-80 bg-gradient-to-br from-green-500 via-teal-500 to-blue-500 overflow-hidden">
         <div className="absolute inset-0 flex items-center justify-center">
           <svg className="w-32 h-32 text-white opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -23,11 +23,11 @@ export default function StepPhoneVerify({ formData, setFormData, isLoading, setI
       <div className="flex-1 px-6 py-8">
         <div className="w-full max-w-md mx-auto">
           <h2 className="text-2xl font-bold text-center mb-2">Enter Verification Code</h2>
-          <p className="text-sm text-muted-foreground text-center mb-8">
+          <p className="text-sm text-gray-500 text-center mb-8">
             We sent a code to {formData.phone}
           </p>
 
-          <label className="block text-sm text-muted-foreground mb-2">Verification Code</label>
+          <label className="block text-sm text-gray-500 mb-2">Verification Code</label>
           <Input
             type="text"
             placeholder="Enter 6-digit code"
