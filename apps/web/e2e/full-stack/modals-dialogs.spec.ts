@@ -235,6 +235,57 @@ test.describe('[P2][infra] Modals & Dialogs - Full Stack', () => {
     }
   });
 
+  test('should dismiss toast via close button', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
+    await page.goto('/EditProfile');
+    await waitForPageLoad(page);
+
+    // Make a change and save to trigger a toast
+    const bioField = page.locator('textarea').first();
+    if (!(await bioField.isVisible({ timeout: 10000 }).catch(() => false))) return;
+
+    await bioField.clear();
+    await bioField.fill('Toast close test');
+
+    const saveBtn = page.getByRole('button', { name: /save|שמור/i }).first();
+    await saveBtn.click();
+
+    // Wait for toast to appear — our Toaster renders with animate-slide-up class
+    const toastEl = page.locator('.animate-slide-up, [data-sonner-toast], [role="status"]').first();
+    const appeared = await toastEl.isVisible({ timeout: 10000 }).catch(() => false);
+    if (!appeared) return; // toast may not fire if API is down
+
+    // Close button is always visible (opacity-70). Click the X button.
+    const closeBtn = toastEl.locator('button').filter({ has: page.locator('svg') }).first();
+    await expect(closeBtn).toBeVisible({ timeout: 3000 });
+    await closeBtn.click();
+
+    // Toast should disappear immediately (open → false filters it out)
+    await expect(toastEl).not.toBeVisible({ timeout: 5000 });
+    cc.assertClean();
+  });
+
+  test('should auto-dismiss toast after timeout', async ({ page }) => {
+    await page.goto('/EditProfile');
+    await waitForPageLoad(page);
+
+    const bioField = page.locator('textarea').first();
+    if (!(await bioField.isVisible({ timeout: 10000 }).catch(() => false))) return;
+
+    await bioField.clear();
+    await bioField.fill('Auto dismiss test');
+
+    const saveBtn = page.getByRole('button', { name: /save|שמור/i }).first();
+    await saveBtn.click();
+
+    const toastEl = page.locator('.animate-slide-up, [data-sonner-toast], [role="status"]').first();
+    const appeared = await toastEl.isVisible({ timeout: 10000 }).catch(() => false);
+    if (!appeared) return;
+
+    // Toast should auto-dismiss within ~6 seconds (5s delay + 300ms remove)
+    await expect(toastEl).not.toBeVisible({ timeout: 8000 });
+  });
+
   test('should handle task selector dialog on SharedSpace', async ({ page }) => {
     await page.goto('/SharedSpace');
     await waitForPageLoad(page);

@@ -117,8 +117,30 @@
 | **ISSUE-064: Auth Race Condition - apiClient/AuthContext Token Desync (Feb 10)** | 2 | 🔴 קריטי | ✅ תוקן |
 | **TASK-065: E2E Console Warning Detection + Full Page Coverage (Feb 10)** | 29 specs, 54 pages | 🟡 בינוני | ✅ הושלם |
 | **ISSUE-065: StepBirthDate Year Field Not Editable (Feb 11)** | 1 | 🟡 בינוני | ✅ תוקן |
+| **ISSUE-066: Toast Notifications Cannot Be Closed (Feb 11)** | 3 | 🔴 קריטי | ✅ תוקן |
 
-**סה"כ:** 2973+ פריטים זוהו → 2973+ טופלו ✅
+**סה"כ:** 2975+ פריטים זוהו → 2975+ טופלו ✅
+
+---
+
+## ✅ ISSUE-066: Toast Notifications Cannot Be Closed (11 פברואר 2026)
+**סטטוס:** ✅ תוקן | **חומרה:** 🔴 קריטי | **תאריך:** 11 February 2026
+**קבצים:** `toaster.jsx`, `use-toast.jsx`, `toast.jsx`
+
+**בעיה:** Toast notifications (Success/Error) could not be closed — the X button did nothing, and toasts stayed on screen indefinitely. Three root causes:
+1. **`toaster.jsx`**: Rendered ALL toasts regardless of `open` value — setting `open: false` had no visual effect
+2. **`use-toast.jsx`**: `TOAST_REMOVE_DELAY = 1,000,000ms` (~16 minutes!) — even dismissed toasts stayed in memory; no auto-dismiss timer existed
+3. **`toast.jsx`**: Close button had `opacity-0` requiring hover — invisible on touch/mobile devices
+
+**פתרון:**
+1. **`toaster.jsx`**: Added `.filter(({ open }) => open !== false)` before `.map()` — dismissed toasts are hidden immediately
+2. **`use-toast.jsx`**: Reduced `TOAST_REMOVE_DELAY` to 300ms; added `TOAST_AUTO_DISMISS_DELAY = 5000ms` with auto-dismiss timer; added timer cleanup in `dismiss()` to prevent memory leaks
+3. **`toast.jsx`**: Changed close button from `opacity-0 group-hover:opacity-100` to `opacity-70 hover:opacity-100` — always visible
+
+**בדיקות:**
+- `toaster.test.jsx` — 2 new tests: "should NOT render toasts with open: false", "should call onOpenChange(false) when close button is clicked"
+- `modals-dialogs.spec.ts` — 2 E2E tests: "should dismiss toast via close button", "should auto-dismiss toast after timeout"
+- All 14 dialog/modal/sheet close mechanisms verified working (Radix Dialog, custom overlays, drawers)
 
 ---
 

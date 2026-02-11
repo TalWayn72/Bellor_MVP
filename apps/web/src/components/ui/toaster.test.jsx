@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 
 // Mock useToast to control toast data
@@ -123,6 +123,57 @@ describe('[P0][ui] Toaster - non-DOM prop filtering', () => {
 
     // Should not throw
     expect(() => render(<Toaster />)).not.toThrow();
+  });
+
+  it('should NOT render toasts with open: false', () => {
+    useToast.mockReturnValue({
+      toasts: [
+        {
+          id: 'toast-open',
+          title: 'Visible Toast',
+          open: true,
+          onOpenChange: vi.fn(),
+          variant: 'default',
+        },
+        {
+          id: 'toast-closed',
+          title: 'Hidden Toast',
+          open: false,
+          onOpenChange: vi.fn(),
+          variant: 'default',
+        },
+      ],
+    });
+
+    render(<Toaster />);
+
+    expect(screen.getByText('Visible Toast')).toBeInTheDocument();
+    expect(screen.queryByText('Hidden Toast')).not.toBeInTheDocument();
+  });
+
+  it('should call onOpenChange(false) when close button is clicked', () => {
+    const onOpenChangeSpy = vi.fn();
+    useToast.mockReturnValue({
+      toasts: [
+        {
+          id: 'toast-dismiss',
+          title: 'Dismissable',
+          open: true,
+          onOpenChange: onOpenChangeSpy,
+          variant: 'default',
+        },
+      ],
+    });
+
+    render(<Toaster />);
+
+    // Find the close button (contains SVG X icon)
+    const closeButtons = screen.getAllByRole('button');
+    const closeBtn = closeButtons.find((btn) => btn.querySelector('svg'));
+    expect(closeBtn).toBeTruthy();
+
+    fireEvent.click(closeBtn);
+    expect(onOpenChangeSpy).toHaveBeenCalledWith(false);
   });
 
   it('should destructure open and onOpenChange away from DOM props', () => {
