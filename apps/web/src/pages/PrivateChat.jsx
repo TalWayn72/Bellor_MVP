@@ -6,6 +6,7 @@ import { useChatRoom, usePresence } from '@/api/hooks/useSocket';
 import { ChatSkeleton } from '@/components/states';
 import { createPageUrl } from '@/utils';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
+import { getDemoMessages } from '@/data/demoData';
 import PrivateChatHeader from '@/components/chat/PrivateChatHeader';
 import MessageList from '@/components/chat/MessageList';
 import ChatInput from '@/components/chat/ChatInput';
@@ -45,11 +46,16 @@ export default function PrivateChat() {
     enabled: !!chatId && !isDemo, retry: false,
   });
 
+  const demoMessages = React.useMemo(() => {
+    if (!isDemo || !currentUser) return [];
+    return getDemoMessages(chatId, currentUser.id);
+  }, [isDemo, chatId, currentUser]);
+
   const messages = React.useMemo(() => {
-    const all = [...initialMessages];
+    const all = [...(isDemo ? demoMessages : initialMessages)];
     realtimeMessages.forEach((msg) => { if (!all.some((m) => m.id === msg.id)) all.push(msg); });
     return all.sort((a, b) => new Date(a.created_date || a.createdAt) - new Date(b.created_date || b.createdAt));
-  }, [initialMessages, realtimeMessages]);
+  }, [isDemo, demoMessages, initialMessages, realtimeMessages]);
 
   const { data: otherUser } = useQuery({
     queryKey: ['user', otherUserId, chat?.otherUser?.id],

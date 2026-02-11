@@ -1,13 +1,11 @@
-/**
- * Demo Data Helper Functions
- * All utility functions for working with demo data
- */
+/** Demo Data Helper Functions - All utility functions for working with demo data */
 import { DEMO_PREFIX, LEGACY_ID_MAP } from './demoConstants.js';
 import { DEMO_USERS } from './demoUsers.js';
 import {
   DEMO_RESPONSES, DEMO_STORIES, DEMO_NOTIFICATIONS, DEMO_LIKES,
   DEMO_CHAT_USERS, DEMO_TEMP_CHATS, DEMO_RELATIONSHIPS,
 } from './demoContent.js';
+import { generateDemoMessages } from './demoMessages.js';
 
 /** Resolve legacy demo IDs to standardized IDs */
 function resolveLegacyId(userId) {
@@ -125,9 +123,14 @@ export function createDemoChat(otherUserId) {
   };
 }
 
-/** Get demo messages for a chat (empty for now) */
-export function getDemoMessages(chatId) {
-  return [];
+/** Get demo messages for a chat */
+export function getDemoMessages(chatId, currentUserId = 'current-user') {
+  if (!chatId) return [];
+  let demoUserId = chatId.replace('demo-chat-', '');
+  if (!demoUserId.startsWith('demo-user-')) {
+    demoUserId = `demo-user-${demoUserId}`;
+  }
+  return generateDemoMessages(demoUserId, currentUserId);
 }
 
 /** Get demo profiles for Discover page */

@@ -106,6 +106,7 @@ export const DEMO_CHAT_USERS = [
   { chatId: 'demo-chat-2', userId: 'demo-user-2', isOnline: false },
   { chatId: 'demo-chat-3', userId: 'demo-user-3', isOnline: true },
   { chatId: 'demo-chat-4', userId: 'demo-user-4', isOnline: false },
+  { chatId: 'demo-chat-5', userId: 'demo-user-5', isOnline: true },
 ];
 
 // ========== DEMO TEMPORARY CHATS ==========
