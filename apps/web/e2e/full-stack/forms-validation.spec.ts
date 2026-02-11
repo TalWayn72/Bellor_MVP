@@ -298,15 +298,11 @@ test.describe('[P1][infra] Onboarding Forms Validation - Full Stack', () => {
     const underageDate = `${today.getFullYear() - 15}-06-15`;
     await dateInput.fill(underageDate);
 
-    // The StepBirthDate component rejects dates where year > currentYear - 18
-    // via its onChange handler, so the value should NOT be set to the underage date.
-    // Also the NEXT button should be disabled if the value somehow got through.
+    // The NEXT button should be disabled for underage dates.
+    // The onChange handler accepts all values (to allow typing), but
+    // the button's disabled state validates the year range.
     const nextBtn = page.getByRole('button', { name: /next|הבא/i });
-    const dateValue = await dateInput.inputValue();
-    const isDisabled = await nextBtn.isDisabled().catch(() => true);
-    const wasRejected = dateValue !== underageDate;
-
-    expect(isDisabled || wasRejected).toBe(true);
+    await expect(nextBtn).toBeDisabled();
   });
 
   test('onboarding: birth date rejects future dates', async ({ page }) => {
@@ -326,13 +322,10 @@ test.describe('[P1][infra] Onboarding Forms Validation - Full Stack', () => {
     const futureDate = future.toISOString().split('T')[0];
     await dateInput.fill(futureDate);
 
-    // The component rejects future dates via onChange, so either the value
-    // is rejected or the NEXT button is disabled
+    // The NEXT button should be disabled for future dates.
+    // HTML min/max attributes constrain the date picker, and the
+    // button's disabled state validates the year range.
     const nextBtn = page.getByRole('button', { name: /next|הבא/i });
-    const dateValue = await dateInput.inputValue();
-    const isDisabled = await nextBtn.isDisabled().catch(() => true);
-    const wasRejected = dateValue !== futureDate;
-
-    expect(isDisabled || wasRejected).toBe(true);
+    await expect(nextBtn).toBeDisabled();
   });
 });

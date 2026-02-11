@@ -32,18 +32,7 @@ export default function StepBirthDate({ formData, setFormData, handleNext }) {
           <Input
             type="date"
             value={formData.date_of_birth}
-            onChange={(e) => {
-              const selectedDate = e.target.value;
-              if (selectedDate) {
-                const birthYear = parseInt(selectedDate.split('-')[0]);
-                const minYear = currentYear - 120;
-                const maxYear = currentYear - 18;
-                if (birthYear < minYear || birthYear > maxYear) {
-                  return;
-                }
-              }
-              setFormData({ ...formData, date_of_birth: selectedDate });
-            }}
+            onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
             min={minDate}
             max={maxDate}
             className="w-full h-12 text-base"

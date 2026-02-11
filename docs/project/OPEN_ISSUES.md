@@ -116,8 +116,23 @@
 | **ISSUE-063: Toast onOpenChange Prop Leak to DOM (Feb 10)** | 2 | 🟡 בינוני | ✅ תוקן |
 | **ISSUE-064: Auth Race Condition - apiClient/AuthContext Token Desync (Feb 10)** | 2 | 🔴 קריטי | ✅ תוקן |
 | **TASK-065: E2E Console Warning Detection + Full Page Coverage (Feb 10)** | 29 specs, 54 pages | 🟡 בינוני | ✅ הושלם |
+| **ISSUE-065: StepBirthDate Year Field Not Editable (Feb 11)** | 1 | 🟡 בינוני | ✅ תוקן |
 
 **סה"כ:** 2973+ פריטים זוהו → 2973+ טופלו ✅
+
+---
+
+## ✅ ISSUE-065: StepBirthDate Year Field Not Editable (11 פברואר 2026)
+**סטטוס:** ✅ תוקן | **חומרה:** 🟡 בינוני | **תאריך:** 11 February 2026
+**קבצים:** `apps/web/src/components/onboarding/steps/StepBirthDate.jsx:35`
+
+**בעיה:** Users could not type a new year value in the date of birth field on Onboarding step 4. The `onChange` handler validated the year range during typing, rejecting intermediate values (e.g., typing "1" for year 1990 was rejected because year 1 < 1906). The HTML native date input fires onChange with incomplete values while the user types each digit.
+
+**פתרון:** Removed year validation from the `onChange` handler, allowing all intermediate values. Validation is preserved in two places: (1) the NEXT button's `disabled` state checks year range, (2) HTML `min`/`max` attributes constrain the date picker.
+
+**בדיקות:**
+- `onboarding-flow.spec.ts` — new test: "should allow changing year in birth date field"
+- `forms-validation.spec.ts` — updated comments for birth date tests to reflect new validation approach
 
 ---
 

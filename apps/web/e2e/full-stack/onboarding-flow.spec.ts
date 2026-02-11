@@ -325,6 +325,40 @@ test.describe('[P0][auth] Onboarding Flow - Step-Specific Tests', () => {
     expect(isDisabled || errorVisible).toBe(true);
   });
 
+  test('should allow changing year in birth date field', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
+    const stepLoaded = await navigateToStep(page, '4');
+    if (!stepLoaded) {
+      expectGracefulRedirect(page);
+      return;
+    }
+
+    const onStep = await isOnExpectedStep(page, '4');
+    if (!onStep) return;
+
+    const dateInput = page.locator('input[type="date"]');
+
+    // Fill an initial date
+    await dateInput.fill('1990-05-20');
+    await expect(dateInput).toHaveValue('1990-05-20');
+
+    // Change the year by filling a new date — this was blocked
+    // before the fix because onChange rejected intermediate year values
+    await dateInput.fill('2000-05-20');
+    await expect(dateInput).toHaveValue('2000-05-20');
+
+    // Change again to a valid 18+ date
+    const validYear = new Date().getFullYear() - 25;
+    const newDate = `${validYear}-03-10`;
+    await dateInput.fill(newDate);
+    await expect(dateInput).toHaveValue(newDate);
+
+    // NEXT button should be enabled for a valid date
+    const nextBtn = page.getByRole('button', { name: /next|הבא/i });
+    await expect(nextBtn).toBeEnabled();
+    cc.assertClean();
+  });
+
   test('should accept valid birth date', async ({ page }) => {
     const stepLoaded = await navigateToStep(page, '4');
     if (!stepLoaded) {
