@@ -12,12 +12,12 @@
 | Frontend A11y | 7 | ~125 | N/A |
 | Frontend Contract | 2 | ~33 | N/A |
 | E2E Mocked (Playwright) | 14 | ~200 | N/A |
-| E2E Full-Stack (Playwright) | 22 | 214 (207 passed, 7 skipped) | N/A |
+| E2E Full-Stack (Playwright) | 29 | ~280+ | N/A |
 | Visual Regression | 1 | ~10 | N/A |
 | Memory Leak | 2 | ~20 | N/A |
 | Load (k6) | 7 | N/A | N/A |
 | Mutation (Stryker) | N/A | ~300 mutants | 50%+ |
-| **Total** | **~206** | **~3614+** | |
+| **Total** | **~213** | **~3680+** | |
 
 ## Domain Coverage Matrix
 
@@ -25,13 +25,13 @@
 |--------|------|-------------|----------|-----|------|
 | auth | 5 backend + 3 frontend | 4 files | 1 backend + 1 frontend | 1 mocked + 3 full-stack | OAuth integration |
 | chat | 4 backend + 1 frontend | 6 files (WS) | 1 file | 1 mocked + 2 full-stack | WS lifecycle |
-| content | 3 backend + 8 frontend | 1 file | 2 files | 1 mocked + 2 full-stack | - |
-| social | 4 backend + 4 frontend | 1 file | 0 files | 2 mocked + 3 full-stack | Contract tests |
+| content | 3 backend + 8 frontend | 1 file | 2 files | 1 mocked + 3 full-stack | - |
+| social | 4 backend + 4 frontend | 1 file | 0 files | 2 mocked + 4 full-stack | Contract tests |
 | profile | 6 backend + 7 frontend | 2 files | 1 file | 1 mocked + 1 full-stack | - |
 | admin | 0 backend + 8 frontend | 0 files | 0 files | 1 full-stack | - |
-| safety | 6 backend + 6 frontend | 1 file | 0 files | 1 mocked + 2 full-stack | - |
-| payments | 1 backend + 2 frontend | 1 file | 0 files | 0 files | Contract + E2E |
-| infra | 9 backend + 3 frontend | 2 files | 1 file | 3 full-stack | - |
+| safety | 6 backend + 6 frontend | 1 file | 0 files | 1 mocked + 3 full-stack | - |
+| payments | 1 backend + 2 frontend | 1 file | 0 files | 1 full-stack | Contract |
+| infra | 9 backend + 3 frontend | 2 files | 1 file | 6 full-stack | - |
 
 ## Priority Tier Distribution
 
@@ -99,7 +99,7 @@
 - VirtualEvents, ReferralProgram, VideoDate
 - Feedback, EmailSupport, FAQ, HelpSupport
 
-## E2E Full-Stack Spec Files (22 files)
+## E2E Full-Stack Spec Files (29 files)
 
 Located in `apps/web/e2e/full-stack/`:
 
@@ -127,8 +127,15 @@ Located in `apps/web/e2e/full-stack/`:
 | `search.spec.ts` | social | Search by name, filters, results |
 | `settings-pages.spec.ts` | social | All sub-pages, toggles, theme |
 | `stories.spec.ts` | content | Story creation, viewing, expiry |
+| `console-warnings.spec.ts` | infra | Console warning scan for ALL 54 routes (authenticated + admin + public) |
+| `content-tasks.spec.ts` | content | WriteTask, AudioTask, VideoTask, Creation pages + console warnings |
+| `social-features.spec.ts` | social | CompatibilityQuiz, IceBreakers, Achievements, DateIdeas, VirtualEvents |
+| `premium-features.spec.ts` | payments | Premium, ProfileBoost, ReferralProgram pages + console warnings |
+| `safety-legal.spec.ts` | safety | SafetyCenter, FAQ, TermsOfService, PrivacyPolicy, UserVerification |
+| `misc-pages.spec.ts` | infra | Home, Analytics, Feedback, EmailSupport pages + console warnings |
+| `special-pages.spec.ts` | infra | Splash, OAuthCallback pages + console warnings |
 
-**Runtime:** 3.3 minutes with 4 workers (Chromium) | **Results:** 207 passed, 0 failed, 7 skipped (214 total, 96.7% pass rate)
+**Note:** All 29 specs include console warning detection via shared `collectConsoleMessages` / `assertPageHealthy` helper (TASK-065).
 
 ## Known Gaps (Prioritized)
 
@@ -164,6 +171,7 @@ Located in `apps/web/e2e/full-stack/`:
 | E2E fixtures | `apps/web/e2e/fixtures/` | Helpers, factories, mocks |
 | E2E full-stack setup | `apps/web/e2e/global-setup.ts` | DB seeding + auth state |
 | E2E full-stack helpers | `apps/web/e2e/fixtures/{db,websocket,file-upload}.helpers.ts` | DB, WebSocket, upload utilities |
+| E2E console warning helper | `apps/web/e2e/fixtures/console-warning.helpers.ts` | Console message collection + React warning assertion |
 | Memory leak scanner | `scripts/check-memory-leaks.js` | AST-based static analysis |
 | Stryker config | `stryker.config.mjs` | Mutation testing |
 | k6 tests | `infrastructure/k6/` | Load testing |

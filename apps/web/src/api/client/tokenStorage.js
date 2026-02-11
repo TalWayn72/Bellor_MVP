@@ -19,9 +19,13 @@ export const tokenStorage = {
   /**
    * Set the access token
    * @param {string} token
+   * @param {{ silent?: boolean }} options
    */
-  setAccessToken(token) {
+  setAccessToken(token, options = {}) {
     localStorage.setItem(ACCESS_TOKEN_KEY, token);
+    if (!options.silent) {
+      window.dispatchEvent(new CustomEvent('bellor-token-refreshed'));
+    }
   },
 
   /**
@@ -57,6 +61,7 @@ export const tokenStorage = {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    window.dispatchEvent(new CustomEvent('bellor-tokens-cleared'));
   },
 
   /**

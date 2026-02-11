@@ -9,6 +9,7 @@ import {
   waitForPageLoad,
   getLocalStorageItem,
   FULLSTACK_AUTH,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 /** Authenticated page patterns - pages the app redirects to for logged-in users */
@@ -33,6 +34,7 @@ test.describe('[P0][auth] Session Management - Full Stack', () => {
       storageState: FULLSTACK_AUTH.user,
     });
     const page = await context.newPage();
+    const cc = collectConsoleMessages(page);
 
     await page.goto('/SharedSpace', { waitUntil: 'domcontentloaded' });
     await waitForPageLoad(page);
@@ -55,6 +57,7 @@ test.describe('[P0][auth] Session Management - Full Stack', () => {
 
     // Verify page has rendered real content (not a blank/error page)
     await expect(page.locator('body')).toBeVisible();
+    cc.assertClean();
 
     await context.close();
   });

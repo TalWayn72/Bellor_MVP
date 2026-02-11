@@ -10,6 +10,7 @@ import {
   waitForPageLoad,
   generateTestEmail,
   SPECIAL_INPUTS,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 test.describe('[P0][auth] Registration - Full Stack', () => {
@@ -25,6 +26,7 @@ test.describe('[P0][auth] Registration - Full Stack', () => {
   });
 
   test('should switch to register mode', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
     // Find "Sign up" link/button to switch mode
     const signUpLink = page.locator('text=/sign up|הרשמה/i').first();
     await signUpLink.click();
@@ -33,6 +35,7 @@ test.describe('[P0][auth] Registration - Full Stack', () => {
     // Verify registration form fields appear
     await expect(page.locator('#firstName, input[name="firstName"]')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('#lastName, input[name="lastName"]')).toBeVisible({ timeout: 5000 });
+    cc.assertClean();
   });
 
   test('should register with valid credentials', async ({ page }) => {

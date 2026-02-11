@@ -10,6 +10,7 @@ import {
   waitForPageLoad,
   getLocalStorageItem,
   SEEDED_USERS,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 /** Flush rate limit keys in Redis to prevent test flakiness */
@@ -45,6 +46,7 @@ test.describe('[P0][auth] Login - Full Stack', () => {
   });
 
   test('should login with valid seeded credentials', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
     const { email, password } = SEEDED_USERS.sarah;
 
     await page.locator('#email').fill(email);
@@ -59,6 +61,7 @@ test.describe('[P0][auth] Login - Full Stack', () => {
     // Verify tokens are stored
     const accessToken = await getLocalStorageItem(page, 'bellor_access_token');
     expect(accessToken).toBeTruthy();
+    cc.assertClean();
   });
 
   test('should reject wrong password', async ({ page }) => {

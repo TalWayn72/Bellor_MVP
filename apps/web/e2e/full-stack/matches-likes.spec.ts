@@ -6,12 +6,14 @@ import { test, expect } from '@playwright/test';
 import {
   waitForPageLoad,
   FULLSTACK_AUTH,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 test.describe('[P2][social] Matches & Likes - Full Stack', () => {
   test.use({ storageState: FULLSTACK_AUTH.user });
 
   test('should load matches page', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
     await page.goto('/Matches');
     await waitForPageLoad(page);
 
@@ -25,6 +27,7 @@ test.describe('[P2][social] Matches & Likes - Full Stack', () => {
       'text=/Interest|Romantic|Positive|No romantic interest|Explore Feed/i',
     ).first();
     await expect(pageContent).toBeVisible({ timeout: 30000 });
+    cc.assertClean();
   });
 
   test('should display matches or empty state', async ({ page }) => {

@@ -9,6 +9,7 @@ import {
   SPECIAL_INPUTS,
   getTestFilePath,
   TEST_FILES,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 /**
@@ -38,6 +39,7 @@ test.describe('[P1][profile] Profile Management - Full Stack', () => {
   test.use({ storageState: FULLSTACK_AUTH.user });
 
   test('should display user profile', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
     await page.goto('/Profile', { waitUntil: 'domcontentloaded' });
     await waitForPageLoad(page);
 
@@ -49,6 +51,7 @@ test.describe('[P1][profile] Profile Management - Full Stack', () => {
     await expect(
       page.getByRole('button', { name: /about me/i }).first(),
     ).toBeVisible({ timeout: 15000 });
+    cc.assertClean();
   });
 
   test('should show profile tabs (About Me / My Book)', async ({ page }) => {

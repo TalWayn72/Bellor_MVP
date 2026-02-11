@@ -6,12 +6,14 @@ import { test, expect } from '@playwright/test';
 import {
   waitForPageLoad,
   FULLSTACK_AUTH,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 test.describe('[P1][social] Discover Swiping - Full Stack', () => {
   test.use({ storageState: FULLSTACK_AUTH.user });
 
   test('should load discover page with profiles', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
     await page.goto('/Discover');
     await waitForPageLoad(page);
 
@@ -28,6 +30,7 @@ test.describe('[P1][social] Discover Swiping - Full Stack', () => {
     ).isVisible().catch(() => false);
 
     expect(hasProfiles || hasEmptyState).toBe(true);
+    cc.assertClean();
   });
 
   test('should display profile details on card', async ({ page }) => {

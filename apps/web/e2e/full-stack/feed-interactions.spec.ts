@@ -8,12 +8,14 @@ import {
   scrollToElement,
   FULLSTACK_AUTH,
   SPECIAL_INPUTS,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 test.describe('[P1][content] Feed Interactions - Full Stack', () => {
   test.use({ storageState: FULLSTACK_AUTH.user });
 
   test('should load SharedSpace with content', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
     await page.goto('/SharedSpace', { waitUntil: 'domcontentloaded' });
     await waitForPageLoad(page);
 
@@ -25,6 +27,7 @@ test.describe('[P1][content] Feed Interactions - Full Stack', () => {
     await expect(
       page.locator('nav, [class*="bg-gradient"], [class*="snap-y"], .min-h-screen').first(),
     ).toBeVisible({ timeout: 30000 });
+    cc.assertClean();
   });
 
   test('should display daily mission card', async ({ page }) => {

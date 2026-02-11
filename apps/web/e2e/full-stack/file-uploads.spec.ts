@@ -9,12 +9,14 @@ import {
   getTestFilePath,
   TEST_FILES,
   uploadViaFileChooser,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 test.describe('[P2][infra] File Uploads - Full Stack', () => {
   test.use({ storageState: FULLSTACK_AUTH.user });
 
   test('should upload valid image on edit profile', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
     await page.goto('/EditProfile');
     await waitForPageLoad(page);
 
@@ -35,6 +37,7 @@ test.describe('[P2][infra] File Uploads - Full Stack', () => {
       // Even if preview doesn't show (upload may be processed server-side), page should not crash
       await expect(page.locator('body')).toBeVisible();
     }
+    cc.assertClean();
   });
 
   test('should upload valid JPEG image', async ({ page }) => {

@@ -55,6 +55,25 @@
 
 **סטטוסים:** ⏳ ממתין | 🟡 בריצה | ✅ הושלם | 🔴 נכשל
 
+### הגנת Heap - מניעת JavaScript Heap Out of Memory
+**כל 5 דקות** במהלך הרצה מקבילית, בדוק אם יש סימני OOM:
+- חפש `FATAL ERROR: Ineffective mark-compacts near heap limit` בפלט של Agents/Bash
+- חפש `JavaScript heap out of memory` בפלט
+
+**כשמזוהה OOM:**
+
+| מצב | פעולה |
+|-----|--------|
+| OOM ראשון | הפחת Agents ב-20% (מ-5 ל-4, מ-4 ל-3, וכו') |
+| OOM שני | הפחת שוב ב-20% |
+| OOM חוזר | המשך להפחית עד **Agent אחד בלבד** |
+| Agent יחיד + OOM | הגדל heap: `NODE_OPTIONS=--max-old-space-size=8192` |
+
+**כללי מניעה:**
+- אל תריץ `npx vitest run` על כל ה-monorepo במקביל - הרץ `apps/web` ו-`apps/api` בנפרד
+- העדף הרצת קבצי בדיקה ספציפיים (`npx vitest run file1 file2`) על הרצת כל הבדיקות
+- כש-Agent מריץ בדיקות כבדות, צמצם Agents אחרים שרצים במקביל
+
 ## אבטחה
 
 ### שער ביקורת - כל קוד חדש לפני commit:

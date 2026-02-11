@@ -6,6 +6,7 @@ import { test, expect } from '@playwright/test';
 import {
   waitForPageLoad,
   FULLSTACK_AUTH,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 /**
@@ -42,6 +43,7 @@ test.describe('[P2][infra] Modals & Dialogs - Full Stack', () => {
   test.use({ storageState: FULLSTACK_AUTH.user });
 
   test('should open and close dialog via Cancel button', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
     const opened = await openSuperLikeSheet(page);
     if (!opened) {
       test.skip();
@@ -55,6 +57,7 @@ test.describe('[P2][infra] Modals & Dialogs - Full Stack', () => {
 
     // Sheet should be dismissed - "Send Super Like" title should disappear
     await expect(page.locator('h2:has-text("Send Super Like")')).not.toBeVisible({ timeout: 5000 });
+    cc.assertClean();
   });
 
   test('should close dialog via Escape key', async ({ page }) => {

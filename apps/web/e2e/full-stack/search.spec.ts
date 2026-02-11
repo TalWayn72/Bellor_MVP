@@ -7,12 +7,14 @@ import {
   waitForPageLoad,
   FULLSTACK_AUTH,
   SPECIAL_INPUTS,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 test.describe('[P2][content] Search - Full Stack', () => {
   test.use({ storageState: FULLSTACK_AUTH.user });
 
   test('should find search input on SharedSpace', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
     await page.goto('/SharedSpace', { waitUntil: 'domcontentloaded' });
     await waitForPageLoad(page);
 
@@ -22,6 +24,7 @@ test.describe('[P2][content] Search - Full Stack', () => {
 
     // Search may or may not be directly visible
     await expect(page.locator('body')).toBeVisible();
+    cc.assertClean();
   });
 
   test('should search with English text', async ({ page }) => {

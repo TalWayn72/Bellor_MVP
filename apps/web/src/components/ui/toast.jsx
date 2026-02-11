@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
  *
  * Enhanced toast notifications with semantic variants
  */
-const ToastProvider = React.forwardRef(({ position = "bottom-right", ...props }, ref) => {
+const ToastProvider = React.forwardRef(({ position = "bottom-right", children, ...props }, ref) => {
   const positionClasses = {
     "top-left": "top-4 left-4",
     "top-center": "top-4 left-1/2 -translate-x-1/2",
@@ -26,7 +26,9 @@ const ToastProvider = React.forwardRef(({ position = "bottom-right", ...props },
         positionClasses[position]
       )}
       {...props}
-    />
+    >
+      {children}
+    </div>
   )
 })
 ToastProvider.displayName = "ToastProvider"
@@ -77,7 +79,7 @@ const iconColorMap = {
   destructive: "text-white",
 }
 
-const Toast = React.forwardRef(({ className, variant = "default", showIcon = true, ...props }, ref) => {
+const Toast = React.forwardRef(({ className, variant = "default", showIcon = true, open, onOpenChange, children, ...props }, ref) => {
   const IconComponent = iconMap[variant]
 
   return (
@@ -91,7 +93,7 @@ const Toast = React.forwardRef(({ className, variant = "default", showIcon = tru
           <IconComponent className={cn("h-5 w-5", iconColorMap[variant])} />
         </div>
       )}
-      <div className="flex-1">{props.children}</div>
+      <div className="flex-1">{children}</div>
     </div>
   )
 })

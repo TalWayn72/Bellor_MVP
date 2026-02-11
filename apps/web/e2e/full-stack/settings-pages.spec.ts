@@ -16,6 +16,7 @@ import { test, expect, Page } from '@playwright/test';
 import {
   waitForPageLoad,
   FULLSTACK_AUTH,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 /**
@@ -48,6 +49,7 @@ test.describe('[P2][profile] Settings Pages - Full Stack', () => {
   // ── Main Settings Page ──────────────────────────────────────────────
 
   test('should load settings page with profile card and menu items', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
     await page.goto('/Settings', { waitUntil: 'domcontentloaded' });
     await waitForPageLoad(page);
 
@@ -83,6 +85,7 @@ test.describe('[P2][profile] Settings Pages - Full Stack', () => {
     await expect(
       page.locator('text=Bellor v1.0.0'),
     ).toBeVisible({ timeout: 5000 });
+    cc.assertClean();
   });
 
   // ── Notification Settings ───────────────────────────────────────────

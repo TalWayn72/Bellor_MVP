@@ -8,6 +8,7 @@ import {
   sendChatMessage,
   waitForMessage,
   FULLSTACK_AUTH,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 test.describe('[P1][chat] Real-Time Chat - Full Stack', () => {
@@ -22,6 +23,7 @@ test.describe('[P1][chat] Real-Time Chat - Full Stack', () => {
 
     const page1 = await context1.newPage();
     const page2 = await context2.newPage();
+    const cc = collectConsoleMessages(page1);
 
     try {
       // Both navigate to chat list
@@ -56,6 +58,7 @@ test.describe('[P1][chat] Real-Time Chat - Full Stack', () => {
         // User1 should see their own message
         await waitForMessage(page1, realTimeMsg, 10000);
       }
+      cc.assertClean();
     } finally {
       await context1.close();
       await context2.close();

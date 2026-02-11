@@ -113,8 +113,47 @@
 | **ISSUE-034: Deep Race Condition Audit - setState/navigate/media leaks (Feb 10)** | 5 | 🔴 קריטי | ✅ תוקן |
 | **TASK-061: Testing Infrastructure Overhaul - Professional Architecture (Feb 10)** | 183 files | 🟢 שיפור | ✅ הושלם |
 | **TASK-062: Full-Stack E2E Testing Suite - Manual QA Replacement (Feb 10)** | 22 specs, 214 tests | 🟢 שיפור | ✅ הושלם |
+| **ISSUE-063: Toast onOpenChange Prop Leak to DOM (Feb 10)** | 2 | 🟡 בינוני | ✅ תוקן |
+| **ISSUE-064: Auth Race Condition - apiClient/AuthContext Token Desync (Feb 10)** | 2 | 🔴 קריטי | ✅ תוקן |
+| **TASK-065: E2E Console Warning Detection + Full Page Coverage (Feb 10)** | 29 specs, 54 pages | 🟡 בינוני | ✅ הושלם |
 
-**סה"כ:** 2940+ פריטים זוהו → 2940+ טופלו ✅
+**סה"כ:** 2973+ פריטים זוהו → 2973+ טופלו ✅
+
+---
+
+## ✅ TASK-065: E2E Console Warning Detection + Full Page Coverage (10 פברואר 2026)
+**סטטוס:** ✅ הושלם | **חומרה:** 🟡 בינוני | **תאריך:** 10 February 2026
+
+### בעיה
+Only 4 of 54 pages had console warning checks in E2E tests; 23 pages had zero E2E coverage. React prop warnings, false auth warnings, and DOM validation errors could ship to production undetected.
+
+### פתרון
+Created a shared `collectConsoleMessages`/`assertPageHealthy` helper in `e2e/fixtures/console-warning.helpers.ts`. Built 6 new spec files covering all remaining pages. Upgraded all 23 existing specs to import and use the shared console warning helper, auto-failing on React warnings.
+
+### קבצים חדשים (7 קבצים)
+
+| # | קובץ | תיאור |
+|---|-------|--------|
+| 1 | `apps/web/e2e/fixtures/console-warning.helpers.ts` | Shared helper: `collectConsoleMessages` + `assertPageHealthy` with FAIL_PATTERNS / IGNORE_PATTERNS |
+| 2 | `apps/web/e2e/full-stack/content-tasks.spec.ts` | WriteTask, AudioTask, VideoTask, Creation pages |
+| 3 | `apps/web/e2e/full-stack/social-features.spec.ts` | CompatibilityQuiz, IceBreakers, Achievements, DateIdeas, VirtualEvents |
+| 4 | `apps/web/e2e/full-stack/premium-features.spec.ts` | Premium, ProfileBoost, ReferralProgram |
+| 5 | `apps/web/e2e/full-stack/safety-legal.spec.ts` | SafetyCenter, FAQ, TermsOfService, PrivacyPolicy, UserVerification |
+| 6 | `apps/web/e2e/full-stack/misc-pages.spec.ts` | Home, Analytics, Feedback, EmailSupport |
+| 7 | `apps/web/e2e/full-stack/special-pages.spec.ts` | Splash, OAuthCallback |
+
+### קבצים שהורחבו (24 קבצים)
+- All 23 existing full-stack E2E specs upgraded to import and use console warning helper
+- `console-warnings.spec.ts` updated to scan ALL 54 routes (authenticated + admin + public)
+
+### כיסוי
+- **29 full-stack spec files** (was 23)
+- **54 pages covered** (100%) - was ~31 pages
+- All specs auto-fail on React warnings via shared `collectConsoleMessages` / `assertPageHealthy`
+
+### בדיקות
+- 29 full-stack specs with console warning detection
+- `console-warnings.spec.ts` scans all 54 routes
 
 ---
 
@@ -240,6 +279,51 @@ Testing infrastructure lacked professional structure: monolithic setup files (46
 - `npm run test:domain:auth` - Auth domain only
 - `npm run test:smoke` - Verbose P0 smoke test
 - Full suite: `npm run test:api` (77/77 passing)
+
+---
+
+## ✅ ISSUE-064: Auth Race Condition - apiClient/AuthContext Token Desync (10 פברואר 2026)
+
+**סטטוס:** ✅ תוקן | **חומרה:** 🔴 קריטי | **תאריך:** 10 February 2026
+
+### בעיה
+apiClient silently refreshed tokens on 401 via interceptor, but never notified AuthContext. This caused `isAuthenticated` to remain `false` in ProtectedRoute while valid tokens existed, triggering false `[ProtectedRoute] Unauthenticated access` warnings and brief content flash before redirect.
+
+### תיקונים (2 קבצים)
+
+| # | קובץ | שינוי | חומרה |
+|---|-------|--------|--------|
+| 1 | `apps/web/src/api/client/tokenStorage.js` | Dispatch `bellor-token-refreshed` and `bellor-tokens-cleared` custom events on token changes | 🔴 קריטי |
+| 2 | `apps/web/src/lib/AuthContext.jsx` | Listen for token events (`bellor-token-refreshed`, `bellor-tokens-cleared`) to re-sync `isAuthenticated` state | 🔴 קריטי |
+
+### בדיקות
+- `tokenStorage.test.js` - Token event dispatch on set/clear
+- `AuthContext.test.jsx` - Re-sync on token events
+- `console-warnings.spec.ts` - E2E validation of no false auth warnings
+
+---
+
+## ✅ ISSUE-063: Toast onOpenChange Prop Leak to DOM (10 פברואר 2026)
+
+**סטטוס:** ✅ תוקן | **חומרה:** 🟡 בינוני | **תאריך:** 10 February 2026
+
+### בעיה
+Radix-style `onOpenChange` prop from `use-toast.jsx` leaked through `{...props}` spread to native `<div>` in toast.jsx, causing React warning: `Unknown event handler property 'onOpenChange'`.
+
+### תיקונים (2 קבצים)
+
+| # | קובץ | שינוי | חומרה |
+|---|-------|--------|--------|
+| 1 | `apps/web/src/components/ui/toast.jsx` | Destructure `open` and `onOpenChange` before spreading to `<div>` | 🟡 בינוני |
+| 2 | `apps/web/src/components/ui/toaster.jsx` | Destructure `open` and `onOpenChange` from toast props | 🟡 בינוני |
+
+### בדיקות
+- `toast.test.jsx` - Non-DOM props not passed to native elements
+- `toaster.test.jsx` - Props destructured correctly
+- `console-warnings.spec.ts` - E2E validation of no React prop warnings
+
+### כלל שנלמד
+**Never spread all props to native DOM elements** when receiving Radix-style props. Always destructure non-DOM props (like `open`, `onOpenChange`) before spreading the rest to native elements.
 
 ---
 

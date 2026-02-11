@@ -18,11 +18,13 @@ export default function CommentsDialog({ isOpen, onClose, response, currentUser 
     }
   });
 
+  const { mutate: markAsRead } = markAsReadMutation;
+
   React.useEffect(() => {
     if (isOpen && response?.id && currentUser?.id === response?.user_id) {
-      markAsReadMutation.mutate();
+      markAsRead();
     }
-  }, [isOpen, response?.id, currentUser?.id]);
+  }, [isOpen, response?.id, response?.user_id, currentUser?.id, markAsRead]);
 
   // Only show to post owner
   if (!isOpen || !response || !currentUser || currentUser.id !== response.user_id) {

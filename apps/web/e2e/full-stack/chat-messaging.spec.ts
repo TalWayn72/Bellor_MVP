@@ -9,6 +9,7 @@ import {
   waitForMessage,
   FULLSTACK_AUTH,
   SPECIAL_INPUTS,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 /**
@@ -67,6 +68,7 @@ test.describe('[P1][chat] Chat Messaging - Full Stack', () => {
   test.use({ storageState: FULLSTACK_AUTH.user });
 
   test('should load temporary chats list', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
     await page.goto('/TemporaryChats');
     await waitForPageLoad(page);
 
@@ -77,6 +79,7 @@ test.describe('[P1][chat] Chat Messaging - Full Stack', () => {
     const headerVisible = await header.isVisible({ timeout: 15000 }).catch(() => false)
       || await fallbackHeader.isVisible({ timeout: 3000 }).catch(() => false);
     expect(headerVisible).toBe(true);
+    cc.assertClean();
   });
 
   test('should display chat filter buttons', async ({ page }) => {

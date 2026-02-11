@@ -6,12 +6,14 @@ import { test, expect } from '@playwright/test';
 import {
   waitForPageLoad,
   FULLSTACK_AUTH,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 test.describe('[P1][social] Notifications - Full Stack', () => {
   test.use({ storageState: FULLSTACK_AUTH.user });
 
   test('should load notifications page', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
     await page.goto('/Notifications');
     await waitForPageLoad(page);
 
@@ -25,6 +27,7 @@ test.describe('[P1][social] Notifications - Full Stack', () => {
     const hasText = await notifText.isVisible({ timeout: 5000 }).catch(() => false);
 
     expect(hasHeader || hasText).toBe(true);
+    cc.assertClean();
   });
 
   test('should display notification tabs', async ({ page }) => {

@@ -9,12 +9,14 @@ import {
   SPECIAL_INPUTS,
   getTestFilePath,
   TEST_FILES,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 test.describe('[P2][infra] Edge Cases - Full Stack', () => {
   test.use({ storageState: FULLSTACK_AUTH.user });
 
   test('should handle rapid double-click on like button', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
     await page.goto('/Discover', { waitUntil: 'domcontentloaded' });
     await waitForPageLoad(page);
     await page.waitForTimeout(3000);
@@ -35,6 +37,7 @@ test.describe('[P2][infra] Edge Cases - Full Stack', () => {
       // No profiles available - test passes gracefully
       await expect(page.locator('body')).toBeVisible();
     }
+    cc.assertClean();
   });
 
   test('should handle rapid form submission', async ({ page }) => {

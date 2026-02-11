@@ -8,6 +8,7 @@ import {
   navigateTo,
   FULLSTACK_AUTH,
   getAllClickableElements,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 /** Known authenticated routes in the app */
@@ -17,6 +18,7 @@ test.describe('[P1][infra] Navigation History - Full Stack', () => {
   test.use({ storageState: FULLSTACK_AUTH.user });
 
   test('should navigate via bottom navigation', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
     await page.goto('/SharedSpace', { waitUntil: 'domcontentloaded' });
     await waitForPageLoad(page);
 
@@ -34,6 +36,7 @@ test.describe('[P1][infra] Navigation History - Full Stack', () => {
         await expect(page.locator('body')).toBeVisible();
       }
     }
+    cc.assertClean();
   });
 
   test('should open and close drawer menu', async ({ page }) => {

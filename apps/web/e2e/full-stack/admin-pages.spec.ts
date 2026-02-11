@@ -6,6 +6,7 @@ import { test, expect } from '@playwright/test';
 import {
   waitForPageLoad,
   FULLSTACK_AUTH,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 const ADMIN_LOAD_TIMEOUT = 30000;
@@ -14,6 +15,7 @@ test.describe('[P2][admin] Admin Pages - Full Stack', () => {
   test.use({ storageState: FULLSTACK_AUTH.admin });
 
   test('should load admin dashboard', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
     await page.goto('/AdminDashboard');
     await waitForPageLoad(page);
 
@@ -21,6 +23,7 @@ test.describe('[P2][admin] Admin Pages - Full Stack', () => {
     await expect(
       page.locator('text=/Admin Dashboard|Admin Panel|לוח בקרה/i').first(),
     ).toBeVisible({ timeout: ADMIN_LOAD_TIMEOUT });
+    cc.assertClean();
   });
 
   test('should load user management page', async ({ page }) => {

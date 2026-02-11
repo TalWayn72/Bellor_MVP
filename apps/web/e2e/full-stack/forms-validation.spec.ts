@@ -10,6 +10,7 @@ import {
   FULLSTACK_AUTH,
   SPECIAL_INPUTS,
   generateTestEmail,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 // --- Login Form (unauthenticated) ---
@@ -17,6 +18,7 @@ test.describe('[P1][infra] Login Forms Validation - Full Stack', () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
   test('login: should reject empty fields', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
     await page.goto('/Login');
     // Use domcontentloaded instead of networkidle to avoid hanging on /oauth/status
     await page.waitForLoadState('domcontentloaded');
@@ -30,6 +32,7 @@ test.describe('[P1][infra] Login Forms Validation - Full Stack', () => {
       (el: HTMLInputElement) => !el.validity.valid,
     );
     expect(isInvalid).toBe(true);
+    cc.assertClean();
   });
 
   test('login: should handle XSS in email field', async ({ page }) => {

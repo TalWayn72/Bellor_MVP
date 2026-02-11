@@ -71,5 +71,8 @@ export {
   createMockNotification, createMockLike,
 } from './factories/index.js';
 
+// Console warning detection
+export { collectConsoleMessages, assertPageHealthy } from './console-warning.helpers.js';
+
 // Re-export expect from Playwright
 export { expect } from '@playwright/test';

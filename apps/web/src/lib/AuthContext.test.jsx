@@ -915,4 +915,96 @@ describe('[P0][auth] AuthContext', () => {
       expect(result.current.user).toBeNull();
     });
   });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Token event listeners (cross-module sync)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  describe('Token event listeners', () => {
+    it('should set isAuthenticated=true when bellor-token-refreshed fires and tokenStorage has token', async () => {
+      // Start unauthenticated
+      tokenStorage.isAuthenticated.mockReturnValue(false);
+
+      const { result } = renderAuthHook();
+      await waitFor(() => expect(result.current.isLoadingAuth).toBe(false));
+      expect(result.current.isAuthenticated).toBe(false);
+
+      // Simulate: apiClient silently refreshed the token
+      tokenStorage.isAuthenticated.mockReturnValue(true);
+
+      await act(async () => {
+        window.dispatchEvent(new CustomEvent('bellor-token-refreshed'));
+      });
+
+      expect(result.current.isAuthenticated).toBe(true);
+    });
+
+    it('should NOT change isAuthenticated when bellor-token-refreshed fires but already authenticated', async () => {
+      tokenStorage.isAuthenticated.mockReturnValue(true);
+      authService.getCurrentUser.mockResolvedValue(MOCK_USER);
+
+      const { result } = renderAuthHook();
+      await waitFor(() => expect(result.current.isAuthenticated).toBe(true));
+
+      // Fire token-refreshed while already authenticated
+      await act(async () => {
+        window.dispatchEvent(new CustomEvent('bellor-token-refreshed'));
+      });
+
+      // Should remain authenticated, no side effects
+      expect(result.current.isAuthenticated).toBe(true);
+      expect(result.current.user).toEqual(MOCK_USER);
+    });
+
+    it('should set isAuthenticated=false and clear user when bellor-tokens-cleared fires', async () => {
+      // Start authenticated
+      tokenStorage.isAuthenticated.mockReturnValue(true);
+      authService.getCurrentUser.mockResolvedValue(MOCK_USER);
+
+      const { result } = renderAuthHook();
+      await waitFor(() => expect(result.current.isAuthenticated).toBe(true));
+      expect(result.current.user).toEqual(MOCK_USER);
+
+      // Simulate: apiClient cleared tokens (e.g., refresh failed)
+      await act(async () => {
+        window.dispatchEvent(new CustomEvent('bellor-tokens-cleared'));
+      });
+
+      expect(result.current.isAuthenticated).toBe(false);
+      expect(result.current.user).toBeNull();
+    });
+
+    it('should handle bellor-tokens-cleared when already unauthenticated', async () => {
+      tokenStorage.isAuthenticated.mockReturnValue(false);
+
+      const { result } = renderAuthHook();
+      await waitFor(() => expect(result.current.isLoadingAuth).toBe(false));
+      expect(result.current.isAuthenticated).toBe(false);
+
+      // Fire tokens-cleared while already unauthenticated - should not throw
+      await act(async () => {
+        window.dispatchEvent(new CustomEvent('bellor-tokens-cleared'));
+      });
+
+      expect(result.current.isAuthenticated).toBe(false);
+      expect(result.current.user).toBeNull();
+    });
+
+    it('should clean up event listeners on unmount', async () => {
+      const removeListenerSpy = vi.spyOn(window, 'removeEventListener');
+
+      tokenStorage.isAuthenticated.mockReturnValue(false);
+
+      const { unmount } = renderAuthHook();
+      await waitFor(() => {});
+
+      unmount();
+
+      const removedEvents = removeListenerSpy.mock.calls.map((c) => c[0]);
+      expect(removedEvents).toContain('bellor-token-refreshed');
+      expect(removedEvents).toContain('bellor-tokens-cleared');
+
+      removeListenerSpy.mockRestore();
+    });
+  });
 });

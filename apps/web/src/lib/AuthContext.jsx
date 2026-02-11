@@ -3,6 +3,7 @@ import { authService } from '@/api/services/authService';
 import { tokenStorage } from '@/api/client/tokenStorage';
 import { validateAuthUserFields } from '@/utils/authFieldValidator';
 import { reportAuthCheckFailed, reportTokenCleared } from '@/security/securityEventReporter';
+import { useTokenSync } from './useTokenSync';
 
 const AuthContext = createContext();
 
@@ -15,6 +16,9 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     checkUserAuth();
   }, []);
+
+  // Re-sync auth state when apiClient silently refreshes or clears tokens
+  useTokenSync({ isAuthenticated, setIsAuthenticated, setUser });
 
   const checkUserAuth = useCallback(async () => {
     try {

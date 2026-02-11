@@ -7,12 +7,14 @@ import {
   waitForPageLoad,
   FULLSTACK_AUTH,
   clearLocalStorage,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 test.describe('[P2][infra] Error States - Full Stack', () => {
   test.use({ storageState: FULLSTACK_AUTH.user });
 
   test('should show 404 for invalid route', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
     await page.goto('/ThisPageDoesNotExist', { waitUntil: 'domcontentloaded' });
     await waitForPageLoad(page);
 
@@ -28,6 +30,7 @@ test.describe('[P2][infra] Error States - Full Stack', () => {
     const bodyVisible = await page.locator('body').isVisible();
 
     expect(is404 || isRedirected || bodyVisible).toBe(true);
+    cc.assertClean();
   });
 
   test('should handle expired session gracefully', async ({ page }) => {

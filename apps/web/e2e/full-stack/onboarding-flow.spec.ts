@@ -23,6 +23,7 @@ import {
   SPECIAL_INPUTS,
   getTestFilePath,
   TEST_FILES,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 // ---------------------------------------------------------------------------
@@ -170,6 +171,7 @@ test.describe('[P0][auth] Onboarding Flow - Pre-Auth Steps', () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
   test('should display welcome screen at step 1', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
     await page.goto('/Onboarding?step=1');
     await waitForPageLoad(page);
 
@@ -178,6 +180,7 @@ test.describe('[P0][auth] Onboarding Flow - Pre-Auth Steps', () => {
       name: /get started|start|התחל|בואו נתחיל/i,
     });
     await expect(startBtn).toBeVisible({ timeout: 10000 });
+    cc.assertClean();
   });
 
   test('should show auth selection at step 2', async ({ page }) => {

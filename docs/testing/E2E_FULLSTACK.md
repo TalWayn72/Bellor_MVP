@@ -41,7 +41,7 @@ npm run test:e2e:fullstack:ui
 npm run test:e2e:fullstack:mobile
 ```
 
-## Test Files (22 specs, ~268 tests)
+## Test Files (29 specs, ~340 tests)
 
 ### Phase 1: Auth & Onboarding (P0)
 | File | Tests | Description |
@@ -85,6 +85,18 @@ npm run test:e2e:fullstack:mobile
 | `error-states.spec.ts` | ~10 | 404, 500, offline, slow |
 | `edge-cases.spec.ts` | ~14 | Rapid clicks, long text, RTL |
 
+### Phase 6: Full Page Coverage + Console Warnings (TASK-065)
+| File | Tests | Description |
+|------|-------|-------------|
+| `content-tasks.spec.ts` | ~8 | WriteTask, AudioTask, VideoTask, Creation |
+| `social-features.spec.ts` | ~10 | CompatibilityQuiz, IceBreakers, Achievements, DateIdeas, VirtualEvents |
+| `premium-features.spec.ts` | ~6 | Premium, ProfileBoost, ReferralProgram |
+| `safety-legal.spec.ts` | ~10 | SafetyCenter, FAQ, TermsOfService, PrivacyPolicy, UserVerification |
+| `misc-pages.spec.ts` | ~8 | Home, Analytics, Feedback, EmailSupport |
+| `special-pages.spec.ts` | ~4 | Splash, OAuthCallback |
+
+**Note:** All 29 specs (including the original 23) now include console warning detection via the shared helper.
+
 ## Seeded Test Users
 
 | User | Email | Password |
@@ -108,8 +120,9 @@ Located in `e2e/test-assets/`:
 1. Create file in `e2e/full-stack/`
 2. Use `FULLSTACK_AUTH.user` for storage state
 3. Import helpers from `../fixtures/index.js`
-4. Follow naming: `[P<tier>][<domain>] <Description>`
-5. Update this doc and `TEST_REGISTRY.md`
+4. **Import `collectConsoleMessages` from `../fixtures/console-warning.helpers.js`** and call `cc.assertClean()` at the end of each test
+5. Follow naming: `[P<tier>][<domain>] <Description>`
+6. Update this doc and `TEST_REGISTRY.md`
 
 ## Debugging
 
@@ -132,3 +145,104 @@ All forms are tested with:
 - `' OR 1=1 --` - SQL injection
 - `../../etc/passwd` - Path traversal
 - Hebrew, emoji, unicode, 10K chars
+
+## Console Warning Detection (TASK-065)
+
+All 29 full-stack E2E specs include automatic console warning detection. This catches React prop warnings, false auth warnings, and DOM validation errors before they reach production.
+
+### Shared Helper: `e2e/fixtures/console-warning.helpers.ts`
+
+Two main exports:
+
+#### `collectConsoleMessages(page)` + `cc.assertClean()`
+
+Use this when you need fine-grained control over when to start/stop collecting and when to assert.
+
+```typescript
+import { collectConsoleMessages } from '../fixtures/console-warning.helpers.js';
+
+test('my test', async ({ page }) => {
+  const cc = collectConsoleMessages(page);
+
+  await page.goto('/some-route');
+  // ... interact with the page ...
+
+  // At the end, assert no React warnings were emitted
+  cc.assertClean();
+
+  // Optional: allow specific warnings
+  cc.assertClean({ allowedWarnings: [/some-known-warning/] });
+});
+```
+
+`collectConsoleMessages(page)` attaches a `page.on('console')` listener and returns a `ConsoleCollector` object with:
+- `warnings: string[]` - collected warning messages
+- `errors: string[]` - collected error messages
+- `assertClean(options?)` - fails the test if any collected messages match FAIL_PATTERNS (unless they match IGNORE_PATTERNS or `allowedWarnings`)
+
+#### `assertPageHealthy(page, route, options?)`
+
+One-liner for simple "navigate and check" scenarios. Navigates to the route, waits for the page to settle, then asserts no React warnings.
+
+```typescript
+import { assertPageHealthy } from '../fixtures/console-warning.helpers.js';
+
+test('page has no warnings', async ({ page }) => {
+  await assertPageHealthy(page, '/settings');
+
+  // Optional: custom settle time and allowed warnings
+  await assertPageHealthy(page, '/profile', {
+    settleMs: 5000,
+    allowedWarnings: [/some-known-warning/],
+  });
+});
+```
+
+Internally it calls `collectConsoleMessages(page)`, navigates with `waitUntil: 'domcontentloaded'`, calls `waitForPageLoad(page)`, waits for `settleMs` (default 3000ms), then calls `cc.assertClean()`.
+
+### FAIL_PATTERNS
+
+Messages matching any of these patterns will **fail** the test:
+
+| Pattern | Catches |
+|---------|---------|
+| `Unknown event handler property` | Non-DOM props leaked to HTML elements |
+| `unknown prop` | Invalid React props |
+| `[ProtectedRoute] Unauthenticated` | False auth warnings from token desync |
+| `unique "key" prop` | Missing React key prop |
+| `Cannot update a component` | setState during render |
+| `findDOMNode is deprecated` | Legacy React API usage |
+| `Cannot update during an existing state transition` | State update during render |
+| `Invalid DOM property` | Wrong DOM attribute names |
+
+### IGNORE_PATTERNS
+
+Messages matching any of these patterns are **silently ignored** (dev noise):
+
+| Pattern | Why ignored |
+|---------|-------------|
+| `DevTools` / `react-devtools` / `Download the React DevTools` | Browser extension prompts |
+| `favicon.ico` | Missing favicon in dev |
+| `[HMR]` / `[vite]` | Hot Module Replacement messages |
+| `ERR_CONNECTION_REFUSED` / `net::ERR_` | Network errors in test environment |
+| `Failed to load resource` / `the server responded with a status of` | Expected API errors during tests |
+
+### Adding Console Warning Detection to a New Spec
+
+Every new spec file should follow this pattern:
+
+```typescript
+import { test, expect } from '@playwright/test';
+import { collectConsoleMessages } from '../fixtures/console-warning.helpers.js';
+
+test.describe('[P2][domain] Feature Name', () => {
+  test('feature works correctly', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
+
+    await page.goto('/feature-route');
+    // ... test logic ...
+
+    cc.assertClean();
+  });
+});
+```

@@ -6,12 +6,14 @@ import { test, expect } from '@playwright/test';
 import {
   waitForPageLoad,
   FULLSTACK_AUTH,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 test.describe('[P2][infra] Infinite Scroll - Full Stack', () => {
   test.use({ storageState: FULLSTACK_AUTH.user });
 
   test('should scroll feed and load more content', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
     await page.goto('/SharedSpace');
     await waitForPageLoad(page);
     await page.waitForTimeout(3000);
@@ -27,6 +29,7 @@ test.describe('[P2][infra] Infinite Scroll - Full Stack', () => {
 
     // Page should not crash
     await expect(page.locator('body')).toBeVisible();
+    cc.assertClean();
   });
 
   test('should scroll chat list', async ({ page }) => {

@@ -8,16 +8,19 @@ import {
   FULLSTACK_AUTH,
   getTestFilePath,
   TEST_FILES,
+  collectConsoleMessages,
 } from '../fixtures/index.js';
 
 test.describe('[P2][content] Stories - Full Stack', () => {
   test.use({ storageState: FULLSTACK_AUTH.user });
 
   test('should load stories page', async ({ page }) => {
+    const cc = collectConsoleMessages(page);
     await page.goto('/Stories');
     await waitForPageLoad(page);
 
     await expect(page.locator('body')).toBeVisible({ timeout: 15000 });
+    cc.assertClean();
   });
 
   test('should navigate to create story', async ({ page }) => {
