@@ -24,7 +24,8 @@ export function createSendMessageHandler(io: Server, socket: AuthenticatedSocket
     }
 
     try {
-      const { chatId, content, metadata } = data;
+      const { chatId, content, metadata = {} } = data;
+      const msgType = (metadata.messageType as string) || 'TEXT';
 
       const chat = await prisma.chat.findFirst({
         where: {
@@ -47,7 +48,7 @@ export function createSendMessageHandler(io: Server, socket: AuthenticatedSocket
         prisma.message.create({
           data: {
             chatId, senderId: socket.userId, content,
-            messageType: 'TEXT', isRead: false,
+            messageType: msgType as 'TEXT' | 'VOICE' | 'IMAGE' | 'VIDEO' | 'DRAWING', isRead: false,
           },
           include: {
             sender: {

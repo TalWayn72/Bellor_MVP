@@ -28,8 +28,8 @@ export default function PrivateChat() {
   const { messages: realtimeMessages, typingUsers, isJoined, sendMessage: sendSocketMessage, sendTyping } = useChatRoom(chatId);
   const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 
-  const { message, isUploading, handleTyping, handleSendMessage, handleSendImage, handleSendVoice, handleBlockUser, cleanup } =
-    usePrivateChatActions({ chatId, currentUser, isJoined, sendSocketMessage, sendTyping, scrollToBottom, toast, navigate });
+  const { message, isUploading, localMessages, handleTyping, handleSendMessage, handleSendImage, handleSendVoice, handleBlockUser, cleanup } =
+    usePrivateChatActions({ chatId, currentUser, isDemo, isJoined, sendSocketMessage, sendTyping, scrollToBottom, toast, navigate });
 
   const { data: chat, isError: chatError } = useQuery({
     queryKey: ['chat', chatId],
@@ -55,10 +55,10 @@ export default function PrivateChat() {
   }, [isDemo, chatId, currentUser]);
 
   const messages = React.useMemo(() => {
-    const all = [...(isDemo ? demoMessages : initialMessages)];
+    const all = [...(isDemo ? demoMessages : initialMessages), ...localMessages];
     realtimeMessages.forEach((msg) => { if (!all.some((m) => m.id === msg.id)) all.push(msg); });
     return all.sort((a, b) => new Date(a.created_date || a.createdAt) - new Date(b.created_date || b.createdAt));
-  }, [isDemo, demoMessages, initialMessages, realtimeMessages]);
+  }, [isDemo, demoMessages, initialMessages, realtimeMessages, localMessages]);
 
   const { data: otherUser } = useQuery({
     queryKey: ['user', otherUserId, chat?.otherUser?.id],

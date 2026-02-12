@@ -123,8 +123,36 @@
 | **ISSUE-070: PrivateChat usePresence Crash + Input Not Typeable (Feb 11)** | 4 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-071: Onboarding Step 5 Data Loss + Global Text Contrast (Feb 11)** | 15 files | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-072: SharedSpace Crash - Location Object Rendered as React Child (Feb 11)** | 2 | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-073: PrivateChat - Image/Voice Buttons Not Working + Missing Date Separators (Feb 12)** | 5 | 🔴 קריטי | ✅ תוקן |
 
-**סה"כ:** 3006+ פריטים זוהו → 3006+ טופלו ✅
+**סה"כ:** 3011+ פריטים זוהו → 3011+ טופלו ✅
+
+---
+
+## ✅ ISSUE-073: PrivateChat - Image/Voice Buttons Not Working + Missing Date Separators (12 פברואר 2026)
+**סטטוס:** ✅ תוקן | **חומרה:** 🔴 קריטי | **תאריך:** 12 February 2026
+**קבצים:** `ChatInput.jsx`, `MessageList.jsx`, `PrivateChat.jsx`, `usePrivateChatActions.js`, `chat-send.handler.ts`
+
+**בעיה:**
+1. כפתורי תמונה והקלטה קולית בצ'אט לא עובדים - אפשר לבחור קובץ ולהקליט, אבל ההודעות לא מופיעות בצ'אט
+2. אין מפרידי תאריכים בין הודעות (כמו בווטסאפ)
+
+**שורש הבעיה:**
+- **תמונות/קול לא עובדים בדמו:** צ'אטים של דמו (`demo-chat-...`) נדחים ע"י backend (REST + WebSocket), אז העלאות מצליחות אבל שליחת ההודעה נכשלת בשקט
+- **Backend WebSocket:** `chat-send.handler.ts` היה hardcoded ל-`messageType: 'TEXT'`, לא קורא את ה-metadata
+- **אין תאריכים:** `MessageList.jsx` הציג רק שעות, ללא מפרידים בין תאריכים שונים
+
+**פתרון:**
+1. **`usePrivateChatActions.js`**: נוסף `isDemo` parameter ו-`localMessages` state. במצב דמו: הודעות נוספות ל-state מקומי עם `URL.createObjectURL()`. במצב אמיתי: העלאה → שליחה דרך backend
+2. **`PrivateChat.jsx`**: מעביר `isDemo` ל-hook, ממזג `localMessages` למערך ההודעות
+3. **`MessageList.jsx`**: נוסף `DateSeparator` component + `formatDateLabel()` - מציג "Today" / "Yesterday" / תאריך מלא
+4. **`ChatInput.jsx`**: file input נסתר לתמונות, הקלטת קול עם MediaRecorder API, מצב recording עם אנימציה
+5. **`chat-send.handler.ts`**: קורא `messageType` מ-`metadata.messageType` במקום hardcoded 'TEXT'
+
+**תוצאה:**
+✅ תמונות והקלטות קוליות עובדות בצ'אט דמו ואמיתי
+✅ מפרידי תאריכים בסגנון WhatsApp בין הודעות
+✅ הודעות טקסט עובדות גם בדמו
 
 ---
 

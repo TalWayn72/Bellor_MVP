@@ -3,20 +3,31 @@ import { useMutation } from '@tanstack/react-query';
 import { chatService, userService, socketService, uploadService } from '@/api';
 import { createPageUrl } from '@/utils';
 
-export function usePrivateChatActions({ chatId, currentUser, isJoined, sendSocketMessage, sendTyping, scrollToBottom, toast, navigate }) {
+export function usePrivateChatActions({ chatId, currentUser, isDemo, isJoined, sendSocketMessage, sendTyping, scrollToBottom, toast, navigate }) {
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [localMessages, setLocalMessages] = useState([]);
   const typingTimeoutRef = useRef(null);
+
+  const addLocalMessage = useCallback((content, type = 'TEXT') => {
+    setLocalMessages(prev => [...prev, {
+      id: `local-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      sender_id: currentUser?.id, content, message_type: type, created_date: new Date().toISOString(),
+    }]);
+    setMessage('');
+    setTimeout(scrollToBottom, 50);
+  }, [currentUser, scrollToBottom]);
 
   const handleTyping = useCallback((value) => {
     setMessage(value);
+    if (isDemo) return;
     try {
       if (!isTyping) { setIsTyping(true); sendTyping(true); }
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = setTimeout(() => { setIsTyping(false); sendTyping(false); }, 2000);
-    } catch { /* socket not connected - typing indicator is non-critical */ }
-  }, [isTyping, sendTyping]);
+    } catch { /* socket not connected */ }
+  }, [isDemo, isTyping, sendTyping]);
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data) => {
@@ -31,11 +42,13 @@ export function usePrivateChatActions({ chatId, currentUser, isJoined, sendSocke
 
   const handleSendMessage = () => {
     if (!message.trim() || !chatId || !currentUser) return;
+    if (isDemo) { addLocalMessage(message, 'TEXT'); return; }
     sendMessageMutation.mutate({ content: message, type: 'TEXT' });
   };
 
   const handleSendImage = async (file) => {
     if (!chatId || !currentUser) return;
+    if (isDemo) { addLocalMessage(URL.createObjectURL(file), 'IMAGE'); return; }
     setIsUploading(true);
     try {
       const { url } = await uploadService.uploadFile(file);
@@ -46,6 +59,7 @@ export function usePrivateChatActions({ chatId, currentUser, isJoined, sendSocke
 
   const handleSendVoice = async (blob) => {
     if (!chatId || !currentUser) return;
+    if (isDemo) { addLocalMessage(URL.createObjectURL(blob), 'VOICE'); return; }
     setIsUploading(true);
     try {
       const file = new File([blob], `voice-${Date.now()}.webm`, { type: 'audio/webm' });
@@ -63,5 +77,5 @@ export function usePrivateChatActions({ chatId, currentUser, isJoined, sendSocke
 
   const cleanup = () => { if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current); };
 
-  return { message, isUploading, handleTyping, handleSendMessage, handleSendImage, handleSendVoice, handleBlockUser, cleanup };
+  return { message, isUploading, localMessages, handleTyping, handleSendMessage, handleSendImage, handleSendVoice, handleBlockUser, cleanup };
 }
