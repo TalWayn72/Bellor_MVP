@@ -25,7 +25,7 @@
     "test:visual:update": "npm run test:visual:update --workspace=@bellor/web",
     "test:mutation": "stryker run",
     "test:mutation:report": "start reports/mutation/mutation-report.html",
-    "test:memory-leak": "npm run test apps/api/src/test/memory-leak-detection.test.ts apps/web/src/test/memory-leak-detection.test.ts",
+    "test:memory-leak": "npm run test:api -- src/test/memory-leak-detection.test.ts && npm run test:web -- src/test/memory-leak-detection.test.ts",
     "check:file-length": "node scripts/check-file-length.js",
     "check:memory-leaks": "node scripts/check-memory-leaks.js",
     "prisma:generate": "npm run prisma:generate --workspace=@bellor/api",
