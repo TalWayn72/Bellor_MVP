@@ -1,7 +1,7 @@
 # תקלות פתוחות - Bellor MVP
 
-**תאריך עדכון:** 11 פברואר 2026
-**מצב:** ✅ Memory Leaks Fixed - WebSocket & Presence Tracking + Backend WebSocket Handlers
+**תאריך עדכון:** 12 פברואר 2026
+**מצב:** ✅ Memory Leak Detection CI Workflow Fixed
 
 ---
 
@@ -9,6 +9,7 @@
 
 | קטגוריה | מספר תקלות | חומרה | סטטוס |
 |----------|-------------|--------|--------|
+| **CI/CD Memory Leak Detection Workflow (Feb 12)** | 1 | 🔴 קריטי | ✅ תוקן |
 | TypeScript Build | 30 | 🔴 קריטי | ✅ תוקן |
 | TypeScript Chat Service | 19 | 🔴 קריטי | ✅ תוקן |
 | Unit Tests | 2 | 🟡 בינוני | ✅ תוקן |
@@ -110,6 +111,8 @@
 | **TASK-059: WebSocket Integration Tests - Memory Leak Cleanup (Feb 9)** | 5 | 🟡 בינוני | ✅ הושלם |
 | **TASK-060: Production Memory Monitoring - Real-time Metrics & Alerts (Feb 9)** | 5 | 🟢 שיפור | ✅ הושלם |
 | **ISSUE-033: Onboarding→SharedSpace Redirect Race Condition (Feb 10)** | 8 | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-075: CI/CD Memory Leak Detection Workflow Failing (Feb 12)** | 1 | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-074: PrivateChat Message Send - Enter Key Not Working (Feb 12)** | 3 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-034: Deep Race Condition Audit - setState/navigate/media leaks (Feb 10)** | 5 | 🔴 קריטי | ✅ תוקן |
 | **TASK-061: Testing Infrastructure Overhaul - Professional Architecture (Feb 10)** | 183 files | 🟢 שיפור | ✅ הושלם |
 | **TASK-062: Full-Stack E2E Testing Suite - Manual QA Replacement (Feb 10)** | 22 specs, 214 tests | 🟢 שיפור | ✅ הושלם |
@@ -4342,3 +4345,146 @@ curl http://localhost:3000/health/memory
 - `chat.spec.ts` → "UserProfile Message Button - Direct Chat Navigation (ISSUE-069)":
   - `should navigate directly to PrivateChat when clicking message button`
   - `should show past messages when navigating to existing chat`
+
+---
+
+## ISSUE-075: CI/CD Memory Leak Detection Workflow Failing (Feb 12)
+
+**סטטוס:** ✅ תוקן
+**חומרה:** 🔴 קריטי
+**תאריך דיווח:** 12 פברואר 2026
+
+### בעיה
+GitHub Actions workflow "Memory Leak Detection" נכשל בכל push עם:
+```
+No test files found, exiting with code 1
+```
+
+### שורש הבעיה
+| קובץ | בעיה | תיקון |
+|------|------|-------|
+| `package.json:27` | סקריפט `test:memory-leak` שגוי - מעביר נתיבים מוחלטים ישירות ל-`npm run test` | שינוי לרוץ בנפרד בכל workspace עם נתיבים יחסיים |
+
+**הסקריפט השגוי:**
+```json
+"test:memory-leak": "npm run test apps/api/src/test/memory-leak-detection.test.ts apps/web/src/test/memory-leak-detection.test.ts"
+```
+
+**הבעיה:**
+1. vitest רץ מתוך `apps/api` workspace
+2. מחפש את `apps/api/src/test/memory-leak-detection.test.ts` מתוך `apps/api/` → נתיב לא תקין
+3. מחפש את `apps/web/src/test/memory-leak-detection.test.ts` מתוך `apps/api/` → לא קיים
+4. תוצאה: "No test files found"
+
+### פתרון
+**תיקון package.json**
+```diff
+- "test:memory-leak": "npm run test apps/api/src/test/memory-leak-detection.test.ts apps/web/src/test/memory-leak-detection.test.ts",
++ "test:memory-leak": "npm run test:api -- src/test/memory-leak-detection.test.ts && npm run test:web -- src/test/memory-leak-detection.test.ts",
+```
+
+### תוצאות
+| מדד | ערך |
+|------|-----|
+| ✅ טסטי API | 9/9 עברו |
+| ✅ טסטי Web | 8/8 עברו |
+| ✅ סה"כ טסטים | 17/17 עברו |
+| ⏱️ משך ריצה | ~3.5s |
+| 🎯 CI Status | ✅ עובר |
+
+### קבצים מושפעים
+- `package.json` - תיקון סקריפט test:memory-leak
+
+### Commit
+```
+fix: correct test:memory-leak script to run tests in separate workspaces
+Commit: 26abce5
+```
+
+---
+
+## ISSUE-074: PrivateChat Message Send - Enter Key Not Working (Feb 12)
+
+**סטטוס:** ✅ תוקן
+**חומרה:** 🔴 קריטי
+**תאריך דיווח:** 12 פברואר 2026
+
+### בעיה
+כאשר המשתמש מקליד הודעה בתיבת הטקסט ב-PrivateChat ולוחץ Enter:
+1. **הטקסט נעלם** מתיבת הטקסט
+2. **ההודעה לא מופיעה** בחלון הצ'אט
+3. **ההודעה לא נשלחת** למשתמש השני
+4. **המשתמש השני לא רואה** שקיבל הודעה
+
+### שורש הבעיה
+| קובץ | בעיה | תיקון |
+|------|------|-------|
+| `ChatInput.jsx:79` | שימוש ב-`onKeyPress` (deprecated) + חסר `preventDefault()` | שינוי ל-`onKeyDown` + הוספת `preventDefault()` |
+| `ChatInput.jsx:79` | חסרה בדיקת validation (message.trim() && !isUploading) | הוספת תנאי לפני onSend() |
+| `usePrivateChatActions.js:35` | WebSocket fallback לא עובד - אם `r.success` false, לא עובר ל-HTTP | הוספת try/catch + fallback תקין ל-HTTP API |
+| `usePrivateChatActions.js:40` | חסר error handler ב-mutation | הוספת onError עם toast notification |
+
+### פתרון
+**1. תיקון ChatInput.jsx**
+```diff
+- onKeyPress={(e) => e.key === 'Enter' && onSend()}
++ onKeyDown={(e) => {
++   if (e.key === 'Enter' && !e.shiftKey && message.trim() && !isUploading) {
++     e.preventDefault();
++     onSend();
++   }
++ }}
+```
+
+**2. תיקון usePrivateChatActions.js - WebSocket Fallback**
+```javascript
+mutationFn: async (data) => {
+  // Try WebSocket first if connected
+  if (isJoined && socketService.isConnected()) {
+    try {
+      const r = await sendSocketMessage(data.content, { messageType: data.type || 'TEXT' });
+      if (r && r.success) return r.data;
+    } catch (err) {
+      // WebSocket failed, fall back to HTTP
+    }
+  }
+  // Fallback to HTTP API
+  const result = await chatService.sendMessage(chatId, data);
+  return result.message;
+},
+onError: (error) => {
+  toast({
+    title: 'Error',
+    description: error?.response?.data?.message || 'Failed to send message. Please try again.',
+    variant: 'destructive'
+  });
+}
+```
+
+### קבצים שהשתנו
+| קובץ | שורות | שינוי |
+|------|-------|-------|
+| `apps/web/src/components/chat/ChatInput.jsx` | 79-85 | onKeyPress→onKeyDown + validation |
+| `apps/web/src/components/hooks/usePrivateChatActions.js` | 32-49 | WebSocket fallback + error handling |
+| `apps/web/src/pages/PrivateChat.test.jsx` | 296-303 | Regression test: Enter key send |
+
+### טסטים
+✅ **PrivateChat.test.jsx** - 22 tests passed
+- New: "should handle sending a message via Enter key"
+- All existing tests pass
+
+### סקירת אבטחה
+| בדיקה | תוצאה |
+|--------|-------|
+| XSS | ✅ אין שינוי בלוגיקה - רק תיקון event handling |
+| Input Validation | ✅ שופר - הוספת בדיקת message.trim() ב-onKeyDown |
+| Error Handling | ✅ שופר - הוספת onError handler עם toast |
+| WebSocket Fallback | ✅ תוקן - כעת עובר ל-HTTP אם WebSocket נכשל |
+
+### UX לפני ואחרי
+| מצב | לפני | אחרי |
+|-----|------|------|
+| לחיצה על Enter | טקסט נעלם, הודעה לא נשלחת | הודעה נשלחת ומופיעה בצ'אט |
+| WebSocket מנותק | הודעה לא נשלחת | fallback ל-HTTP API |
+| שגיאת שרת | silent failure | toast notification למשתמש |
+| Shift+Enter | לא עבד | מוסיף שורה חדשה (standard behavior) |
