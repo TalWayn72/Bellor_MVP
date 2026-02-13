@@ -1,7 +1,7 @@
 # תקלות פתוחות - Bellor MVP
 
 **תאריך עדכון:** 13 פברואר 2026
-**מצב:** ✅ Full Test Infrastructure Fix - API + Web (isolate + vi.mocked)
+**מצב:** ✅ Pre-Deployment Quality Hardening Complete (ISSUE-080)
 
 ---
 
@@ -9,6 +9,7 @@
 
 | קטגוריה | מספר תקלות | חומרה | סטטוס |
 |----------|-------------|--------|--------|
+| **ISSUE-080: Pre-Deployment Quality Hardening (Feb 13)** | 6 | 🟡 בינוני | ✅ הושלם |
 | **ISSUE-076: Memory Leak Audit + Test Mock Fixes (Feb 12)** | 3 | 🔴 קריטי | ✅ תוקן |
 | **CI/CD Memory Leak Detection Workflow (Feb 12)** | 1 | 🔴 קריטי | ✅ תוקן |
 | TypeScript Build | 30 | 🔴 קריטי | ✅ תוקן |
@@ -4694,3 +4695,69 @@ The AST scanner reports are **FALSE POSITIVES** - unable to detect cleanup in:
 1. Apply same mock fix pattern to remaining API tests
 2. Ensure Redis is running in CI/CD for integration tests
 3. Consider creating test utilities for common mock patterns
+
+---
+
+## ISSUE-080: Pre-Deployment Quality Hardening (Feb 13, 2026)
+
+**Status:** ✅ הושלם
+**Severity:** 🟡 בינוני
+**Category:** Production Readiness
+
+### Problem
+Before deploying to Oracle Cloud Free Tier, 6 quality improvements were needed:
+1. No resource optimization for constrained Free Tier (1 OCPU, 6GB RAM, 47GB storage)
+2. No SSL/TLS automation scripts
+3. No database backup/restore automation
+4. 3 routes missing Zod validation (chats-crud, chats-messages, subscriptions)
+5. GDPR delete missing 5 user-related tables (DeviceToken, Feedback, Subscription, Payment, Referral)
+6. No log rotation - risk of disk fill on constrained storage
+
+### Solution
+
+#### 1. Oracle Cloud Free Tier Optimization
+- Created `docker-compose.oracle-free.yml` with resource limits tuned for Free Tier
+- Tuned Prisma connection pool: `max: 5`, `idleTimeoutMillis: 10000`, `connectionTimeoutMillis: 5000`
+- Tuned Redis client: `maxRetriesPerRequest: 3`, `connectTimeout: 5000`, `commandTimeout: 3000`
+- **Files:** `docker-compose.oracle-free.yml`, `apps/api/src/lib/prisma.ts`, `apps/api/src/lib/redis.ts`
+
+#### 2. SSL/TLS Automation
+- Created `scripts/setup-ssl.sh` - automated Let's Encrypt certificate setup
+- Includes auto-renewal hooks and Docker cert copying
+- **Files:** `scripts/setup-ssl.sh`
+
+#### 3. Database Backup Automation
+- Created `scripts/backup-db.sh` - compressed pg_dump with 7-day retention
+- Created `scripts/restore-db.sh` - safe restore with confirmation prompt
+- **Files:** `scripts/backup-db.sh`, `scripts/restore-db.sh`
+
+#### 4. Zod Validation Completion
+- Added `chats-schemas.ts` with schemas for all chat endpoints
+- Updated `chats-crud.routes.ts` and `chats-messages.routes.ts` to use Zod validation
+- Added `subscriptions-schemas.ts` and updated `subscriptions.controller.ts`
+- **Files:** `apps/api/src/routes/v1/chats-schemas.ts`, `apps/api/src/routes/v1/chats-crud.routes.ts`, `apps/api/src/routes/v1/chats-messages.routes.ts`, `apps/api/src/controllers/subscriptions/subscriptions-schemas.ts`, `apps/api/src/controllers/subscriptions.controller.ts`
+
+#### 5. GDPR Delete Fix
+- Added 5 missing tables to `deleteUserGDPR()` transaction: DeviceToken, Feedback, Payment, Subscription, Referral
+- Updated `exportUserData()` to include devices, subscriptions, and payments data
+- **Files:** `apps/api/src/services/users/users-gdpr.service.ts`
+
+#### 6. Log Rotation
+- Added 10MB max file size rotation and 7-day retention cleanup
+- Added daily date rotation refresh
+- Fixed Promtail path alignment for Docker vs bare-metal deployments
+- All Docker containers get `max-size: 10m, max-file: 3` log limits
+- **Files:** `apps/api/src/lib/logger-core.ts`, `infrastructure/monitoring/promtail/promtail-config.yml`
+
+### Tests
+- All existing tests must pass
+- Build + Lint must succeed
+
+### Security Review
+| Check | Result |
+|-------|--------|
+| Input Validation | ✅ All routes now have Zod validation |
+| GDPR Compliance | ✅ All 14 user tables handled in delete |
+| Data Export | ✅ All user data included in GDPR export |
+| Resource Limits | ✅ All containers have memory/CPU limits |
+| Log Security | ✅ Logs rotated, no disk fill risk |

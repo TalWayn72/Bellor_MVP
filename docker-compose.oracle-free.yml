@@ -1,0 +1,251 @@
+# ================================================
+# Bellor MVP - Oracle Cloud Free Tier
+# ================================================
+# Optimized for Oracle Cloud Always Free:
+#   - ARM A1 Flex: 1 OCPU (2 vCPU), 6 GB RAM, 47 GB storage
+#   - Total memory budget: ~1,088 MB (leaves headroom for OS)
+#   - CPU budget: 1.5 of 2 vCPU (leaves 0.5 for OS)
+#
+# Usage:
+#   docker compose -f docker-compose.oracle-free.yml up -d
+#
+# Resource allocation:
+#   API:      384 MB / 0.50 CPU
+#   Web:      128 MB / 0.25 CPU
+#   Postgres: 512 MB / 0.50 CPU
+#   Redis:     64 MB / 0.25 CPU
+#   Total:  1,088 MB / 1.50 CPU
+# ================================================
+
+version: '3.8'
+
+services:
+  # ======== API Service ========
+  api:
+    image: ${API_IMAGE:-bellor/api:latest}
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.api
+    container_name: bellor-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    # Security hardening (CIS Docker Benchmark)
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=50m
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOST: 0.0.0.0
+      LOG_LEVEL: info
+
+      # Database
+      DATABASE_URL: ${DATABASE_URL}
+
+      # Redis
+      REDIS_URL: ${REDIS_URL}
+
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_EXPIRES_IN: "15m"
+      JWT_REFRESH_EXPIRES_IN: "7d"
+
+      # Frontend URL (for CORS)
+      FRONTEND_URL: ${FRONTEND_URL}
+
+      # Storage (Cloudflare R2 or S3)
+      R2_ENDPOINT: ${R2_ENDPOINT}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
+      R2_BUCKET: ${R2_BUCKET}
+      CDN_URL: ${CDN_URL}
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    networks:
+      - bellor-network
+
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  # ======== Frontend Service (nginx) ========
+  web:
+    image: ${WEB_IMAGE:-bellor/web:latest}
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.web
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_WS_URL: ${VITE_WS_URL}
+        VITE_CDN_URL: ${VITE_CDN_URL}
+    container_name: bellor-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=20m
+      - /var/cache/nginx:size=20m
+      - /var/run:size=5m
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.25'
+        reservations:
+          memory: 64M
+    networks:
+      - bellor-network
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ======== PostgreSQL (Free Tier optimized) ========
+  postgres:
+    image: postgres:16-alpine
+    container_name: bellor-postgres
+    restart: unless-stopped
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-bellor}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-bellor}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    command: >
+      postgres
+      -c shared_buffers=64MB
+      -c max_connections=30
+      -c effective_cache_size=256MB
+      -c maintenance_work_mem=32MB
+      -c work_mem=2MB
+      -c wal_buffers=4MB
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - bellor-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bellor}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ======== Redis (Free Tier optimized) ========
+  redis:
+    image: redis:7-alpine
+    container_name: bellor-redis
+    restart: unless-stopped
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.25'
+        reservations:
+          memory: 32M
+    command: redis-server --maxmemory 48mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - bellor-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  bellor-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+
+# ==================================================
+# Environment Variables Reference
+# ==================================================
+# Create a .env.production file with:
+#
+# DATABASE_URL=postgresql://bellor:password@postgres:5432/bellor
+# REDIS_URL=redis://:password@redis:6379
+# JWT_SECRET=your-very-long-secret-key-min-32-characters
+# JWT_REFRESH_SECRET=another-very-long-secret-key-min-32-characters
+# FRONTEND_URL=https://bellor.app
+# VITE_API_URL=https://api.bellor.app
+# VITE_WS_URL=wss://api.bellor.app
+# VITE_CDN_URL=https://cdn.bellor.app
+# R2_ENDPOINT=https://xxx.r2.cloudflarestorage.com
+# R2_ACCESS_KEY_ID=xxx
+# R2_SECRET_ACCESS_KEY=xxx
+# R2_BUCKET=bellor-media
+# CDN_URL=https://cdn.bellor.app
+# POSTGRES_PASSWORD=secure-postgres-password
+# REDIS_PASSWORD=secure-redis-password
+# ==================================================

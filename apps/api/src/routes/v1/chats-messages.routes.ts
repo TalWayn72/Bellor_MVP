@@ -8,6 +8,12 @@ import { MessageType } from '@prisma/client';
 import { chatService } from '../../services/chat.service.js';
 import { isDemoId } from '../../utils/demoId.util.js';
 import { RATE_LIMITS } from '../../config/rate-limits.js';
+import {
+  chatIdParamsSchema,
+  messageParamsSchema,
+  messageListQuerySchema,
+  sendMessageBodySchema,
+} from './chats-schemas.js';
 
 export default async function chatsMessagesRoutes(app: FastifyInstance) {
   /**
@@ -16,16 +22,19 @@ export default async function chatsMessagesRoutes(app: FastifyInstance) {
   app.get(
     '/:chatId/messages',
     async (request: FastifyRequest, reply: FastifyReply) => {
+      const params = chatIdParamsSchema.safeParse(request.params);
+      if (!params.success) {
+        return reply.code(400).send({ error: 'Validation failed', details: params.error.errors });
+      }
+      const query = messageListQuerySchema.safeParse(request.query);
+      if (!query.success) {
+        return reply.code(400).send({ error: 'Validation failed', details: query.error.errors });
+      }
       const userId = request.user!.id;
-      const { chatId } = request.params as { chatId: string };
-      const { limit, offset } = request.query as {
-        limit?: string;
-        offset?: string;
-      };
 
-      const result = await chatService.getMessages(chatId, userId, {
-        limit: limit ? parseInt(limit) : undefined,
-        offset: offset ? parseInt(offset) : undefined,
+      const result = await chatService.getMessages(params.data.chatId, userId, {
+        limit: query.data.limit,
+        offset: query.data.offset,
       });
 
       if (!result) {
@@ -43,26 +52,22 @@ export default async function chatsMessagesRoutes(app: FastifyInstance) {
     '/:chatId/messages',
     { config: { rateLimit: RATE_LIMITS.chat.sendMessage } },
     async (request: FastifyRequest, reply: FastifyReply) => {
+      const params = chatIdParamsSchema.safeParse(request.params);
+      if (!params.success) {
+        return reply.code(400).send({ error: 'Validation failed', details: params.error.errors });
+      }
+      const body = sendMessageBodySchema.safeParse(request.body);
+      if (!body.success) {
+        return reply.code(400).send({ error: 'Validation failed', details: body.error.errors });
+      }
       const userId = request.user!.id;
-      const { chatId } = request.params as { chatId: string };
-      const { content, messageType, message_type, type } = request.body as {
-        content: string;
-        messageType?: string;
-        message_type?: string;
-        type?: string;
-      };
+      const { chatId } = params.data;
 
-      if (!content) {
-        return reply.code(400).send({ error: 'content is required' });
-      }
-
-      // Reject operations on demo chats
       if (isDemoId(chatId)) {
-        return reply.code(400).send({
-          error: 'Cannot perform operations on demo chats',
-        });
+        return reply.code(400).send({ error: 'Cannot perform operations on demo chats' });
       }
 
+      const { content, messageType, message_type, type } = body.data;
       const msgType = messageType || message_type || type || 'TEXT';
 
       const message = await chatService.sendMessage(chatId, userId, {
@@ -71,9 +76,7 @@ export default async function chatsMessagesRoutes(app: FastifyInstance) {
       });
 
       if (!message) {
-        return reply.code(404).send({
-          error: 'Chat not found or access denied',
-        });
+        return reply.code(404).send({ error: 'Chat not found or access denied' });
       }
 
       return reply.code(201).send({ message });
@@ -86,18 +89,16 @@ export default async function chatsMessagesRoutes(app: FastifyInstance) {
   app.patch(
     '/:chatId/messages/:messageId/read',
     async (request: FastifyRequest, reply: FastifyReply) => {
+      const params = messageParamsSchema.safeParse(request.params);
+      if (!params.success) {
+        return reply.code(400).send({ error: 'Validation failed', details: params.error.errors });
+      }
       const userId = request.user!.id;
-      const { messageId } = request.params as {
-        chatId: string;
-        messageId: string;
-      };
 
-      const result = await chatService.markMessageAsRead(messageId, userId);
+      const result = await chatService.markMessageAsRead(params.data.messageId, userId);
 
       if (!result) {
-        return reply.code(404).send({
-          error: 'Message not found or not authorized',
-        });
+        return reply.code(404).send({ error: 'Message not found or not authorized' });
       }
 
       return reply.send({ message: result });
@@ -110,25 +111,21 @@ export default async function chatsMessagesRoutes(app: FastifyInstance) {
   app.delete(
     '/:chatId/messages/:messageId',
     async (request: FastifyRequest, reply: FastifyReply) => {
+      const params = messageParamsSchema.safeParse(request.params);
+      if (!params.success) {
+        return reply.code(400).send({ error: 'Validation failed', details: params.error.errors });
+      }
       const userId = request.user!.id;
-      const { chatId, messageId } = request.params as {
-        chatId: string;
-        messageId: string;
-      };
+      const { chatId, messageId } = params.data;
 
-      // Reject operations on demo chats/messages
       if (isDemoId(chatId) || isDemoId(messageId)) {
-        return reply.code(400).send({
-          error: 'Cannot perform operations on demo content',
-        });
+        return reply.code(400).send({ error: 'Cannot perform operations on demo content' });
       }
 
       const result = await chatService.deleteMessage(messageId, userId);
 
       if (!result) {
-        return reply.code(404).send({
-          error: 'Message not found or not authorized',
-        });
+        return reply.code(404).send({ error: 'Message not found or not authorized' });
       }
 
       return reply.send(result);

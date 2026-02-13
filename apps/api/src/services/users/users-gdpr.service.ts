@@ -47,12 +47,26 @@ export async function exportUserData(userId: string) {
       responses: { select: { id: true, content: true, responseType: true, createdAt: true } },
       stories: { select: { id: true, mediaUrl: true, caption: true, createdAt: true } },
       achievements: { include: { achievement: true } },
+      feedbacks: { select: { id: true, type: true, description: true, createdAt: true } },
     },
   });
 
   if (!user) {
     throw new Error('User not found');
   }
+
+  // Fetch data from tables without direct User back-relation
+  const [devices, subscriptions, payments] = await Promise.all([
+    prisma.deviceToken.findMany({
+      where: { userId }, select: { id: true, platform: true, createdAt: true },
+    }),
+    prisma.subscription.findMany({
+      where: { userId }, select: { id: true, status: true, billingCycle: true, createdAt: true },
+    }),
+    prisma.payment.findMany({
+      where: { userId }, select: { id: true, amount: true, currency: true, status: true, createdAt: true },
+    }),
+  ]);
 
   return {
     personalInformation: {
@@ -72,9 +86,13 @@ export async function exportUserData(userId: string) {
     content: {
       messages: user.sentMessages, responses: user.responses, stories: user.stories,
     },
-    achievements: user.achievements.map(ua => ({
+    achievements: user.achievements.map((ua) => ({
       name: ua.achievement.name, description: ua.achievement.description, unlockedAt: ua.unlockedAt,
     })),
+    devices,
+    feedback: user.feedbacks,
+    subscriptions,
+    payments,
     statistics: {
       responseCount: user.responseCount, chatCount: user.chatCount,
       missionCompletedCount: user.missionCompletedCount,
@@ -99,6 +117,14 @@ export async function deleteUserGDPR(userId: string) {
     await tx.story.deleteMany({ where: { userId: userId } });
     await tx.userAchievement.deleteMany({ where: { userId: userId } });
     await tx.notification.deleteMany({ where: { userId: userId } });
+    await tx.deviceToken.deleteMany({ where: { userId: userId } });
+    await tx.feedback.deleteMany({ where: { userId: userId } });
+    await tx.payment.deleteMany({ where: { userId: userId } });
+    await tx.subscription.deleteMany({ where: { userId: userId } });
+    await tx.referral.updateMany({
+      where: { referrerUserId: userId },
+      data: { referrerUserId: null },
+    });
     await tx.chat.deleteMany({
       where: { OR: [{ user1Id: userId }, { user2Id: userId }] },
     });

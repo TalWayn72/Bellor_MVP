@@ -5,23 +5,18 @@
  */
 
 import { FastifyRequest, FastifyReply } from 'fastify';
+import { z } from 'zod';
 import { SubscriptionsService } from '../services/subscriptions.service.js';
-import { BillingCycle } from '@prisma/client';
 import { SubscriptionsAdminController } from './subscriptions/subscriptions-admin.controller.js';
+import {
+  createCheckoutBodySchema,
+  createPortalBodySchema,
+  cancelSubscriptionBodySchema,
+  paymentHistoryQuerySchema,
+} from './subscriptions/subscriptions-schemas.js';
 
-interface CreateCheckoutBody {
-  planId: string;
-  billingCycle: BillingCycle;
-  successUrl: string;
-  cancelUrl: string;
-}
-
-interface CreatePortalBody {
-  returnUrl: string;
-}
-
-interface CancelSubscriptionBody {
-  cancelAtPeriodEnd?: boolean;
+function zodError(reply: FastifyReply, error: z.ZodError) {
+  return reply.status(400).send({ error: 'Validation failed', details: error.errors });
 }
 
 export const SubscriptionsController = {
@@ -58,19 +53,16 @@ export const SubscriptionsController = {
     }
   },
 
-  async createCheckoutSession(
-    request: FastifyRequest<{ Body: CreateCheckoutBody }>, reply: FastifyReply
-  ) {
-    const userId = request.user!.id;
-    const { planId, billingCycle, successUrl, cancelUrl } = request.body;
+  async createCheckoutSession(request: FastifyRequest, reply: FastifyReply) {
+    const result = createCheckoutBodySchema.safeParse(request.body);
+    if (!result.success) return zodError(reply, result.error);
 
-    if (!planId || !successUrl || !cancelUrl) {
-      return reply.status(400).send({ error: 'Missing required fields: planId, successUrl, cancelUrl' });
-    }
+    const userId = request.user!.id;
+    const { planId, billingCycle, successUrl, cancelUrl } = result.data;
 
     try {
       const session = await SubscriptionsService.createCheckoutSession({
-        userId, planId, billingCycle: billingCycle || 'MONTHLY', successUrl, cancelUrl,
+        userId, planId, billingCycle, successUrl, cancelUrl,
       });
       return reply.send(session);
     } catch (error: unknown) {
@@ -79,15 +71,16 @@ export const SubscriptionsController = {
     }
   },
 
-  async createPortalSession(
-    request: FastifyRequest<{ Body: CreatePortalBody }>, reply: FastifyReply
-  ) {
+  async createPortalSession(request: FastifyRequest, reply: FastifyReply) {
+    const result = createPortalBodySchema.safeParse(request.body);
+    if (!result.success) return zodError(reply, result.error);
+
     const userId = request.user!.id;
-    const { returnUrl } = request.body;
-    if (!returnUrl) return reply.status(400).send({ error: 'Missing returnUrl' });
 
     try {
-      const session = await SubscriptionsService.createCustomerPortalSession({ userId, returnUrl });
+      const session = await SubscriptionsService.createCustomerPortalSession({
+        userId, returnUrl: result.data.returnUrl,
+      });
       return reply.send(session);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unknown error';
@@ -95,15 +88,15 @@ export const SubscriptionsController = {
     }
   },
 
-  async cancelSubscription(
-    request: FastifyRequest<{ Body: CancelSubscriptionBody }>, reply: FastifyReply
-  ) {
+  async cancelSubscription(request: FastifyRequest, reply: FastifyReply) {
+    const result = cancelSubscriptionBodySchema.safeParse(request.body || {});
+    if (!result.success) return zodError(reply, result.error);
+
     const userId = request.user!.id;
-    const { cancelAtPeriodEnd = true } = request.body || {};
 
     try {
-      const result = await SubscriptionsService.cancelSubscription(userId, cancelAtPeriodEnd);
-      return reply.send(result);
+      const res = await SubscriptionsService.cancelSubscription(userId, result.data.cancelAtPeriodEnd);
+      return reply.send(res);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       return reply.status(400).send({ error: message });
@@ -121,13 +114,13 @@ export const SubscriptionsController = {
     }
   },
 
-  async getPaymentHistory(
-    request: FastifyRequest<{ Querystring: { limit?: number } }>, reply: FastifyReply
-  ) {
+  async getPaymentHistory(request: FastifyRequest, reply: FastifyReply) {
+    const result = paymentHistoryQuerySchema.safeParse(request.query);
+    if (!result.success) return zodError(reply, result.error);
+
     const userId = request.user!.id;
-    const { limit = 10 } = request.query;
     try {
-      const payments = await SubscriptionsService.getPaymentHistory(userId, Number(limit));
+      const payments = await SubscriptionsService.getPaymentHistory(userId, result.data.limit);
       return reply.send({ payments });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unknown error';
