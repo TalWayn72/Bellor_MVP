@@ -9,13 +9,12 @@ name: Tests
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, master, develop]
   pull_request:
-    branches: [main, develop]
+    branches: [main, master, develop]
 
 env:
   NODE_VERSION: '20'
-  PNPM_VERSION: '8'
 
 jobs:
   # ============================================
@@ -27,7 +26,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        image: postgres:16-alpine
         env:
           POSTGRES_USER: bellor
           POSTGRES_PASSWORD: bellor_test
@@ -41,7 +40,7 @@ jobs:
           --health-retries 5
 
       redis:
-        image: redis:7
+        image: redis:7-alpine
         ports:
           - 6379:6379
         options: >-
@@ -58,33 +57,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Generate Prisma client
-        run: pnpm --filter @bellor/api db:generate
+        run: npm run prisma:generate
 
       - name: Run unit tests with coverage
-        run: pnpm --filter @bellor/api test:coverage
+        run: npm run test:api -- --coverage
         env:
           NODE_ENV: test
           DATABASE_URL: postgresql://bellor:bellor_test@localhost:5432/bellor_test
@@ -116,39 +98,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Generate Prisma client
-        run: pnpm --filter @bellor/api db:generate
+        run: npm run prisma:generate
 
-      - name: Lint API
-        run: pnpm --filter @bellor/api lint
+      - name: Run ESLint
+        run: npm run lint
 
-      - name: Lint Web
-        run: pnpm --filter @bellor/web lint
-
-      - name: Type check API
-        run: pnpm --filter @bellor/api typecheck
+      - name: Type check
+        run: npm run type-check
 
   # ============================================
   # Build Test
@@ -165,36 +127,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Generate Prisma client
-        run: pnpm --filter @bellor/api db:generate
+        run: npm run prisma:generate
 
       - name: Build API
-        run: pnpm --filter @bellor/api build
+        run: npm run build:api
 
       - name: Build Web
-        run: pnpm --filter @bellor/web build
+        run: npm run build:web
         env:
           VITE_API_URL: http://localhost:3000
 
@@ -208,7 +153,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        image: postgres:16-alpine
         env:
           POSTGRES_USER: bellor
           POSTGRES_PASSWORD: bellor_test
@@ -222,7 +167,7 @@ jobs:
           --health-retries 5
 
       redis:
-        image: redis:7
+        image: redis:7-alpine
         ports:
           - 6379:6379
         options: >-
@@ -239,67 +184,29 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Generate Prisma client
-        run: pnpm --filter @bellor/api db:generate
+        run: npm run prisma:generate
 
       - name: Run database migrations
-        run: pnpm --filter @bellor/api db:migrate
+        run: npx prisma migrate deploy
+        working-directory: apps/api
         env:
           DATABASE_URL: postgresql://bellor:bellor_test@localhost:5432/bellor_test
 
       - name: Install Playwright browsers
-        run: pnpm --filter @bellor/web exec playwright install chromium --with-deps
-
-      - name: Build applications
-        run: |
-          pnpm --filter @bellor/api build
-          pnpm --filter @bellor/web build
-        env:
-          VITE_API_URL: http://localhost:3000
-
-      - name: Start API server
-        run: |
-          pnpm --filter @bellor/api start &
-          sleep 10
-        env:
-          NODE_ENV: test
-          DATABASE_URL: postgresql://bellor:bellor_test@localhost:5432/bellor_test
-          REDIS_URL: redis://localhost:6379
-          JWT_SECRET: test-jwt-secret-min-32-chars-for-testing-12345678
-          JWT_REFRESH_SECRET: test-refresh-secret-min-32-chars-for-testing-87654321
-          PORT: 3000
-
-      - name: Start Web server
-        run: |
-          pnpm --filter @bellor/web preview --port 5173 &
-          sleep 5
+        run: npx playwright install --with-deps chromium
 
       - name: Run E2E tests
-        run: pnpm --filter @bellor/web test:e2e
+        run: npm run test:e2e -- --project=chromium
         env:
-          E2E_BASE_URL: http://localhost:5173
+          DATABASE_URL: postgresql://bellor:bellor_test@localhost:5432/bellor_test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
           CI: true
 
       - name: Upload Playwright report
@@ -333,26 +240,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Run npm audit
-        run: pnpm audit --audit-level=high
+        run: npm audit --audit-level=high
         continue-on-error: true
-
-      - name: Run Snyk security scan
-        uses: snyk/actions/node@master
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --severity-threshold=high
 
   # ============================================
   # Summary

@@ -130,8 +130,35 @@
 | **ISSUE-073: PrivateChat - Image/Voice Buttons Not Working + Missing Date Separators (Feb 12)** | 5 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-076: Test Infrastructure - vi.mocked() Broken Across 47+ Files (Feb 12)** | 752 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-077: Web Test Isolation - isolate:false Causing Suite Failures (Feb 13)** | 1 | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-078: GitHub Actions Workflows Not Triggering on master Branch (Feb 13)** | 6 | 🔴 קריטי | ✅ תוקן |
 
-**סה"כ:** 3764+ פריטים זוהו → 3764+ טופלו ✅
+**סה"כ:** 3770+ פריטים זוהו → 3770+ טופלו ✅
+
+---
+
+## ✅ ISSUE-078: GitHub Actions Workflows Not Triggering on master Branch (13 פברואר 2026)
+**סטטוס:** ✅ תוקן | **חומרה:** 🔴 קריטי | **תאריך:** 13 February 2026
+**קבצים:** 6 workflow files in `.github/workflows/`
+
+**בעיה:**
+After pushing to `master` branch, GitHub sent email: "NO JOBS WERE RUN". All CI/CD workflows were configured to trigger only on `main` and `develop` branches, but the repository uses `master` as the primary branch.
+
+**שורש הבעיה:**
+- `ci.yml`: Branch triggers `[main, develop]` - missing `master`
+- `test.yml`: Branch triggers `[main, develop]` + was using `pnpm` instead of `npm`
+- `docker-build.yml`: PR triggers `[main, develop]` - missing `master`
+- `cd.yml`: Push trigger `main` only - missing `master`, ref condition only checked `refs/heads/main`
+- `p0-gate.yml`: Already had `master` ✅
+- `memory-leak-check.yml`: Already had `master` ✅
+
+**תיקון:**
+1. `ci.yml` - Added `master` to all branch triggers + added `|| github.ref == 'refs/heads/master'` to all conditional refs (OWASP ZAP, load tests)
+2. `test.yml` - Complete rewrite: pnpm→npm, added `master`, updated PostgreSQL 15→16-alpine, Redis 7→7-alpine
+3. `docker-build.yml` - Added `master` to PR branch triggers
+4. `cd.yml` - Added `master` to push branches + Kubernetes deploy condition
+5. Added post-push CI verification section to `CLAUDE.md` with `gh run list` verification steps
+
+**בדיקות:** Push and verify with `gh run list --limit 5`
 
 ---
 

@@ -191,15 +191,28 @@
 
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
-| `ci.yml` | Push/PR to main/develop | Lint + type check |
-| `test.yml` | Push/PR | Full test suite (PostgreSQL + Redis services) |
-| `p0-gate.yml` | Push/PR | Critical P0 smoke tests gate |
-| `docker-build.yml` | Push/PR | Multi-stage Docker builds |
-| `cd.yml` | Push to main | Deployment pipeline |
+| `ci.yml` | Push/PR to main/master/develop | Lint + type check + security scan + load tests |
+| `test.yml` | Push/PR to main/master/develop | Full test suite (PostgreSQL + Redis services) |
+| `p0-gate.yml` | Push/PR to main/master/develop | Critical P0 smoke tests gate |
+| `docker-build.yml` | PR to main/master/develop + tags | Multi-stage Docker builds + Trivy scan |
+| `cd.yml` | Push to main/master | Deployment pipeline (K8s + Docker Compose) |
 | `mutation.yml` | Manual/scheduled | Stryker mutation testing |
 | `memory-leak-check.yml` | Manual/scheduled | Memory leak detection |
 
 **Pre-commit hooks (Husky + lint-staged):** Auto-runs ESLint fix + file length check on staged files.
+
+### Post-Push CI Verification (required after every push)
+After every `git push`, verify that GitHub Actions workflows are running:
+
+| Step | Command | Expected |
+|------|---------|----------|
+| 1. Check runs | `gh run list --limit 5` | Recent workflow runs visible |
+| 2. Watch run | `gh run watch` | Live status of current run |
+| 3. On failure | `gh run view <run-id> --log-failed` | View failure logs |
+
+**Iron rule:** Every push must trigger CI. If `gh run list` shows no new runs after push, investigate workflow triggers immediately.
+
+**Common issue:** Workflow branch filters (`branches: [main, develop]`) must include the actual branch name (`master`). All workflows must list `[main, master, develop]`.
 
 ## Git Policy
 
