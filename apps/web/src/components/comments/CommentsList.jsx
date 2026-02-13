@@ -1,7 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { userService } from '@/api';
-import { Heart, Reply } from 'lucide-react';
 
 export default function CommentsList({ responseId, currentUser }) {
   // Demo comments (Comment service can be added in future)

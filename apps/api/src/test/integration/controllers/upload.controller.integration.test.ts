@@ -250,7 +250,7 @@ describe('[P2][infra] POST /api/v1/uploads/drawing - Upload Drawing', () => {
   });
 
   it('should update user drawingUrl in database', async () => {
-    (prisma.user.update as Mock).mockResolvedValue(createMockUser({ drawingUrl: mockUploadResult.url }));
+    (prisma.user.update as Mock).mockResolvedValue(createMockUser({ drawingUrl: mockUploadResult.url } as any));
 
     const response = await app.inject({
       method: 'POST',

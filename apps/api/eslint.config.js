@@ -11,8 +11,8 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ['src/**/*.ts'],
-    ignores: ['src/**/*.test.ts'],
+    files: ['**/*.ts'],
+    ignores: ['**/*.test.ts', '**/dist/**', '**/node_modules/**'],
     languageOptions: {
       parserOptions: {
         project: './tsconfig.json',
@@ -34,9 +34,9 @@ export default tseslint.config(
       'no-var': 'error',
     },
   },
-  // Test files - without project requirement
+  // Test files - relaxed rules
   {
-    files: ['src/**/*.test.ts'],
+    files: ['**/*.test.ts'],
     rules: {
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/no-explicit-any': 'off',

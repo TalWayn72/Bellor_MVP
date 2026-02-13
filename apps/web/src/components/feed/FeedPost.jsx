@@ -6,7 +6,7 @@ import HeartResponseSelector from './HeartResponseSelector';
 import CommentsDialog from '../comments/CommentsDialog';
 import CommentInputDialog from '../comments/CommentInputDialog';
 import StarSendersModal from './StarSendersModal';
-import { HashtagText, HashtagList } from './HashtagExtractor';
+import { HashtagList } from './HashtagExtractor';
 import { MentionText, MentionList } from './MentionExtractor';
 import { Card } from '@/components/ui/card';
 import FeedPostHeader from './FeedPostHeader';

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { notificationService, userService, socketService } from '@/api';
+import { notificationService, socketService } from '@/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import BackButton from '@/components/navigation/BackButton';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';

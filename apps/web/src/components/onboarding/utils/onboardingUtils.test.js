@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildStepSaveData, buildFinalUserData, validateDateOfBirth, formatDateForInput } from './onboardingUtils';
+import { buildStepSaveData, buildFinalUserData } from './onboardingUtils';
 
 describe('[P1][onboarding] onboardingUtils - ISSUE-070 regression', () => {
   const baseFormData = {

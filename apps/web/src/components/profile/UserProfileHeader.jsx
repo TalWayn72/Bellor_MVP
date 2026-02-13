@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Users } from 'lucide-react';
 import { Card, CardContent, CardImage } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { createPageUrl } from '@/utils';
 import FollowButton from '@/components/profile/FollowButton';

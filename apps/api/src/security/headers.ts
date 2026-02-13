@@ -37,7 +37,7 @@ export async function applySecurityHeaders(
  * Get security headers as a plain object (for nginx config generation)
  */
 export function getSecurityHeadersMap(): Record<string, string> {
-  const headers = { ...SECURITY_HEADERS };
+  const headers: Record<string, string> = { ...SECURITY_HEADERS };
 
   if (env.NODE_ENV === 'production') {
     headers['Strict-Transport-Security'] = HSTS_HEADER;

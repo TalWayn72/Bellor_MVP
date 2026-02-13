@@ -104,7 +104,11 @@ export async function checkAndUnlockAchievements(userId: string) {
       if (!hasIt) {
         try {
           const unlocked = await unlockAchievement(userId, achievement.id);
-          unlockedAchievements.push(unlocked);
+          unlockedAchievements.push({
+            id: unlocked.achievement.id,
+            name: unlocked.achievement.name,
+            xpReward: unlocked.achievement.xpReward,
+          });
         } catch {
           // Already unlocked or error
         }

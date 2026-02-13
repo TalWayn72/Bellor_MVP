@@ -36,10 +36,10 @@ export function createBcryptMock() {
   return { hash: vi.fn(), compare: vi.fn() };
 }
 
-export function setupModuleSpy<T extends Record<string, unknown>>(
-  module: T, propertyName: keyof T, mockImplementation: unknown
+export function setupModuleSpy(
+  module: Record<string, unknown>, propertyName: string, mockImplementation: unknown
 ): Mock {
-  return vi.spyOn(module, propertyName as string, 'get').mockReturnValue(mockImplementation);
+  return vi.spyOn(module as any, propertyName, 'get').mockReturnValue(mockImplementation) as unknown as Mock;
 }
 
 export function createMockRequest(overrides: Record<string, unknown> = {}) {

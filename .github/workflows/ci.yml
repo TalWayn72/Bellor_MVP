@@ -76,11 +76,11 @@ jobs:
         run: npm ci
 
       - name: Generate Prisma Client
-        run: npm run prisma:generate
+        run: npx prisma generate
         working-directory: apps/api
 
       - name: Run database migrations
-        run: npm run prisma:migrate:deploy
+        run: npx prisma migrate deploy
         working-directory: apps/api
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
@@ -473,7 +473,7 @@ jobs:
       - name: Setup database
         run: |
           npm run prisma:generate --workspace=@bellor/api
-          npm run prisma:migrate:deploy --workspace=@bellor/api
+          cd apps/api && npx prisma migrate deploy
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
 
@@ -582,7 +582,7 @@ jobs:
       - name: Setup API for load test
         run: |
           npm run prisma:generate --workspace=@bellor/api
-          npm run prisma:migrate:deploy --workspace=@bellor/api
+          cd apps/api && npx prisma migrate deploy
           npm run build:api
           npm run start:api &
           sleep 10
@@ -657,7 +657,7 @@ jobs:
       - name: Setup API for load test
         run: |
           npm run prisma:generate --workspace=@bellor/api
-          npm run prisma:migrate:deploy --workspace=@bellor/api
+          cd apps/api && npx prisma migrate deploy
           npm run build:api
           npm run start:api &
           sleep 15
@@ -746,7 +746,7 @@ jobs:
       - name: Setup API for load test
         run: |
           npm run prisma:generate --workspace=@bellor/api
-          npm run prisma:migrate:deploy --workspace=@bellor/api
+          cd apps/api && npx prisma migrate deploy
           npm run build:api
           npm run start:api &
           sleep 15

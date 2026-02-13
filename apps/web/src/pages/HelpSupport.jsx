@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Mail, MessageCircle, Book, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import BackButton from '@/components/navigation/BackButton';
 
 export default function HelpSupport() {

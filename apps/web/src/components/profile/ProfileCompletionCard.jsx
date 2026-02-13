@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { CheckCircle, Circle } from 'lucide-react';
+import { Circle } from 'lucide-react';
 
 export default function ProfileCompletionCard({ user }) {
   const navigate = useNavigate();

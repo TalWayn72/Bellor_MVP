@@ -14,22 +14,22 @@ export interface FieldSecurityRule {
 export const INPUT_RULES: Record<string, FieldSecurityRule> = {
   firstName: {
     maxLength: 50,
-    allowedPattern: /^[\p{L}\s'\-]+$/u,
+    allowedPattern: /^[\p{L}\s'-]+$/u,
     description: 'Letters, spaces, hyphens, apostrophes',
   },
   lastName: {
     maxLength: 50,
-    allowedPattern: /^[\p{L}\s'\-]+$/u,
+    allowedPattern: /^[\p{L}\s'-]+$/u,
     description: 'Letters, spaces, hyphens, apostrophes',
   },
   bio: {
     maxLength: 500,
-    allowedPattern: /^[\p{L}\p{N}\p{P}\p{S}\p{Z}\p{Emoji_Presentation}\p{Emoji}\u200d\ufe0f]+$/u,
+    allowedPattern: /^(?:[\p{L}\p{N}\p{P}\p{S}\p{Z}\p{Emoji_Presentation}\p{Emoji}]|\u200d|\ufe0f)+$/u,
     description: 'Text, emojis, basic punctuation',
   },
   chatMessage: {
     maxLength: 2000,
-    allowedPattern: /^[\p{L}\p{N}\p{P}\p{S}\p{Z}\p{Emoji_Presentation}\p{Emoji}\u200d\ufe0f]+$/u,
+    allowedPattern: /^(?:[\p{L}\p{N}\p{P}\p{S}\p{Z}\p{Emoji_Presentation}\p{Emoji}]|\u200d|\ufe0f)+$/u,
     description: 'Text, emojis, basic punctuation',
   },
   search: {
@@ -39,7 +39,7 @@ export const INPUT_RULES: Record<string, FieldSecurityRule> = {
   },
   hobby: {
     maxLength: 100,
-    allowedPattern: /^[\p{L}\p{N}\p{P}\p{S}\p{Z}\p{Emoji_Presentation}\p{Emoji}\u200d\ufe0f]+$/u,
+    allowedPattern: /^(?:[\p{L}\p{N}\p{P}\p{S}\p{Z}\p{Emoji_Presentation}\p{Emoji}]|\u200d|\ufe0f)+$/u,
     description: 'Text, emojis, basic punctuation',
   },
   email: {

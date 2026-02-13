@@ -73,9 +73,11 @@ export function buildUpdateData(input: UpdateUserProfileInput): Prisma.UserUpdat
 
   // Handle location (can be string or object)
   if (input.location !== undefined) {
-    updateData.location = typeof input.location === 'string'
-      ? { city: input.location }
-      : input.location;
+    updateData.location = input.location === null
+      ? Prisma.JsonNull
+      : typeof input.location === 'string'
+        ? { city: input.location }
+        : input.location;
   }
 
   // Handle lookingFor (with snake_case alias)

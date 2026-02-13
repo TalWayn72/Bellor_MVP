@@ -36,7 +36,14 @@ export class UsersProfileController {
       const body = updateProfileSchema.parse(request.body);
       logger.debug('USER_UPDATE', 'Zod validation passed', { validatedBody: body });
 
-      const updatedUser = await UsersService.updateUserProfile(id, body);
+      const normalizedBody = {
+        ...body,
+        lookingFor: Array.isArray(body.lookingFor) ? body.lookingFor : body.lookingFor ? [body.lookingFor] : undefined,
+        looking_for: Array.isArray(body.looking_for) ? body.looking_for[0] : body.looking_for,
+        age: body.age ?? undefined,
+      };
+
+      const updatedUser = await UsersService.updateUserProfile(id, normalizedBody as import('../../services/users/users.types.js').UpdateUserProfileInput);
       logger.info('USER_UPDATE', `Profile updated successfully for user ${id}`, { userId: id, updatedFields: Object.keys(body) });
       return reply.code(200).send({ success: true, data: updatedUser });
     } catch (error) {

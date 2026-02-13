@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { extractBearerToken, sendAuthError, requireRole } from './token-validation.js';
+import { extractBearerToken, sendAuthError } from './token-validation.js';
 import { securityLogger } from '../security/logger.js';
 
 // Re-export for backward compatibility

@@ -4,7 +4,7 @@
  */
 
 import { prisma } from '../../lib/prisma.js';
-import { cacheGetOrSet, cacheDel, CacheKey, CacheTTL } from '../../lib/cache.js';
+import { cacheGetOrSet, CacheKey, CacheTTL } from '../../lib/cache.js';
 
 interface ListStoriesParams {
   userId?: string;

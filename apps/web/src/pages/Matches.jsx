@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { likeService, chatService } from '@/api';
+import { likeService } from '@/api';
 import { useQuery } from '@tanstack/react-query';
 import { Heart, Sparkles } from 'lucide-react';
 import BackButton from '@/components/navigation/BackButton';

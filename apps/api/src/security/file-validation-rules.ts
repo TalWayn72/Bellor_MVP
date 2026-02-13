@@ -35,7 +35,7 @@ export function sanitizeFilename(filename: string): string {
   return filename
     .replace(/\.\./g, '')        // Remove path traversal
     .replace(/[/\\:*?"<>|]/g, '') // Remove dangerous characters
-    .replace(/\x00/g, '')        // Remove null bytes
+    .replace(/\0/g, '')           // Remove null bytes
     .replace(/^\.+/, '')         // Remove leading dots
     .trim();
 }

@@ -24,7 +24,7 @@ export function initSentry(): void {
 
     integrations: [
       // Performance profiling integration
-      nodeProfilingIntegration(),
+      nodeProfilingIntegration() as any,
     ],
 
     // Performance monitoring
@@ -46,7 +46,7 @@ export function initSentry(): void {
 
       // Remove sensitive query parameters
       if (event.request?.query_string) {
-        const sanitizedQuery = event.request.query_string
+        const sanitizedQuery = String(event.request.query_string)
           .replace(/token=[^&]*/gi, 'token=[REDACTED]')
           .replace(/key=[^&]*/gi, 'key=[REDACTED]')
           .replace(/password=[^&]*/gi, 'password=[REDACTED]');

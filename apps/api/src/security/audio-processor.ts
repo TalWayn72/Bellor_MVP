@@ -38,7 +38,7 @@ function estimateAudioDuration(buffer: Buffer, mimeType: string): number {
 export function validateAudioSecurity(
   buffer: Buffer,
   claimedMimeType: string,
-  filename: string
+  _filename: string
 ): AudioValidationResult {
   // Check if buffer is empty
   if (buffer.length === 0) {

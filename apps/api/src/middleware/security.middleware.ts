@@ -8,7 +8,6 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { sanitizeObject, detectInjection, checkPrototypePollution } from '../security/index.js';
 import { applySecurityHeaders } from '../security/headers.js';
 import { securityLogger } from '../security/logger.js';
-import { REQUEST_LIMITS } from '../config/security.config.js';
 
 /**
  * Register all security middleware on a Fastify instance

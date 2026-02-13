@@ -26,7 +26,7 @@ export function generateCsrfToken(): string {
 export function setCsrfCookie(reply: FastifyReply): string {
   const token = generateCsrfToken();
 
-  reply.setCookie(CSRF_COOKIE_NAME, token, {
+  (reply as any).setCookie(CSRF_COOKIE_NAME, token, {
     httpOnly: false,  // Must be readable by JavaScript
     secure: env.NODE_ENV === 'production',
     sameSite: 'strict',
@@ -79,7 +79,6 @@ export async function csrfProtection(
   }
 
   // Skip for API-to-API calls (no browser involved)
-  const contentType = request.headers['content-type'] || '';
   const isApiCall = request.headers.authorization?.startsWith('Bearer ');
 
   // For JWT-based auth, Origin validation is the primary CSRF defense

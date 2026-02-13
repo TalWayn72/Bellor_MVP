@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Heart } from 'lucide-react';
 import BackButton from '@/components/navigation/BackButton';
-import { createPageUrl } from '@/utils';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import { CardsSkeleton, EmptyState } from '@/components/states';
 import DateIdeaCard from '@/components/dates/DateIdeaCard';

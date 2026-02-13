@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { userService } from '@/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Ban } from 'lucide-react';
-import { createPageUrl } from '@/utils';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import BackButton from '@/components/navigation/BackButton';
 import { ListSkeleton, EmptyState } from '@/components/states';

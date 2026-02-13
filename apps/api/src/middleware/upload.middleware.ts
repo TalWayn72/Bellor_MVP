@@ -14,7 +14,7 @@ type FileCategory = 'image' | 'audio' | 'video';
 /**
  * Create an upload validation middleware for a specific file category
  */
-export function createUploadValidator(category: FileCategory) {
+export function createUploadValidator(_category: FileCategory) {
   return async function uploadValidator(
     request: FastifyRequest,
     reply: FastifyReply

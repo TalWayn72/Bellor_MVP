@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Copy, Check, MessageSquare } from 'lucide-react';
 import BackButton from '@/components/navigation/BackButton';
-import { createPageUrl } from '@/utils';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

@@ -57,7 +57,7 @@ export const SubscriptionsManagement = {
     const stripeClient = ensureStripeConfigured();
     const session = await stripeBreaker.execute(() =>
       stripeClient.billingPortal.sessions.create({
-        customer: subscription.stripeCustomerId, return_url: returnUrl,
+        customer: subscription.stripeCustomerId ?? undefined, return_url: returnUrl,
       }),
     );
     return { url: session.url };
@@ -84,8 +84,8 @@ export const SubscriptionsManagement = {
         status: cancelAtPeriodEnd ? subscription.status : 'CANCELED',
       },
     });
-    const periodEnd = typeof stripeSub.current_period_end === 'number'
-      ? new Date(stripeSub.current_period_end * 1000)
+    const periodEnd = typeof (stripeSub as any).current_period_end === 'number'
+      ? new Date((stripeSub as any).current_period_end * 1000)
       : new Date();
     return { success: true, cancelAtPeriodEnd, currentPeriodEnd: periodEnd };
   },

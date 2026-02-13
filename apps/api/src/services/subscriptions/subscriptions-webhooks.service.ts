@@ -24,14 +24,14 @@ export const SubscriptionWebhooks = {
         stripeCustomerId: session.customer as string,
         stripeSubscriptionId: stripeSub.id,
         status: 'ACTIVE', billingCycle,
-        currentPeriodStart: new Date(stripeSub.current_period_start * 1000),
-        currentPeriodEnd: new Date(stripeSub.current_period_end * 1000),
+        currentPeriodStart: new Date((stripeSub as any).current_period_start * 1000),
+        currentPeriodEnd: new Date((stripeSub as any).current_period_end * 1000),
       },
     });
 
     await prisma.user.update({
       where: { id: userId },
-      data: { isPremium: true, premiumExpiresAt: new Date(stripeSub.current_period_end * 1000) },
+      data: { isPremium: true, premiumExpiresAt: new Date((stripeSub as any).current_period_end * 1000) },
     });
 
     return subscription;
@@ -39,7 +39,7 @@ export const SubscriptionWebhooks = {
 
   /** Handle Stripe webhook: invoice.payment_succeeded */
   async handlePaymentSucceeded(invoice: Stripe.Invoice) {
-    const stripeSubscriptionId = invoice.subscription as string;
+    const stripeSubscriptionId = (invoice as any).subscription as string;
     const subscription = await prisma.subscription.findFirst({ where: { stripeSubscriptionId } });
     if (!subscription) return null;
 
@@ -47,7 +47,7 @@ export const SubscriptionWebhooks = {
       data: {
         subscriptionId: subscription.id, userId: subscription.userId,
         amount: invoice.amount_paid / 100, currency: invoice.currency.toUpperCase(),
-        stripePaymentIntentId: invoice.payment_intent as string,
+        stripePaymentIntentId: (invoice as any).payment_intent as string,
         stripeInvoiceId: invoice.id, status: 'SUCCEEDED', paidAt: new Date(),
       },
     });
@@ -59,14 +59,14 @@ export const SubscriptionWebhooks = {
       where: { id: subscription.id },
       data: {
         status: 'ACTIVE',
-        currentPeriodStart: new Date(stripeSub.current_period_start * 1000),
-        currentPeriodEnd: new Date(stripeSub.current_period_end * 1000),
+        currentPeriodStart: new Date((stripeSub as any).current_period_start * 1000),
+        currentPeriodEnd: new Date((stripeSub as any).current_period_end * 1000),
       },
     });
 
     await prisma.user.update({
       where: { id: subscription.userId },
-      data: { isPremium: true, premiumExpiresAt: new Date(stripeSub.current_period_end * 1000) },
+      data: { isPremium: true, premiumExpiresAt: new Date((stripeSub as any).current_period_end * 1000) },
     });
 
     return payment;
@@ -74,7 +74,7 @@ export const SubscriptionWebhooks = {
 
   /** Handle Stripe webhook: invoice.payment_failed */
   async handlePaymentFailed(invoice: Stripe.Invoice) {
-    const stripeSubscriptionId = invoice.subscription as string;
+    const stripeSubscriptionId = (invoice as any).subscription as string;
     const subscription = await prisma.subscription.findFirst({ where: { stripeSubscriptionId } });
     if (!subscription) return null;
 
@@ -82,7 +82,7 @@ export const SubscriptionWebhooks = {
       data: {
         subscriptionId: subscription.id, userId: subscription.userId,
         amount: invoice.amount_due / 100, currency: invoice.currency.toUpperCase(),
-        stripePaymentIntentId: invoice.payment_intent as string,
+        stripePaymentIntentId: (invoice as any).payment_intent as string,
         stripeInvoiceId: invoice.id, status: 'FAILED',
       },
     });
@@ -108,8 +108,8 @@ export const SubscriptionWebhooks = {
       where: { id: subscription.id },
       data: {
         status,
-        currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+        currentPeriodStart: new Date((stripeSubscription as any).current_period_start * 1000),
+        currentPeriodEnd: new Date((stripeSubscription as any).current_period_end * 1000),
         cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
         canceledAt: stripeSubscription.canceled_at ? new Date(stripeSubscription.canceled_at * 1000) : null,
       },
@@ -120,7 +120,7 @@ export const SubscriptionWebhooks = {
       where: { id: subscription.userId },
       data: {
         isPremium,
-        premiumExpiresAt: isPremium ? new Date(stripeSubscription.current_period_end * 1000) : null,
+        premiumExpiresAt: isPremium ? new Date((stripeSubscription as any).current_period_end * 1000) : null,
       },
     });
 

@@ -9,7 +9,7 @@ import Stripe from 'stripe';
 import { logger } from '../../lib/logger.js';
 import { securityLogger } from '../../security/logger.js';
 
-interface CreatePlanBody {
+export interface CreatePlanBody {
   name: string;
   description?: string;
   price: number;

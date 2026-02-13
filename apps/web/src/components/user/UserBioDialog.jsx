@@ -7,7 +7,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { userService } from '@/api';
 import { useQuery } from '@tanstack/react-query';
-import { MapPin, User, ExternalLink, MessageCircle } from 'lucide-react';
+import { MapPin, ExternalLink, MessageCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';

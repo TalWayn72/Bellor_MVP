@@ -275,7 +275,7 @@ describe('DELETE /api/v1/users/:id/gdpr - GDPR Right to Erasure', () => {
       if (typeof callback === 'function') {
         return callback(prisma);
       }
-      return Promise.all(callback);
+      return Promise.all(callback as Promise<unknown>[]);
     });
     (prisma.response.deleteMany as Mock).mockResolvedValue({ count: 10 });
     (prisma.like.deleteMany as Mock).mockResolvedValue({ count: 20 });
