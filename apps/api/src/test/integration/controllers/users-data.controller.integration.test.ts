@@ -5,7 +5,7 @@
  * @see PRD.md Section 10 - Phase 6 Testing (Integration)
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../../build-test-app.js';
 import { prisma } from '../../../lib/prisma.js';
@@ -25,36 +25,15 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-const mockUserStats = {
-  totalResponses: 10,
-  totalLikesReceived: 25,
-  totalLikesGiven: 30,
-  totalMatches: 5,
-  totalChats: 8,
-  totalMessages: 150,
-  profileViews: 100,
-  storiesPosted: 15,
-};
-
-const mockExportData = {
-  user: createMockUser(),
-  responses: [],
-  likes: [],
-  matches: [],
-  chats: [],
-  messages: [],
-  stories: [],
-  notifications: [],
-};
 
 // ============================================
 // GET USER STATS
 // ============================================
 describe('GET /api/v1/users/:id/stats - Get User Stats', () => {
   it('should get own user stats', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createMockUser());
-    vi.mocked(prisma.response.count).mockResolvedValue(10);
-    vi.mocked(prisma.like.count).mockResolvedValue(25);
+    (prisma.user.findUnique as Mock).mockResolvedValue(createMockUser());
+    (prisma.response.count as Mock).mockResolvedValue(10);
+    (prisma.like.count as Mock).mockResolvedValue(25);
 
     const response = await app.inject({
       method: 'GET',
@@ -85,7 +64,7 @@ describe('GET /api/v1/users/:id/stats - Get User Stats', () => {
   });
 
   it('should return 404 for non-existent user', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'GET',
@@ -97,11 +76,11 @@ describe('GET /api/v1/users/:id/stats - Get User Stats', () => {
   });
 
   it('should return comprehensive statistics', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createMockUser());
-    vi.mocked(prisma.response.count).mockResolvedValue(10);
-    vi.mocked(prisma.like.count).mockResolvedValue(25);
-    vi.mocked(prisma.chat.count).mockResolvedValue(8);
-    vi.mocked(prisma.message.count).mockResolvedValue(150);
+    (prisma.user.findUnique as Mock).mockResolvedValue(createMockUser());
+    (prisma.response.count as Mock).mockResolvedValue(10);
+    (prisma.like.count as Mock).mockResolvedValue(25);
+    (prisma.chat.count as Mock).mockResolvedValue(8);
+    (prisma.message.count as Mock).mockResolvedValue(150);
 
     const response = await app.inject({
       method: 'GET',
@@ -122,11 +101,11 @@ describe('GET /api/v1/users/:id/stats - Get User Stats', () => {
 // ============================================
 describe('GET /api/v1/users/:id/export - GDPR Data Export', () => {
   it('should export own user data', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createMockUser());
-    vi.mocked(prisma.response.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.like.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.chat.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.message.findMany).mockResolvedValue([]);
+    (prisma.user.findUnique as Mock).mockResolvedValue(createMockUser());
+    (prisma.response.findMany as Mock).mockResolvedValue([]);
+    (prisma.like.findMany as Mock).mockResolvedValue([]);
+    (prisma.chat.findMany as Mock).mockResolvedValue([]);
+    (prisma.message.findMany as Mock).mockResolvedValue([]);
 
     const response = await app.inject({
       method: 'GET',
@@ -157,7 +136,7 @@ describe('GET /api/v1/users/:id/export - GDPR Data Export', () => {
   });
 
   it('should return 404 for non-existent user', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'GET',
@@ -169,9 +148,9 @@ describe('GET /api/v1/users/:id/export - GDPR Data Export', () => {
   });
 
   it('should set correct headers for file download', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createMockUser());
-    vi.mocked(prisma.response.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.like.findMany).mockResolvedValue([]);
+    (prisma.user.findUnique as Mock).mockResolvedValue(createMockUser());
+    (prisma.response.findMany as Mock).mockResolvedValue([]);
+    (prisma.like.findMany as Mock).mockResolvedValue([]);
 
     const response = await app.inject({
       method: 'GET',
@@ -187,13 +166,13 @@ describe('GET /api/v1/users/:id/export - GDPR Data Export', () => {
   });
 
   it('should include all user data in export', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createMockUser());
-    vi.mocked(prisma.response.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.like.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.chat.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.message.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.story.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.notification.findMany).mockResolvedValue([]);
+    (prisma.user.findUnique as Mock).mockResolvedValue(createMockUser());
+    (prisma.response.findMany as Mock).mockResolvedValue([]);
+    (prisma.like.findMany as Mock).mockResolvedValue([]);
+    (prisma.chat.findMany as Mock).mockResolvedValue([]);
+    (prisma.message.findMany as Mock).mockResolvedValue([]);
+    (prisma.story.findMany as Mock).mockResolvedValue([]);
+    (prisma.notification.findMany as Mock).mockResolvedValue([]);
 
     const response = await app.inject({
       method: 'GET',
@@ -209,9 +188,9 @@ describe('GET /api/v1/users/:id/export - GDPR Data Export', () => {
   });
 
   it('should not include password hash in export', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createMockUser());
-    vi.mocked(prisma.response.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.like.findMany).mockResolvedValue([]);
+    (prisma.user.findUnique as Mock).mockResolvedValue(createMockUser());
+    (prisma.response.findMany as Mock).mockResolvedValue([]);
+    (prisma.like.findMany as Mock).mockResolvedValue([]);
 
     const response = await app.inject({
       method: 'GET',
@@ -230,8 +209,8 @@ describe('GET /api/v1/users/:id/export - GDPR Data Export', () => {
 // ============================================
 describe('DELETE /api/v1/users/:id/gdpr - GDPR Right to Erasure', () => {
   it('should delete own user data permanently', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createMockUser());
-    vi.mocked(prisma.user.delete).mockResolvedValue(createMockUser());
+    (prisma.user.findUnique as Mock).mockResolvedValue(createMockUser());
+    (prisma.user.delete as Mock).mockResolvedValue(createMockUser());
 
     const response = await app.inject({
       method: 'DELETE',
@@ -262,7 +241,7 @@ describe('DELETE /api/v1/users/:id/gdpr - GDPR Right to Erasure', () => {
   });
 
   it('should return 404 for non-existent user', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'DELETE',
@@ -274,8 +253,8 @@ describe('DELETE /api/v1/users/:id/gdpr - GDPR Right to Erasure', () => {
   });
 
   it('should return GDPR compliance message', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createMockUser());
-    vi.mocked(prisma.user.delete).mockResolvedValue(createMockUser());
+    (prisma.user.findUnique as Mock).mockResolvedValue(createMockUser());
+    (prisma.user.delete as Mock).mockResolvedValue(createMockUser());
 
     const response = await app.inject({
       method: 'DELETE',
@@ -291,17 +270,17 @@ describe('DELETE /api/v1/users/:id/gdpr - GDPR Right to Erasure', () => {
   });
 
   it('should cascade delete all related data', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createMockUser());
-    vi.mocked(prisma.$transaction).mockImplementation(async (callback: any) => {
+    (prisma.user.findUnique as Mock).mockResolvedValue(createMockUser());
+    (prisma.$transaction as Mock).mockImplementation(async (callback: unknown) => {
       if (typeof callback === 'function') {
         return callback(prisma);
       }
       return Promise.all(callback);
     });
-    vi.mocked(prisma.response.deleteMany).mockResolvedValue({ count: 10 });
-    vi.mocked(prisma.like.deleteMany).mockResolvedValue({ count: 20 });
-    vi.mocked(prisma.message.deleteMany).mockResolvedValue({ count: 50 });
-    vi.mocked(prisma.user.delete).mockResolvedValue(createMockUser());
+    (prisma.response.deleteMany as Mock).mockResolvedValue({ count: 10 });
+    (prisma.like.deleteMany as Mock).mockResolvedValue({ count: 20 });
+    (prisma.message.deleteMany as Mock).mockResolvedValue({ count: 50 });
+    (prisma.user.delete as Mock).mockResolvedValue(createMockUser());
 
     const response = await app.inject({
       method: 'DELETE',

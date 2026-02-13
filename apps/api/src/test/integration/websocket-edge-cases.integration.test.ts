@@ -5,7 +5,7 @@
  * and other edge case scenarios.
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi, type Mock } from 'vitest';
 import { createServer, Server as HttpServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { io as SocketClient, Socket as ClientSocket } from 'socket.io-client';
@@ -40,11 +40,11 @@ describe('[P1][chat] WebSocket - Edge Cases & Error Handling', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(redis.setex).mockResolvedValue('OK');
-    vi.mocked(redis.get).mockResolvedValue(null);
-    vi.mocked(redis.del).mockResolvedValue(1);
-    vi.mocked(redis.expire).mockResolvedValue(1);
-    vi.mocked(redis.keys).mockResolvedValue([]);
+    (redis.setex as Mock).mockResolvedValue('OK');
+    (redis.get as Mock).mockResolvedValue(null);
+    (redis.del as Mock).mockResolvedValue(1);
+    (redis.expire as Mock).mockResolvedValue(1);
+    (redis.keys as Mock).mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -94,7 +94,7 @@ describe('[P1][chat] WebSocket - Edge Cases & Error Handling', () => {
     await new Promise<void>((resolve) => clientSocket1.on('connect', resolve));
 
     // Test presence:check with valid callback
-    vi.mocked(redis.get).mockResolvedValue(null);
+    (redis.get as Mock).mockResolvedValue(null);
 
     const result = await new Promise<SocketAck>((resolve) => {
       clientSocket1.emit('presence:check', { userIds: [] }, resolve);

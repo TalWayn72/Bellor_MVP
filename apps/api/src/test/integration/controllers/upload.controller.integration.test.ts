@@ -5,7 +5,7 @@
  * @see PRD.md Section 10 - Phase 6 Testing (Integration)
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../../build-test-app.js';
 import { prisma } from '../../../lib/prisma.js';
@@ -250,7 +250,7 @@ describe('[P2][infra] POST /api/v1/uploads/drawing - Upload Drawing', () => {
   });
 
   it('should update user drawingUrl in database', async () => {
-    vi.mocked(prisma.user.update).mockResolvedValue(createMockUser({ drawingUrl: mockUploadResult.url }));
+    (prisma.user.update as Mock).mockResolvedValue(createMockUser({ drawingUrl: mockUploadResult.url }));
 
     const response = await app.inject({
       method: 'POST',

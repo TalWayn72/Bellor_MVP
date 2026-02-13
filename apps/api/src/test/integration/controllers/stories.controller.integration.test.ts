@@ -5,7 +5,7 @@
  * @see PRD.md Section 10 - Phase 6 Testing (Integration)
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../../build-test-app.js';
 import { prisma } from '../../../lib/prisma.js';
@@ -42,7 +42,7 @@ const mockStory: Story = {
 // ============================================
 describe('[P1][content] POST /api/v1/stories - Create Story', () => {
   it('should create story successfully', async () => {
-    vi.mocked(prisma.story.create).mockResolvedValue(mockStory);
+    (prisma.story.create as Mock).mockResolvedValue(mockStory);
 
     const response = await app.inject({
       method: 'POST',
@@ -98,7 +98,7 @@ describe('[P1][content] POST /api/v1/stories - Create Story', () => {
 // ============================================
 describe('[P1][content] GET /api/v1/stories/:id - Get Story By ID', () => {
   it('should get story by id', async () => {
-    vi.mocked(prisma.story.findUnique).mockResolvedValue(mockStory);
+    (prisma.story.findUnique as Mock).mockResolvedValue(mockStory);
 
     const response = await app.inject({
       method: 'GET',
@@ -110,7 +110,7 @@ describe('[P1][content] GET /api/v1/stories/:id - Get Story By ID', () => {
   });
 
   it('should return 404 for non-existent story', async () => {
-    vi.mocked(prisma.story.findUnique).mockResolvedValue(null);
+    (prisma.story.findUnique as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'GET',
@@ -136,7 +136,7 @@ describe('[P1][content] GET /api/v1/stories/:id - Get Story By ID', () => {
 // ============================================
 describe('[P1][content] GET /api/v1/stories/feed - Get Stories Feed', () => {
   it('should get stories feed', async () => {
-    vi.mocked(prisma.story.findMany).mockResolvedValue([mockStory]);
+    (prisma.story.findMany as Mock).mockResolvedValue([mockStory]);
 
     const response = await app.inject({
       method: 'GET',
@@ -157,7 +157,7 @@ describe('[P1][content] GET /api/v1/stories/feed - Get Stories Feed', () => {
   });
 
   it('should accept pagination parameters', async () => {
-    vi.mocked(prisma.story.findMany).mockResolvedValue([]);
+    (prisma.story.findMany as Mock).mockResolvedValue([]);
 
     const response = await app.inject({
       method: 'GET',
@@ -169,7 +169,7 @@ describe('[P1][content] GET /api/v1/stories/feed - Get Stories Feed', () => {
   });
 
   it('should return only active stories (not expired)', async () => {
-    vi.mocked(prisma.story.findMany).mockResolvedValue([]);
+    (prisma.story.findMany as Mock).mockResolvedValue([]);
 
     const response = await app.inject({
       method: 'GET',
@@ -186,7 +186,7 @@ describe('[P1][content] GET /api/v1/stories/feed - Get Stories Feed', () => {
 // ============================================
 describe('[P1][content] GET /api/v1/stories/my - Get My Stories', () => {
   it('should get own stories', async () => {
-    vi.mocked(prisma.story.findMany).mockResolvedValue([mockStory]);
+    (prisma.story.findMany as Mock).mockResolvedValue([mockStory]);
 
     const response = await app.inject({
       method: 'GET',
@@ -207,7 +207,7 @@ describe('[P1][content] GET /api/v1/stories/my - Get My Stories', () => {
   });
 
   it('should return empty array if no stories', async () => {
-    vi.mocked(prisma.story.findMany).mockResolvedValue([]);
+    (prisma.story.findMany as Mock).mockResolvedValue([]);
 
     const response = await app.inject({
       method: 'GET',
@@ -224,7 +224,7 @@ describe('[P1][content] GET /api/v1/stories/my - Get My Stories', () => {
 // ============================================
 describe('[P1][content] GET /api/v1/stories/user/:userId - Get User Stories', () => {
   it('should get user stories', async () => {
-    vi.mocked(prisma.story.findMany).mockResolvedValue([mockStory]);
+    (prisma.story.findMany as Mock).mockResolvedValue([mockStory]);
 
     const response = await app.inject({
       method: 'GET',
@@ -245,7 +245,7 @@ describe('[P1][content] GET /api/v1/stories/user/:userId - Get User Stories', ()
   });
 
   it('should return only active stories for user', async () => {
-    vi.mocked(prisma.story.findMany).mockResolvedValue([]);
+    (prisma.story.findMany as Mock).mockResolvedValue([]);
 
     const response = await app.inject({
       method: 'GET',
@@ -262,8 +262,8 @@ describe('[P1][content] GET /api/v1/stories/user/:userId - Get User Stories', ()
 // ============================================
 describe('[P1][content] DELETE /api/v1/stories/:id - Delete Story', () => {
   it('should delete own story', async () => {
-    vi.mocked(prisma.story.findUnique).mockResolvedValue(mockStory);
-    vi.mocked(prisma.story.delete).mockResolvedValue(mockStory);
+    (prisma.story.findUnique as Mock).mockResolvedValue(mockStory);
+    (prisma.story.delete as Mock).mockResolvedValue(mockStory);
 
     const response = await app.inject({
       method: 'DELETE',
@@ -276,7 +276,7 @@ describe('[P1][content] DELETE /api/v1/stories/:id - Delete Story', () => {
 
   it('should not delete other user story', async () => {
     const otherUserStory: Story = { ...mockStory, userId: 'other-user-id' };
-    vi.mocked(prisma.story.findUnique).mockResolvedValue(otherUserStory);
+    (prisma.story.findUnique as Mock).mockResolvedValue(otherUserStory);
 
     const response = await app.inject({
       method: 'DELETE',
@@ -288,7 +288,7 @@ describe('[P1][content] DELETE /api/v1/stories/:id - Delete Story', () => {
   });
 
   it('should return 404 for non-existent story', async () => {
-    vi.mocked(prisma.story.findUnique).mockResolvedValue(null);
+    (prisma.story.findUnique as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'DELETE',
@@ -314,8 +314,8 @@ describe('[P1][content] DELETE /api/v1/stories/:id - Delete Story', () => {
 // ============================================
 describe('[P1][content] POST /api/v1/stories/:id/view - Track Story View', () => {
   it('should track story view', async () => {
-    vi.mocked(prisma.story.findUnique).mockResolvedValue(mockStory);
-    vi.mocked(prisma.story.update).mockResolvedValue(mockStory);
+    (prisma.story.findUnique as Mock).mockResolvedValue(mockStory);
+    (prisma.story.update as Mock).mockResolvedValue(mockStory);
 
     const response = await app.inject({
       method: 'POST',
@@ -336,7 +336,7 @@ describe('[P1][content] POST /api/v1/stories/:id/view - Track Story View', () =>
   });
 
   it('should return 404 for non-existent story', async () => {
-    vi.mocked(prisma.story.findUnique).mockResolvedValue(null);
+    (prisma.story.findUnique as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'POST',

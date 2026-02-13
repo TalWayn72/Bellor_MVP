@@ -15,14 +15,18 @@ import {
   LoginRequestSchema,
 } from '@bellor/shared/schemas';
 import { authService } from '../../api/services/authService';
-import { apiClient } from '../../api/client/apiClient';
+import * as apiClientModule from '../../api/client/apiClient';
 import { tokenStorage } from '../../api/client/tokenStorage';
 
-vi.mock('../../api/client/apiClient');
 vi.mock('../../api/client/tokenStorage');
+
+const apiClient = apiClientModule.apiClient;
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Setup spies
+  vi.spyOn(apiClient, 'post').mockResolvedValue({ data: {} } as any);
+  vi.spyOn(apiClient, 'get').mockResolvedValue({ data: {} } as any);
 });
 
 const mockUser = {
@@ -97,7 +101,7 @@ describe('[P0][auth] register() - Request/Response Validation', () => {
     });
     expect(requestResult.success).toBe(true);
 
-    vi.mocked(apiClient.post).mockResolvedValue({
+    apiClient.post.mockResolvedValue({
       data: mockAuthResponse,
     } as any);
 
@@ -183,7 +187,7 @@ describe('login() - Request/Response Validation', () => {
     const requestResult = LoginRequestSchema.safeParse(loginData);
     expect(requestResult.success).toBe(true);
 
-    vi.mocked(apiClient.post).mockResolvedValue({
+    apiClient.post.mockResolvedValue({
       data: mockAuthResponse,
     } as any);
 
@@ -225,7 +229,7 @@ describe('login() - Request/Response Validation', () => {
   });
 
   it('stores tokens after successful login', async () => {
-    vi.mocked(apiClient.post).mockResolvedValue({
+    apiClient.post.mockResolvedValue({
       data: mockAuthResponse,
     } as any);
 
@@ -247,7 +251,7 @@ describe('login() - Request/Response Validation', () => {
 // ============================================
 describe('getCurrentUser() - Response Validation', () => {
   it('validates response against UserResponseSchema', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({
+    apiClient.get.mockResolvedValue({
       data: { data: mockUser },
     } as any);
 
@@ -267,7 +271,7 @@ describe('getCurrentUser() - Response Validation', () => {
   });
 
   it('stores user after fetching', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({
+    apiClient.get.mockResolvedValue({
       data: { data: mockUser },
     } as any);
 
@@ -283,7 +287,7 @@ describe('getCurrentUser() - Response Validation', () => {
 describe('refreshToken() - Response Validation', () => {
   it('validates response and updates access token', async () => {
     vi.mocked(tokenStorage.getRefreshToken).mockReturnValue('mock-refresh-token');
-    vi.mocked(apiClient.post).mockResolvedValue({
+    apiClient.post.mockResolvedValue({
       data: { accessToken: 'new-access-token' },
     } as any);
 
@@ -305,7 +309,7 @@ describe('refreshToken() - Response Validation', () => {
 // ============================================
 describe('logout() - Cleanup Validation', () => {
   it('clears tokens after logout', async () => {
-    vi.mocked(apiClient.post).mockResolvedValue({} as any);
+    apiClient.post.mockResolvedValue({} as any);
 
     await authService.logout();
 
@@ -407,7 +411,7 @@ describe('Enum Validation', () => {
 // ============================================
 describe('Field Naming Consistency', () => {
   it('uses camelCase for all auth response fields', async () => {
-    vi.mocked(apiClient.post).mockResolvedValue({
+    apiClient.post.mockResolvedValue({
       data: mockAuthResponse,
     } as any);
 

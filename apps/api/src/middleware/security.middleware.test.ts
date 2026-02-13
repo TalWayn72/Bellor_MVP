@@ -4,7 +4,7 @@
  * security headers, and request ID generation.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import Fastify, { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { registerSecurityMiddleware } from './security.middleware.js';
 
@@ -46,11 +46,11 @@ import { sanitizeObject, detectInjection, checkPrototypePollution } from '../sec
 import { applySecurityHeaders } from '../security/headers.js';
 import { securityLogger } from '../security/logger.js';
 
-const mockSanitizeObject = vi.mocked(sanitizeObject);
-const mockDetectInjection = vi.mocked(detectInjection);
-const mockCheckPrototypePollution = vi.mocked(checkPrototypePollution);
-const mockApplySecurityHeaders = vi.mocked(applySecurityHeaders);
-const mockInjectionBlocked = vi.mocked(securityLogger.injectionBlocked);
+const mockSanitizeObject = (sanitizeObject as Mock);
+const mockDetectInjection = (detectInjection as Mock);
+const mockCheckPrototypePollution = (checkPrototypePollution as Mock);
+const mockApplySecurityHeaders = (applySecurityHeaders as Mock);
+const mockInjectionBlocked = (securityLogger.injectionBlocked as Mock);
 
 // ============================================
 // Helper: Create a Fastify test instance with security middleware

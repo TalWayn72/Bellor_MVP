@@ -5,7 +5,7 @@
  * @see PRD.md Section 10 - Phase 6 Testing (Integration)
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../../build-test-app.js';
 import { prisma } from '../../../lib/prisma.js';
@@ -79,8 +79,8 @@ describe('[P1][chat] GET /api/v1/chats - Get User Chats', () => {
       user1Id: 'test-user-id',
       user2Id: 'other-user-id',
     });
-    vi.mocked(prisma.chat.findMany).mockResolvedValue([chatWithRelations]);
-    vi.mocked(prisma.chat.count).mockResolvedValue(1);
+    (prisma.chat.findMany as Mock).mockResolvedValue([chatWithRelations]);
+    (prisma.chat.count as Mock).mockResolvedValue(1);
 
     const response = await app.inject({
       method: 'GET',
@@ -101,8 +101,8 @@ describe('[P1][chat] GET /api/v1/chats - Get User Chats', () => {
   });
 
   it('should accept pagination parameters', async () => {
-    vi.mocked(prisma.chat.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.chat.count).mockResolvedValue(0);
+    (prisma.chat.findMany as Mock).mockResolvedValue([]);
+    (prisma.chat.count as Mock).mockResolvedValue(0);
 
     const response = await app.inject({
       method: 'GET',
@@ -114,8 +114,8 @@ describe('[P1][chat] GET /api/v1/chats - Get User Chats', () => {
   });
 
   it('should filter by chat type (temporary)', async () => {
-    vi.mocked(prisma.chat.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.chat.count).mockResolvedValue(0);
+    (prisma.chat.findMany as Mock).mockResolvedValue([]);
+    (prisma.chat.count as Mock).mockResolvedValue(0);
 
     const response = await app.inject({
       method: 'GET',
@@ -138,7 +138,7 @@ describe('[P1][chat] GET /api/v1/chats/:chatId - Get Chat By ID', () => {
       user1Id: 'test-user-id',
       user2Id: 'other-user-id',
     });
-    vi.mocked(prisma.chat.findFirst).mockResolvedValue(chatWithRelations);
+    (prisma.chat.findFirst as Mock).mockResolvedValue(chatWithRelations);
 
     const response = await app.inject({
       method: 'GET',
@@ -151,7 +151,7 @@ describe('[P1][chat] GET /api/v1/chats/:chatId - Get Chat By ID', () => {
 
   it('should return 404 for non-existent chat', async () => {
     // getChatById uses prisma.chat.findFirst (not findUnique)
-    vi.mocked(prisma.chat.findFirst).mockResolvedValue(null);
+    (prisma.chat.findFirst as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'GET',
@@ -184,13 +184,13 @@ describe('[P1][chat] POST /api/v1/chats - Create Chat', () => {
       user1Id: 'test-user-id',
       user2Id: 'other-user-id',
     });
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser);
     // First findFirst call: check existing chat (null)
     // Second findFirst call: getChatById after create (returns with relations)
-    vi.mocked(prisma.chat.findFirst)
+    (prisma.chat.findFirst as Mock)
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(chatWithRelations);
-    vi.mocked(prisma.chat.create).mockResolvedValue(mockChat);
+    (prisma.chat.create as Mock).mockResolvedValue(mockChat);
 
     const response = await app.inject({
       method: 'POST',
@@ -213,10 +213,10 @@ describe('[P1][chat] POST /api/v1/chats - Create Chat', () => {
       user1Id: 'test-user-id',
       user2Id: 'other-user-id',
     });
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser);
     // First findFirst: check existing chat (found)
     // Second findFirst: getChatById (returns with relations)
-    vi.mocked(prisma.chat.findFirst)
+    (prisma.chat.findFirst as Mock)
       .mockResolvedValueOnce(existingChat)
       .mockResolvedValueOnce(chatWithRelations);
 
@@ -261,7 +261,7 @@ describe('[P1][chat] POST /api/v1/chats - Create Chat', () => {
   });
 
   it('should reject chat with non-existent user', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'POST',
@@ -296,9 +296,9 @@ describe('[P1][chat] GET /api/v1/chats/:chatId/messages - Get Messages', () => {
     // getMessages uses prisma.chat.findFirst then prisma.message.findMany with include: { sender }
     const mockChat = createMockChat({ user1Id: 'test-user-id', user2Id: 'other-user-id' });
     const msgWithSender = createMockMessageWithSender({ senderId: 'other-user-id' });
-    vi.mocked(prisma.chat.findFirst).mockResolvedValue(mockChat);
-    vi.mocked(prisma.message.findMany).mockResolvedValue([msgWithSender]);
-    vi.mocked(prisma.message.count).mockResolvedValue(1);
+    (prisma.chat.findFirst as Mock).mockResolvedValue(mockChat);
+    (prisma.message.findMany as Mock).mockResolvedValue([msgWithSender]);
+    (prisma.message.count as Mock).mockResolvedValue(1);
 
     const response = await app.inject({
       method: 'GET',
@@ -312,9 +312,9 @@ describe('[P1][chat] GET /api/v1/chats/:chatId/messages - Get Messages', () => {
   it('should accept pagination parameters', async () => {
     // getMessages uses prisma.chat.findFirst
     const mockChat = createMockChat({ user1Id: 'test-user-id' });
-    vi.mocked(prisma.chat.findFirst).mockResolvedValue(mockChat);
-    vi.mocked(prisma.message.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.message.count).mockResolvedValue(0);
+    (prisma.chat.findFirst as Mock).mockResolvedValue(mockChat);
+    (prisma.message.findMany as Mock).mockResolvedValue([]);
+    (prisma.message.count as Mock).mockResolvedValue(0);
 
     const response = await app.inject({
       method: 'GET',
@@ -327,7 +327,7 @@ describe('[P1][chat] GET /api/v1/chats/:chatId/messages - Get Messages', () => {
 
   it('should return 404 for non-existent chat', async () => {
     // getMessages uses prisma.chat.findFirst (not findUnique)
-    vi.mocked(prisma.chat.findFirst).mockResolvedValue(null);
+    (prisma.chat.findFirst as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'GET',
@@ -358,9 +358,9 @@ describe('[P1][chat] POST /api/v1/chats/:chatId/messages - Send Message', () => 
     const mockChat = createMockChat({ user1Id: 'test-user-id', user2Id: 'other-user-id' });
     const chatWithStatus = { ...mockChat, status: 'ACTIVE' };
     const msgWithSender = createMockMessageWithSender({ senderId: 'test-user-id' });
-    vi.mocked(prisma.chat.findFirst).mockResolvedValue(chatWithStatus);
-    vi.mocked(prisma.message.create).mockResolvedValue(msgWithSender);
-    vi.mocked(prisma.chat.update).mockResolvedValue(chatWithStatus);
+    (prisma.chat.findFirst as Mock).mockResolvedValue(chatWithStatus);
+    (prisma.message.create as Mock).mockResolvedValue(msgWithSender);
+    (prisma.chat.update as Mock).mockResolvedValue(chatWithStatus);
 
     const response = await app.inject({
       method: 'POST',
@@ -403,9 +403,9 @@ describe('[P1][chat] POST /api/v1/chats/:chatId/messages - Send Message', () => 
     const mockChat = createMockChat({ user1Id: 'test-user-id' });
     const chatWithStatus = { ...mockChat, status: 'ACTIVE' };
     const msgWithSender = createMockMessageWithSender({ messageType: 'IMAGE', senderId: 'test-user-id' });
-    vi.mocked(prisma.chat.findFirst).mockResolvedValue(chatWithStatus);
-    vi.mocked(prisma.message.create).mockResolvedValue(msgWithSender);
-    vi.mocked(prisma.chat.update).mockResolvedValue(chatWithStatus);
+    (prisma.chat.findFirst as Mock).mockResolvedValue(chatWithStatus);
+    (prisma.message.create as Mock).mockResolvedValue(msgWithSender);
+    (prisma.chat.update as Mock).mockResolvedValue(chatWithStatus);
 
     const response = await app.inject({
       method: 'POST',
@@ -428,9 +428,9 @@ describe('[P1][chat] POST /api/v1/chats/:chatId/messages - Send Message', () => 
       content: '<script>alert(1)</script>',
       senderId: 'test-user-id',
     });
-    vi.mocked(prisma.chat.findFirst).mockResolvedValue(chatWithStatus);
-    vi.mocked(prisma.message.create).mockResolvedValue(msgWithSender);
-    vi.mocked(prisma.chat.update).mockResolvedValue(chatWithStatus);
+    (prisma.chat.findFirst as Mock).mockResolvedValue(chatWithStatus);
+    (prisma.message.create as Mock).mockResolvedValue(msgWithSender);
+    (prisma.chat.update as Mock).mockResolvedValue(chatWithStatus);
 
     const response = await app.inject({
       method: 'POST',
@@ -467,8 +467,8 @@ describe('[P1][chat] PATCH /api/v1/chats/:chatId/messages/:messageId/read - Mark
     const mockChat = createMockChat({ user1Id: 'test-user-id', user2Id: 'other-user-id' });
     const mockMessage = createMockMessage({ senderId: 'other-user-id', chatId: mockChat.id });
     const messageWithChat = { ...mockMessage, chat: mockChat };
-    vi.mocked(prisma.message.findFirst).mockResolvedValue(messageWithChat);
-    vi.mocked(prisma.message.update).mockResolvedValue({ ...mockMessage, isRead: true });
+    (prisma.message.findFirst as Mock).mockResolvedValue(messageWithChat);
+    (prisma.message.update as Mock).mockResolvedValue({ ...mockMessage, isRead: true });
 
     const response = await app.inject({
       method: 'PATCH',
@@ -481,7 +481,7 @@ describe('[P1][chat] PATCH /api/v1/chats/:chatId/messages/:messageId/read - Mark
 
   it('should return 404 for non-existent message', async () => {
     // markMessageAsRead uses prisma.message.findFirst (not findUnique)
-    vi.mocked(prisma.message.findFirst).mockResolvedValue(null);
+    (prisma.message.findFirst as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'PATCH',
@@ -510,8 +510,8 @@ describe('[P1][chat] DELETE /api/v1/chats/:chatId/messages/:messageId - Delete M
     // deleteMessage uses prisma.message.findFirst (not findUnique)
     // then prisma.message.update (soft delete), not prisma.message.delete
     const mockMessage = createMockMessage({ senderId: 'test-user-id' });
-    vi.mocked(prisma.message.findFirst).mockResolvedValue(mockMessage);
-    vi.mocked(prisma.message.update).mockResolvedValue({ ...mockMessage, isDeleted: true });
+    (prisma.message.findFirst as Mock).mockResolvedValue(mockMessage);
+    (prisma.message.update as Mock).mockResolvedValue({ ...mockMessage, isDeleted: true });
 
     const response = await app.inject({
       method: 'DELETE',
@@ -524,7 +524,7 @@ describe('[P1][chat] DELETE /api/v1/chats/:chatId/messages/:messageId - Delete M
 
   it('should return 404 for non-existent message', async () => {
     // deleteMessage uses prisma.message.findFirst (not findUnique)
-    vi.mocked(prisma.message.findFirst).mockResolvedValue(null);
+    (prisma.message.findFirst as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'DELETE',

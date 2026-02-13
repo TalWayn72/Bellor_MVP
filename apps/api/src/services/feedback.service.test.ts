@@ -5,7 +5,7 @@
  * createFeedback and listFeedback.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 
 // Mock prisma before importing the service
 vi.mock('../lib/prisma.js', () => ({
@@ -44,7 +44,7 @@ describe('[P2][profile] FeedbackService - createFeedback', () => {
       user: { id: 'user-123', firstName: 'John', lastName: 'Doe', nickname: 'johnd' },
     };
 
-    vi.mocked(prisma.feedback.create).mockResolvedValue(mockResult as never);
+    (prisma.feedback.create as Mock).mockResolvedValue(mockResult as never);
 
     const result = await FeedbackService.createFeedback(baseInput);
 
@@ -72,7 +72,7 @@ describe('[P2][profile] FeedbackService - createFeedback', () => {
       user: { id: 'user-123', firstName: 'John', lastName: 'Doe', nickname: 'johnd' },
     };
 
-    vi.mocked(prisma.feedback.create).mockResolvedValue(mockResult as never);
+    (prisma.feedback.create as Mock).mockResolvedValue(mockResult as never);
 
     const result = await FeedbackService.createFeedback(inputWithRating);
 
@@ -92,7 +92,7 @@ describe('[P2][profile] FeedbackService - createFeedback', () => {
   });
 
   it('should propagate Prisma errors', async () => {
-    vi.mocked(prisma.feedback.create).mockRejectedValue(
+    (prisma.feedback.create as Mock).mockRejectedValue(
       new Error('Unique constraint failed on the fields: (`title`)')
     );
 
@@ -103,7 +103,7 @@ describe('[P2][profile] FeedbackService - createFeedback', () => {
 
   it('should handle different feedback types', async () => {
     const featureInput = { ...baseInput, type: 'FEATURE_REQUEST', title: 'Add dark mode' };
-    vi.mocked(prisma.feedback.create).mockResolvedValue({ id: 'fb-3', ...featureInput } as never);
+    (prisma.feedback.create as Mock).mockResolvedValue({ id: 'fb-3', ...featureInput } as never);
 
     await FeedbackService.createFeedback(featureInput);
 
@@ -130,8 +130,8 @@ describe('[P2][profile] FeedbackService - listFeedback', () => {
       },
     ];
 
-    vi.mocked(prisma.feedback.findMany).mockResolvedValue(mockFeedbacks as never);
-    vi.mocked(prisma.feedback.count).mockResolvedValue(1);
+    (prisma.feedback.findMany as Mock).mockResolvedValue(mockFeedbacks as never);
+    (prisma.feedback.count as Mock).mockResolvedValue(1);
 
     const result = await FeedbackService.listFeedback({});
 
@@ -145,8 +145,8 @@ describe('[P2][profile] FeedbackService - listFeedback', () => {
   });
 
   it('should apply status filter when provided', async () => {
-    vi.mocked(prisma.feedback.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.feedback.count).mockResolvedValue(0);
+    (prisma.feedback.findMany as Mock).mockResolvedValue([]);
+    (prisma.feedback.count as Mock).mockResolvedValue(0);
 
     await FeedbackService.listFeedback({ status: 'OPEN' });
 
@@ -161,8 +161,8 @@ describe('[P2][profile] FeedbackService - listFeedback', () => {
   });
 
   it('should use custom limit and offset', async () => {
-    vi.mocked(prisma.feedback.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.feedback.count).mockResolvedValue(0);
+    (prisma.feedback.findMany as Mock).mockResolvedValue([]);
+    (prisma.feedback.count as Mock).mockResolvedValue(0);
 
     await FeedbackService.listFeedback({ limit: 5, offset: 10 });
 
@@ -180,8 +180,8 @@ describe('[P2][profile] FeedbackService - listFeedback', () => {
       user: { id: `u${i}`, firstName: 'A', lastName: 'B', nickname: 'ab' },
     }));
 
-    vi.mocked(prisma.feedback.findMany).mockResolvedValue(mockFeedbacks as never);
-    vi.mocked(prisma.feedback.count).mockResolvedValue(15);
+    (prisma.feedback.findMany as Mock).mockResolvedValue(mockFeedbacks as never);
+    (prisma.feedback.count as Mock).mockResolvedValue(15);
 
     const result = await FeedbackService.listFeedback({ limit: 5, offset: 0 });
 
@@ -195,8 +195,8 @@ describe('[P2][profile] FeedbackService - listFeedback', () => {
       user: { id: `u${i}`, firstName: 'A', lastName: 'B', nickname: 'ab' },
     }));
 
-    vi.mocked(prisma.feedback.findMany).mockResolvedValue(mockFeedbacks as never);
-    vi.mocked(prisma.feedback.count).mockResolvedValue(8);
+    (prisma.feedback.findMany as Mock).mockResolvedValue(mockFeedbacks as never);
+    (prisma.feedback.count as Mock).mockResolvedValue(8);
 
     const result = await FeedbackService.listFeedback({ limit: 5, offset: 5 });
 
@@ -205,8 +205,8 @@ describe('[P2][profile] FeedbackService - listFeedback', () => {
   });
 
   it('should order by createdAt descending', async () => {
-    vi.mocked(prisma.feedback.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.feedback.count).mockResolvedValue(0);
+    (prisma.feedback.findMany as Mock).mockResolvedValue([]);
+    (prisma.feedback.count as Mock).mockResolvedValue(0);
 
     await FeedbackService.listFeedback({});
 
@@ -218,8 +218,8 @@ describe('[P2][profile] FeedbackService - listFeedback', () => {
   });
 
   it('should include user select fields in results', async () => {
-    vi.mocked(prisma.feedback.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.feedback.count).mockResolvedValue(0);
+    (prisma.feedback.findMany as Mock).mockResolvedValue([]);
+    (prisma.feedback.count as Mock).mockResolvedValue(0);
 
     await FeedbackService.listFeedback({});
 
@@ -233,8 +233,8 @@ describe('[P2][profile] FeedbackService - listFeedback', () => {
   });
 
   it('should not filter by status when status is not provided', async () => {
-    vi.mocked(prisma.feedback.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.feedback.count).mockResolvedValue(0);
+    (prisma.feedback.findMany as Mock).mockResolvedValue([]);
+    (prisma.feedback.count as Mock).mockResolvedValue(0);
 
     await FeedbackService.listFeedback({});
 
@@ -246,8 +246,8 @@ describe('[P2][profile] FeedbackService - listFeedback', () => {
   });
 
   it('should return empty feedbacks and correct pagination for no data', async () => {
-    vi.mocked(prisma.feedback.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.feedback.count).mockResolvedValue(0);
+    (prisma.feedback.findMany as Mock).mockResolvedValue([]);
+    (prisma.feedback.count as Mock).mockResolvedValue(0);
 
     const result = await FeedbackService.listFeedback({});
 
@@ -261,8 +261,8 @@ describe('[P2][profile] FeedbackService - listFeedback', () => {
   });
 
   it('should propagate database errors from findMany', async () => {
-    vi.mocked(prisma.feedback.findMany).mockRejectedValue(new Error('Connection timeout'));
-    vi.mocked(prisma.feedback.count).mockResolvedValue(0);
+    (prisma.feedback.findMany as Mock).mockRejectedValue(new Error('Connection timeout'));
+    (prisma.feedback.count as Mock).mockResolvedValue(0);
 
     await expect(FeedbackService.listFeedback({})).rejects.toThrow('Connection timeout');
   });

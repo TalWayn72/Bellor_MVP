@@ -5,7 +5,7 @@
  * change password, forgot password, reset password, and health check.
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
@@ -37,7 +37,7 @@ describe('[P0][auth] POST /api/v1/auth/logout', () => {
   });
 
   it('should logout successfully with valid token', async () => {
-    vi.mocked(redis.del).mockResolvedValue(1);
+    (redis.del as Mock).mockResolvedValue(1);
 
     const response = await app.inject({
       method: 'POST',
@@ -93,13 +93,13 @@ describe('[P0][auth] POST /api/v1/auth/change-password', () => {
 
 describe('[P0][auth] POST /api/v1/auth/forgot-password', () => {
   it('should return 200 for valid email (user exists)', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+    (prisma.user.findUnique as Mock).mockResolvedValue({
       id: 'test-user-id',
       email: 'test@example.com',
       firstName: 'Test',
       isBlocked: false,
     } as unknown as User);
-    vi.mocked(redis.setex).mockResolvedValue('OK');
+    (redis.setex as Mock).mockResolvedValue('OK');
 
     const response = await app.inject({
       method: 'POST',
@@ -114,7 +114,7 @@ describe('[P0][auth] POST /api/v1/auth/forgot-password', () => {
   });
 
   it('should return 200 for non-existent email (prevents enumeration)', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'POST',
@@ -149,7 +149,7 @@ describe('[P0][auth] POST /api/v1/auth/forgot-password', () => {
   });
 
   it('should return 200 for blocked user (prevents enumeration)', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+    (prisma.user.findUnique as Mock).mockResolvedValue({
       id: 'blocked-user',
       email: 'blocked@example.com',
       firstName: 'Blocked',
@@ -169,7 +169,7 @@ describe('[P0][auth] POST /api/v1/auth/forgot-password', () => {
 
 describe('[P0][auth] POST /api/v1/auth/reset-password', () => {
   it('should return 400 for invalid/expired token', async () => {
-    vi.mocked(redis.get).mockResolvedValue(null);
+    (redis.get as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'POST',

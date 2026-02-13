@@ -76,7 +76,13 @@ export default function ChatInput({
             {isRecording ? <Square className="w-4 h-4 fill-current" /> : <Mic className="w-5 h-5" />}
           </Button>
           <Input placeholder="Type a message..." value={message}
-            onChange={(e) => onMessageChange(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && onSend()}
+            onChange={(e) => onMessageChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey && message.trim() && !isUploading) {
+                e.preventDefault();
+                onSend();
+              }
+            }}
             className="flex-1" inputSize="default" />
           <Button onClick={onSend} disabled={!message.trim() || isUploading} size="icon" aria-label="Send message" className="rounded-full">
             <Send className="w-4 h-4" />

@@ -6,7 +6,7 @@
  * @see PRD.md Section 10 - Phase 6 Testing
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
@@ -92,8 +92,8 @@ describe('[P0][auth] POST /api/v1/auth/register - Schema Compliance', () => {
     const requestResult = RegisterRequestSchema.safeParse(validRegister);
     expect(requestResult.success).toBe(true);
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-    vi.mocked(prisma.user.create).mockResolvedValue(mockUser as unknown as User);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
+    (prisma.user.create as Mock).mockResolvedValue(mockUser as unknown as User);
 
     const response = await app.inject({
       method: 'POST',
@@ -155,7 +155,7 @@ describe('[P0][auth] POST /api/v1/auth/login - Schema Compliance', () => {
     const requestResult = LoginRequestSchema.safeParse(validLogin);
     expect(requestResult.success).toBe(true);
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+    (prisma.user.findUnique as Mock).mockResolvedValue({
       ...mockUser,
       passwordHash: '$2b$10$hashedpassword',
     } as unknown as User);

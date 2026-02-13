@@ -6,7 +6,7 @@
  * and the full callback handling pipeline.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 
 // ============================================
 // Mock Setup - must come before service import
@@ -150,12 +150,12 @@ describe('[P0][auth] GoogleOAuthService', () => {
     (GoogleOAuthService as Record<string, unknown>)['client'] = null;
 
     // Re-establish OAuth2Client constructor mock after clearAllMocks
-    vi.mocked(OAuth2Client).mockImplementation(() => mockOAuth2ClientInstance as unknown as OAuth2Client);
+    (OAuth2Client as Mock).mockImplementation(() => mockOAuth2ClientInstance as unknown as OAuth2Client);
 
     // Reset default mock return values after clearAllMocks
-    vi.mocked(generateAccessToken).mockReturnValue('mock-access-token');
-    vi.mocked(generateRefreshToken).mockReturnValue('mock-refresh-token');
-    vi.mocked(redis.setex).mockResolvedValue('OK' as never);
+    (generateAccessToken as Mock).mockReturnValue('mock-access-token');
+    (generateRefreshToken as Mock).mockReturnValue('mock-refresh-token');
+    (redis.setex as Mock).mockResolvedValue('OK' as never);
   });
 
   afterEach(() => {
@@ -343,8 +343,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-        vi.mocked(prisma.user.create).mockResolvedValue(createdUser as never);
+        (prisma.user.findUnique as Mock).mockResolvedValue(null);
+        (prisma.user.create as Mock).mockResolvedValue(createdUser as never);
 
         const result = await GoogleOAuthService.handleCallback('auth-code-123');
 
@@ -370,8 +370,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-        vi.mocked(prisma.user.create).mockResolvedValue(createMockDbUser() as never);
+        (prisma.user.findUnique as Mock).mockResolvedValue(null);
+        (prisma.user.create as Mock).mockResolvedValue(createMockDbUser() as never);
 
         await GoogleOAuthService.handleCallback('auth-code-123');
 
@@ -387,8 +387,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-        vi.mocked(prisma.user.create).mockResolvedValue(
+        (prisma.user.findUnique as Mock).mockResolvedValue(null);
+        (prisma.user.create as Mock).mockResolvedValue(
           createMockDbUser({ profileImages: [] }) as never
         );
 
@@ -406,8 +406,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-        vi.mocked(prisma.user.create).mockResolvedValue(createMockDbUser() as never);
+        (prisma.user.findUnique as Mock).mockResolvedValue(null);
+        (prisma.user.create as Mock).mockResolvedValue(createMockDbUser() as never);
 
         await GoogleOAuthService.handleCallback('auth-code-123');
 
@@ -427,8 +427,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-        vi.mocked(prisma.user.create).mockResolvedValue(createMockDbUser() as never);
+        (prisma.user.findUnique as Mock).mockResolvedValue(null);
+        (prisma.user.create as Mock).mockResolvedValue(createMockDbUser() as never);
 
         await GoogleOAuthService.handleCallback('auth-code-123');
 
@@ -453,8 +453,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(existingUser as never);
-        vi.mocked(prisma.user.update).mockResolvedValue(updatedUser as never);
+        (prisma.user.findUnique as Mock).mockResolvedValue(existingUser as never);
+        (prisma.user.update as Mock).mockResolvedValue(updatedUser as never);
 
         const result = await GoogleOAuthService.handleCallback('auth-code-123');
 
@@ -475,8 +475,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(existingUser as never);
-        vi.mocked(prisma.user.update).mockResolvedValue(existingUser as never);
+        (prisma.user.findUnique as Mock).mockResolvedValue(existingUser as never);
+        (prisma.user.update as Mock).mockResolvedValue(existingUser as never);
 
         await GoogleOAuthService.handleCallback('auth-code-123');
 
@@ -499,8 +499,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(existingUser as never);
-        vi.mocked(prisma.user.update).mockResolvedValue(existingUser as never);
+        (prisma.user.findUnique as Mock).mockResolvedValue(existingUser as never);
+        (prisma.user.update as Mock).mockResolvedValue(existingUser as never);
 
         await GoogleOAuthService.handleCallback('auth-code-123');
 
@@ -520,8 +520,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(existingUser as never);
-        vi.mocked(prisma.user.update).mockResolvedValue(updatedUser as never);
+        (prisma.user.findUnique as Mock).mockResolvedValue(existingUser as never);
+        (prisma.user.update as Mock).mockResolvedValue(updatedUser as never);
 
         await GoogleOAuthService.handleCallback('auth-code-123');
 
@@ -546,8 +546,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(dbUser as never);
-        vi.mocked(prisma.user.update).mockResolvedValue(dbUser as never);
+        (prisma.user.findUnique as Mock).mockResolvedValue(dbUser as never);
+        (prisma.user.update as Mock).mockResolvedValue(dbUser as never);
 
         const result = await GoogleOAuthService.handleCallback('auth-code-123');
 
@@ -561,8 +561,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(dbUser as never);
-        vi.mocked(prisma.user.update).mockResolvedValue(dbUser as never);
+        (prisma.user.findUnique as Mock).mockResolvedValue(dbUser as never);
+        (prisma.user.update as Mock).mockResolvedValue(dbUser as never);
 
         await GoogleOAuthService.handleCallback('auth-code-123');
 
@@ -579,8 +579,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(dbUser as never);
-        vi.mocked(prisma.user.update).mockResolvedValue(dbUser as never);
+        (prisma.user.findUnique as Mock).mockResolvedValue(dbUser as never);
+        (prisma.user.update as Mock).mockResolvedValue(dbUser as never);
 
         await GoogleOAuthService.handleCallback('auth-code-123');
 
@@ -593,8 +593,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(dbUser as never);
-        vi.mocked(prisma.user.update).mockResolvedValue(dbUser as never);
+        (prisma.user.findUnique as Mock).mockResolvedValue(dbUser as never);
+        (prisma.user.update as Mock).mockResolvedValue(dbUser as never);
 
         await GoogleOAuthService.handleCallback('auth-code-123');
 
@@ -618,8 +618,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(dbUser as never);
-        vi.mocked(prisma.user.update).mockResolvedValue(dbUser as never);
+        (prisma.user.findUnique as Mock).mockResolvedValue(dbUser as never);
+        (prisma.user.update as Mock).mockResolvedValue(dbUser as never);
 
         const result = await GoogleOAuthService.handleCallback('auth-code-123');
 
@@ -638,8 +638,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(dbUser as never);
-        vi.mocked(prisma.user.update).mockResolvedValue(dbUser as never);
+        (prisma.user.findUnique as Mock).mockResolvedValue(dbUser as never);
+        (prisma.user.update as Mock).mockResolvedValue(dbUser as never);
 
         const result = await GoogleOAuthService.handleCallback('auth-code-123');
 
@@ -673,8 +673,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(blockedUser as never);
-        vi.mocked(prisma.user.update).mockResolvedValue(blockedUser as never);
+        (prisma.user.findUnique as Mock).mockResolvedValue(blockedUser as never);
+        (prisma.user.update as Mock).mockResolvedValue(blockedUser as never);
 
         await expect(
           GoogleOAuthService.handleCallback('auth-code-123')
@@ -716,8 +716,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-        vi.mocked(prisma.user.create).mockRejectedValue(
+        (prisma.user.findUnique as Mock).mockResolvedValue(null);
+        (prisma.user.create as Mock).mockRejectedValue(
           new Error('Unique constraint violation')
         );
 
@@ -739,8 +739,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(blockedUserNoGoogle as never);
-        vi.mocked(prisma.user.update).mockResolvedValue(blockedUserLinked as never);
+        (prisma.user.findUnique as Mock).mockResolvedValue(blockedUserNoGoogle as never);
+        (prisma.user.update as Mock).mockResolvedValue(blockedUserLinked as never);
 
         await expect(
           GoogleOAuthService.handleCallback('auth-code-123')
@@ -759,8 +759,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(dbUser as never);
-        vi.mocked(prisma.user.update).mockResolvedValue(dbUser as never);
+        (prisma.user.findUnique as Mock).mockResolvedValue(dbUser as never);
+        (prisma.user.update as Mock).mockResolvedValue(dbUser as never);
 
         await GoogleOAuthService.handleCallback('my-auth-code');
 
@@ -778,8 +778,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGetToken.mockResolvedValueOnce({ tokens: mockTokens });
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(dbUser as never);
-        vi.mocked(prisma.user.update).mockResolvedValue(dbUser as never);
+        (prisma.user.findUnique as Mock).mockResolvedValue(dbUser as never);
+        (prisma.user.update as Mock).mockResolvedValue(dbUser as never);
 
         await GoogleOAuthService.handleCallback('auth-code-123');
 
@@ -792,8 +792,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(dbUser as never);
-        vi.mocked(prisma.user.update).mockResolvedValue(dbUser as never);
+        (prisma.user.findUnique as Mock).mockResolvedValue(dbUser as never);
+        (prisma.user.update as Mock).mockResolvedValue(dbUser as never);
 
         await GoogleOAuthService.handleCallback('auth-code-123');
 
@@ -822,8 +822,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-        vi.mocked(prisma.user.create).mockResolvedValue(
+        (prisma.user.findUnique as Mock).mockResolvedValue(null);
+        (prisma.user.create as Mock).mockResolvedValue(
           createMockDbUser({ firstName: 'Madonna', lastName: '' }) as never
         );
 
@@ -847,8 +847,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(blockedUser as never);
-        vi.mocked(prisma.user.update).mockResolvedValue(blockedUser as never);
+        (prisma.user.findUnique as Mock).mockResolvedValue(blockedUser as never);
+        (prisma.user.update as Mock).mockResolvedValue(blockedUser as never);
 
         await expect(
           GoogleOAuthService.handleCallback('auth-code-123')
@@ -866,9 +866,9 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(dbUser as never);
-        vi.mocked(prisma.user.update).mockResolvedValue(dbUser as never);
-        vi.mocked(redis.setex).mockRejectedValue(new Error('Redis connection lost'));
+        (prisma.user.findUnique as Mock).mockResolvedValue(dbUser as never);
+        (prisma.user.update as Mock).mockResolvedValue(dbUser as never);
+        (redis.setex as Mock).mockRejectedValue(new Error('Redis connection lost'));
 
         await expect(
           GoogleOAuthService.handleCallback('auth-code-123')
@@ -880,8 +880,8 @@ describe('[P0][auth] GoogleOAuthService', () => {
 
         mockGoogleTokenExchange();
         mockGoogleUserInfoResponse(googleUser);
-        vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-        vi.mocked(prisma.user.create).mockResolvedValue(
+        (prisma.user.findUnique as Mock).mockResolvedValue(null);
+        (prisma.user.create as Mock).mockResolvedValue(
           createMockDbUser({ isVerified: false }) as never
         );
 

@@ -6,7 +6,7 @@
  * @see PRD.md Section 10 - Phase 6 Testing
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
@@ -74,7 +74,7 @@ const mockUser = {
 // ============================================
 describe('[P2][profile] GET /api/v1/users/:id - Schema Compliance', () => {
   it('returns data matching UserResponseSchema', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as unknown as User);
 
     const response = await app.inject({
       method: 'GET',
@@ -103,7 +103,7 @@ describe('[P2][profile] GET /api/v1/users/:id - Schema Compliance', () => {
       gender: 'INVALID_GENDER', // Invalid enum
     };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(invalidUser as unknown as User);
+    (prisma.user.findUnique as Mock).mockResolvedValue(invalidUser as unknown as User);
 
     const response = await app.inject({
       method: 'GET',
@@ -126,8 +126,8 @@ describe('[P2][profile] GET /api/v1/users/:id - Schema Compliance', () => {
 // ============================================
 describe('[P2][profile] GET /api/v1/users - Schema Compliance', () => {
   it('returns paginated list matching UserResponseSchema', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([mockUser] as unknown as User[]);
-    vi.mocked(prisma.user.count).mockResolvedValue(1);
+    (prisma.user.findMany as Mock).mockResolvedValue([mockUser] as unknown as User[]);
+    (prisma.user.count as Mock).mockResolvedValue(1);
 
     const response = await app.inject({
       method: 'GET',
@@ -164,8 +164,8 @@ describe('[P2][profile] GET /api/v1/users - Schema Compliance', () => {
 // ============================================
 describe('[P2][profile] PATCH /api/v1/users/:id - Request Schema Compliance', () => {
   it('accepts valid UpdateProfileSchema data', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
-    vi.mocked(prisma.user.update).mockResolvedValue({
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as unknown as User);
+    (prisma.user.update as Mock).mockResolvedValue({
       ...mockUser,
       firstName: 'Updated',
     } as unknown as User);
@@ -214,8 +214,8 @@ describe('[P2][profile] PATCH /api/v1/users/:id - Request Schema Compliance', ()
 // ============================================
 describe('[P2][profile] GET /api/v1/users/search - Query Schema Compliance', () => {
   it('accepts valid SearchUsersQuery params', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([mockUser] as unknown as User[]);
-    vi.mocked(prisma.user.count).mockResolvedValue(1);
+    (prisma.user.findMany as Mock).mockResolvedValue([mockUser] as unknown as User[]);
+    (prisma.user.count as Mock).mockResolvedValue(1);
 
     const validQuery: SearchUsersQuery = {
       q: 'Test',
@@ -245,7 +245,7 @@ describe('[P2][profile] GET /api/v1/users/search - Query Schema Compliance', () 
 // ============================================
 describe('[P2][profile] GET /api/v1/users/:id/stats - Response Structure', () => {
   it('returns consistent stats structure', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+    (prisma.user.findUnique as Mock).mockResolvedValue({
       id: 'test-user-id',
       isPremium: false,
       createdAt: new Date('2024-01-01'),
@@ -279,7 +279,7 @@ describe('[P2][profile] GET /api/v1/users/:id/stats - Response Structure', () =>
 // ============================================
 describe('[P2][profile] GET /api/v1/users/:id/export - Data Structure', () => {
   it('returns consistent GDPR export structure', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+    (prisma.user.findUnique as Mock).mockResolvedValue({
       ...mockUser,
       location: { city: 'Tel Aviv' },
       sentMessages: [],

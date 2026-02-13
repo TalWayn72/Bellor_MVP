@@ -5,7 +5,7 @@
  * functionality.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { createMockUser } from './users-test-helpers.js';
 
 // Import after mocking (mock is set up in helpers)
@@ -24,8 +24,8 @@ describe('[P2][profile] UsersService - searchUsers', () => {
   it('should search users by first name', async () => {
     const mockUsers = [createMockUser({ firstName: 'John' })];
 
-    vi.mocked(prisma.user.findMany).mockResolvedValue(mockUsers as unknown);
-    vi.mocked(prisma.user.count).mockResolvedValue(1);
+    (prisma.user.findMany as Mock).mockResolvedValue(mockUsers as unknown);
+    (prisma.user.count as Mock).mockResolvedValue(1);
 
     const result = await UsersService.searchUsers({ query: 'John' });
 
@@ -36,8 +36,8 @@ describe('[P2][profile] UsersService - searchUsers', () => {
   it('should search users by last name', async () => {
     const mockUsers = [createMockUser({ lastName: 'Smith' })];
 
-    vi.mocked(prisma.user.findMany).mockResolvedValue(mockUsers as unknown);
-    vi.mocked(prisma.user.count).mockResolvedValue(1);
+    (prisma.user.findMany as Mock).mockResolvedValue(mockUsers as unknown);
+    (prisma.user.count as Mock).mockResolvedValue(1);
 
     const result = await UsersService.searchUsers({ query: 'Smith' });
 
@@ -47,8 +47,8 @@ describe('[P2][profile] UsersService - searchUsers', () => {
   it('should search users by email', async () => {
     const mockUsers = [createMockUser({ email: 'john@example.com' })];
 
-    vi.mocked(prisma.user.findMany).mockResolvedValue(mockUsers as unknown);
-    vi.mocked(prisma.user.count).mockResolvedValue(1);
+    (prisma.user.findMany as Mock).mockResolvedValue(mockUsers as unknown);
+    (prisma.user.count as Mock).mockResolvedValue(1);
 
     const result = await UsersService.searchUsers({ query: 'john@example' });
 
@@ -56,8 +56,8 @@ describe('[P2][profile] UsersService - searchUsers', () => {
   });
 
   it('should only search active (non-blocked) users', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
+    (prisma.user.count as Mock).mockResolvedValue(0);
 
     await UsersService.searchUsers({ query: 'test' });
 
@@ -71,8 +71,8 @@ describe('[P2][profile] UsersService - searchUsers', () => {
   });
 
   it('should apply default pagination', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
+    (prisma.user.count as Mock).mockResolvedValue(0);
 
     const result = await UsersService.searchUsers({ query: 'test' });
 
@@ -81,8 +81,8 @@ describe('[P2][profile] UsersService - searchUsers', () => {
   });
 
   it('should apply custom pagination', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.user.count).mockResolvedValue(100);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
+    (prisma.user.count as Mock).mockResolvedValue(100);
 
     await UsersService.searchUsers({ query: 'test', limit: 10, offset: 20 });
 
@@ -95,8 +95,8 @@ describe('[P2][profile] UsersService - searchUsers', () => {
   });
 
   it('should use case-insensitive search', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
+    (prisma.user.count as Mock).mockResolvedValue(0);
 
     await UsersService.searchUsers({ query: 'JOHN' });
 
@@ -118,8 +118,8 @@ describe('[P2][profile] UsersService - searchUsers', () => {
   });
 
   it('should return empty array when no matches', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
+    (prisma.user.count as Mock).mockResolvedValue(0);
 
     const result = await UsersService.searchUsers({ query: 'nonexistent' });
 
@@ -128,8 +128,8 @@ describe('[P2][profile] UsersService - searchUsers', () => {
   });
 
   it('should calculate hasMore correctly', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([createMockUser()] as unknown);
-    vi.mocked(prisma.user.count).mockResolvedValue(50);
+    (prisma.user.findMany as Mock).mockResolvedValue([createMockUser()] as unknown);
+    (prisma.user.count as Mock).mockResolvedValue(50);
 
     const result = await UsersService.searchUsers({ query: 'test', limit: 10, offset: 0 });
 
@@ -149,8 +149,8 @@ describe('[P2][profile] UsersService - deactivateUser', () => {
   it('should deactivate user successfully', async () => {
     const mockUser = createMockUser({ isBlocked: false });
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
-    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, isBlocked: true } as unknown);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as unknown);
+    (prisma.user.update as Mock).mockResolvedValue({ ...mockUser, isBlocked: true } as unknown);
 
     const result = await UsersService.deactivateUser('test-user-id');
 
@@ -160,8 +160,8 @@ describe('[P2][profile] UsersService - deactivateUser', () => {
   it('should set isBlocked to true', async () => {
     const mockUser = createMockUser();
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as unknown);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as unknown);
+    (prisma.user.update as Mock).mockResolvedValue(mockUser as unknown);
 
     await UsersService.deactivateUser('test-user-id');
 
@@ -172,13 +172,13 @@ describe('[P2][profile] UsersService - deactivateUser', () => {
   });
 
   it('should throw error when user not found', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
 
     await expect(UsersService.deactivateUser('non-existent-id')).rejects.toThrow('User not found');
   });
 
   it('should not call update if user not found', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
 
     try {
       await UsersService.deactivateUser('non-existent-id');
@@ -202,8 +202,8 @@ describe('[P2][profile] UsersService - reactivateUser', () => {
   it('should reactivate user successfully', async () => {
     const mockUser = createMockUser({ isBlocked: true });
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
-    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, isBlocked: false } as unknown);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as unknown);
+    (prisma.user.update as Mock).mockResolvedValue({ ...mockUser, isBlocked: false } as unknown);
 
     const result = await UsersService.reactivateUser('test-user-id');
 
@@ -213,8 +213,8 @@ describe('[P2][profile] UsersService - reactivateUser', () => {
   it('should set isBlocked to false', async () => {
     const mockUser = createMockUser({ isBlocked: true });
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as unknown);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as unknown);
+    (prisma.user.update as Mock).mockResolvedValue(mockUser as unknown);
 
     await UsersService.reactivateUser('test-user-id');
 
@@ -225,13 +225,13 @@ describe('[P2][profile] UsersService - reactivateUser', () => {
   });
 
   it('should throw error when user not found', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
 
     await expect(UsersService.reactivateUser('non-existent-id')).rejects.toThrow('User not found');
   });
 
   it('should not call update if user not found', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
 
     try {
       await UsersService.reactivateUser('non-existent-id');

@@ -4,7 +4,7 @@
  * Tests for message read receipts, unread counts, and message deletion.
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi, type Mock } from 'vitest';
 import { createServer, Server as HttpServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { io as SocketClient, Socket as ClientSocket } from 'socket.io-client';
@@ -39,11 +39,11 @@ describe('[P1][chat] WebSocket - Chat Read/Unread/Delete', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    vi.mocked(redis.setex).mockResolvedValue('OK');
-    vi.mocked(redis.get).mockResolvedValue(null);
-    vi.mocked(redis.del).mockResolvedValue(1);
-    vi.mocked(redis.expire).mockResolvedValue(1);
-    vi.mocked(redis.keys).mockResolvedValue([]);
+    (redis.setex as Mock).mockResolvedValue('OK');
+    (redis.get as Mock).mockResolvedValue(null);
+    (redis.del as Mock).mockResolvedValue(1);
+    (redis.expire as Mock).mockResolvedValue(1);
+    (redis.keys as Mock).mockResolvedValue([]);
 
     clientSocket1 = SocketClient(TEST_URL, { auth: { token: generateTestToken(mockUser1.id, mockUser1.email) }, transports: ['websocket'] });
     clientSocket2 = SocketClient(TEST_URL, { auth: { token: generateTestToken(mockUser2.id, mockUser2.email) }, transports: ['websocket'] });
@@ -62,11 +62,11 @@ describe('[P1][chat] WebSocket - Chat Read/Unread/Delete', () => {
 
   describe('chat:message:read', () => {
     it('should mark message as read and notify sender', async () => {
-      vi.mocked(prisma.message.findUnique).mockResolvedValue({
+      (prisma.message.findUnique as Mock).mockResolvedValue({
         ...mockMessage, senderId: mockUser1.id,
         chat: { ...mockChat, user1Id: mockUser1.id, user2Id: mockUser2.id },
       } as unknown as Message);
-      vi.mocked(prisma.message.update).mockResolvedValue({ ...mockMessage, isRead: true } as unknown as Message);
+      (prisma.message.update as Mock).mockResolvedValue({ ...mockMessage, isRead: true } as unknown as Message);
 
       const readPromise = new Promise<SocketAck>((resolve) => { clientSocket1.on('chat:message:read', resolve); });
       const result = await new Promise<SocketAck>((resolve) => { clientSocket2.emit('chat:message:read', { messageId: mockMessage.id }, resolve); });
@@ -78,13 +78,13 @@ describe('[P1][chat] WebSocket - Chat Read/Unread/Delete', () => {
     });
 
     it('should reject marking non-existent message as read', async () => {
-      vi.mocked(prisma.message.findUnique).mockResolvedValue(null);
+      (prisma.message.findUnique as Mock).mockResolvedValue(null);
       const result = await new Promise<SocketAck>((resolve) => { clientSocket1.emit('chat:message:read', { messageId: 'non-existent' }, resolve); });
       expect(result.error).toBe('Message not found');
     });
 
     it('should reject marking message from other conversation', async () => {
-      vi.mocked(prisma.message.findUnique).mockResolvedValue({
+      (prisma.message.findUnique as Mock).mockResolvedValue({
         ...mockMessage, chat: { user1Id: 'other-user-1', user2Id: 'other-user-2' },
       } as unknown as Message);
       const result = await new Promise<SocketAck>((resolve) => { clientSocket1.emit('chat:message:read', { messageId: mockMessage.id }, resolve); });
@@ -94,16 +94,16 @@ describe('[P1][chat] WebSocket - Chat Read/Unread/Delete', () => {
 
   describe('chat:unread:count', () => {
     it('should return unread message count', async () => {
-      vi.mocked(prisma.chat.findMany).mockResolvedValue([mockChat as unknown as Chat]);
-      vi.mocked(prisma.message.count).mockResolvedValue(5);
+      (prisma.chat.findMany as Mock).mockResolvedValue([mockChat as unknown as Chat]);
+      (prisma.message.count as Mock).mockResolvedValue(5);
       const result = await new Promise<SocketAck>((resolve) => { clientSocket1.emit('chat:unread:count', resolve); });
       expect(result.success).toBe(true);
       expect(result.data.unreadCount).toBe(5);
     });
 
     it('should return zero when no unread messages', async () => {
-      vi.mocked(prisma.chat.findMany).mockResolvedValue([mockChat as unknown as Chat]);
-      vi.mocked(prisma.message.count).mockResolvedValue(0);
+      (prisma.chat.findMany as Mock).mockResolvedValue([mockChat as unknown as Chat]);
+      (prisma.message.count as Mock).mockResolvedValue(0);
       const result = await new Promise<SocketAck>((resolve) => { clientSocket1.emit('chat:unread:count', resolve); });
       expect(result.success).toBe(true);
       expect(result.data.unreadCount).toBe(0);
@@ -112,9 +112,9 @@ describe('[P1][chat] WebSocket - Chat Read/Unread/Delete', () => {
 
   describe('chat:message:delete', () => {
     it('should delete own message and notify room', async () => {
-      vi.mocked(prisma.message.findUnique).mockResolvedValue({ ...mockMessage, senderId: mockUser1.id } as unknown as Message);
-      vi.mocked(prisma.message.delete).mockResolvedValue(mockMessage as unknown as Message);
-      vi.mocked(prisma.chat.findFirst).mockResolvedValue(mockChat as unknown as Chat);
+      (prisma.message.findUnique as Mock).mockResolvedValue({ ...mockMessage, senderId: mockUser1.id } as unknown as Message);
+      (prisma.message.delete as Mock).mockResolvedValue(mockMessage as unknown as Message);
+      (prisma.chat.findFirst as Mock).mockResolvedValue(mockChat as unknown as Chat);
 
       await Promise.all([
         new Promise<SocketAck>((resolve) => { clientSocket1.emit('chat:join', { chatId: mockChat.id }, resolve); }),
@@ -131,13 +131,13 @@ describe('[P1][chat] WebSocket - Chat Read/Unread/Delete', () => {
     });
 
     it('should reject deleting message from another user', async () => {
-      vi.mocked(prisma.message.findUnique).mockResolvedValue({ ...mockMessage, senderId: mockUser2.id } as unknown as Message);
+      (prisma.message.findUnique as Mock).mockResolvedValue({ ...mockMessage, senderId: mockUser2.id } as unknown as Message);
       const result = await new Promise<SocketAck>((resolve) => { clientSocket1.emit('chat:message:delete', { messageId: mockMessage.id }, resolve); });
       expect(result.error).toBe('Message not found or you are not the sender');
     });
 
     it('should reject deleting non-existent message', async () => {
-      vi.mocked(prisma.message.findUnique).mockResolvedValue(null);
+      (prisma.message.findUnique as Mock).mockResolvedValue(null);
       const result = await new Promise<SocketAck>((resolve) => { clientSocket1.emit('chat:message:delete', { messageId: 'non-existent' }, resolve); });
       expect(result.error).toBe('Message not found or you are not the sender');
     });

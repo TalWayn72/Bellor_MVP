@@ -5,7 +5,7 @@
  * @see PRD.md Section 10 - Phase 6 Testing (Security)
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader, generateTestToken } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
@@ -116,8 +116,8 @@ describe('[P0][safety] JWT Security', () => {
 // ============================================
 describe('[P0][safety] SQL Injection Prevention', () => {
   it('should safely handle SQL injection in user search', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
+    (prisma.user.count as Mock).mockResolvedValue(0);
 
     const response = await app.inject({
       method: 'GET',
@@ -130,7 +130,7 @@ describe('[P0][safety] SQL Injection Prevention', () => {
   });
 
   it('should safely handle SQL injection in URL params', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'GET',
@@ -177,17 +177,17 @@ describe('[P0][safety] XSS Prevention', () => {
   });
 
   it('should safely handle XSS in message content', async () => {
-    vi.mocked(prisma.chat.findUnique).mockResolvedValue({
+    (prisma.chat.findUnique as Mock).mockResolvedValue({
       id: 'chat-1',
       user1Id: 'test-user-id',
       user2Id: 'other-user',
     } as unknown as Chat);
-    vi.mocked(prisma.message.create).mockResolvedValue({
+    (prisma.message.create as Mock).mockResolvedValue({
       id: 'msg-1',
       content: '<script>alert(1)</script>',
       senderId: 'test-user-id',
     } as unknown as Message);
-    vi.mocked(prisma.chat.update).mockResolvedValue({} as unknown as Chat);
+    (prisma.chat.update as Mock).mockResolvedValue({} as unknown as Chat);
 
     const response = await app.inject({
       method: 'POST',
@@ -218,7 +218,7 @@ describe('[P0][safety] Authorization & Access Control', () => {
   });
 
   it('should prevent users from deleting other users', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'DELETE',
@@ -328,7 +328,7 @@ describe('[P0][safety] Sensitive Data Exposure Prevention', () => {
   it('should not expose password hash in user responses', async () => {
     // Prisma select clause prevents passwordHash from being returned
     // Mock reflects what Prisma actually returns with the select clause
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+    (prisma.user.findUnique as Mock).mockResolvedValue({
       id: 'test-user-id',
       email: 'test@example.com',
       firstName: 'Test',
@@ -360,7 +360,7 @@ describe('[P0][safety] Sensitive Data Exposure Prevention', () => {
   });
 
   it('should not expose internal errors to clients', async () => {
-    vi.mocked(prisma.user.findMany).mockRejectedValue(new Error('ECONNREFUSED'));
+    (prisma.user.findMany as Mock).mockRejectedValue(new Error('ECONNREFUSED'));
 
     const response = await app.inject({
       method: 'GET',

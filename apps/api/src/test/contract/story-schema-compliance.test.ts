@@ -6,7 +6,7 @@
  * @see PRD.md Section 10 - Phase 6 Testing
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
@@ -69,7 +69,7 @@ describe('[P1][content] GET /api/v1/stories/feed - Schema Compliance', () => {
   it('returns story feed data', async () => {
     // The feed endpoint is at /stories/feed (not /stories)
     // It returns a grouped feed array
-    vi.mocked(prisma.story.findMany).mockResolvedValue([mockStoryWithUser] as unknown as Story[]);
+    (prisma.story.findMany as Mock).mockResolvedValue([mockStoryWithUser] as unknown as Story[]);
 
     const response = await app.inject({
       method: 'GET',
@@ -86,7 +86,7 @@ describe('[P1][content] GET /api/v1/stories/feed - Schema Compliance', () => {
   });
 
   it('validates each feed group has user and stories', async () => {
-    vi.mocked(prisma.story.findMany).mockResolvedValue([mockStoryWithUser] as unknown as Story[]);
+    (prisma.story.findMany as Mock).mockResolvedValue([mockStoryWithUser] as unknown as Story[]);
 
     const response = await app.inject({
       method: 'GET',
@@ -110,7 +110,7 @@ describe('[P1][content] GET /api/v1/stories/feed - Schema Compliance', () => {
 // ============================================
 describe('[P1][content] GET /api/v1/stories/:id - Schema Compliance', () => {
   it('returns story data', async () => {
-    vi.mocked(prisma.story.findUnique).mockResolvedValue(mockStoryWithUser as unknown as Story);
+    (prisma.story.findUnique as Mock).mockResolvedValue(mockStoryWithUser as unknown as Story);
 
     const response = await app.inject({
       method: 'GET',
@@ -145,7 +145,7 @@ describe('[P1][content] POST /api/v1/stories - Schema Compliance', () => {
     const requestResult = CreateStoryRequestSchema.safeParse(validRequest);
     expect(requestResult.success).toBe(true);
 
-    vi.mocked(prisma.story.create).mockResolvedValue(mockStoryWithUser as unknown as Story);
+    (prisma.story.create as Mock).mockResolvedValue(mockStoryWithUser as unknown as Story);
 
     const response = await app.inject({
       method: 'POST',
@@ -201,7 +201,7 @@ describe('[P1][content] POST /api/v1/stories - Schema Compliance', () => {
 // ============================================
 describe('[P1][content] GET /api/v1/stories/my - Schema Compliance', () => {
   it('returns my stories with valid structure', async () => {
-    vi.mocked(prisma.story.findMany).mockResolvedValue([mockStoryWithUser] as unknown as Story[]);
+    (prisma.story.findMany as Mock).mockResolvedValue([mockStoryWithUser] as unknown as Story[]);
 
     const response = await app.inject({
       method: 'GET',
@@ -223,7 +223,7 @@ describe('[P1][content] GET /api/v1/stories/my - Schema Compliance', () => {
 // ============================================
 describe('[P1][content] GET /api/v1/stories/user/:userId - Schema Compliance', () => {
   it('returns user stories with valid structure', async () => {
-    vi.mocked(prisma.story.findMany).mockResolvedValue([mockStoryWithUser] as unknown as Story[]);
+    (prisma.story.findMany as Mock).mockResolvedValue([mockStoryWithUser] as unknown as Story[]);
 
     const response = await app.inject({
       method: 'GET',
@@ -246,8 +246,8 @@ describe('[P1][content] GET /api/v1/stories/user/:userId - Schema Compliance', (
 describe('[P1][content] GET /api/v1/stories/stats - Response Structure', () => {
   it('returns consistent stats structure', async () => {
     // getUserStoryStats calls prisma.story.count and prisma.story.aggregate
-    vi.mocked(prisma.story.count).mockResolvedValue(10);
-    vi.mocked(prisma.story.aggregate).mockResolvedValue({
+    (prisma.story.count as Mock).mockResolvedValue(10);
+    (prisma.story.aggregate as Mock).mockResolvedValue({
       _sum: { viewCount: 150 },
     } as unknown as Awaited<ReturnType<typeof prisma.story.aggregate>>);
 
@@ -275,8 +275,8 @@ describe('[P1][content] GET /api/v1/stories/stats - Response Structure', () => {
 describe('[P1][content] POST /api/v1/stories/:id/view - Response Structure', () => {
   it('returns consistent view response', async () => {
     // viewStory calls prisma.story.findUnique then prisma.story.update
-    vi.mocked(prisma.story.findUnique).mockResolvedValue(mockStoryBasic as unknown as Story);
-    vi.mocked(prisma.story.update).mockResolvedValue({
+    (prisma.story.findUnique as Mock).mockResolvedValue(mockStoryBasic as unknown as Story);
+    (prisma.story.update as Mock).mockResolvedValue({
       ...mockStoryBasic,
       viewCount: 1,
     } as unknown as Story);
@@ -300,11 +300,11 @@ describe('[P1][content] POST /api/v1/stories/:id/view - Response Structure', () 
 // ============================================
 describe('[P1][content] DELETE /api/v1/stories/:id - Response Structure', () => {
   it('returns consistent delete response', async () => {
-    vi.mocked(prisma.story.findUnique).mockResolvedValue({
+    (prisma.story.findUnique as Mock).mockResolvedValue({
       ...mockStoryBasic,
       userId: 'test-user-id', // Matches the auth token user
     } as unknown as Story);
-    vi.mocked(prisma.story.delete).mockResolvedValue(mockStoryBasic as unknown as Story);
+    (prisma.story.delete as Mock).mockResolvedValue(mockStoryBasic as unknown as Story);
 
     const response = await app.inject({
       method: 'DELETE',

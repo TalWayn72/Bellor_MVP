@@ -6,7 +6,7 @@
  * @see security/csrf-protection.ts
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { FastifyRequest, FastifyReply } from 'fastify';
 
 // Mock dependencies before importing the module under test
@@ -30,7 +30,7 @@ import {
 } from './csrf-protection.js';
 import { securityLogger } from './logger.js';
 
-const mockSecurityLogger = vi.mocked(securityLogger);
+const mockSecurityLogger = (securityLogger as Mock);
 
 // ============================================
 // Helpers

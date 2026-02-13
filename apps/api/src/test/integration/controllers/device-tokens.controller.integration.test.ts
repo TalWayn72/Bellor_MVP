@@ -5,7 +5,7 @@
  * @see PRD.md Section 10 - Phase 6 Testing (Integration)
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader, adminAuthHeader } from '../../build-test-app.js';
 import { prisma } from '../../../lib/prisma.js';
@@ -49,7 +49,7 @@ const mockDeviceToken: DeviceToken = {
 // ============================================
 describe('[P1][social] POST /api/v1/device-tokens/register - Register Device', () => {
   it('should register device successfully', async () => {
-    vi.mocked(prisma.deviceToken.upsert).mockResolvedValue(mockDeviceToken);
+    (prisma.deviceToken.upsert as Mock).mockResolvedValue(mockDeviceToken);
 
     const response = await app.inject({
       method: 'POST',
@@ -108,7 +108,7 @@ describe('[P1][social] POST /api/v1/device-tokens/register - Register Device', (
     const platforms = ['IOS', 'ANDROID', 'WEB'] as const;
 
     for (const platform of platforms) {
-      vi.mocked(prisma.deviceToken.upsert).mockResolvedValue({ ...mockDeviceToken, platform });
+      (prisma.deviceToken.upsert as Mock).mockResolvedValue({ ...mockDeviceToken, platform });
 
       const response = await app.inject({
         method: 'POST',
@@ -130,7 +130,7 @@ describe('[P1][social] POST /api/v1/device-tokens/register - Register Device', (
 // ============================================
 describe('[P1][social] POST /api/v1/device-tokens/unregister - Unregister Device', () => {
   it('should unregister device successfully', async () => {
-    vi.mocked(prisma.deviceToken.updateMany).mockResolvedValue({ count: 1 });
+    (prisma.deviceToken.updateMany as Mock).mockResolvedValue({ count: 1 });
 
     const response = await app.inject({
       method: 'POST',
@@ -156,7 +156,7 @@ describe('[P1][social] POST /api/v1/device-tokens/unregister - Unregister Device
   });
 
   it('should accept unregister even if token not found', async () => {
-    vi.mocked(prisma.deviceToken.updateMany).mockResolvedValue({ count: 0 });
+    (prisma.deviceToken.updateMany as Mock).mockResolvedValue({ count: 0 });
 
     const response = await app.inject({
       method: 'POST',
@@ -176,7 +176,7 @@ describe('[P1][social] POST /api/v1/device-tokens/unregister - Unregister Device
 // ============================================
 describe('[P1][social] GET /api/v1/device-tokens/my - Get My Devices', () => {
   it('should get user devices', async () => {
-    vi.mocked(prisma.deviceToken.findMany).mockResolvedValue([mockDeviceToken]);
+    (prisma.deviceToken.findMany as Mock).mockResolvedValue([mockDeviceToken]);
 
     const response = await app.inject({
       method: 'GET',
@@ -197,7 +197,7 @@ describe('[P1][social] GET /api/v1/device-tokens/my - Get My Devices', () => {
   });
 
   it('should return empty array if no devices', async () => {
-    vi.mocked(prisma.deviceToken.findMany).mockResolvedValue([]);
+    (prisma.deviceToken.findMany as Mock).mockResolvedValue([]);
 
     const response = await app.inject({
       method: 'GET',
@@ -209,7 +209,7 @@ describe('[P1][social] GET /api/v1/device-tokens/my - Get My Devices', () => {
   });
 
   it('should not expose token values in response', async () => {
-    vi.mocked(prisma.deviceToken.findMany).mockResolvedValue([mockDeviceToken]);
+    (prisma.deviceToken.findMany as Mock).mockResolvedValue([mockDeviceToken]);
 
     const response = await app.inject({
       method: 'GET',
@@ -231,7 +231,7 @@ describe('[P1][social] GET /api/v1/device-tokens/my - Get My Devices', () => {
 // ============================================
 describe('[P1][social] POST /api/v1/device-tokens/test - Send Test Notification', () => {
   it('should send test notification', async () => {
-    vi.mocked(prisma.deviceToken.findMany).mockResolvedValue([mockDeviceToken]);
+    (prisma.deviceToken.findMany as Mock).mockResolvedValue([mockDeviceToken]);
 
     const response = await app.inject({
       method: 'POST',
@@ -260,7 +260,7 @@ describe('[P1][social] POST /api/v1/device-tokens/test - Send Test Notification'
   });
 
   it('should use default values if not provided', async () => {
-    vi.mocked(prisma.deviceToken.findMany).mockResolvedValue([mockDeviceToken]);
+    (prisma.deviceToken.findMany as Mock).mockResolvedValue([mockDeviceToken]);
 
     const response = await app.inject({
       method: 'POST',
@@ -278,7 +278,7 @@ describe('[P1][social] POST /api/v1/device-tokens/test - Send Test Notification'
 // ============================================
 describe('[P1][social] POST /api/v1/device-tokens/broadcast - Send Broadcast (Admin)', () => {
   it('should send broadcast as admin', async () => {
-    vi.mocked(prisma.deviceToken.findMany).mockResolvedValue([mockDeviceToken]);
+    (prisma.deviceToken.findMany as Mock).mockResolvedValue([mockDeviceToken]);
 
     const response = await app.inject({
       method: 'POST',
@@ -337,7 +337,7 @@ describe('[P1][social] POST /api/v1/device-tokens/broadcast - Send Broadcast (Ad
 // ============================================
 describe('[P1][social] POST /api/v1/device-tokens/cleanup - Cleanup Inactive Tokens (Admin)', () => {
   it('should cleanup inactive tokens as admin', async () => {
-    vi.mocked(prisma.deviceToken.deleteMany).mockResolvedValue({ count: 5 });
+    (prisma.deviceToken.deleteMany as Mock).mockResolvedValue({ count: 5 });
 
     const response = await app.inject({
       method: 'POST',
@@ -377,7 +377,7 @@ describe('[P1][social] POST /api/v1/device-tokens/cleanup - Cleanup Inactive Tok
   });
 
   it('should use default value if daysOld not provided', async () => {
-    vi.mocked(prisma.deviceToken.deleteMany).mockResolvedValue({ count: 3 });
+    (prisma.deviceToken.deleteMany as Mock).mockResolvedValue({ count: 3 });
 
     const response = await app.inject({
       method: 'POST',

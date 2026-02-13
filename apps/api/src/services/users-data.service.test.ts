@@ -4,7 +4,7 @@
  * Tests for getUserStats and exportUserData (GDPR Article 20).
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { createMockUser } from './users-test-helpers.js';
 
 // Import after mocking (mock is set up in helpers)
@@ -29,7 +29,7 @@ describe('[P2][profile] UsersService - getUserStats', () => {
       _count: { sentMessages: 100, chatsAsUser1: 5, chatsAsUser2: 3 },
     };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as never);
 
     const result = await UsersService.getUserStats('test-user-id');
 
@@ -42,7 +42,7 @@ describe('[P2][profile] UsersService - getUserStats', () => {
   });
 
   it('should throw error when user not found', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
     await expect(UsersService.getUserStats('non-existent-id')).rejects.toThrow('User not found');
   });
 
@@ -51,7 +51,7 @@ describe('[P2][profile] UsersService - getUserStats', () => {
       id: 'test-user-id', isPremium: false, createdAt: new Date(), lastActiveAt: null,
       _count: { sentMessages: 0, chatsAsUser1: 0, chatsAsUser2: 0 },
     };
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as never);
     await UsersService.getUserStats('test-user-id');
     expect(prisma.user.findUnique).toHaveBeenCalledWith({
       where: { id: 'test-user-id' },
@@ -64,7 +64,7 @@ describe('[P2][profile] UsersService - getUserStats', () => {
       id: 'test-user-id', isPremium: false, createdAt: new Date(), lastActiveAt: null,
       _count: { sentMessages: 0, chatsAsUser1: 0, chatsAsUser2: 0 },
     };
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as never);
     const result = await UsersService.getUserStats('test-user-id');
     expect(result.messagesCount).toBe(0);
     expect(result.chatsCount).toBe(0);
@@ -75,7 +75,7 @@ describe('[P2][profile] UsersService - getUserStats', () => {
       id: 'test-user-id', isPremium: false, createdAt: new Date(), lastActiveAt: null,
       _count: { sentMessages: 0, chatsAsUser1: 0, chatsAsUser2: 0 },
     };
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as never);
     const result = await UsersService.getUserStats('test-user-id');
     expect(result.lastLogin).toBeNull();
   });
@@ -108,7 +108,7 @@ describe('[P2][profile] UsersService - exportUserData (GDPR Article 20)', () => 
   afterEach(() => { vi.restoreAllMocks(); });
 
   it('should export all user data successfully', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createFullMockUser() as never);
+    (prisma.user.findUnique as Mock).mockResolvedValue(createFullMockUser() as never);
     const result = await UsersService.exportUserData('test-user-id');
     expect(result).toHaveProperty('personalInformation');
     expect(result).toHaveProperty('preferences');
@@ -119,7 +119,7 @@ describe('[P2][profile] UsersService - exportUserData (GDPR Article 20)', () => 
   });
 
   it('should include personal information in export', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createFullMockUser() as never);
+    (prisma.user.findUnique as Mock).mockResolvedValue(createFullMockUser() as never);
     const result = await UsersService.exportUserData('test-user-id');
     expect(result.personalInformation).toEqual({
       id: 'test-user-id', email: 'test@example.com', firstName: 'John', lastName: 'Doe',
@@ -131,14 +131,14 @@ describe('[P2][profile] UsersService - exportUserData (GDPR Article 20)', () => 
   });
 
   it('should include messages in export', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createFullMockUser() as never);
+    (prisma.user.findUnique as Mock).mockResolvedValue(createFullMockUser() as never);
     const result = await UsersService.exportUserData('test-user-id');
     expect(result.content.messages).toHaveLength(2);
     expect(result.content.messages[0].content).toBe('Hello');
   });
 
   it('should include achievements in export', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createFullMockUser() as never);
+    (prisma.user.findUnique as Mock).mockResolvedValue(createFullMockUser() as never);
     const result = await UsersService.exportUserData('test-user-id');
     expect(result.achievements).toHaveLength(1);
     expect(result.achievements[0].name).toBe('First Match');
@@ -146,18 +146,18 @@ describe('[P2][profile] UsersService - exportUserData (GDPR Article 20)', () => 
   });
 
   it('should include statistics in export', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createFullMockUser() as never);
+    (prisma.user.findUnique as Mock).mockResolvedValue(createFullMockUser() as never);
     const result = await UsersService.exportUserData('test-user-id');
     expect(result.statistics).toEqual({ responseCount: 5, chatCount: 3, missionCompletedCount: 2 });
   });
 
   it('should throw error when user not found', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
     await expect(UsersService.exportUserData('non-existent-id')).rejects.toThrow('User not found');
   });
 
   it('should query with include for related data', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createFullMockUser() as never);
+    (prisma.user.findUnique as Mock).mockResolvedValue(createFullMockUser() as never);
     await UsersService.exportUserData('test-user-id');
     expect(prisma.user.findUnique).toHaveBeenCalledWith({
       where: { id: 'test-user-id' },
@@ -169,7 +169,7 @@ describe('[P2][profile] UsersService - exportUserData (GDPR Article 20)', () => 
   });
 
   it('should handle user with no content', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(
+    (prisma.user.findUnique as Mock).mockResolvedValue(
       createFullMockUser({ sentMessages: [], responses: [], stories: [], achievements: [] }) as never
     );
     const result = await UsersService.exportUserData('test-user-id');

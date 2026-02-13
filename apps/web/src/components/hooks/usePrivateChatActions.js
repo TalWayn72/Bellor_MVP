@@ -31,13 +31,32 @@ export function usePrivateChatActions({ chatId, currentUser, isDemo, isJoined, s
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data) => {
+      // Try WebSocket first if connected
       if (isJoined && socketService.isConnected()) {
-        const r = await sendSocketMessage(data.content, { messageType: data.type || 'TEXT' });
-        if (r.success) return r.data;
+        try {
+          const r = await sendSocketMessage(data.content, { messageType: data.type || 'TEXT' });
+          if (r && r.success) return r.data;
+        } catch {
+          // WebSocket failed, fall back to HTTP
+        }
       }
-      return await chatService.sendMessage(chatId, data);
+      // Fallback to HTTP API
+      const result = await chatService.sendMessage(chatId, data);
+      return result.message;
     },
-    onSuccess: () => { setMessage(''); setIsTyping(false); sendTyping(false); scrollToBottom(); },
+    onSuccess: () => {
+      setMessage('');
+      setIsTyping(false);
+      sendTyping(false);
+      scrollToBottom();
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: error?.response?.data?.message || 'Failed to send message. Please try again.',
+        variant: 'destructive'
+      });
+    }
   });
 
   const handleSendMessage = () => {

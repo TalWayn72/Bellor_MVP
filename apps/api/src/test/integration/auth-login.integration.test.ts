@@ -5,7 +5,7 @@
  * token refresh, and current user endpoints.
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
@@ -30,7 +30,7 @@ describe('[P0][auth] POST /api/v1/auth/login', () => {
   it('should login with valid credentials', async () => {
     // The AuthService.login is called, which checks prisma + bcrypt
     // Since AuthService uses the mocked prisma, we mock the user lookup
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+    (prisma.user.findUnique as Mock).mockResolvedValue({
       id: 'test-user-id',
       email: 'test@example.com',
       passwordHash: '$2b$12$mockHashedPassword', // bcrypt hash
@@ -40,8 +40,8 @@ describe('[P0][auth] POST /api/v1/auth/login', () => {
       isVerified: false,
       isPremium: false,
     } as unknown as User);
-    vi.mocked(prisma.user.update).mockResolvedValue({} as unknown as User);
-    vi.mocked(redis.setex).mockResolvedValue('OK');
+    (prisma.user.update as Mock).mockResolvedValue({} as unknown as User);
+    (redis.setex as Mock).mockResolvedValue('OK');
 
     // Note: This will fail bcrypt check since we can't easily mock bcrypt here.
     // The integration test validates the HTTP layer (routing, validation, response format)
@@ -93,7 +93,7 @@ describe('[P0][auth] POST /api/v1/auth/login', () => {
   });
 
   it('should return 401 when user not found', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'POST',
@@ -105,7 +105,7 @@ describe('[P0][auth] POST /api/v1/auth/login', () => {
   });
 
   it('should return 401 for blocked user', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+    (prisma.user.findUnique as Mock).mockResolvedValue({
       id: 'blocked-user',
       email: 'blocked@example.com',
       passwordHash: 'hash',
@@ -185,7 +185,7 @@ describe('[P0][auth] GET /api/v1/auth/me', () => {
       lastActiveAt: new Date(),
     };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as unknown as User);
 
     const response = await app.inject({
       method: 'GET',
@@ -201,7 +201,7 @@ describe('[P0][auth] GET /api/v1/auth/me', () => {
   });
 
   it('should return 404 when user not found in database', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'GET',

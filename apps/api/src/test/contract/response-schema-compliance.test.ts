@@ -6,7 +6,7 @@
  * @see PRD.md Section 10 - Phase 6 Testing
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
@@ -52,8 +52,8 @@ const mockResponse = {
 // ============================================
 describe('[P1][content] GET /api/v1/responses - Schema Compliance', () => {
   it('returns response list matching ResponseListResponseSchema', async () => {
-    vi.mocked(prisma.response.findMany).mockResolvedValue([mockResponse] as unknown as Response[]);
-    vi.mocked(prisma.response.count).mockResolvedValue(1);
+    (prisma.response.findMany as Mock).mockResolvedValue([mockResponse] as unknown as Response[]);
+    (prisma.response.count as Mock).mockResolvedValue(1);
 
     const response = await app.inject({
       method: 'GET',
@@ -81,8 +81,8 @@ describe('[P1][content] GET /api/v1/responses - Schema Compliance', () => {
   });
 
   it('validates each response against ResponseSchema', async () => {
-    vi.mocked(prisma.response.findMany).mockResolvedValue([mockResponse] as unknown as Response[]);
-    vi.mocked(prisma.response.count).mockResolvedValue(1);
+    (prisma.response.findMany as Mock).mockResolvedValue([mockResponse] as unknown as Response[]);
+    (prisma.response.count as Mock).mockResolvedValue(1);
 
     const response = await app.inject({
       method: 'GET',
@@ -110,7 +110,7 @@ describe('[P1][content] GET /api/v1/responses - Schema Compliance', () => {
 // ============================================
 describe('[P1][content] GET /api/v1/responses/:id - Schema Compliance', () => {
   it('returns response matching ResponseSchema', async () => {
-    vi.mocked(prisma.response.findUnique).mockResolvedValue(mockResponse as unknown as Response);
+    (prisma.response.findUnique as Mock).mockResolvedValue(mockResponse as unknown as Response);
 
     const response = await app.inject({
       method: 'GET',
@@ -150,7 +150,7 @@ describe('[P1][content] POST /api/v1/responses - Schema Compliance', () => {
     const requestResult = CreateResponseRequestSchema.safeParse(validRequest);
     expect(requestResult.success).toBe(true);
 
-    vi.mocked(prisma.response.create).mockResolvedValue(mockResponse as unknown as Response);
+    (prisma.response.create as Mock).mockResolvedValue(mockResponse as unknown as Response);
 
     const response = await app.inject({
       method: 'POST',
@@ -212,8 +212,8 @@ describe('[P1][content] POST /api/v1/responses - Schema Compliance', () => {
 describe('[P1][content] GET /api/v1/responses/my - Schema Compliance', () => {
   it('returns my responses with valid schema', async () => {
     // The "my responses" endpoint is at /responses/my (not /responses/user/:userId)
-    vi.mocked(prisma.response.findMany).mockResolvedValue([mockResponse] as unknown as Response[]);
-    vi.mocked(prisma.response.count).mockResolvedValue(1);
+    (prisma.response.findMany as Mock).mockResolvedValue([mockResponse] as unknown as Response[]);
+    (prisma.response.count as Mock).mockResolvedValue(1);
 
     const response = await app.inject({
       method: 'GET',
@@ -236,7 +236,7 @@ describe('[P1][content] POST /api/v1/responses/:id/like - Response Structure', (
   it('returns consistent like response', async () => {
     // The likeResponse handler calls ResponsesService.incrementLikeCount
     // which calls prisma.response.update
-    vi.mocked(prisma.response.update).mockResolvedValue({
+    (prisma.response.update as Mock).mockResolvedValue({
       ...mockResponse,
       likeCount: 1,
     } as unknown as Response);
@@ -262,8 +262,8 @@ describe('[P1][content] POST /api/v1/responses/:id/like - Response Structure', (
 // ============================================
 describe('[P1][content] DELETE /api/v1/responses/:id - Response Structure', () => {
   it('returns consistent delete response', async () => {
-    vi.mocked(prisma.response.findUnique).mockResolvedValue(mockResponse as unknown as Response);
-    vi.mocked(prisma.response.delete).mockResolvedValue(mockResponse as unknown as Response);
+    (prisma.response.findUnique as Mock).mockResolvedValue(mockResponse as unknown as Response);
+    (prisma.response.delete as Mock).mockResolvedValue(mockResponse as unknown as Response);
 
     const response = await app.inject({
       method: 'DELETE',
@@ -347,8 +347,8 @@ describe('[P1][content] Response Type Enum Validation', () => {
 // ============================================
 describe('[P1][content] Query Parameters Validation', () => {
   it('validates pagination params in list responses', async () => {
-    vi.mocked(prisma.response.findMany).mockResolvedValue([mockResponse] as unknown as Response[]);
-    vi.mocked(prisma.response.count).mockResolvedValue(1);
+    (prisma.response.findMany as Mock).mockResolvedValue([mockResponse] as unknown as Response[]);
+    (prisma.response.count as Mock).mockResolvedValue(1);
 
     const response = await app.inject({
       method: 'GET',

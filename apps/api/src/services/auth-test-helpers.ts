@@ -2,60 +2,82 @@
  * Shared test helpers for Auth Service tests
  *
  * Contains mock setup used across all auth service test files.
+ * Uses factory functions with vi.fn() to create proper mocks.
  */
 
 import { vi } from 'vitest';
-import { prisma } from '../lib/prisma.js';
-import { redis } from '../lib/redis.js';
-import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt.util.js';
+import type { Mock } from 'vitest';
 
-// Mock modules before importing the service
+// Create mock functions first - these are used in factory functions below
+const mockFindUnique = vi.fn();
+const mockCreate = vi.fn();
+const mockUpdate = vi.fn();
+const mockSetex = vi.fn().mockResolvedValue('OK');
+const mockRedisGet = vi.fn().mockResolvedValue(null);
+const mockRedisDel = vi.fn().mockResolvedValue(1);
+const mockGenerateAccessToken = vi.fn().mockReturnValue('mock-access-token');
+const mockGenerateRefreshToken = vi.fn().mockReturnValue('mock-refresh-token');
+const mockVerifyRefreshToken = vi.fn().mockReturnValue({ userId: 'test-user-id' });
+
+// Mock modules with factory functions
 vi.mock('../lib/prisma.js', () => ({
   prisma: {
     user: {
-      findUnique: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
+      findUnique: mockFindUnique,
+      create: mockCreate,
+      update: mockUpdate,
     },
   },
 }));
 
 vi.mock('../lib/redis.js', () => ({
   redis: {
-    setex: vi.fn().mockResolvedValue('OK'),
-    get: vi.fn().mockResolvedValue(null),
-    del: vi.fn().mockResolvedValue(1),
+    setex: mockSetex,
+    get: mockRedisGet,
+    del: mockRedisDel,
   },
 }));
 
 vi.mock('../utils/jwt.util.js', () => ({
-  generateAccessToken: vi.fn().mockReturnValue('mock-access-token'),
-  generateRefreshToken: vi.fn().mockReturnValue('mock-refresh-token'),
-  verifyRefreshToken: vi.fn().mockReturnValue({ userId: 'test-user-id' }),
+  generateAccessToken: mockGenerateAccessToken,
+  generateRefreshToken: mockGenerateRefreshToken,
+  verifyRefreshToken: mockVerifyRefreshToken,
 }));
 
-// Type the mocked prisma (avoids `as any` in test files)
-export const mockPrisma = prisma as unknown as {
+// Export typed mocks for direct use in tests
+export const prismaMock = {
   user: {
-    findUnique: ReturnType<typeof vi.fn>;
-    create: ReturnType<typeof vi.fn>;
-    update: ReturnType<typeof vi.fn>;
-  };
+    findUnique: mockFindUnique as Mock,
+    create: mockCreate as Mock,
+    update: mockUpdate as Mock,
+  },
 };
 
-// Type the mocked redis (avoids `as any` in test files)
-export const mockRedis = redis as unknown as {
-  setex: ReturnType<typeof vi.fn>;
-  get: ReturnType<typeof vi.fn>;
-  del: ReturnType<typeof vi.fn>;
+export const redisMock = {
+  setex: mockSetex as Mock,
+  get: mockRedisGet as Mock,
+  del: mockRedisDel as Mock,
 };
+
+export const jwtMock = {
+  generateAccessToken: mockGenerateAccessToken as Mock,
+  generateRefreshToken: mockGenerateRefreshToken as Mock,
+  verifyRefreshToken: mockVerifyRefreshToken as Mock,
+};
+
+// Backwards-compatible aliases (used by auth-login.service.test.ts)
+export const mockPrisma = prismaMock;
+export const mockRedis = redisMock;
 
 /**
- * Reset mock return values after clearAllMocks.
- * Call this in beforeEach after vi.clearAllMocks().
+ * Setup default mock return values.
+ * Call in beforeEach after vi.clearAllMocks().
  */
-export function resetAuthMocks() {
-  vi.mocked(generateAccessToken).mockReturnValue('mock-access-token');
-  vi.mocked(generateRefreshToken).mockReturnValue('mock-refresh-token');
-  vi.mocked(verifyRefreshToken).mockReturnValue({ userId: 'test-user-id' });
+export function setupAuthMocks() {
+  jwtMock.generateAccessToken.mockReturnValue('mock-access-token');
+  jwtMock.generateRefreshToken.mockReturnValue('mock-refresh-token');
+  jwtMock.verifyRefreshToken.mockReturnValue({ userId: 'test-user-id' });
+  redisMock.setex.mockResolvedValue('OK');
+  redisMock.get.mockResolvedValue(null);
+  redisMock.del.mockResolvedValue(1);
 }

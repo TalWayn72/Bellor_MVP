@@ -3,7 +3,7 @@
  * Tests for presence tracking and online user logic
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
 import { getOnlineUsers, setUserOnline } from './presence-tracker.js';
 import { redis } from '../../lib/redis.js';
 import { prisma } from '../../lib/prisma.js';
@@ -44,8 +44,8 @@ describe('[P1][chat] Presence Tracker - Memory Leak Prevention', () => {
         { id: 'user2', firstName: 'Jane', lastName: 'Smith', profileImages: [], preferredLanguage: 'en' },
       ];
 
-      vi.mocked(redis.keys).mockResolvedValue(['online:user1', 'online:user2', 'online:user3']);
-      vi.mocked(prisma.user.findMany).mockResolvedValue(mockUsers);
+      (redis.keys as Mock).mockResolvedValue(['online:user1', 'online:user2', 'online:user3']);
+      (prisma.user.findMany as Mock).mockResolvedValue(mockUsers);
 
       // Act
       const result = await getOnlineUsers();
@@ -69,8 +69,8 @@ describe('[P1][chat] Presence Tracker - Memory Leak Prevention', () => {
 
     it('should not return blocked users even if they are online', async () => {
       // Arrange
-      vi.mocked(redis.keys).mockResolvedValue(['online:blockedUser']);
-      vi.mocked(prisma.user.findMany).mockResolvedValue([]);
+      (redis.keys as Mock).mockResolvedValue(['online:blockedUser']);
+      (prisma.user.findMany as Mock).mockResolvedValue([]);
 
       // Act
       const result = await getOnlineUsers();
@@ -90,8 +90,8 @@ describe('[P1][chat] Presence Tracker - Memory Leak Prevention', () => {
   describe('Memory leak regression tests', () => {
     it('should not accumulate Redis keys on repeated calls', async () => {
       // Arrange
-      vi.mocked(redis.keys).mockResolvedValue(['online:user1']);
-      vi.mocked(prisma.user.findMany).mockResolvedValue([]);
+      (redis.keys as Mock).mockResolvedValue(['online:user1']);
+      (prisma.user.findMany as Mock).mockResolvedValue([]);
 
       // Act - call multiple times
       await getOnlineUsers();

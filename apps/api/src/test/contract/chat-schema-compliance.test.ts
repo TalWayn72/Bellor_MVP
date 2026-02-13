@@ -6,7 +6,7 @@
  * @see PRD.md Section 10 - Phase 6 Testing
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
@@ -96,8 +96,8 @@ const mockMessageWithSender = {
 // ============================================
 describe('[P1][chat] GET /api/v1/chats - Schema Compliance', () => {
   it('returns chat list matching ChatListResponseSchema', async () => {
-    vi.mocked(prisma.chat.findMany).mockResolvedValue([mockChatWithIncludes] as unknown as Chat[]);
-    vi.mocked(prisma.chat.count).mockResolvedValue(1);
+    (prisma.chat.findMany as Mock).mockResolvedValue([mockChatWithIncludes] as unknown as Chat[]);
+    (prisma.chat.count as Mock).mockResolvedValue(1);
 
     const response = await app.inject({
       method: 'GET',
@@ -117,8 +117,8 @@ describe('[P1][chat] GET /api/v1/chats - Schema Compliance', () => {
   });
 
   it('validates each chat in the list has expected fields', async () => {
-    vi.mocked(prisma.chat.findMany).mockResolvedValue([mockChatWithIncludes] as unknown as Chat[]);
-    vi.mocked(prisma.chat.count).mockResolvedValue(1);
+    (prisma.chat.findMany as Mock).mockResolvedValue([mockChatWithIncludes] as unknown as Chat[]);
+    (prisma.chat.count as Mock).mockResolvedValue(1);
 
     const response = await app.inject({
       method: 'GET',
@@ -144,7 +144,7 @@ describe('[P1][chat] GET /api/v1/chats - Schema Compliance', () => {
 describe('[P1][chat] GET /api/v1/chats/:chatId - Schema Compliance', () => {
   it('returns chat matching expected structure', async () => {
     // The route uses chatService.getChatById which calls prisma.chat.findFirst
-    vi.mocked(prisma.chat.findFirst).mockResolvedValue(mockChatWithIncludes as unknown as Chat);
+    (prisma.chat.findFirst as Mock).mockResolvedValue(mockChatWithIncludes as unknown as Chat);
 
     const response = await app.inject({
       method: 'GET',
@@ -177,11 +177,11 @@ describe('[P1][chat] POST /api/v1/chats - Schema Compliance', () => {
     expect(requestResult.success).toBe(true);
 
     // Mock for createOrGetChat: it calls prisma.user.findUnique, prisma.chat.findFirst, then getChatById
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'other-user-id' } as unknown as User);
-    vi.mocked(prisma.chat.findFirst)
+    (prisma.user.findUnique as Mock).mockResolvedValue({ id: 'other-user-id' } as unknown as User);
+    (prisma.chat.findFirst as Mock)
       .mockResolvedValueOnce(null) // No existing chat
       .mockResolvedValueOnce(mockChatWithIncludes as unknown as Chat); // getChatById call
-    vi.mocked(prisma.chat.create).mockResolvedValue({
+    (prisma.chat.create as Mock).mockResolvedValue({
       id: 'test-chat-id',
       user1Id: 'test-user-id',
       user2Id: 'other-user-id',
@@ -229,9 +229,9 @@ describe('[P1][chat] POST /api/v1/chats - Schema Compliance', () => {
 describe('[P1][chat] GET /api/v1/chats/:chatId/messages - Schema Compliance', () => {
   it('returns message list matching expected structure', async () => {
     // The getMessages service calls prisma.chat.findFirst then prisma.message.findMany
-    vi.mocked(prisma.chat.findFirst).mockResolvedValue(mockChatWithIncludes as unknown as Chat);
-    vi.mocked(prisma.message.findMany).mockResolvedValue([mockMessageWithSender] as unknown as Message[]);
-    vi.mocked(prisma.message.count).mockResolvedValue(1);
+    (prisma.chat.findFirst as Mock).mockResolvedValue(mockChatWithIncludes as unknown as Chat);
+    (prisma.message.findMany as Mock).mockResolvedValue([mockMessageWithSender] as unknown as Message[]);
+    (prisma.message.count as Mock).mockResolvedValue(1);
 
     const response = await app.inject({
       method: 'GET',
@@ -250,9 +250,9 @@ describe('[P1][chat] GET /api/v1/chats/:chatId/messages - Schema Compliance', ()
   });
 
   it('validates each message has expected fields', async () => {
-    vi.mocked(prisma.chat.findFirst).mockResolvedValue(mockChatWithIncludes as unknown as Chat);
-    vi.mocked(prisma.message.findMany).mockResolvedValue([mockMessageWithSender] as unknown as Message[]);
-    vi.mocked(prisma.message.count).mockResolvedValue(1);
+    (prisma.chat.findFirst as Mock).mockResolvedValue(mockChatWithIncludes as unknown as Chat);
+    (prisma.message.findMany as Mock).mockResolvedValue([mockMessageWithSender] as unknown as Message[]);
+    (prisma.message.count as Mock).mockResolvedValue(1);
 
     const response = await app.inject({
       method: 'GET',
@@ -287,9 +287,9 @@ describe('[P1][chat] POST /api/v1/chats/:chatId/messages - Schema Compliance', (
     expect(requestResult.success).toBe(true);
 
     // Mock: sendMessage calls prisma.chat.findFirst then prisma.message.create
-    vi.mocked(prisma.chat.findFirst).mockResolvedValue(mockChatWithIncludes as unknown as Chat);
-    vi.mocked(prisma.message.create).mockResolvedValue(mockMessageWithSender as unknown as Message);
-    vi.mocked(prisma.chat.update).mockResolvedValue(mockChatWithIncludes as unknown as Chat);
+    (prisma.chat.findFirst as Mock).mockResolvedValue(mockChatWithIncludes as unknown as Chat);
+    (prisma.message.create as Mock).mockResolvedValue(mockMessageWithSender as unknown as Message);
+    (prisma.chat.update as Mock).mockResolvedValue(mockChatWithIncludes as unknown as Chat);
 
     const response = await app.inject({
       method: 'POST',

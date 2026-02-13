@@ -5,7 +5,7 @@
  * filtering, sorting, and field selection.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { createMockUser } from './users-test-helpers.js';
 
 // Import after mocking (mock is set up in helpers)
@@ -24,8 +24,8 @@ describe('[P2][profile] UsersService - listUsers', () => {
   it('should list users with default pagination', async () => {
     const mockUsers = [createMockUser(), createMockUser({ id: 'user-2', email: 'user2@example.com' })];
 
-    vi.mocked(prisma.user.findMany).mockResolvedValue(mockUsers as unknown);
-    vi.mocked(prisma.user.count).mockResolvedValue(2);
+    (prisma.user.findMany as Mock).mockResolvedValue(mockUsers as unknown);
+    (prisma.user.count as Mock).mockResolvedValue(2);
 
     const result = await UsersService.listUsers();
 
@@ -36,8 +36,8 @@ describe('[P2][profile] UsersService - listUsers', () => {
   });
 
   it('should apply custom pagination options', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.user.count).mockResolvedValue(100);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
+    (prisma.user.count as Mock).mockResolvedValue(100);
 
     await UsersService.listUsers({ limit: 10, offset: 50 });
 
@@ -50,8 +50,8 @@ describe('[P2][profile] UsersService - listUsers', () => {
   });
 
   it('should filter by isBlocked status', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
+    (prisma.user.count as Mock).mockResolvedValue(0);
 
     await UsersService.listUsers({ isBlocked: true });
 
@@ -65,8 +65,8 @@ describe('[P2][profile] UsersService - listUsers', () => {
   });
 
   it('should filter by isPremium status', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
+    (prisma.user.count as Mock).mockResolvedValue(0);
 
     await UsersService.listUsers({ isPremium: true });
 
@@ -80,8 +80,8 @@ describe('[P2][profile] UsersService - listUsers', () => {
   });
 
   it('should filter by language preference', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
+    (prisma.user.count as Mock).mockResolvedValue(0);
 
     await UsersService.listUsers({ language: 'HEBREW' });
 
@@ -95,8 +95,8 @@ describe('[P2][profile] UsersService - listUsers', () => {
   });
 
   it('should sort by createdAt descending by default', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
+    (prisma.user.count as Mock).mockResolvedValue(0);
 
     await UsersService.listUsers();
 
@@ -110,8 +110,8 @@ describe('[P2][profile] UsersService - listUsers', () => {
   });
 
   it('should apply custom sort options', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
+    (prisma.user.count as Mock).mockResolvedValue(0);
 
     await UsersService.listUsers({ sortBy: 'firstName', sortOrder: 'asc' });
 
@@ -125,8 +125,8 @@ describe('[P2][profile] UsersService - listUsers', () => {
   });
 
   it('should calculate hasMore correctly when more users exist', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([createMockUser()] as unknown);
-    vi.mocked(prisma.user.count).mockResolvedValue(100);
+    (prisma.user.findMany as Mock).mockResolvedValue([createMockUser()] as unknown);
+    (prisma.user.count as Mock).mockResolvedValue(100);
 
     const result = await UsersService.listUsers({ limit: 20, offset: 0 });
 
@@ -134,8 +134,8 @@ describe('[P2][profile] UsersService - listUsers', () => {
   });
 
   it('should calculate hasMore correctly when no more users', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([createMockUser()] as unknown);
-    vi.mocked(prisma.user.count).mockResolvedValue(1);
+    (prisma.user.findMany as Mock).mockResolvedValue([createMockUser()] as unknown);
+    (prisma.user.count as Mock).mockResolvedValue(1);
 
     const result = await UsersService.listUsers({ limit: 20, offset: 0 });
 
@@ -143,8 +143,8 @@ describe('[P2][profile] UsersService - listUsers', () => {
   });
 
   it('should combine multiple filters', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
+    (prisma.user.count as Mock).mockResolvedValue(0);
 
     await UsersService.listUsers({ isBlocked: false, isPremium: true, language: 'ENGLISH' });
 
@@ -160,8 +160,8 @@ describe('[P2][profile] UsersService - listUsers', () => {
   });
 
   it('should select appropriate fields for user list', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
+    (prisma.user.count as Mock).mockResolvedValue(0);
 
     await UsersService.listUsers();
 

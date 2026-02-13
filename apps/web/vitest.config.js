@@ -18,7 +18,7 @@ export default defineConfig({
       },
     },
     testTimeout: 60000,
-    isolate: false,
+    isolate: true,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],

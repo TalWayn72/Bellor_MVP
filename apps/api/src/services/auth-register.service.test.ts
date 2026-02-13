@@ -8,13 +8,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock setup via helpers
-import './auth-test-helpers.js';
+import { prismaMock, redisMock, jwtMock, setupAuthMocks } from './auth-test-helpers.js';
 
 // Import after mocking
 import { AuthService } from './auth.service.js';
-import { prisma } from '../lib/prisma.js';
-import { redis } from '../lib/redis.js';
-import { generateAccessToken, generateRefreshToken } from '../utils/jwt.util.js';
 
 describe('[P0][auth] AuthService - register', () => {
   const validInput = {
@@ -28,9 +25,7 @@ describe('[P0][auth] AuthService - register', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset mock return values after clearAllMocks
-    vi.mocked(generateAccessToken).mockReturnValue('mock-access-token');
-    vi.mocked(generateRefreshToken).mockReturnValue('mock-refresh-token');
+    setupAuthMocks();
   });
 
   afterEach(() => {
@@ -46,8 +41,8 @@ describe('[P0][auth] AuthService - register', () => {
       preferredLanguage: 'ENGLISH',
     };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-    vi.mocked(prisma.user.create).mockResolvedValue(mockUser as unknown);
+    prismaMock.user.findUnique.mockResolvedValue(null);
+    prismaMock.user.create.mockResolvedValue(mockUser as unknown);
 
     const result = await AuthService.register(validInput);
 
@@ -60,8 +55,8 @@ describe('[P0][auth] AuthService - register', () => {
   });
 
   it('should check if email already exists', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-    vi.mocked(prisma.user.create).mockResolvedValue({
+    prismaMock.user.findUnique.mockResolvedValue(null);
+    prismaMock.user.create.mockResolvedValue({
       id: 'test-id',
       email: validInput.email,
       preferredLanguage: 'ENGLISH',
@@ -69,7 +64,7 @@ describe('[P0][auth] AuthService - register', () => {
 
     await AuthService.register(validInput);
 
-    expect(prisma.user.findUnique).toHaveBeenCalledWith({
+    expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
       where: { email: validInput.email },
     });
   });
@@ -80,7 +75,7 @@ describe('[P0][auth] AuthService - register', () => {
       email: validInput.email,
     };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(existingUser as unknown);
+    prismaMock.user.findUnique.mockResolvedValue(existingUser as unknown);
 
     await expect(AuthService.register(validInput)).rejects.toThrow(
       'User with this email already exists'
@@ -88,11 +83,10 @@ describe('[P0][auth] AuthService - register', () => {
   });
 
   it('should hash the password with correct salt rounds', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-    vi.mocked(prisma.user.create).mockImplementation(async ({ data }) => {
-      // Verify password is hashed (not plain text)
+    prismaMock.user.findUnique.mockResolvedValue(null);
+    prismaMock.user.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => {
       expect(data.passwordHash).not.toBe(validInput.password);
-      expect(data.passwordHash.length).toBeGreaterThan(50); // bcrypt hash is ~60 chars
+      expect((data.passwordHash as string).length).toBeGreaterThan(50);
       return {
         id: 'test-user-id',
         email: data.email,
@@ -114,23 +108,23 @@ describe('[P0][auth] AuthService - register', () => {
       preferredLanguage: 'ENGLISH',
     };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-    vi.mocked(prisma.user.create).mockResolvedValue(mockUser as unknown);
+    prismaMock.user.findUnique.mockResolvedValue(null);
+    prismaMock.user.create.mockResolvedValue(mockUser as unknown);
 
     await AuthService.register(validInput);
 
-    expect(generateAccessToken).toHaveBeenCalledWith(mockUser.id, mockUser.email, false);
-    expect(generateRefreshToken).toHaveBeenCalledWith(mockUser.id);
-    expect(redis.setex).toHaveBeenCalledWith(
+    expect(jwtMock.generateAccessToken).toHaveBeenCalledWith(mockUser.id, mockUser.email, false);
+    expect(jwtMock.generateRefreshToken).toHaveBeenCalledWith(mockUser.id);
+    expect(redisMock.setex).toHaveBeenCalledWith(
       `refresh_token:${mockUser.id}`,
-      7 * 24 * 60 * 60, // 7 days
+      7 * 24 * 60 * 60,
       'mock-refresh-token'
     );
   });
 
   it('should use ENGLISH as default language when not specified', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-    vi.mocked(prisma.user.create).mockImplementation(async ({ data }) => {
+    prismaMock.user.findUnique.mockResolvedValue(null);
+    prismaMock.user.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => {
       expect(data.preferredLanguage).toBe('ENGLISH');
       return {
         id: 'test-user-id',
@@ -145,8 +139,8 @@ describe('[P0][auth] AuthService - register', () => {
   it('should use provided language when specified', async () => {
     const inputWithLanguage = { ...validInput, preferredLanguage: 'HEBREW' as const };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-    vi.mocked(prisma.user.create).mockImplementation(async ({ data }) => {
+    prismaMock.user.findUnique.mockResolvedValue(null);
+    prismaMock.user.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => {
       expect(data.preferredLanguage).toBe('HEBREW');
       return {
         id: 'test-user-id',
@@ -159,8 +153,8 @@ describe('[P0][auth] AuthService - register', () => {
   });
 
   it('should set isBlocked to false for new users', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-    vi.mocked(prisma.user.create).mockImplementation(async ({ data }) => {
+    prismaMock.user.findUnique.mockResolvedValue(null);
+    prismaMock.user.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => {
       expect(data.isBlocked).toBe(false);
       return { id: 'test-user-id', email: data.email, preferredLanguage: 'ENGLISH' } as unknown;
     });
@@ -169,8 +163,8 @@ describe('[P0][auth] AuthService - register', () => {
   });
 
   it('should set isVerified to false for new users', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-    vi.mocked(prisma.user.create).mockImplementation(async ({ data }) => {
+    prismaMock.user.findUnique.mockResolvedValue(null);
+    prismaMock.user.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => {
       expect(data.isVerified).toBe(false);
       return { id: 'test-user-id', email: data.email, preferredLanguage: 'ENGLISH' } as unknown;
     });

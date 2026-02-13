@@ -3,7 +3,7 @@
  * Tests for premium subscription management with Stripe
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { SubscriptionsService } from './subscriptions.service.js';
 import { prisma } from '../lib/prisma.js';
 
@@ -32,7 +32,7 @@ vi.mock('../lib/prisma.js', () => ({
 }));
 
 // Access mocked prisma through the imported module
-const mockPrisma = vi.mocked(prisma);
+const mockPrisma = (prisma as Mock);
 
 describe('[P0][payments] SubscriptionsService', () => {
   beforeEach(() => {

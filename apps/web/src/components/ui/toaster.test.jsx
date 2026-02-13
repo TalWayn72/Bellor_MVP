@@ -10,7 +10,7 @@ import React from 'react';
 
 // Mock useToast to control toast data
 vi.mock('@/components/ui/use-toast', () => ({
-  useToast: vi.fn(),
+  useToast: vi.fn(() => ({ toasts: [] })),
 }));
 
 import { useToast } from '@/components/ui/use-toast';
@@ -21,12 +21,13 @@ describe('[P0][ui] Toaster - non-DOM prop filtering', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    useToast.mockReturnValue({ toasts: [] });
     // Capture console.error to detect React warnings about unknown props
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    consoleErrorSpy.mockRestore();
+    consoleErrorSpy?.mockRestore();
   });
 
   it('should render toasts without passing open/onOpenChange to DOM', () => {

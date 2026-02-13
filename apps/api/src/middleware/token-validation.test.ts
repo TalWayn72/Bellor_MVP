@@ -7,7 +7,7 @@
  * @see token-validation.ts
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { createMockRequest, createMockReply } from '../test/setup.js';
 
 // ---------- Mocks ----------
@@ -177,7 +177,7 @@ describe('[P0][auth] sendAuthError', () => {
 
     sendAuthError(reply, 'UNAUTHORIZED', 'Missing token', 401, request);
 
-    expect(vi.mocked(logSecurityEvent)).toHaveBeenCalledWith(
+    expect((logSecurityEvent as Mock)).toHaveBeenCalledWith(
       'auth.failure',
       request,
       {
@@ -196,7 +196,7 @@ describe('[P0][auth] sendAuthError', () => {
 
     sendAuthError(reply, 'FORBIDDEN', 'Admin only', 403, request);
 
-    expect(vi.mocked(logSecurityEvent)).toHaveBeenCalledWith(
+    expect((logSecurityEvent as Mock)).toHaveBeenCalledWith(
       'access.denied',
       request,
       {
@@ -210,7 +210,7 @@ describe('[P0][auth] sendAuthError', () => {
   it('should not log security event when request is not provided', () => {
     sendAuthError(reply, 'UNAUTHORIZED', 'No token');
 
-    expect(vi.mocked(logSecurityEvent)).not.toHaveBeenCalled();
+    expect((logSecurityEvent as Mock)).not.toHaveBeenCalled();
   });
 
   it('should support custom status codes (e.g. 500)', () => {

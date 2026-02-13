@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { MissionsService } from './missions.service.js';
 import { prisma } from '../lib/prisma.js';
 
@@ -37,7 +37,7 @@ describe('[P1][content] MissionsService', () => {
         _count: { responses: 0 },
       };
 
-      vi.mocked(prisma.mission.create).mockResolvedValue(mockMission as never);
+      (prisma.mission.create as Mock).mockResolvedValue(mockMission as never);
 
       const result = await MissionsService.createMission({
         title: 'Test Mission',
@@ -69,7 +69,7 @@ describe('[P1][content] MissionsService', () => {
         _count: { responses: 5 },
       };
 
-      vi.mocked(prisma.mission.findUnique).mockResolvedValue(mockMission as never);
+      (prisma.mission.findUnique as Mock).mockResolvedValue(mockMission as never);
 
       const result = await MissionsService.getMissionById('mission-1');
 
@@ -84,7 +84,7 @@ describe('[P1][content] MissionsService', () => {
     });
 
     it('should throw error when mission not found', async () => {
-      vi.mocked(prisma.mission.findUnique).mockResolvedValue(null);
+      (prisma.mission.findUnique as Mock).mockResolvedValue(null);
 
       await expect(MissionsService.getMissionById('non-existent')).rejects.toThrow('Mission not found');
     });
@@ -97,8 +97,8 @@ describe('[P1][content] MissionsService', () => {
         { id: 'mission-2', title: 'Mission 2' },
       ];
 
-      vi.mocked(prisma.mission.findMany).mockResolvedValue(mockMissions as never);
-      vi.mocked(prisma.mission.count).mockResolvedValue(10);
+      (prisma.mission.findMany as Mock).mockResolvedValue(mockMissions as never);
+      (prisma.mission.count as Mock).mockResolvedValue(10);
 
       const result = await MissionsService.listMissions({
         limit: 20,
@@ -111,8 +111,8 @@ describe('[P1][content] MissionsService', () => {
     });
 
     it('should filter by mission type', async () => {
-      vi.mocked(prisma.mission.findMany).mockResolvedValue([]);
-      vi.mocked(prisma.mission.count).mockResolvedValue(0);
+      (prisma.mission.findMany as Mock).mockResolvedValue([]);
+      (prisma.mission.count as Mock).mockResolvedValue(0);
 
       await MissionsService.listMissions({
         limit: 20,
@@ -130,7 +130,7 @@ describe('[P1][content] MissionsService', () => {
 
   describe('deleteMission', () => {
     it('should delete a mission', async () => {
-      vi.mocked(prisma.mission.delete).mockResolvedValue({} as never);
+      (prisma.mission.delete as Mock).mockResolvedValue({} as never);
 
       await MissionsService.deleteMission('mission-1');
 

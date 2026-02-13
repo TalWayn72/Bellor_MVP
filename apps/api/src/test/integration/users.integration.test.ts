@@ -5,7 +5,7 @@
  * @see PRD.md Section 10 - Phase 6 Testing
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
@@ -56,8 +56,8 @@ describe('[P2][profile] GET /api/v1/users', () => {
   });
 
   it('should return paginated user list', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([mockUser] as unknown as User[]);
-    vi.mocked(prisma.user.count).mockResolvedValue(1);
+    (prisma.user.findMany as Mock).mockResolvedValue([mockUser] as unknown as User[]);
+    (prisma.user.count as Mock).mockResolvedValue(1);
 
     const response = await app.inject({
       method: 'GET',
@@ -76,8 +76,8 @@ describe('[P2][profile] GET /api/v1/users', () => {
   });
 
   it('should accept pagination query params', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
+    (prisma.user.count as Mock).mockResolvedValue(0);
 
     const response = await app.inject({
       method: 'GET',
@@ -103,7 +103,7 @@ describe('[P2][profile] GET /api/v1/users/:id', () => {
   });
 
   it('should return user details', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as unknown as User);
 
     const response = await app.inject({
       method: 'GET',
@@ -118,7 +118,7 @@ describe('[P2][profile] GET /api/v1/users/:id', () => {
   });
 
   it('should return 404 for non-existent user', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'GET',
@@ -145,8 +145,8 @@ describe('[P2][profile] PATCH /api/v1/users/:id', () => {
   });
 
   it('should update user profile', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
-    vi.mocked(prisma.user.update).mockResolvedValue({
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as unknown as User);
+    (prisma.user.update as Mock).mockResolvedValue({
       ...mockUser,
       firstName: 'Updated',
     } as unknown as User);
@@ -164,8 +164,8 @@ describe('[P2][profile] PATCH /api/v1/users/:id', () => {
   });
 
   it('should update bio field', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
-    vi.mocked(prisma.user.update).mockResolvedValue({
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as unknown as User);
+    (prisma.user.update as Mock).mockResolvedValue({
       ...mockUser,
       bio: 'New bio text',
     } as unknown as User);
@@ -181,8 +181,8 @@ describe('[P2][profile] PATCH /api/v1/users/:id', () => {
   });
 
   it('should handle snake_case fields from frontend', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as unknown as User);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as unknown as User);
+    (prisma.user.update as Mock).mockResolvedValue(mockUser as unknown as User);
 
     const response = await app.inject({
       method: 'PATCH',
@@ -215,8 +215,8 @@ describe('[P2][profile] PATCH /api/v1/users/:id', () => {
 // ============================================
 describe('[P2][profile] PATCH /api/v1/users/:id/language', () => {
   it('should update user language', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
-    vi.mocked(prisma.user.update).mockResolvedValue({
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as unknown as User);
+    (prisma.user.update as Mock).mockResolvedValue({
       ...mockUser,
       preferredLanguage: 'HEBREW',
     } as unknown as User);
@@ -247,7 +247,7 @@ describe('[P2][profile] PATCH /api/v1/users/:id/language', () => {
 // ============================================
 describe('[P2][profile] GET /api/v1/users/:id/stats', () => {
   it('should return user statistics', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+    (prisma.user.findUnique as Mock).mockResolvedValue({
       id: 'test-user-id',
       isPremium: false,
       createdAt: new Date('2024-01-01'),
@@ -287,8 +287,8 @@ describe('[P2][profile] GET /api/v1/users/:id/stats', () => {
 // ============================================
 describe('[P2][profile] GET /api/v1/users/search', () => {
   it('should search users by query', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([mockUser] as unknown as User[]);
-    vi.mocked(prisma.user.count).mockResolvedValue(1);
+    (prisma.user.findMany as Mock).mockResolvedValue([mockUser] as unknown as User[]);
+    (prisma.user.count as Mock).mockResolvedValue(1);
 
     const response = await app.inject({
       method: 'GET',
@@ -325,8 +325,8 @@ describe('[P2][profile] DELETE /api/v1/users/:id', () => {
   });
 
   it('should deactivate user', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
-    vi.mocked(prisma.user.update).mockResolvedValue({ ...mockUser, isBlocked: true } as unknown as User);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as unknown as User);
+    (prisma.user.update as Mock).mockResolvedValue({ ...mockUser, isBlocked: true } as unknown as User);
 
     const response = await app.inject({
       method: 'DELETE',
@@ -354,7 +354,7 @@ describe('[P2][profile] GET /api/v1/users/:id/export', () => {
   });
 
   it('should export user data (GDPR Article 20)', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+    (prisma.user.findUnique as Mock).mockResolvedValue({
       ...mockUser,
       location: { city: 'Tel Aviv' },
       lookingFor: ['FEMALE'],
@@ -400,8 +400,8 @@ describe('[P2][profile] DELETE /api/v1/users/:id/gdpr', () => {
   });
 
   it('should permanently delete user data (GDPR Article 17)', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
-    vi.mocked(prisma.$transaction).mockImplementation(async (cb: (tx: unknown) => Promise<unknown>) => {
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as unknown as User);
+    (prisma.$transaction as Mock).mockImplementation(async (cb: (tx: unknown) => Promise<unknown>) => {
       const tx = {
         message: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         response: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },

@@ -4,7 +4,7 @@
  * Tests the full HTTP request/response cycle for user registration.
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
@@ -36,8 +36,8 @@ describe('[P0][auth] POST /api/v1/auth/register', () => {
   };
 
   it('should register a new user with valid data', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null); // No existing user
-    vi.mocked(prisma.user.create).mockResolvedValue({
+    (prisma.user.findUnique as Mock).mockResolvedValue(null); // No existing user
+    (prisma.user.create as Mock).mockResolvedValue({
       id: 'new-user-id',
       email: 'newuser@example.com',
       firstName: 'John',
@@ -50,7 +50,7 @@ describe('[P0][auth] POST /api/v1/auth/register', () => {
       isPremium: false,
       createdAt: new Date(),
     } as unknown as User);
-    vi.mocked(redis.setex).mockResolvedValue('OK');
+    (redis.setex as Mock).mockResolvedValue('OK');
 
     const response = await app.inject({
       method: 'POST',
@@ -122,7 +122,7 @@ describe('[P0][auth] POST /api/v1/auth/register', () => {
   });
 
   it('should return 409 when email already exists', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+    (prisma.user.findUnique as Mock).mockResolvedValue({
       id: 'existing-user',
       email: 'newuser@example.com',
     } as unknown as User);
@@ -149,15 +149,15 @@ describe('[P0][auth] POST /api/v1/auth/register', () => {
   });
 
   it('should accept optional preferredLanguage', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-    vi.mocked(prisma.user.create).mockResolvedValue({
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
+    (prisma.user.create as Mock).mockResolvedValue({
       id: 'new-user-id',
       email: 'newuser@example.com',
       firstName: 'John',
       lastName: 'Doe',
       preferredLanguage: 'HEBREW',
     } as unknown as User);
-    vi.mocked(redis.setex).mockResolvedValue('OK');
+    (redis.setex as Mock).mockResolvedValue('OK');
 
     const response = await app.inject({
       method: 'POST',

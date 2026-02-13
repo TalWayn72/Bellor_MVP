@@ -5,7 +5,7 @@
  * user retrieval, field selection, and error handling.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { createMockUser } from './users-test-helpers.js';
 
 // Import after mocking (mock is set up in helpers)
@@ -23,7 +23,7 @@ describe('[P2][profile] UsersService - getUserById', () => {
 
   it('should return user when found', async () => {
     const mockUser = createMockUser();
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as unknown);
 
     const result = await UsersService.getUserById('test-user-id');
 
@@ -35,14 +35,14 @@ describe('[P2][profile] UsersService - getUserById', () => {
   });
 
   it('should throw error when user not found', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
 
     await expect(UsersService.getUserById('non-existent-id')).rejects.toThrow('User not found');
   });
 
   it('should include isVerified in user details', async () => {
     const mockUser = createMockUser({ isVerified: true });
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as unknown);
 
     await UsersService.getUserById('test-user-id');
 
@@ -56,7 +56,7 @@ describe('[P2][profile] UsersService - getUserById', () => {
   });
 
   it('should select comprehensive user fields', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createMockUser() as unknown);
+    (prisma.user.findUnique as Mock).mockResolvedValue(createMockUser() as unknown);
 
     await UsersService.getUserById('test-user-id');
 

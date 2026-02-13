@@ -10,8 +10,9 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { Mock } from 'vitest';
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { redis } from '../lib/redis.js';
+import { getRedis, type TypedRedis } from '../test/helpers/typed-mocks.js';
 import {
   recordFailedAttempt,
   isLockedOut,
@@ -22,8 +23,8 @@ import {
   handleSuccessfulLogin,
 } from './auth-hardening.js';
 
-// Redis is already mocked via test/setup.ts
-const mockRedis = vi.mocked(redis);
+// Redis is already mocked via test/setup.ts - use typed accessor
+const mockRedis: TypedRedis = getRedis();
 
 // Mock security logger
 vi.mock('./logger.js', () => ({
@@ -36,7 +37,11 @@ vi.mock('./logger.js', () => ({
 
 import { securityLogger } from './logger.js';
 
-const mockSecurityLogger = vi.mocked(securityLogger);
+const mockSecurityLogger = {
+  bruteForceBlocked: securityLogger.bruteForceBlocked as Mock,
+  loginFailure: securityLogger.loginFailure as Mock,
+  loginSuccess: securityLogger.loginSuccess as Mock,
+};
 
 // ============================================
 // Helpers

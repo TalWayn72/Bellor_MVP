@@ -4,7 +4,7 @@
  * Tests for chat join/leave, messaging, and typing indicators.
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi, type Mock } from 'vitest';
 import { createServer, Server as HttpServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { io as SocketClient, Socket as ClientSocket } from 'socket.io-client';
@@ -39,11 +39,11 @@ describe('[P1][chat] WebSocket - Chat Join/Leave & Messaging', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    vi.mocked(redis.setex).mockResolvedValue('OK');
-    vi.mocked(redis.get).mockResolvedValue(null);
-    vi.mocked(redis.del).mockResolvedValue(1);
-    vi.mocked(redis.expire).mockResolvedValue(1);
-    vi.mocked(redis.keys).mockResolvedValue([]);
+    (redis.setex as Mock).mockResolvedValue('OK');
+    (redis.get as Mock).mockResolvedValue(null);
+    (redis.del as Mock).mockResolvedValue(1);
+    (redis.expire as Mock).mockResolvedValue(1);
+    (redis.keys as Mock).mockResolvedValue([]);
 
     clientSocket1 = SocketClient(TEST_URL, { auth: { token: generateTestToken(mockUser1.id, mockUser1.email) }, transports: ['websocket'] });
     clientSocket2 = SocketClient(TEST_URL, { auth: { token: generateTestToken(mockUser2.id, mockUser2.email) }, transports: ['websocket'] });
@@ -62,20 +62,20 @@ describe('[P1][chat] WebSocket - Chat Join/Leave & Messaging', () => {
 
   describe('chat:join', () => {
     it('should allow user to join their conversation', async () => {
-      vi.mocked(prisma.chat.findFirst).mockResolvedValue(mockChat as unknown as Chat);
+      (prisma.chat.findFirst as Mock).mockResolvedValue(mockChat as unknown as Chat);
       const result = await new Promise<SocketAck>((resolve) => { clientSocket1.emit('chat:join', { chatId: mockChat.id }, resolve); });
       expect(result.success).toBe(true);
       expect(result.data.chatId).toBe(mockChat.id);
     });
 
     it('should reject joining non-existent conversation', async () => {
-      vi.mocked(prisma.chat.findFirst).mockResolvedValue(null);
+      (prisma.chat.findFirst as Mock).mockResolvedValue(null);
       const result = await new Promise<SocketAck>((resolve) => { clientSocket1.emit('chat:join', { chatId: 'non-existent-chat' }, resolve); });
       expect(result.error).toBe('Conversation not found or access denied');
     });
 
     it('should reject joining conversation user is not part of', async () => {
-      vi.mocked(prisma.chat.findFirst).mockResolvedValue(null);
+      (prisma.chat.findFirst as Mock).mockResolvedValue(null);
       const result = await new Promise<SocketAck>((resolve) => { clientSocket1.emit('chat:join', { chatId: 'other-users-chat' }, resolve); });
       expect(result.error).toBe('Conversation not found or access denied');
     });
@@ -90,9 +90,9 @@ describe('[P1][chat] WebSocket - Chat Join/Leave & Messaging', () => {
 
   describe('chat:message', () => {
     it('should send message and broadcast to conversation room', async () => {
-      vi.mocked(prisma.chat.findFirst).mockResolvedValue(mockChat as unknown as Chat);
-      vi.mocked(prisma.message.create).mockResolvedValue(mockMessage as unknown as Message);
-      vi.mocked(prisma.chat.update).mockResolvedValue(mockChat as unknown as Chat);
+      (prisma.chat.findFirst as Mock).mockResolvedValue(mockChat as unknown as Chat);
+      (prisma.message.create as Mock).mockResolvedValue(mockMessage as unknown as Message);
+      (prisma.chat.update as Mock).mockResolvedValue(mockChat as unknown as Chat);
 
       await Promise.all([
         new Promise<SocketAck>((resolve) => { clientSocket1.emit('chat:join', { chatId: mockChat.id }, resolve); }),
@@ -115,7 +115,7 @@ describe('[P1][chat] WebSocket - Chat Join/Leave & Messaging', () => {
     });
 
     it('should reject sending message to non-existent conversation', async () => {
-      vi.mocked(prisma.chat.findFirst).mockResolvedValue(null);
+      (prisma.chat.findFirst as Mock).mockResolvedValue(null);
       const result = await new Promise<SocketAck>((resolve) => {
         clientSocket1.emit('chat:message', { chatId: 'non-existent-chat', content: 'Test message' }, resolve);
       });
@@ -125,7 +125,7 @@ describe('[P1][chat] WebSocket - Chat Join/Leave & Messaging', () => {
 
   describe('chat:typing', () => {
     it('should broadcast typing indicator to conversation room', async () => {
-      vi.mocked(prisma.chat.findFirst).mockResolvedValue(mockChat as unknown as Chat);
+      (prisma.chat.findFirst as Mock).mockResolvedValue(mockChat as unknown as Chat);
       await Promise.all([
         new Promise<SocketAck>((resolve) => { clientSocket1.emit('chat:join', { chatId: mockChat.id }, resolve); }),
         new Promise<SocketAck>((resolve) => { clientSocket2.emit('chat:join', { chatId: mockChat.id }, resolve); }),
@@ -139,7 +139,7 @@ describe('[P1][chat] WebSocket - Chat Join/Leave & Messaging', () => {
     });
 
     it('should broadcast typing stopped indicator', async () => {
-      vi.mocked(prisma.chat.findFirst).mockResolvedValue(mockChat as unknown as Chat);
+      (prisma.chat.findFirst as Mock).mockResolvedValue(mockChat as unknown as Chat);
       await Promise.all([
         new Promise<SocketAck>((resolve) => { clientSocket1.emit('chat:join', { chatId: mockChat.id }, resolve); }),
         new Promise<SocketAck>((resolve) => { clientSocket2.emit('chat:join', { chatId: mockChat.id }, resolve); }),

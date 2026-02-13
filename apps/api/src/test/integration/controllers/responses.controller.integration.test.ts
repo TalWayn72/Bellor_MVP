@@ -5,7 +5,7 @@
  * @see PRD.md Section 10 - Phase 6 Testing (Integration)
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../../build-test-app.js';
 import { prisma } from '../../../lib/prisma.js';
@@ -46,8 +46,8 @@ const mockResponse: Response = {
 // ============================================
 describe('[P1][content] POST /api/v1/responses - Create Response', () => {
   it('should create text response successfully', async () => {
-    vi.mocked(prisma.response.create).mockResolvedValue(mockResponse);
-    vi.mocked(prisma.user.update).mockResolvedValue(createMockUser());
+    (prisma.response.create as Mock).mockResolvedValue(mockResponse);
+    (prisma.user.update as Mock).mockResolvedValue(createMockUser());
 
     const response = await app.inject({
       method: 'POST',
@@ -107,8 +107,8 @@ describe('[P1][content] POST /api/v1/responses - Create Response', () => {
 
   it('should accept voice response', async () => {
     const voiceResponse: Response = { ...mockResponse, responseType: 'VOICE' };
-    vi.mocked(prisma.response.create).mockResolvedValue(voiceResponse);
-    vi.mocked(prisma.user.update).mockResolvedValue(createMockUser());
+    (prisma.response.create as Mock).mockResolvedValue(voiceResponse);
+    (prisma.user.update as Mock).mockResolvedValue(createMockUser());
 
     const response = await app.inject({
       method: 'POST',
@@ -126,8 +126,8 @@ describe('[P1][content] POST /api/v1/responses - Create Response', () => {
 
   it('should accept video response', async () => {
     const videoResponse: Response = { ...mockResponse, responseType: 'VIDEO' };
-    vi.mocked(prisma.response.create).mockResolvedValue(videoResponse);
-    vi.mocked(prisma.user.update).mockResolvedValue(createMockUser());
+    (prisma.response.create as Mock).mockResolvedValue(videoResponse);
+    (prisma.user.update as Mock).mockResolvedValue(createMockUser());
 
     const response = await app.inject({
       method: 'POST',
@@ -149,8 +149,8 @@ describe('[P1][content] POST /api/v1/responses - Create Response', () => {
 // ============================================
 describe('[P1][content] GET /api/v1/responses - List Responses', () => {
   it('should list responses with pagination', async () => {
-    vi.mocked(prisma.response.findMany).mockResolvedValue([mockResponse]);
-    vi.mocked(prisma.response.count).mockResolvedValue(1);
+    (prisma.response.findMany as Mock).mockResolvedValue([mockResponse]);
+    (prisma.response.count as Mock).mockResolvedValue(1);
 
     const response = await app.inject({
       method: 'GET',
@@ -171,8 +171,8 @@ describe('[P1][content] GET /api/v1/responses - List Responses', () => {
   });
 
   it('should filter by mission id', async () => {
-    vi.mocked(prisma.response.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.response.count).mockResolvedValue(0);
+    (prisma.response.findMany as Mock).mockResolvedValue([]);
+    (prisma.response.count as Mock).mockResolvedValue(0);
 
     const response = await app.inject({
       method: 'GET',
@@ -184,8 +184,8 @@ describe('[P1][content] GET /api/v1/responses - List Responses', () => {
   });
 
   it('should filter by user id', async () => {
-    vi.mocked(prisma.response.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.response.count).mockResolvedValue(0);
+    (prisma.response.findMany as Mock).mockResolvedValue([]);
+    (prisma.response.count as Mock).mockResolvedValue(0);
 
     const response = await app.inject({
       method: 'GET',
@@ -197,8 +197,8 @@ describe('[P1][content] GET /api/v1/responses - List Responses', () => {
   });
 
   it('should filter by response type', async () => {
-    vi.mocked(prisma.response.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.response.count).mockResolvedValue(0);
+    (prisma.response.findMany as Mock).mockResolvedValue([]);
+    (prisma.response.count as Mock).mockResolvedValue(0);
 
     const response = await app.inject({
       method: 'GET',
@@ -210,8 +210,8 @@ describe('[P1][content] GET /api/v1/responses - List Responses', () => {
   });
 
   it('should filter by isPublic flag', async () => {
-    vi.mocked(prisma.response.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.response.count).mockResolvedValue(0);
+    (prisma.response.findMany as Mock).mockResolvedValue([]);
+    (prisma.response.count as Mock).mockResolvedValue(0);
 
     const response = await app.inject({
       method: 'GET',
@@ -228,8 +228,8 @@ describe('[P1][content] GET /api/v1/responses - List Responses', () => {
 // ============================================
 describe('[P1][content] GET /api/v1/responses/my - Get My Responses', () => {
   it('should get own responses', async () => {
-    vi.mocked(prisma.response.findMany).mockResolvedValue([mockResponse]);
-    vi.mocked(prisma.response.count).mockResolvedValue(1);
+    (prisma.response.findMany as Mock).mockResolvedValue([mockResponse]);
+    (prisma.response.count as Mock).mockResolvedValue(1);
 
     const response = await app.inject({
       method: 'GET',
@@ -250,8 +250,8 @@ describe('[P1][content] GET /api/v1/responses/my - Get My Responses', () => {
   });
 
   it('should accept pagination', async () => {
-    vi.mocked(prisma.response.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.response.count).mockResolvedValue(0);
+    (prisma.response.findMany as Mock).mockResolvedValue([]);
+    (prisma.response.count as Mock).mockResolvedValue(0);
 
     const response = await app.inject({
       method: 'GET',
@@ -268,7 +268,7 @@ describe('[P1][content] GET /api/v1/responses/my - Get My Responses', () => {
 // ============================================
 describe('[P1][content] GET /api/v1/responses/:id - Get Response By ID', () => {
   it('should get response by id', async () => {
-    vi.mocked(prisma.response.findUnique).mockResolvedValue(mockResponse);
+    (prisma.response.findUnique as Mock).mockResolvedValue(mockResponse);
 
     const response = await app.inject({
       method: 'GET',
@@ -280,7 +280,7 @@ describe('[P1][content] GET /api/v1/responses/:id - Get Response By ID', () => {
   });
 
   it('should return 404 for non-existent response', async () => {
-    vi.mocked(prisma.response.findUnique).mockResolvedValue(null);
+    (prisma.response.findUnique as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'GET',
@@ -309,8 +309,8 @@ describe('[P1][content] GET /api/v1/responses/:id - Get Response By ID', () => {
 // ============================================
 describe('[P1][content] PATCH /api/v1/responses/:id - Update Response', () => {
   it('should update own response', async () => {
-    vi.mocked(prisma.response.findUnique).mockResolvedValue(mockResponse);
-    vi.mocked(prisma.response.update).mockResolvedValue(mockResponse);
+    (prisma.response.findUnique as Mock).mockResolvedValue(mockResponse);
+    (prisma.response.update as Mock).mockResolvedValue(mockResponse);
 
     const response = await app.inject({
       method: 'PATCH',
@@ -327,7 +327,7 @@ describe('[P1][content] PATCH /api/v1/responses/:id - Update Response', () => {
 
   it('should not update other user response', async () => {
     const otherUserResponse: Response = { ...mockResponse, userId: 'other-user-id' };
-    vi.mocked(prisma.response.findUnique).mockResolvedValue(otherUserResponse);
+    (prisma.response.findUnique as Mock).mockResolvedValue(otherUserResponse);
 
     const response = await app.inject({
       method: 'PATCH',
@@ -361,8 +361,8 @@ describe('[P1][content] PATCH /api/v1/responses/:id - Update Response', () => {
 // ============================================
 describe('[P1][content] DELETE /api/v1/responses/:id - Delete Response', () => {
   it('should delete own response', async () => {
-    vi.mocked(prisma.response.findUnique).mockResolvedValue(mockResponse);
-    vi.mocked(prisma.response.delete).mockResolvedValue(mockResponse);
+    (prisma.response.findUnique as Mock).mockResolvedValue(mockResponse);
+    (prisma.response.delete as Mock).mockResolvedValue(mockResponse);
 
     const response = await app.inject({
       method: 'DELETE',
@@ -375,7 +375,7 @@ describe('[P1][content] DELETE /api/v1/responses/:id - Delete Response', () => {
 
   it('should not delete other user response', async () => {
     const otherUserResponse: Response = { ...mockResponse, userId: 'other-user-id' };
-    vi.mocked(prisma.response.findUnique).mockResolvedValue(otherUserResponse);
+    (prisma.response.findUnique as Mock).mockResolvedValue(otherUserResponse);
 
     const response = await app.inject({
       method: 'DELETE',
@@ -396,7 +396,7 @@ describe('[P1][content] DELETE /api/v1/responses/:id - Delete Response', () => {
   });
 
   it('should return 404 for non-existent response', async () => {
-    vi.mocked(prisma.response.findUnique).mockResolvedValue(null);
+    (prisma.response.findUnique as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'DELETE',

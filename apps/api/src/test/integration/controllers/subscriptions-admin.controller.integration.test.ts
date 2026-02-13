@@ -5,7 +5,7 @@
  * @see PRD.md Section 10 - Phase 6 Testing (Integration)
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader, adminAuthHeader } from '../../build-test-app.js';
 import { prisma } from '../../../lib/prisma.js';
@@ -48,7 +48,7 @@ const mockPlan: SubscriptionPlan = {
 // ============================================
 describe('[P0][payments] POST /api/v1/subscriptions/plans - Create Plan (Admin)', () => {
   it('should create plan as admin', async () => {
-    vi.mocked(prisma.subscriptionPlan.create).mockResolvedValue(mockPlan);
+    (prisma.subscriptionPlan.create as Mock).mockResolvedValue(mockPlan);
 
     const response = await app.inject({
       method: 'POST',
@@ -108,7 +108,7 @@ describe('[P0][payments] POST /api/v1/subscriptions/plans - Create Plan (Admin)'
   });
 
   it('should accept yearly price', async () => {
-    vi.mocked(prisma.subscriptionPlan.create).mockResolvedValue(mockPlan);
+    (prisma.subscriptionPlan.create as Mock).mockResolvedValue(mockPlan);
 
     const response = await app.inject({
       method: 'POST',
@@ -127,7 +127,7 @@ describe('[P0][payments] POST /api/v1/subscriptions/plans - Create Plan (Admin)'
   });
 
   it('should accept optional fields (isPopular, sortOrder)', async () => {
-    vi.mocked(prisma.subscriptionPlan.create).mockResolvedValue(mockPlan);
+    (prisma.subscriptionPlan.create as Mock).mockResolvedValue(mockPlan);
 
     const response = await app.inject({
       method: 'POST',

@@ -5,7 +5,7 @@
  * @see PRD.md Section 10 - Phase 6 Testing (Integration)
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../../build-test-app.js';
 import { prisma } from '../../../lib/prisma.js';
@@ -30,8 +30,8 @@ beforeEach(() => {
 // ============================================
 describe('[P2][profile] GET /api/v1/users - List Users', () => {
   it('should list users with default pagination', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([createMockUser()]);
-    vi.mocked(prisma.user.count).mockResolvedValue(1);
+    (prisma.user.findMany as Mock).mockResolvedValue([createMockUser()]);
+    (prisma.user.count as Mock).mockResolvedValue(1);
 
     const response = await app.inject({
       method: 'GET',
@@ -56,8 +56,8 @@ describe('[P2][profile] GET /api/v1/users - List Users', () => {
   });
 
   it('should accept pagination parameters', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
+    (prisma.user.count as Mock).mockResolvedValue(0);
 
     const response = await app.inject({
       method: 'GET',
@@ -69,8 +69,8 @@ describe('[P2][profile] GET /api/v1/users - List Users', () => {
   });
 
   it('should accept filter parameters', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
+    (prisma.user.count as Mock).mockResolvedValue(0);
 
     const response = await app.inject({
       method: 'GET',
@@ -100,7 +100,7 @@ describe('[P2][profile] GET /api/v1/users - List Users', () => {
 describe('[P2][profile] GET /api/v1/users/:id - Get User By ID', () => {
   it('should get user by id successfully', async () => {
     const mockUser = createMockUser();
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser);
 
     const response = await app.inject({
       method: 'GET',
@@ -115,7 +115,7 @@ describe('[P2][profile] GET /api/v1/users/:id - Get User By ID', () => {
   });
 
   it('should return 404 for non-existent user', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'GET',
@@ -144,8 +144,8 @@ describe('[P2][profile] GET /api/v1/users/:id - Get User By ID', () => {
 describe('[P2][profile] PATCH /api/v1/users/:id - Update User Profile', () => {
   it('should update own profile successfully', async () => {
     const updatedUser = createMockUser({ firstName: 'Updated' });
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createMockUser());
-    vi.mocked(prisma.user.update).mockResolvedValue(updatedUser);
+    (prisma.user.findUnique as Mock).mockResolvedValue(createMockUser());
+    (prisma.user.update as Mock).mockResolvedValue(updatedUser);
 
     const response = await app.inject({
       method: 'PATCH',
@@ -186,7 +186,7 @@ describe('[P2][profile] PATCH /api/v1/users/:id - Update User Profile', () => {
   });
 
   it('should return 404 for non-existent user', async () => {
-    vi.mocked(prisma.user.update).mockRejectedValue(new Error('User not found'));
+    (prisma.user.update as Mock).mockRejectedValue(new Error('User not found'));
 
     const response = await app.inject({
       method: 'PATCH',
@@ -205,8 +205,8 @@ describe('[P2][profile] PATCH /api/v1/users/:id - Update User Profile', () => {
 describe('[P2][profile] PATCH /api/v1/users/:id/language - Update Language', () => {
   it('should update language preference', async () => {
     const updatedUser = createMockUser({ preferredLanguage: 'HEBREW' });
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createMockUser());
-    vi.mocked(prisma.user.update).mockResolvedValue(updatedUser);
+    (prisma.user.findUnique as Mock).mockResolvedValue(createMockUser());
+    (prisma.user.update as Mock).mockResolvedValue(updatedUser);
 
     const response = await app.inject({
       method: 'PATCH',
@@ -248,8 +248,8 @@ describe('[P2][profile] PATCH /api/v1/users/:id/language - Update Language', () 
 // ============================================
 describe('[P2][profile] GET /api/v1/users/search - Search Users', () => {
   it('should search users by query', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([createMockUser()]);
-    vi.mocked(prisma.user.count).mockResolvedValue(1);
+    (prisma.user.findMany as Mock).mockResolvedValue([createMockUser()]);
+    (prisma.user.count as Mock).mockResolvedValue(1);
 
     const response = await app.inject({
       method: 'GET',
@@ -274,8 +274,8 @@ describe('[P2][profile] GET /api/v1/users/search - Search Users', () => {
   });
 
   it('should handle empty search results', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
+    (prisma.user.count as Mock).mockResolvedValue(0);
 
     const response = await app.inject({
       method: 'GET',
@@ -289,8 +289,8 @@ describe('[P2][profile] GET /api/v1/users/search - Search Users', () => {
   });
 
   it('should sanitize search query against SQL injection', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
+    (prisma.user.count as Mock).mockResolvedValue(0);
 
     const response = await app.inject({
       method: 'GET',
@@ -307,8 +307,8 @@ describe('[P2][profile] GET /api/v1/users/search - Search Users', () => {
 // ============================================
 describe('[P2][profile] DELETE /api/v1/users/:id - Deactivate User', () => {
   it('should deactivate own account', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(createMockUser());
-    vi.mocked(prisma.user.update).mockResolvedValue(createMockUser({ isBlocked: true }));
+    (prisma.user.findUnique as Mock).mockResolvedValue(createMockUser());
+    (prisma.user.update as Mock).mockResolvedValue(createMockUser({ isBlocked: true }));
 
     const response = await app.inject({
       method: 'DELETE',
@@ -332,7 +332,7 @@ describe('[P2][profile] DELETE /api/v1/users/:id - Deactivate User', () => {
   });
 
   it('should return 404 for non-existent user', async () => {
-    vi.mocked(prisma.user.update).mockRejectedValue(new Error('User not found'));
+    (prisma.user.update as Mock).mockRejectedValue(new Error('User not found'));
 
     const response = await app.inject({
       method: 'DELETE',

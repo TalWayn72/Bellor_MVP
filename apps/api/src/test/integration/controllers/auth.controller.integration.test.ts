@@ -5,7 +5,7 @@
  * @see PRD.md Section 10 - Phase 6 Testing (Integration)
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../../build-test-app.js';
 import { prisma } from '../../../lib/prisma.js';
@@ -31,8 +31,8 @@ beforeEach(() => {
 describe('[P0][auth] POST /api/v1/auth/register - User Registration', () => {
   it('should register new user successfully', async () => {
     const mockUser = createMockUser({ email: 'newuser@example.com' });
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-    vi.mocked(prisma.user.create).mockResolvedValue(mockUser);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
+    (prisma.user.create as Mock).mockResolvedValue(mockUser);
 
     const response = await app.inject({
       method: 'POST',
@@ -139,7 +139,7 @@ describe('[P0][auth] POST /api/v1/auth/register - User Registration', () => {
 describe('[P0][auth] POST /api/v1/auth/login - User Login', () => {
   it('should login with valid credentials', async () => {
     const mockUser = createMockUser();
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser);
 
     const response = await app.inject({
       method: 'POST',
@@ -155,7 +155,7 @@ describe('[P0][auth] POST /api/v1/auth/login - User Login', () => {
   });
 
   it('should reject login with invalid email', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'POST',
@@ -171,7 +171,7 @@ describe('[P0][auth] POST /api/v1/auth/login - User Login', () => {
 
   it('should reject login with invalid password', async () => {
     const mockUser = createMockUser();
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser);
 
     const response = await app.inject({
       method: 'POST',
@@ -280,7 +280,7 @@ describe('[P0][auth] POST /api/v1/auth/logout - Logout', () => {
 describe('[P0][auth] GET /api/v1/auth/me - Get Current User', () => {
   it('should get current user profile', async () => {
     const mockUser = createMockUser();
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser);
 
     const response = await app.inject({
       method: 'GET',
@@ -297,7 +297,7 @@ describe('[P0][auth] GET /api/v1/auth/me - Get Current User', () => {
     const userWithoutHash = Object.fromEntries(
       Object.entries(mockUser).filter(([key]) => key !== 'passwordHash')
     );
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(userWithoutHash as ReturnType<typeof createMockUser>);
+    (prisma.user.findUnique as Mock).mockResolvedValue(userWithoutHash as ReturnType<typeof createMockUser>);
 
     const response = await app.inject({
       method: 'GET',
@@ -346,8 +346,8 @@ describe('[P0][auth] GET /api/v1/auth/me - Get Current User', () => {
 describe('[P0][auth] POST /api/v1/auth/change-password - Change Password', () => {
   it('should change password with valid credentials', async () => {
     const mockUser = createMockUser();
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser);
+    (prisma.user.update as Mock).mockResolvedValue(mockUser);
 
     const response = await app.inject({
       method: 'POST',
@@ -392,7 +392,7 @@ describe('[P0][auth] POST /api/v1/auth/change-password - Change Password', () =>
 
   it('should reject with incorrect current password', async () => {
     const mockUser = createMockUser();
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser);
 
     const response = await app.inject({
       method: 'POST',
@@ -414,7 +414,7 @@ describe('[P0][auth] POST /api/v1/auth/change-password - Change Password', () =>
 describe('[P0][auth] POST /api/v1/auth/forgot-password - Forgot Password', () => {
   it('should send reset email for existing user', async () => {
     const mockUser = createMockUser();
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser);
 
     const response = await app.inject({
       method: 'POST',
@@ -428,7 +428,7 @@ describe('[P0][auth] POST /api/v1/auth/forgot-password - Forgot Password', () =>
   });
 
   it('should not reveal if email exists (security)', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'POST',
@@ -460,8 +460,8 @@ describe('[P0][auth] POST /api/v1/auth/forgot-password - Forgot Password', () =>
 describe('[P0][auth] POST /api/v1/auth/reset-password - Reset Password', () => {
   it('should reset password with valid token', async () => {
     const mockUser = createMockUser();
-    vi.mocked(prisma.user.findFirst).mockResolvedValue(mockUser);
-    vi.mocked(prisma.user.update).mockResolvedValue(mockUser);
+    (prisma.user.findFirst as Mock).mockResolvedValue(mockUser);
+    (prisma.user.update as Mock).mockResolvedValue(mockUser);
 
     const response = await app.inject({
       method: 'POST',
@@ -477,7 +477,7 @@ describe('[P0][auth] POST /api/v1/auth/reset-password - Reset Password', () => {
   });
 
   it('should reject reset with invalid token', async () => {
-    vi.mocked(prisma.user.findFirst).mockResolvedValue(null);
+    (prisma.user.findFirst as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'POST',

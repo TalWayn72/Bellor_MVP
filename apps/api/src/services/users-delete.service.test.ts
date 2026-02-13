@@ -5,7 +5,7 @@
  * transaction handling and related data cleanup.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { createMockUser } from './users-test-helpers.js';
 
 // Import after mocking (mock is set up in helpers)
@@ -23,9 +23,9 @@ describe('[P0][profile] UsersService - deleteUserGDPR (GDPR Article 17)', () => 
 
   it('should delete user and all related data', async () => {
     const mockUser = createMockUser();
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as unknown);
 
-    vi.mocked(prisma.$transaction).mockImplementation(async (cb: (tx: Record<string, unknown>) => unknown) => {
+    (prisma.$transaction as Mock).mockImplementation(async (cb: (tx: Record<string, unknown>) => unknown) => {
       const tx = {
         message: { deleteMany: vi.fn().mockResolvedValue({ count: 5 }) },
         response: { deleteMany: vi.fn().mockResolvedValue({ count: 3 }) },
@@ -46,21 +46,21 @@ describe('[P0][profile] UsersService - deleteUserGDPR (GDPR Article 17)', () => 
   });
 
   it('should throw error when user not found', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
     await expect(UsersService.deleteUserGDPR('non-existent-id')).rejects.toThrow('User not found');
   });
 
   it('should not call transaction when user not found', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    (prisma.user.findUnique as Mock).mockResolvedValue(null);
     try { await UsersService.deleteUserGDPR('non-existent-id'); } catch { /* Expected */ }
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
   it('should use a transaction for data deletion', async () => {
     const mockUser = createMockUser();
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as unknown);
 
-    vi.mocked(prisma.$transaction).mockImplementation(async (cb: (tx: Record<string, unknown>) => unknown) => {
+    (prisma.$transaction as Mock).mockImplementation(async (cb: (tx: Record<string, unknown>) => unknown) => {
       const tx = {
         message: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         response: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
@@ -82,11 +82,11 @@ describe('[P0][profile] UsersService - deleteUserGDPR (GDPR Article 17)', () => 
 
   it('should delete all related entity types in transaction', async () => {
     const mockUser = createMockUser();
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as unknown);
 
     const deleteMocks: Record<string, ReturnType<typeof vi.fn>> = {};
 
-    vi.mocked(prisma.$transaction).mockImplementation(async (cb: (tx: Record<string, unknown>) => unknown) => {
+    (prisma.$transaction as Mock).mockImplementation(async (cb: (tx: Record<string, unknown>) => unknown) => {
       const tx = {
         message: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         response: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
@@ -119,11 +119,11 @@ describe('[P0][profile] UsersService - deleteUserGDPR (GDPR Article 17)', () => 
 
   it('should delete chats where user is either participant', async () => {
     const mockUser = createMockUser();
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown);
+    (prisma.user.findUnique as Mock).mockResolvedValue(mockUser as unknown);
 
     let chatDeleteArgs: Record<string, unknown>;
 
-    vi.mocked(prisma.$transaction).mockImplementation(async (cb: (tx: Record<string, unknown>) => unknown) => {
+    (prisma.$transaction as Mock).mockImplementation(async (cb: (tx: Record<string, unknown>) => unknown) => {
       const tx = {
         message: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         response: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },

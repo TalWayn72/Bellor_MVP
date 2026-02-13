@@ -5,7 +5,7 @@
  * @see PRD.md Section 10 - Phase 6 Testing
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader } from '../build-test-app.js';
 import { prisma } from '../../lib/prisma.js';
@@ -42,17 +42,17 @@ describe('[P2][infra] Likes Endpoints', () => {
 
     it('should like a user', async () => {
       // Mock target user lookup (likeUser validates user exists)
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'user-2' } as unknown as User);
-      vi.mocked(prisma.like.findUnique).mockResolvedValue(null); // No existing like
-      vi.mocked(prisma.like.findFirst).mockResolvedValue(null); // No mutual like
-      vi.mocked(prisma.like.create).mockResolvedValue({
+      (prisma.user.findUnique as Mock).mockResolvedValue({ id: 'user-2' } as unknown as User);
+      (prisma.like.findUnique as Mock).mockResolvedValue(null); // No existing like
+      (prisma.like.findFirst as Mock).mockResolvedValue(null); // No mutual like
+      (prisma.like.create as Mock).mockResolvedValue({
         id: 'like-1',
         userId: 'test-user-id',
         targetUserId: 'user-2',
         likeType: 'POSITIVE',
         createdAt: new Date(),
       } as unknown as Like);
-      vi.mocked(prisma.notification.create).mockResolvedValue({} as unknown as Notification);
+      (prisma.notification.create as Mock).mockResolvedValue({} as unknown as Notification);
 
       const response = await app.inject({
         method: 'POST',
@@ -76,7 +76,7 @@ describe('[P2][infra] Likes Endpoints', () => {
     });
 
     it('should check if user is liked', async () => {
-      vi.mocked(prisma.like.findFirst).mockResolvedValue(null);
+      (prisma.like.findFirst as Mock).mockResolvedValue(null);
 
       const response = await app.inject({
         method: 'GET',
@@ -93,8 +93,8 @@ describe('[P2][infra] Likes Endpoints', () => {
 
   describe('GET /api/v1/likes/received', () => {
     it('should return received likes', async () => {
-      vi.mocked(prisma.like.findMany).mockResolvedValue([]);
-      vi.mocked(prisma.like.count).mockResolvedValue(0);
+      (prisma.like.findMany as Mock).mockResolvedValue([]);
+      (prisma.like.count as Mock).mockResolvedValue(0);
 
       const response = await app.inject({
         method: 'GET',
@@ -123,14 +123,14 @@ describe('[P2][infra] Follows Endpoints', () => {
     });
 
     it('should follow a user', async () => {
-      vi.mocked(prisma.follow.findFirst).mockResolvedValue(null); // Not already following
-      vi.mocked(prisma.follow.create).mockResolvedValue({
+      (prisma.follow.findFirst as Mock).mockResolvedValue(null); // Not already following
+      (prisma.follow.create as Mock).mockResolvedValue({
         id: 'follow-1',
         followerId: 'test-user-id',
         followingId: 'user-2',
         createdAt: new Date(),
       } as unknown as Follow);
-      vi.mocked(prisma.notification.create).mockResolvedValue({} as unknown as Notification);
+      (prisma.notification.create as Mock).mockResolvedValue({} as unknown as Notification);
 
       const response = await app.inject({
         method: 'POST',
@@ -154,12 +154,12 @@ describe('[P2][infra] Follows Endpoints', () => {
     });
 
     it('should unfollow a user', async () => {
-      vi.mocked(prisma.follow.findUnique).mockResolvedValue({
+      (prisma.follow.findUnique as Mock).mockResolvedValue({
         id: 'follow-1',
         followerId: 'test-user-id',
         followingId: 'user-2',
       } as unknown as Follow);
-      vi.mocked(prisma.follow.delete).mockResolvedValue({} as unknown as Follow);
+      (prisma.follow.delete as Mock).mockResolvedValue({} as unknown as Follow);
 
       const response = await app.inject({
         method: 'DELETE',
@@ -173,8 +173,8 @@ describe('[P2][infra] Follows Endpoints', () => {
 
   describe('GET /api/v1/follows/following', () => {
     it('should return following list', async () => {
-      vi.mocked(prisma.follow.findMany).mockResolvedValue([]);
-      vi.mocked(prisma.follow.count).mockResolvedValue(0);
+      (prisma.follow.findMany as Mock).mockResolvedValue([]);
+      (prisma.follow.count as Mock).mockResolvedValue(0);
 
       const response = await app.inject({
         method: 'GET',
@@ -188,8 +188,8 @@ describe('[P2][infra] Follows Endpoints', () => {
 
   describe('GET /api/v1/follows/followers', () => {
     it('should return followers list', async () => {
-      vi.mocked(prisma.follow.findMany).mockResolvedValue([]);
-      vi.mocked(prisma.follow.count).mockResolvedValue(0);
+      (prisma.follow.findMany as Mock).mockResolvedValue([]);
+      (prisma.follow.count as Mock).mockResolvedValue(0);
 
       const response = await app.inject({
         method: 'GET',
@@ -217,8 +217,8 @@ describe('[P2][infra] Notifications Endpoints', () => {
     });
 
     it('should return notification list', async () => {
-      vi.mocked(prisma.notification.findMany).mockResolvedValue([]);
-      vi.mocked(prisma.notification.count).mockResolvedValue(0);
+      (prisma.notification.findMany as Mock).mockResolvedValue([]);
+      (prisma.notification.count as Mock).mockResolvedValue(0);
 
       const response = await app.inject({
         method: 'GET',
@@ -243,7 +243,7 @@ describe('[P2][infra] Notifications Endpoints', () => {
 
   describe('GET /api/v1/notifications/unread-count', () => {
     it('should return unread count', async () => {
-      vi.mocked(prisma.notification.count).mockResolvedValue(5);
+      (prisma.notification.count as Mock).mockResolvedValue(5);
 
       const response = await app.inject({
         method: 'GET',
@@ -282,8 +282,8 @@ describe('[P2][infra] Missions Endpoints', () => {
     });
 
     it('should return missions list', async () => {
-      vi.mocked(prisma.mission.findMany).mockResolvedValue([mockMission] as unknown as Mission[]);
-      vi.mocked(prisma.mission.count).mockResolvedValue(1);
+      (prisma.mission.findMany as Mock).mockResolvedValue([mockMission] as unknown as Mission[]);
+      (prisma.mission.count as Mock).mockResolvedValue(1);
 
       const response = await app.inject({
         method: 'GET',
@@ -297,8 +297,8 @@ describe('[P2][infra] Missions Endpoints', () => {
 
   describe('GET /api/v1/missions/today', () => {
     it('should return todays mission', async () => {
-      vi.mocked(prisma.mission.findMany).mockResolvedValue([mockMission] as unknown as Mission[]);
-      vi.mocked(prisma.mission.findFirst).mockResolvedValue(mockMission as unknown as Mission);
+      (prisma.mission.findMany as Mock).mockResolvedValue([mockMission] as unknown as Mission[]);
+      (prisma.mission.findFirst as Mock).mockResolvedValue(mockMission as unknown as Mission);
 
       const response = await app.inject({
         method: 'GET',
@@ -326,8 +326,8 @@ describe('[P2][infra] Responses Endpoints', () => {
     });
 
     it('should return responses list', async () => {
-      vi.mocked(prisma.response.findMany).mockResolvedValue([]);
-      vi.mocked(prisma.response.count).mockResolvedValue(0);
+      (prisma.response.findMany as Mock).mockResolvedValue([]);
+      (prisma.response.count as Mock).mockResolvedValue(0);
 
       const response = await app.inject({
         method: 'GET',
@@ -371,7 +371,7 @@ describe('[P2][infra] Stories Endpoints', () => {
     });
 
     it('should return stories feed', async () => {
-      vi.mocked(prisma.story.findMany).mockResolvedValue([]);
+      (prisma.story.findMany as Mock).mockResolvedValue([]);
 
       const response = await app.inject({
         method: 'GET',
@@ -385,7 +385,7 @@ describe('[P2][infra] Stories Endpoints', () => {
 
   describe('GET /api/v1/stories/my', () => {
     it('should return user stories', async () => {
-      vi.mocked(prisma.story.findMany).mockResolvedValue([]);
+      (prisma.story.findMany as Mock).mockResolvedValue([]);
 
       const response = await app.inject({
         method: 'GET',
@@ -413,7 +413,7 @@ describe('[P2][infra] Achievements Endpoints', () => {
     });
 
     it('should return achievements list', async () => {
-      vi.mocked(prisma.achievement.findMany).mockResolvedValue([]);
+      (prisma.achievement.findMany as Mock).mockResolvedValue([]);
 
       const response = await app.inject({
         method: 'GET',

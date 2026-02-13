@@ -292,6 +292,22 @@ describe('[P1][chat] PrivateChat', () => {
 
       expect(screen.getByTestId('send-button')).toBeDisabled();
     });
+
+    it('should handle sending a message via Enter key', async () => {
+      const user = userEvent.setup();
+      render(<PrivateChat />, { wrapper: createWrapper() });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('message-input')).toBeInTheDocument();
+      });
+
+      const input = screen.getByTestId('message-input');
+      await user.type(input, 'Hello via Enter{Enter}');
+
+      await waitFor(() => {
+        expect(mockSendMessage).toHaveBeenCalled();
+      });
+    });
   });
 
   describe('Typing indicator', () => {

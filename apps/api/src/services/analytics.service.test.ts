@@ -6,7 +6,7 @@
  * and export functionality.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 
 // Mock prisma before importing services
 vi.mock('../lib/prisma.js', () => ({
@@ -36,13 +36,13 @@ describe('[P2][admin] AnalyticsOverview - getDashboardOverview', () => {
 
   it('should return overview with all expected sections', async () => {
     // Arrange - mock all 15 parallel count calls + 1 follow-up
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
-    vi.mocked(prisma.chat.count).mockResolvedValue(0);
-    vi.mocked(prisma.message.count).mockResolvedValue(0);
-    vi.mocked(prisma.response.count).mockResolvedValue(0);
-    vi.mocked(prisma.story.count).mockResolvedValue(0);
-    vi.mocked(prisma.report.count).mockResolvedValue(0);
-    vi.mocked(prisma.mission.count).mockResolvedValue(0);
+    (prisma.user.count as Mock).mockResolvedValue(0);
+    (prisma.chat.count as Mock).mockResolvedValue(0);
+    (prisma.message.count as Mock).mockResolvedValue(0);
+    (prisma.response.count as Mock).mockResolvedValue(0);
+    (prisma.story.count as Mock).mockResolvedValue(0);
+    (prisma.report.count as Mock).mockResolvedValue(0);
+    (prisma.mission.count as Mock).mockResolvedValue(0);
 
     // Act
     const result = await AnalyticsOverview.getDashboardOverview();
@@ -59,7 +59,7 @@ describe('[P2][admin] AnalyticsOverview - getDashboardOverview', () => {
     // We mock it sequentially: totalUsers=100, activeToday=20, activeWeek=50,
     // newToday=5, newWeek=15, newMonth=40, premium=10, blocked=3
     // Then the follow-up: previousDayUsers=4
-    vi.mocked(prisma.user.count)
+    (prisma.user.count as Mock)
       .mockResolvedValueOnce(100)  // totalUsers
       .mockResolvedValueOnce(20)   // activeUsersToday
       .mockResolvedValueOnce(50)   // activeUsersWeek
@@ -70,14 +70,14 @@ describe('[P2][admin] AnalyticsOverview - getDashboardOverview', () => {
       .mockResolvedValueOnce(3)    // blockedUsers
       .mockResolvedValueOnce(4);   // previousDayUsers
 
-    vi.mocked(prisma.chat.count).mockResolvedValue(200);
-    vi.mocked(prisma.message.count).mockResolvedValue(500);
-    vi.mocked(prisma.response.count).mockResolvedValue(300);
-    vi.mocked(prisma.story.count)
+    (prisma.chat.count as Mock).mockResolvedValue(200);
+    (prisma.message.count as Mock).mockResolvedValue(500);
+    (prisma.response.count as Mock).mockResolvedValue(300);
+    (prisma.story.count as Mock)
       .mockResolvedValueOnce(80)   // totalStories
       .mockResolvedValueOnce(25);  // activeStories
-    vi.mocked(prisma.report.count).mockResolvedValue(7);
-    vi.mocked(prisma.mission.count).mockResolvedValue(60);
+    (prisma.report.count as Mock).mockResolvedValue(7);
+    (prisma.mission.count as Mock).mockResolvedValue(60);
 
     // Act
     const result = await AnalyticsOverview.getDashboardOverview();
@@ -106,7 +106,7 @@ describe('[P2][admin] AnalyticsOverview - getDashboardOverview', () => {
 
   it('should compute growthRate correctly with previous day users > 0', async () => {
     // newUsersToday=10, previousDayUsers=5 => growthRate = ((10-5)/5)*100 = 100
-    vi.mocked(prisma.user.count)
+    (prisma.user.count as Mock)
       .mockResolvedValueOnce(0)    // totalUsers
       .mockResolvedValueOnce(0)    // activeUsersToday
       .mockResolvedValueOnce(0)    // activeUsersWeek
@@ -116,12 +116,12 @@ describe('[P2][admin] AnalyticsOverview - getDashboardOverview', () => {
       .mockResolvedValueOnce(0)    // premiumUsers
       .mockResolvedValueOnce(0)    // blockedUsers
       .mockResolvedValueOnce(5);   // previousDayUsers
-    vi.mocked(prisma.chat.count).mockResolvedValue(0);
-    vi.mocked(prisma.message.count).mockResolvedValue(0);
-    vi.mocked(prisma.response.count).mockResolvedValue(0);
-    vi.mocked(prisma.story.count).mockResolvedValue(0);
-    vi.mocked(prisma.report.count).mockResolvedValue(0);
-    vi.mocked(prisma.mission.count).mockResolvedValue(0);
+    (prisma.chat.count as Mock).mockResolvedValue(0);
+    (prisma.message.count as Mock).mockResolvedValue(0);
+    (prisma.response.count as Mock).mockResolvedValue(0);
+    (prisma.story.count as Mock).mockResolvedValue(0);
+    (prisma.report.count as Mock).mockResolvedValue(0);
+    (prisma.mission.count as Mock).mockResolvedValue(0);
 
     const result = await AnalyticsOverview.getDashboardOverview();
 
@@ -129,7 +129,7 @@ describe('[P2][admin] AnalyticsOverview - getDashboardOverview', () => {
   });
 
   it('should return growthRate 100 when previousDay is 0 but newToday > 0', async () => {
-    vi.mocked(prisma.user.count)
+    (prisma.user.count as Mock)
       .mockResolvedValueOnce(0)    // totalUsers
       .mockResolvedValueOnce(0)    // activeUsersToday
       .mockResolvedValueOnce(0)    // activeUsersWeek
@@ -139,12 +139,12 @@ describe('[P2][admin] AnalyticsOverview - getDashboardOverview', () => {
       .mockResolvedValueOnce(0)    // premiumUsers
       .mockResolvedValueOnce(0)    // blockedUsers
       .mockResolvedValueOnce(0);   // previousDayUsers = 0
-    vi.mocked(prisma.chat.count).mockResolvedValue(0);
-    vi.mocked(prisma.message.count).mockResolvedValue(0);
-    vi.mocked(prisma.response.count).mockResolvedValue(0);
-    vi.mocked(prisma.story.count).mockResolvedValue(0);
-    vi.mocked(prisma.report.count).mockResolvedValue(0);
-    vi.mocked(prisma.mission.count).mockResolvedValue(0);
+    (prisma.chat.count as Mock).mockResolvedValue(0);
+    (prisma.message.count as Mock).mockResolvedValue(0);
+    (prisma.response.count as Mock).mockResolvedValue(0);
+    (prisma.story.count as Mock).mockResolvedValue(0);
+    (prisma.report.count as Mock).mockResolvedValue(0);
+    (prisma.mission.count as Mock).mockResolvedValue(0);
 
     const result = await AnalyticsOverview.getDashboardOverview();
 
@@ -152,13 +152,13 @@ describe('[P2][admin] AnalyticsOverview - getDashboardOverview', () => {
   });
 
   it('should return growthRate 0 when both previousDay and newToday are 0', async () => {
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
-    vi.mocked(prisma.chat.count).mockResolvedValue(0);
-    vi.mocked(prisma.message.count).mockResolvedValue(0);
-    vi.mocked(prisma.response.count).mockResolvedValue(0);
-    vi.mocked(prisma.story.count).mockResolvedValue(0);
-    vi.mocked(prisma.report.count).mockResolvedValue(0);
-    vi.mocked(prisma.mission.count).mockResolvedValue(0);
+    (prisma.user.count as Mock).mockResolvedValue(0);
+    (prisma.chat.count as Mock).mockResolvedValue(0);
+    (prisma.message.count as Mock).mockResolvedValue(0);
+    (prisma.response.count as Mock).mockResolvedValue(0);
+    (prisma.story.count as Mock).mockResolvedValue(0);
+    (prisma.report.count as Mock).mockResolvedValue(0);
+    (prisma.mission.count as Mock).mockResolvedValue(0);
 
     const result = await AnalyticsOverview.getDashboardOverview();
 
@@ -166,13 +166,13 @@ describe('[P2][admin] AnalyticsOverview - getDashboardOverview', () => {
   });
 
   it('should include ISO timestamp string', async () => {
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
-    vi.mocked(prisma.chat.count).mockResolvedValue(0);
-    vi.mocked(prisma.message.count).mockResolvedValue(0);
-    vi.mocked(prisma.response.count).mockResolvedValue(0);
-    vi.mocked(prisma.story.count).mockResolvedValue(0);
-    vi.mocked(prisma.report.count).mockResolvedValue(0);
-    vi.mocked(prisma.mission.count).mockResolvedValue(0);
+    (prisma.user.count as Mock).mockResolvedValue(0);
+    (prisma.chat.count as Mock).mockResolvedValue(0);
+    (prisma.message.count as Mock).mockResolvedValue(0);
+    (prisma.response.count as Mock).mockResolvedValue(0);
+    (prisma.story.count as Mock).mockResolvedValue(0);
+    (prisma.report.count as Mock).mockResolvedValue(0);
+    (prisma.mission.count as Mock).mockResolvedValue(0);
 
     const result = await AnalyticsOverview.getDashboardOverview();
 
@@ -193,7 +193,7 @@ describe('[P2][admin] AnalyticsOverview - getUserGrowthMetrics', () => {
     const startDate = new Date('2024-01-01');
     const endDate = new Date('2024-01-03');
 
-    vi.mocked(prisma.user.findMany).mockResolvedValue([
+    (prisma.user.findMany as Mock).mockResolvedValue([
       { createdAt: new Date('2024-01-01T10:00:00Z') },
       { createdAt: new Date('2024-01-01T14:00:00Z') },
       { createdAt: new Date('2024-01-03T08:00:00Z') },
@@ -211,7 +211,7 @@ describe('[P2][admin] AnalyticsOverview - getUserGrowthMetrics', () => {
     const startDate = new Date('2024-02-01');
     const endDate = new Date('2024-02-03');
 
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
 
     const result = await AnalyticsOverview.getUserGrowthMetrics({ startDate, endDate });
 
@@ -222,7 +222,7 @@ describe('[P2][admin] AnalyticsOverview - getUserGrowthMetrics', () => {
   it('should return single day entry when start equals end', async () => {
     const date = new Date('2024-03-15');
 
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
 
     const result = await AnalyticsOverview.getUserGrowthMetrics({ startDate: date, endDate: date });
 
@@ -235,7 +235,7 @@ describe('[P2][admin] AnalyticsOverview - getUserGrowthMetrics', () => {
     const startDate = new Date('2024-01-01');
     const endDate = new Date('2024-01-02');
 
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
 
     await AnalyticsOverview.getUserGrowthMetrics({ startDate, endDate });
 
@@ -258,7 +258,7 @@ describe('[P2][admin] AnalyticsOverview - getUserActivityMetrics', () => {
     const startDate = new Date('2024-01-01');
     const endDate = new Date('2024-01-02');
 
-    vi.mocked(prisma.user.findMany).mockResolvedValue([
+    (prisma.user.findMany as Mock).mockResolvedValue([
       { lastActiveAt: new Date('2024-01-01T09:00:00Z') },
       { lastActiveAt: new Date('2024-01-01T15:00:00Z') },
       { lastActiveAt: new Date('2024-01-02T12:00:00Z') },
@@ -278,7 +278,7 @@ describe('[P2][admin] AnalyticsOverview - getUserActivityMetrics', () => {
     const startDate = new Date('2024-01-01');
     const endDate = new Date('2024-01-01');
 
-    vi.mocked(prisma.user.findMany).mockResolvedValue([
+    (prisma.user.findMany as Mock).mockResolvedValue([
       { lastActiveAt: null },
       { lastActiveAt: new Date('2024-01-01T12:00:00Z') },
     ] as never);
@@ -292,7 +292,7 @@ describe('[P2][admin] AnalyticsOverview - getUserActivityMetrics', () => {
     const startDate = new Date('2024-05-01');
     const endDate = new Date('2024-05-03');
 
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
 
     const result = await AnalyticsOverview.getUserActivityMetrics({ startDate, endDate });
 
@@ -312,14 +312,14 @@ describe('[P2][admin] AnalyticsReporting - getContentMetrics', () => {
     const startDate = new Date('2024-06-01');
     const endDate = new Date('2024-06-02');
 
-    vi.mocked(prisma.message.findMany).mockResolvedValue([
+    (prisma.message.findMany as Mock).mockResolvedValue([
       { createdAt: new Date('2024-06-01T10:00:00Z') },
       { createdAt: new Date('2024-06-01T11:00:00Z') },
     ] as never);
-    vi.mocked(prisma.response.findMany).mockResolvedValue([
+    (prisma.response.findMany as Mock).mockResolvedValue([
       { createdAt: new Date('2024-06-02T08:00:00Z') },
     ] as never);
-    vi.mocked(prisma.story.findMany).mockResolvedValue([
+    (prisma.story.findMany as Mock).mockResolvedValue([
       { createdAt: new Date('2024-06-01T09:00:00Z') },
       { createdAt: new Date('2024-06-02T15:00:00Z') },
     ] as never);
@@ -335,9 +335,9 @@ describe('[P2][admin] AnalyticsReporting - getContentMetrics', () => {
     const startDate = new Date('2024-07-01');
     const endDate = new Date('2024-07-01');
 
-    vi.mocked(prisma.message.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.response.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.story.findMany).mockResolvedValue([]);
+    (prisma.message.findMany as Mock).mockResolvedValue([]);
+    (prisma.response.findMany as Mock).mockResolvedValue([]);
+    (prisma.story.findMany as Mock).mockResolvedValue([]);
 
     const result = await AnalyticsReporting.getContentMetrics({ startDate, endDate });
 
@@ -354,13 +354,13 @@ describe('[P2][admin] AnalyticsReporting - getModerationMetrics', () => {
   afterEach(() => { vi.restoreAllMocks(); });
 
   it('should return moderation summary, byReason, and recentReports', async () => {
-    vi.mocked(prisma.report.count)
+    (prisma.report.count as Mock)
       .mockResolvedValueOnce(5)   // pending
       .mockResolvedValueOnce(10)  // reviewed
       .mockResolvedValueOnce(3)   // actionTaken
       .mockResolvedValueOnce(2);  // dismissed
 
-    vi.mocked(prisma.report.groupBy).mockResolvedValue([
+    (prisma.report.groupBy as Mock).mockResolvedValue([
       { reason: 'SPAM', _count: { id: 4 } },
       { reason: 'HARASSMENT', _count: { id: 6 } },
     ] as never);
@@ -368,7 +368,7 @@ describe('[P2][admin] AnalyticsReporting - getModerationMetrics', () => {
     const mockReports = [
       { id: 'r1', reporter: { id: 'u1', firstName: 'John', lastName: 'Doe' }, reportedUser: { id: 'u2', firstName: 'Jane', lastName: 'Doe' } },
     ];
-    vi.mocked(prisma.report.findMany).mockResolvedValue(mockReports as never);
+    (prisma.report.findMany as Mock).mockResolvedValue(mockReports as never);
 
     const result = await AnalyticsReporting.getModerationMetrics();
 
@@ -387,9 +387,9 @@ describe('[P2][admin] AnalyticsReporting - getModerationMetrics', () => {
   });
 
   it('should return empty results when no reports exist', async () => {
-    vi.mocked(prisma.report.count).mockResolvedValue(0);
-    vi.mocked(prisma.report.groupBy).mockResolvedValue([] as never);
-    vi.mocked(prisma.report.findMany).mockResolvedValue([]);
+    (prisma.report.count as Mock).mockResolvedValue(0);
+    (prisma.report.groupBy as Mock).mockResolvedValue([] as never);
+    (prisma.report.findMany as Mock).mockResolvedValue([]);
 
     const result = await AnalyticsReporting.getModerationMetrics();
 
@@ -411,7 +411,7 @@ describe('[P2][admin] AnalyticsReporting - getTopUsers', () => {
     const mockUserChat = [{ id: 'u2', firstName: 'C', lastName: 'D', chatCount: 30 }];
     const mockUserMission = [{ id: 'u3', firstName: 'E', lastName: 'F', missionCompletedCount: 20 }];
 
-    vi.mocked(prisma.user.findMany)
+    (prisma.user.findMany as Mock)
       .mockResolvedValueOnce(mockUserResponse as never)
       .mockResolvedValueOnce(mockUserChat as never)
       .mockResolvedValueOnce(mockUserMission as never);
@@ -424,11 +424,11 @@ describe('[P2][admin] AnalyticsReporting - getTopUsers', () => {
   });
 
   it('should respect custom limit parameter', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([] as never);
+    (prisma.user.findMany as Mock).mockResolvedValue([] as never);
 
     await AnalyticsReporting.getTopUsers(5);
 
-    const calls = vi.mocked(prisma.user.findMany).mock.calls;
+    const calls = (prisma.user.findMany as Mock).mock.calls;
     expect(calls).toHaveLength(3);
     calls.forEach(call => {
       expect((call[0] as { take: number }).take).toBe(5);
@@ -436,11 +436,11 @@ describe('[P2][admin] AnalyticsReporting - getTopUsers', () => {
   });
 
   it('should default to limit 10', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([] as never);
+    (prisma.user.findMany as Mock).mockResolvedValue([] as never);
 
     await AnalyticsReporting.getTopUsers();
 
-    const calls = vi.mocked(prisma.user.findMany).mock.calls;
+    const calls = (prisma.user.findMany as Mock).mock.calls;
     calls.forEach(call => {
       expect((call[0] as { take: number }).take).toBe(10);
     });
@@ -456,7 +456,7 @@ describe('[P2][admin] AnalyticsReporting - getRetentionMetrics', () => {
 
   it('should compute retention percentages correctly', async () => {
     // su1=10, su7=20, su30=50, a1=8, a7=10, a30=25
-    vi.mocked(prisma.user.count)
+    (prisma.user.count as Mock)
       .mockResolvedValueOnce(10)   // su1
       .mockResolvedValueOnce(20)   // su7
       .mockResolvedValueOnce(50)   // su30
@@ -480,7 +480,7 @@ describe('[P2][admin] AnalyticsReporting - getRetentionMetrics', () => {
   });
 
   it('should return 0 retention when no sign-ups for a cohort', async () => {
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
+    (prisma.user.count as Mock).mockResolvedValue(0);
 
     const result = await AnalyticsReporting.getRetentionMetrics();
 
@@ -491,7 +491,7 @@ describe('[P2][admin] AnalyticsReporting - getRetentionMetrics', () => {
 
   it('should round retention percentages to whole numbers', async () => {
     // su1=3, a1=1 => 33.33... => rounded to 33
-    vi.mocked(prisma.user.count)
+    (prisma.user.count as Mock)
       .mockResolvedValueOnce(3)    // su1
       .mockResolvedValueOnce(0)    // su7
       .mockResolvedValueOnce(0)    // su30
@@ -513,9 +513,9 @@ describe('[P2][admin] AnalyticsReporting - getSystemHealth', () => {
   afterEach(() => { vi.restoreAllMocks(); });
 
   it('should return healthy status when DB responds', async () => {
-    vi.mocked(prisma.$queryRaw).mockResolvedValue([{ '?column?': 1 }]);
-    vi.mocked(prisma.message.count).mockResolvedValue(12);
-    vi.mocked(prisma.user.count).mockResolvedValue(3);
+    (prisma.$queryRaw as Mock).mockResolvedValue([{ '?column?': 1 }]);
+    (prisma.message.count as Mock).mockResolvedValue(12);
+    (prisma.user.count as Mock).mockResolvedValue(3);
 
     const result = await AnalyticsReporting.getSystemHealth();
 
@@ -527,9 +527,9 @@ describe('[P2][admin] AnalyticsReporting - getSystemHealth', () => {
   });
 
   it('should return unhealthy status when DB query fails', async () => {
-    vi.mocked(prisma.$queryRaw).mockRejectedValue(new Error('DB connection failed'));
-    vi.mocked(prisma.message.count).mockResolvedValue(0);
-    vi.mocked(prisma.user.count).mockResolvedValue(0);
+    (prisma.$queryRaw as Mock).mockRejectedValue(new Error('DB connection failed'));
+    (prisma.message.count as Mock).mockResolvedValue(0);
+    (prisma.user.count as Mock).mockResolvedValue(0);
 
     const result = await AnalyticsReporting.getSystemHealth();
 
@@ -555,7 +555,7 @@ describe('[P2][admin] AnalyticsReporting - exportUsersReport', () => {
       },
     ];
 
-    vi.mocked(prisma.user.findMany).mockResolvedValue(mockUsers as never);
+    (prisma.user.findMany as Mock).mockResolvedValue(mockUsers as never);
 
     const result = await AnalyticsReporting.exportUsersReport({ startDate, endDate });
 
@@ -572,7 +572,7 @@ describe('[P2][admin] AnalyticsReporting - exportUsersReport', () => {
   });
 
   it('should return empty array when no users in range', async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
+    (prisma.user.findMany as Mock).mockResolvedValue([]);
 
     const result = await AnalyticsReporting.exportUsersReport({
       startDate: new Date('2024-01-01'),

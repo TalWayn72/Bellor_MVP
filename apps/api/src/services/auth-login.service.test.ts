@@ -9,11 +9,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import bcrypt from 'bcrypt';
 
 // Mock setup via helpers
-import { mockPrisma, mockRedis } from './auth-test-helpers.js';
+import { mockPrisma, mockRedis, setupAuthMocks } from './auth-test-helpers.js';
 
 // Import after mocking
 import { AuthService } from './auth.service.js';
-import { generateAccessToken, generateRefreshToken } from '../utils/jwt.util.js';
 
 describe('[P0][auth] AuthService - login', () => {
   const loginInput = {
@@ -23,8 +22,7 @@ describe('[P0][auth] AuthService - login', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(generateAccessToken).mockReturnValue('mock-access-token');
-    vi.mocked(generateRefreshToken).mockReturnValue('mock-refresh-token');
+    setupAuthMocks();
   });
 
   afterEach(() => {
@@ -161,6 +159,7 @@ describe('[P0][auth] AuthService - login', () => {
 describe('[P0][auth] AuthService - logout', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    setupAuthMocks();
   });
 
   afterEach(() => {

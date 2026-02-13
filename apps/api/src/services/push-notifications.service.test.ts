@@ -3,7 +3,7 @@
  * Tests for Firebase Cloud Messaging integration
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { PushNotificationsService } from './push-notifications.service.js';
 import { prisma } from '../lib/prisma.js';
 
@@ -27,7 +27,7 @@ vi.mock('../lib/prisma.js', () => ({
 }));
 
 // Access mocked prisma through the imported module
-const mockPrisma = vi.mocked(prisma);
+const mockPrisma = (prisma as Mock);
 
 // Mock Firebase Admin (FCM will be skipped in tests)
 vi.mock('firebase-admin', () => ({

@@ -5,7 +5,7 @@
  * presence checking, and activity broadcasting.
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi, type Mock } from 'vitest';
 import { createServer, Server as HttpServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { io as SocketClient, Socket as ClientSocket } from 'socket.io-client';
@@ -48,11 +48,11 @@ describe('[P1][chat] WebSocket - Presence Handlers', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    vi.mocked(redis.setex).mockResolvedValue('OK');
-    vi.mocked(redis.get).mockResolvedValue(null);
-    vi.mocked(redis.del).mockResolvedValue(1);
-    vi.mocked(redis.expire).mockResolvedValue(1);
-    vi.mocked(redis.keys).mockResolvedValue([]);
+    (redis.setex as Mock).mockResolvedValue('OK');
+    (redis.get as Mock).mockResolvedValue(null);
+    (redis.del as Mock).mockResolvedValue(1);
+    (redis.expire as Mock).mockResolvedValue(1);
+    (redis.keys as Mock).mockResolvedValue([]);
 
     const token1 = generateTestToken(mockUser1.id, mockUser1.email);
     const token2 = generateTestToken(mockUser2.id, mockUser2.email);
@@ -118,7 +118,7 @@ describe('[P1][chat] WebSocket - Presence Handlers', () => {
   });
 
   it('should check online status of users with presence:check', async () => {
-    vi.mocked(redis.get).mockImplementation(async (key: string) => {
+    (redis.get as Mock).mockImplementation(async (key: string) => {
       if (key === `online:${mockUser2.id}`) {
         return new Date().toISOString();
       }
@@ -142,8 +142,8 @@ describe('[P1][chat] WebSocket - Presence Handlers', () => {
   });
 
   it('should get all online users with presence:get-online', async () => {
-    vi.mocked(redis.keys).mockResolvedValue([`online:${mockUser1.id}`, `online:${mockUser2.id}`]);
-    vi.mocked(prisma.user.findMany).mockResolvedValue([mockUser1 as unknown as User, mockUser2 as unknown as User]);
+    (redis.keys as Mock).mockResolvedValue([`online:${mockUser1.id}`, `online:${mockUser2.id}`]);
+    (prisma.user.findMany as Mock).mockResolvedValue([mockUser1 as unknown as User, mockUser2 as unknown as User]);
 
     const result = await new Promise<SocketAck>((resolve) => {
       clientSocket1.emit('presence:get-online', resolve);

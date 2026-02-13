@@ -5,7 +5,7 @@
  * @see PRD.md Section 10 - Phase 6 Testing (Integration)
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, type Mock } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildTestApp, authHeader, adminAuthHeader } from '../../build-test-app.js';
 import { prisma } from '../../../lib/prisma.js';
@@ -46,7 +46,7 @@ const mockReport: Report = {
 // ============================================
 describe('[P0][safety] POST /api/v1/reports - Create Report', () => {
   it('should create report successfully', async () => {
-    vi.mocked(prisma.report.create).mockResolvedValue(mockReport);
+    (prisma.report.create as Mock).mockResolvedValue(mockReport);
 
     const response = await app.inject({
       method: 'POST',
@@ -120,7 +120,7 @@ describe('[P0][safety] POST /api/v1/reports - Create Report', () => {
       reportedContentType: 'MESSAGE',
       reportedContentId: 'message-1',
     };
-    vi.mocked(prisma.report.create).mockResolvedValue(reportWithContent);
+    (prisma.report.create as Mock).mockResolvedValue(reportWithContent);
 
     const response = await app.inject({
       method: 'POST',
@@ -143,7 +143,7 @@ describe('[P0][safety] POST /api/v1/reports - Create Report', () => {
 // ============================================
 describe('[P0][safety] GET /api/v1/reports/:id - Get Report By ID (Admin)', () => {
   it('should get report by id as admin', async () => {
-    vi.mocked(prisma.report.findUnique).mockResolvedValue(mockReport);
+    (prisma.report.findUnique as Mock).mockResolvedValue(mockReport);
 
     const response = await app.inject({
       method: 'GET',
@@ -174,7 +174,7 @@ describe('[P0][safety] GET /api/v1/reports/:id - Get Report By ID (Admin)', () =
   });
 
   it('should return 404 for non-existent report', async () => {
-    vi.mocked(prisma.report.findUnique).mockResolvedValue(null);
+    (prisma.report.findUnique as Mock).mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'GET',
@@ -191,8 +191,8 @@ describe('[P0][safety] GET /api/v1/reports/:id - Get Report By ID (Admin)', () =
 // ============================================
 describe('[P0][safety] GET /api/v1/reports - List Reports (Admin)', () => {
   it('should list reports as admin', async () => {
-    vi.mocked(prisma.report.findMany).mockResolvedValue([mockReport]);
-    vi.mocked(prisma.report.count).mockResolvedValue(1);
+    (prisma.report.findMany as Mock).mockResolvedValue([mockReport]);
+    (prisma.report.count as Mock).mockResolvedValue(1);
 
     const response = await app.inject({
       method: 'GET',
@@ -223,8 +223,8 @@ describe('[P0][safety] GET /api/v1/reports - List Reports (Admin)', () => {
   });
 
   it('should filter by status', async () => {
-    vi.mocked(prisma.report.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.report.count).mockResolvedValue(0);
+    (prisma.report.findMany as Mock).mockResolvedValue([]);
+    (prisma.report.count as Mock).mockResolvedValue(0);
 
     const response = await app.inject({
       method: 'GET',
@@ -236,8 +236,8 @@ describe('[P0][safety] GET /api/v1/reports - List Reports (Admin)', () => {
   });
 
   it('should filter by reason', async () => {
-    vi.mocked(prisma.report.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.report.count).mockResolvedValue(0);
+    (prisma.report.findMany as Mock).mockResolvedValue([]);
+    (prisma.report.count as Mock).mockResolvedValue(0);
 
     const response = await app.inject({
       method: 'GET',
@@ -249,8 +249,8 @@ describe('[P0][safety] GET /api/v1/reports - List Reports (Admin)', () => {
   });
 
   it('should accept pagination', async () => {
-    vi.mocked(prisma.report.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.report.count).mockResolvedValue(0);
+    (prisma.report.findMany as Mock).mockResolvedValue([]);
+    (prisma.report.count as Mock).mockResolvedValue(0);
 
     const response = await app.inject({
       method: 'GET',
@@ -267,8 +267,8 @@ describe('[P0][safety] GET /api/v1/reports - List Reports (Admin)', () => {
 // ============================================
 describe('[P0][safety] PATCH /api/v1/reports/:id/review - Review Report (Admin)', () => {
   it('should review report as admin', async () => {
-    vi.mocked(prisma.report.findUnique).mockResolvedValue(mockReport);
-    vi.mocked(prisma.report.update).mockResolvedValue({ ...mockReport, status: 'REVIEWED' });
+    (prisma.report.findUnique as Mock).mockResolvedValue(mockReport);
+    (prisma.report.update as Mock).mockResolvedValue({ ...mockReport, status: 'REVIEWED' });
 
     const response = await app.inject({
       method: 'PATCH',
@@ -327,7 +327,7 @@ describe('[P0][safety] PATCH /api/v1/reports/:id/review - Review Report (Admin)'
 // ============================================
 describe('[P0][safety] GET /api/v1/reports/user/:userId - Get Reports By User (Admin)', () => {
   it('should get reports for specific user as admin', async () => {
-    vi.mocked(prisma.report.findMany).mockResolvedValue([mockReport]);
+    (prisma.report.findMany as Mock).mockResolvedValue([mockReport]);
 
     const response = await app.inject({
       method: 'GET',

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { ResponsesService } from './responses.service.js';
 import { prisma } from '../lib/prisma.js';
 
@@ -44,8 +44,8 @@ describe('[P1][content] ResponsesService', () => {
         mission: { id: 'mission-1', title: 'Test Mission', missionType: 'DAILY' },
       };
 
-      vi.mocked(prisma.response.create).mockResolvedValue(mockResponse as never);
-      vi.mocked(prisma.user.update).mockResolvedValue({} as never);
+      (prisma.response.create as Mock).mockResolvedValue(mockResponse as never);
+      (prisma.user.update as Mock).mockResolvedValue({} as never);
 
       const result = await ResponsesService.createResponse({
         userId: 'user-1',
@@ -76,8 +76,8 @@ describe('[P1][content] ResponsesService', () => {
         isPublic: true,
       };
 
-      vi.mocked(prisma.response.create).mockResolvedValue(mockResponse as never);
-      vi.mocked(prisma.user.update).mockResolvedValue({} as never);
+      (prisma.response.create as Mock).mockResolvedValue(mockResponse as never);
+      (prisma.user.update as Mock).mockResolvedValue({} as never);
 
       await ResponsesService.createResponse({
         userId: 'user-1',
@@ -103,7 +103,7 @@ describe('[P1][content] ResponsesService', () => {
         user: { id: 'user-1' },
       };
 
-      vi.mocked(prisma.response.findUnique).mockResolvedValue(mockResponse as never);
+      (prisma.response.findUnique as Mock).mockResolvedValue(mockResponse as never);
 
       const result = await ResponsesService.getResponseById('response-1');
 
@@ -111,7 +111,7 @@ describe('[P1][content] ResponsesService', () => {
     });
 
     it('should throw error when response not found', async () => {
-      vi.mocked(prisma.response.findUnique).mockResolvedValue(null);
+      (prisma.response.findUnique as Mock).mockResolvedValue(null);
 
       await expect(ResponsesService.getResponseById('non-existent')).rejects.toThrow('Response not found');
     });
@@ -124,8 +124,8 @@ describe('[P1][content] ResponsesService', () => {
         { id: 'response-2', content: 'Response 2' },
       ];
 
-      vi.mocked(prisma.response.findMany).mockResolvedValue(mockResponses as never);
-      vi.mocked(prisma.response.count).mockResolvedValue(50);
+      (prisma.response.findMany as Mock).mockResolvedValue(mockResponses as never);
+      (prisma.response.count as Mock).mockResolvedValue(50);
 
       const result = await ResponsesService.listResponses({
         limit: 20,
@@ -138,8 +138,8 @@ describe('[P1][content] ResponsesService', () => {
     });
 
     it('should filter by missionId', async () => {
-      vi.mocked(prisma.response.findMany).mockResolvedValue([]);
-      vi.mocked(prisma.response.count).mockResolvedValue(0);
+      (prisma.response.findMany as Mock).mockResolvedValue([]);
+      (prisma.response.count as Mock).mockResolvedValue(0);
 
       await ResponsesService.listResponses({
         limit: 20,
@@ -155,8 +155,8 @@ describe('[P1][content] ResponsesService', () => {
     });
 
     it('should filter by public responses only', async () => {
-      vi.mocked(prisma.response.findMany).mockResolvedValue([]);
-      vi.mocked(prisma.response.count).mockResolvedValue(0);
+      (prisma.response.findMany as Mock).mockResolvedValue([]);
+      (prisma.response.count as Mock).mockResolvedValue(0);
 
       await ResponsesService.listResponses({
         limit: 20,
@@ -174,7 +174,7 @@ describe('[P1][content] ResponsesService', () => {
 
   describe('incrementViewCount', () => {
     it('should increment view count', async () => {
-      vi.mocked(prisma.response.update).mockResolvedValue({ viewCount: 11 } as never);
+      (prisma.response.update as Mock).mockResolvedValue({ viewCount: 11 } as never);
 
       await ResponsesService.incrementViewCount('response-1');
 
@@ -187,7 +187,7 @@ describe('[P1][content] ResponsesService', () => {
 
   describe('incrementLikeCount', () => {
     it('should increment like count', async () => {
-      vi.mocked(prisma.response.update).mockResolvedValue({ likeCount: 6 } as never);
+      (prisma.response.update as Mock).mockResolvedValue({ likeCount: 6 } as never);
 
       await ResponsesService.incrementLikeCount('response-1');
 
@@ -205,9 +205,9 @@ describe('[P1][content] ResponsesService', () => {
         userId: 'user-1',
       };
 
-      vi.mocked(prisma.response.findUnique).mockResolvedValue(mockResponse as never);
-      vi.mocked(prisma.response.delete).mockResolvedValue({} as never);
-      vi.mocked(prisma.user.update).mockResolvedValue({} as never);
+      (prisma.response.findUnique as Mock).mockResolvedValue(mockResponse as never);
+      (prisma.response.delete as Mock).mockResolvedValue({} as never);
+      (prisma.user.update as Mock).mockResolvedValue({} as never);
 
       await ResponsesService.deleteResponse('response-1', 'user-1');
 
@@ -226,13 +226,13 @@ describe('[P1][content] ResponsesService', () => {
         userId: 'user-1',
       };
 
-      vi.mocked(prisma.response.findUnique).mockResolvedValue(mockResponse as never);
+      (prisma.response.findUnique as Mock).mockResolvedValue(mockResponse as never);
 
       await expect(ResponsesService.deleteResponse('response-1', 'user-2')).rejects.toThrow('Unauthorized');
     });
 
     it('should throw error when response not found', async () => {
-      vi.mocked(prisma.response.findUnique).mockResolvedValue(null);
+      (prisma.response.findUnique as Mock).mockResolvedValue(null);
 
       await expect(ResponsesService.deleteResponse('non-existent', 'user-1')).rejects.toThrow('Response not found');
     });

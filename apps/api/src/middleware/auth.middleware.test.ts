@@ -9,7 +9,7 @@
  * @see token-validation.ts
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { createMockRequest, createMockReply } from '../test/setup.js';
 
 // ---------- Mocks ----------
@@ -331,7 +331,7 @@ describe('[P0][auth] adminMiddleware', () => {
 
     await adminMiddleware(request, reply);
 
-    expect(vi.mocked(securityLogger.accessDenied)).toHaveBeenCalledWith(
+    expect((securityLogger.accessDenied as Mock)).toHaveBeenCalledWith(
       request,
       'admin route: /api/v1/admin/users',
     );
@@ -385,7 +385,7 @@ describe('[P0][auth] adminMiddleware', () => {
 
     await adminMiddleware(request, reply);
 
-    expect(vi.mocked(securityLogger.accessDenied)).toHaveBeenCalledWith(
+    expect((securityLogger.accessDenied as Mock)).toHaveBeenCalledWith(
       request,
       'admin route: /api/v1/admin/dashboard',
     );
@@ -403,6 +403,6 @@ describe('[P0][auth] adminMiddleware', () => {
 
     await adminMiddleware(request, reply);
 
-    expect(vi.mocked(securityLogger.accessDenied)).not.toHaveBeenCalled();
+    expect((securityLogger.accessDenied as Mock)).not.toHaveBeenCalled();
   });
 });
