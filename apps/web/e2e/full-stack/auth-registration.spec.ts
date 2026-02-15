@@ -5,7 +5,8 @@
  * Seeded data: demo_sarah@bellor.app / Demo123!
  * Test users: e2e-<timestamp>@bellor.app
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fullstack-base.js';
+import { execSync } from 'child_process';
 import {
   waitForPageLoad,
   generateTestEmail,
@@ -13,11 +14,31 @@ import {
   collectConsoleMessages,
 } from '../fixtures/index.js';
 
+/** Flush rate limit keys in Redis to prevent test flakiness */
+function clearRateLimits() {
+  const redisPw = process.env.REDIS_PASSWORD;
+  const authFlag = redisPw ? `-a ${redisPw} --no-auth-warning` : '';
+  const delCmd = `redis-cli ${authFlag} KEYS 'fastify-rate-limit*' | xargs -r redis-cli ${authFlag} DEL`;
+  for (const container of ['bellor-redis', 'bellor_redis']) {
+    try {
+      execSync(`docker exec ${container} sh -c "${delCmd}"`, {
+        stdio: 'pipe',
+        timeout: 3000,
+      });
+      return;
+    } catch { /* try next */ }
+  }
+  try {
+    execSync(`bash -c "${delCmd}"`, { stdio: 'pipe', timeout: 3000 });
+  } catch { /* non-critical */ }
+}
+
 test.describe('[P0][auth] Registration - Full Stack', () => {
   // Override project-level storageState - registration tests must start unauthenticated
   test.use({ storageState: { cookies: [], origins: [] } });
 
   test.beforeEach(async ({ page }) => {
+    clearRateLimits();
     await page.goto('/Login');
     // Use domcontentloaded to avoid hanging on /oauth/status API call
     await page.waitForLoadState('domcontentloaded');

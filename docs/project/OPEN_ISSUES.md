@@ -41,7 +41,8 @@ A  qa    →  151.145.94.190   (TTL: 600)
 
 | קטגוריה | מספר תקלות | חומרה | סטטוס |
 |----------|-------------|--------|--------|
-| **ISSUE-087: Nginx proxy_pass recurring 404 - certbot rewrite fix (Feb 15)** | 3 | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-088: E2E Full-Stack QA Run - Infrastructure fixes + 25 UI test failures (Feb 15)** | 25 | 🟡 בינוני | 🟡 בטיפול |
+| **ISSUE-087: Nginx rewrite rule + watchdog breaking API routes (Feb 15)** | 3 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-085: Upload 413 - Nginx missing client_max_body_size (Feb 15)** | 2 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-084: Mission Creation Schema Mismatch - Video/Audio/Write 400 Error (Feb 15)** | 3 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-083: Mixed Content + HTTPS OAuth + Nginx proxy fix (Feb 15)** | 4 | 🔴 קריטי | ✅ תוקן |
@@ -4888,37 +4889,146 @@ Then rebuild the web container: `docker compose up -d --build web`
 
 ---
 
-## ✅ ISSUE-087: Nginx proxy_pass Recurring 404 - Certbot Rewrite Fix (15 פברואר 2026)
+## 🟡 ISSUE-088: E2E Full-Stack QA Run - Infrastructure Fixes + 25 UI Test Failures (15 פברואר 2026)
+
+### סיכום
+הרצת 262 טסטי E2E Full-Stack מול שרת QA (`qa.bellor.app`) עם backend אמיתי (Fastify + PostgreSQL + Redis).
+
+### תוצאות סופיות (ריצה 6)
+
+| מדד | ריצה 2 (לפני תיקונים) | ריצה 6 (אחרי תיקונים) | שיפור |
+|-----|----------------------|----------------------|-------|
+| **עברו** | 170 | **177** | +7 |
+| **נכשלו** | 39 | **25** | -14 (36% שיפור) |
+| **Flaky** | 0 | **1** | |
+| **דולגו** | 51 | **51** | ללא שינוי |
+| **זמן** | 42.9 דקות | **38.7 דקות** | -4.2 דקות |
+
+### תיקוני תשתית שבוצעו
+
+| # | בעיה | פתרון | קבצים |
+|---|-------|--------|--------|
+| 1 | JWT token expiration - tokens פגו תוך 15 דקות בזמן ריצה | `addInitScript` שעושה synchronous XHR refresh לפני כל דף | `fullstack-base.ts` |
+| 2 | `browser.newContext()` עוקף את ה-page fixture | `addAutoRefresh(context)` export חדש | `fullstack-base.ts`, `auth-session.spec.ts`, `chat-realtime.spec.ts`, `edge-cases.spec.ts`, `admin-pages.spec.ts` |
+| 3 | Rate limit clearing - `bash` לא קיים ב-Redis Alpine container | שינוי `bash -c` → `sh -c` | `auth-login.spec.ts`, `auth-registration.spec.ts`, `global-setup.ts` |
+| 4 | Rate limit clearing - Redis EVAL Lua escaping נכשל | שינוי ל-KEYS + xargs | `global-setup.ts` |
+| 5 | Rate limit clearing חסר מ-registration tests | הוספת `clearRateLimits()` ל-beforeEach | `auth-registration.spec.ts` |
+| 6 | nginx rewrite rule מפשיט `/api/` prefix | הסרת rewrite rule (ראה ISSUE-087) | nginx config + watchdog |
+
+### 25 טסטים שנכשלו (בעיות UI/Feature, לא תשתית)
+
+#### content-tasks.spec.ts (5 failures)
+- `AudioTask: nav buttons navigate to WriteTask` - כפתור "Write" לא נמצא כ-span
+- `VideoTask: loads with mission question and option buttons` - אלמנטי UI חסרים
+- `VideoTask: nav buttons navigate to AudioTask` - ניווט נכשל
+- `Creation: loads with header, task grid, and stats` - header/stats לא תואם
+- `Creation: task buttons navigate to correct pages` - ניווט WriteTask נכשל
+
+#### social-features.spec.ts (8 failures)
+- `CompatibilityQuiz: loads with progress bar and question` - progress bar לא נמצא
+- `CompatibilityQuiz: answer and skip advance questions` - כפתורי answer/skip חסרים
+- `IceBreakers: loads with categories and cards` - קטגוריות לא נטענות
+- `IceBreakers: category filter shows subset` - פילטר לא עובד
+- `Achievements: loads with points, unlocked count, and tabs` - tabs חסרים
+- `DateIdeas: loads with categories and idea cards` - קטגוריות חסרות
+- `DateIdeas: category filter shows matching ideas` - פילטר נכשל
+- `VirtualEvents: loads with tabs and event content` - tabs חסרים
+
+#### notifications.spec.ts (3 failures)
+- `should load notifications page` - דף לא נטען
+- `should display notification tabs` - tabs חסרים
+- `should show notifications or empty state` - empty state לא מוצג
+
+#### feed-interactions.spec.ts (3 failures)
+- `should display daily mission card` - mission card חסר
+- `should show feed responses from seeded data` - responses לא מוצגים
+- `should display bottom navigation` - bottom nav חסר
+
+#### discover-swiping.spec.ts (2 failures)
+- `should navigate to filter settings page` - ניווט נכשל
+- `should handle empty discover state` - empty state חסר
+
+#### error-states.spec.ts (2 failures)
+- `should show empty state on notifications` - empty state חסר
+- `should handle slow network gracefully` - timeout
+
+#### matches-likes.spec.ts (2 failures)
+- `should load matches page` - דף לא נטען
+- `should display matches or empty state` - state חסר
+
+#### stories.spec.ts (2 failures)
+- `should show story creation options` - אפשרויות יצירה חסרות
+- `should view creation page (write task)` - דף יצירה לא נטען
+
+#### forms-validation.spec.ts (1 failure)
+- `feedback: should load and display form` - טופס feedback לא נטען
+
+### Flaky Test (1)
+- `chat-messaging.spec.ts: should load temporary chats list` - עבר ב-retry
+
+### ניתוח: הכשלונות הם **בעיות UI matching** ולא תשתית
+- כל טסטי ה-auth (login, registration, session) **עוברים** ✅
+- כל טסטי ה-navigation הבסיסיים **עוברים** ✅
+- כל טסטי ה-admin **עוברים** ✅
+- כל טסטי ה-profile **עוברים** ✅
+- הכשלונות הם בעיקר **selectors שלא תואמים את ה-UI האמיתי** (כתובים לפי mock, לא לפי UI אמיתי)
+
+### קבצים שהשתנו (מקומיים)
+| קובץ | שינוי |
+|-------|--------|
+| `apps/web/e2e/full-stack/fullstack-base.ts` | Token auto-refresh fixture + `addAutoRefresh` export |
+| `apps/web/e2e/full-stack/auth-login.spec.ts` | `bash -c` → `sh -c` in clearRateLimits |
+| `apps/web/e2e/full-stack/auth-registration.spec.ts` | Added clearRateLimits + `sh -c` |
+| `apps/web/e2e/full-stack/auth-session.spec.ts` | Added `addAutoRefresh` to 7 contexts |
+| `apps/web/e2e/full-stack/chat-realtime.spec.ts` | Added `addAutoRefresh` to 5 contexts |
+| `apps/web/e2e/full-stack/edge-cases.spec.ts` | Added `addAutoRefresh` to 1 context |
+| `apps/web/e2e/full-stack/admin-pages.spec.ts` | Added `addAutoRefresh` to 1 context |
+| `apps/web/e2e/global-setup.ts` | EVAL→KEYS|xargs + `bash→sh` |
+
+### סטטוס: 🟡 בטיפול
+- חומרה: 🟡 בינוני (תשתית תוקנה, נותרו 25 כשלונות UI)
+- תאריך: 15 פברואר 2026
+- צעד הבא: עדכון selectors ב-25 הטסטים הנכשלים להתאמה ל-UI האמיתי
+
+---
+
+## ✅ ISSUE-087: Nginx Rewrite Rule + Watchdog Breaking API Routes (15 פברואר 2026)
 
 ### בעיה
-- `https://prod.bellor.app/api/health` ו-`https://qa.bellor.app/api/health` מחזירים **404** לסירוגין
-- Fastify מקבל `/api/health` במקום `/health` כי nginx לא מפשיט את ה-`/api/` prefix
-- **שורש הבעיה:** certbot renewal משנה `proxy_pass http://127.0.0.1:3000/;` (עם slash) ל-`proxy_pass http://127.0.0.1:3000;` (בלי slash)
-- `sites-enabled/bellor` נהפך מ-symlink לקובץ רגיל, מה שגורם לעדכונים ב-sites-available לא לחול
+- `https://qa.bellor.app/api/v1/auth/login` ו-endpoints אחרים מחזירים **404**
+- **שורש הבעיה (מתוקן):** שתי בעיות nginx שעבדו ביחד:
+  1. `rewrite ^/api/(.*) /$1 break;` - הסיר את `/api/` prefix מהבקשה, כך ש-Fastify קיבל `/v1/auth/login` במקום `/api/v1/auth/login`
+  2. `proxy_pass http://127.0.0.1:3000/;` - trailing slash גם מפשיט location prefix
+- **Watchdog cron job** (`/etc/cron.d/bellor-nginx-watchdog`) רץ כל דקה והוסיף בחזרה את ה-rewrite rule השבור
+- Fastify routes רשומים כ-`/api/v1/...` - אין צורך ב-stripping של prefix ב-nginx
+
+### גורם שורש
+1. ה-rewrite rule נוצר מתוך הנחה שגויה ש-Fastify מצפה לנתיבים בלי `/api/`
+2. Watchdog script (`/usr/local/bin/bellor-nginx-watchdog.sh`) החזיר את ה-rewrite כל דקה
+3. כל תיקון ידני ב-nginx התבטל תוך דקה
 
 ### פתרון
-1. **הוספת `rewrite` directive** שcertbot לא נוגע בו:
+1. **הסרת rewrite rule** מ-nginx config:
    ```nginx
    location /api/ {
-       rewrite ^/api/(.*) /$1 break;
-       proxy_pass http://127.0.0.1:3000;
+       # NO rewrite - Fastify routes include /api/ prefix
+       proxy_pass http://127.0.0.1:3000;  # NO trailing slash
+       proxy_http_version 1.1;
+       ...
    }
    ```
-2. **יצירת symlink תקין:** `sites-enabled/bellor -> sites-available/bellor`
-3. **certbot post-renewal hook:** `/etc/letsencrypt/renewal-hooks/post/fix-nginx-proxy.sh`
-   - מוודא שrewrite קיים אחרי כל חידוש SSL
-   - מוודא ש-sites-enabled הוא symlink
-4. **עדכון FRONTEND_URL** ב-.env משני השרתים:
-   - PROD: `https://prod.bellor.app`
-   - QA: `https://qa.bellor.app`
+2. **עדכון Watchdog** (`/usr/local/bin/bellor-nginx-watchdog.sh`):
+   - עכשיו **מסיר** את ה-rewrite rule אם קיים (במקום להוסיף)
+   - מתקן proxy_pass trailing slash אם קיים
+   - מוודא symlink תקין ב-sites-enabled
+3. **תיקון בשני השרתים** (QA + PROD)
 
 ### קבצים שהשתנו (שרתים בלבד)
-- `/etc/nginx/sites-available/bellor` (PROD + QA)
-- `/etc/letsencrypt/renewal-hooks/post/fix-nginx-proxy.sh` (PROD + QA - חדש)
-- `/opt/bellor/.env` (PROD + QA)
+- `/etc/nginx/sites-available/bellor` (PROD + QA) - הסרת rewrite, תיקון proxy_pass
+- `/usr/local/bin/bellor-nginx-watchdog.sh` (PROD + QA) - הפיכת לוגיקה: מסיר rewrite במקום מוסיף
 
 ### סטטוס: ✅ תוקן
-- חומרה: 🔴 קריטי (API לא נגיש)
+- חומרה: 🔴 קריטי (כל API calls מהדפדפן נכשלו)
 - תאריך תיקון: 15 פברואר 2026
 
 ---

@@ -2,7 +2,7 @@
  * Full-Stack E2E: Admin Pages
  * Tests admin dashboard, user management, reports, monitoring
  */
-import { test, expect } from '@playwright/test';
+import { test, expect, addAutoRefresh } from './fullstack-base.js';
 import {
   waitForPageLoad,
   FULLSTACK_AUTH,
@@ -137,6 +137,7 @@ test.describe('[P2][admin] Admin Pages - Full Stack', () => {
     const context = await browser.newContext({
       storageState: FULLSTACK_AUTH.user,
     });
+    await addAutoRefresh(context);
     const page = await context.newPage();
 
     await page.goto('/AdminDashboard');

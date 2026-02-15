@@ -2,7 +2,7 @@
  * Full-Stack E2E: Misc Pages
  * Tests 4 authenticated pages: Home, Analytics, Feedback, EmailSupport
  */
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page } from './fullstack-base.js';
 import { waitForPageLoad, FULLSTACK_AUTH, collectConsoleMessages } from '../fixtures/index.js';
 
 async function ensureAuthenticated(page: Page): Promise<boolean> {

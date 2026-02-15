@@ -2,7 +2,7 @@
  * Full-Stack E2E: File Uploads
  * Tests image/audio upload with valid, invalid, and oversized files
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fullstack-base.js';
 import {
   waitForPageLoad,
   FULLSTACK_AUTH,

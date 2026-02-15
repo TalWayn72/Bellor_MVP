@@ -2,7 +2,7 @@
  * Full-Stack E2E: Profile Management
  * Tests viewing and editing user profiles
  */
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page } from './fullstack-base.js';
 import {
   waitForPageLoad,
   FULLSTACK_AUTH,

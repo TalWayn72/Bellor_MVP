@@ -4,7 +4,7 @@
  *
  * Uses seeded demo users: demo_sarah@bellor.app / Demo123!
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fullstack-base.js';
 import { execSync } from 'child_process';
 import {
   waitForPageLoad,
@@ -15,14 +15,21 @@ import {
 
 /** Flush rate limit keys in Redis to prevent test flakiness */
 function clearRateLimits() {
-  try {
-    execSync(
-      'docker exec bellor_redis redis-cli EVAL "local keys = redis.call(\'keys\', \'fastify-rate-limit*\') for i=1,#keys do redis.call(\'del\', keys[i]) end return #keys" 0',
-      { stdio: 'pipe', timeout: 3000 },
-    );
-  } catch {
-    // Non-critical
+  const redisPw = process.env.REDIS_PASSWORD;
+  const authFlag = redisPw ? `-a ${redisPw} --no-auth-warning` : '';
+  const delCmd = `redis-cli ${authFlag} KEYS 'fastify-rate-limit*' | xargs -r redis-cli ${authFlag} DEL`;
+  for (const container of ['bellor-redis', 'bellor_redis']) {
+    try {
+      execSync(`docker exec ${container} sh -c "${delCmd}"`, {
+        stdio: 'pipe',
+        timeout: 3000,
+      });
+      return;
+    } catch { /* try next */ }
   }
+  try {
+    execSync(`bash -c "${delCmd}"`, { stdio: 'pipe', timeout: 3000 });
+  } catch { /* non-critical */ }
 }
 
 test.describe('[P0][auth] Login - Full Stack', () => {

@@ -2,7 +2,7 @@
  * Full-Stack E2E: Matches & Likes
  * Tests matching system, likes, and compatibility features
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fullstack-base.js';
 import {
   waitForPageLoad,
   FULLSTACK_AUTH,

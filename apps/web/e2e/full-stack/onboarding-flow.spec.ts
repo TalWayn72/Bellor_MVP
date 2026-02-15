@@ -17,7 +17,7 @@
  * auth token is expired or the page resets. The navigateToStep helper handles
  * this by clicking through from the landing page when needed.
  */
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page } from './fullstack-base.js';
 import {
   waitForPageLoad,
   SPECIAL_INPUTS,

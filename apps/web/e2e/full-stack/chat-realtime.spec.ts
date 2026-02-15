@@ -2,7 +2,7 @@
  * Full-Stack E2E: Real-Time Chat
  * Tests WebSocket features with two browser contexts
  */
-import { test, expect } from '@playwright/test';
+import { test, expect, addAutoRefresh } from './fullstack-base.js';
 import {
   waitForPageLoad,
   sendChatMessage,
@@ -17,9 +17,11 @@ test.describe('[P1][chat] Real-Time Chat - Full Stack', () => {
     const context1 = await browser.newContext({
       storageState: FULLSTACK_AUTH.user,
     });
+    await addAutoRefresh(context1);
     const context2 = await browser.newContext({
       storageState: FULLSTACK_AUTH.user2,
     });
+    await addAutoRefresh(context2);
 
     const page1 = await context1.newPage();
     const page2 = await context2.newPage();
@@ -69,6 +71,7 @@ test.describe('[P1][chat] Real-Time Chat - Full Stack', () => {
     const context = await browser.newContext({
       storageState: FULLSTACK_AUTH.user,
     });
+    await addAutoRefresh(context);
     const page = await context.newPage();
 
     try {
@@ -103,6 +106,7 @@ test.describe('[P1][chat] Real-Time Chat - Full Stack', () => {
     const context = await browser.newContext({
       storageState: FULLSTACK_AUTH.user,
     });
+    await addAutoRefresh(context);
     const page = await context.newPage();
 
     try {
@@ -132,6 +136,7 @@ test.describe('[P1][chat] Real-Time Chat - Full Stack', () => {
     const context = await browser.newContext({
       storageState: FULLSTACK_AUTH.user,
     });
+    await addAutoRefresh(context);
     const page = await context.newPage();
 
     try {

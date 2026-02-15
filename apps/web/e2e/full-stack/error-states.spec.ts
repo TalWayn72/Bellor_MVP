@@ -2,7 +2,7 @@
  * Full-Stack E2E: Error States
  * Tests error handling, empty states, and graceful degradation
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fullstack-base.js';
 import {
   waitForPageLoad,
   FULLSTACK_AUTH,

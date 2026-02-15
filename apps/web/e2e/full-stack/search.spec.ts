@@ -2,7 +2,7 @@
  * Full-Stack E2E: Search Functionality
  * Tests search with various inputs, debounce, and results
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fullstack-base.js';
 import {
   waitForPageLoad,
   FULLSTACK_AUTH,

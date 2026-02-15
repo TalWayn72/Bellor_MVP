@@ -2,7 +2,7 @@
  * Full-Stack E2E: Chat Messaging
  * Tests real chat functionality - send, receive, history
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fullstack-base.js';
 import {
   waitForPageLoad,
   sendChatMessage,

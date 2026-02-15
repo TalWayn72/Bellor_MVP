@@ -2,7 +2,7 @@
  * Full-Stack E2E: Infinite Scroll
  * Tests lazy loading on feed, chat list, and notifications
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fullstack-base.js';
 import {
   waitForPageLoad,
   FULLSTACK_AUTH,

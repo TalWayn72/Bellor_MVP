@@ -4,7 +4,7 @@
  *
  * Uses saved auth state from global-setup
  */
-import { test, expect } from '@playwright/test';
+import { test, expect, addAutoRefresh } from './fullstack-base.js';
 import {
   waitForPageLoad,
   getLocalStorageItem,
@@ -33,6 +33,7 @@ test.describe('[P0][auth] Session Management - Full Stack', () => {
     const context = await browser.newContext({
       storageState: FULLSTACK_AUTH.user,
     });
+    await addAutoRefresh(context);
     const page = await context.newPage();
     const cc = collectConsoleMessages(page);
 
@@ -66,6 +67,7 @@ test.describe('[P0][auth] Session Management - Full Stack', () => {
     const context = await browser.newContext({
       storageState: FULLSTACK_AUTH.user,
     });
+    await addAutoRefresh(context);
     const page = await context.newPage();
 
     await page.goto('/SharedSpace', { waitUntil: 'domcontentloaded' });
@@ -101,6 +103,7 @@ test.describe('[P0][auth] Session Management - Full Stack', () => {
     const context = await browser.newContext({
       storageState: FULLSTACK_AUTH.user,
     });
+    await addAutoRefresh(context);
     const page = await context.newPage();
 
     await page.goto('/Settings', { waitUntil: 'domcontentloaded' });
@@ -176,6 +179,7 @@ test.describe('[P0][auth] Session Management - Full Stack', () => {
     const context = await browser.newContext({
       storageState: FULLSTACK_AUTH.user,
     });
+    await addAutoRefresh(context);
 
     const page1 = await context.newPage();
     const page2 = await context.newPage();
@@ -204,6 +208,7 @@ test.describe('[P0][auth] Session Management - Full Stack', () => {
     const context = await browser.newContext({
       storageState: FULLSTACK_AUTH.admin,
     });
+    await addAutoRefresh(context);
     const page = await context.newPage();
 
     await page.goto('/AdminDashboard', { waitUntil: 'domcontentloaded' });
@@ -226,6 +231,7 @@ test.describe('[P0][auth] Session Management - Full Stack', () => {
     const context = await browser.newContext({
       storageState: FULLSTACK_AUTH.user,
     });
+    await addAutoRefresh(context);
     const page = await context.newPage();
 
     await page.goto('/AdminDashboard', { waitUntil: 'domcontentloaded' });
@@ -249,6 +255,7 @@ test.describe('[P0][auth] Session Management - Full Stack', () => {
     const context = await browser.newContext({
       storageState: FULLSTACK_AUTH.user,
     });
+    await addAutoRefresh(context);
     const page = await context.newPage();
 
     // Navigate to settings and logout

@@ -2,7 +2,7 @@
  * Full-Stack E2E: Notifications
  * Tests notification display, interaction, and real-time updates
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fullstack-base.js';
 import {
   waitForPageLoad,
   FULLSTACK_AUTH,

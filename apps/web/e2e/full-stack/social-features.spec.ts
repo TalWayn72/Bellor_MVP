@@ -2,7 +2,7 @@
  * Full-Stack E2E: Social Features
  * (CompatibilityQuiz, IceBreakers, Achievements, DateIdeas, VirtualEvents)
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fullstack-base.js';
 import { waitForPageLoad, FULLSTACK_AUTH, collectConsoleMessages } from '../fixtures/index.js';
 
 test.describe('[P1][social] Social Features - Full Stack', () => {

@@ -2,7 +2,7 @@
  * Full-Stack E2E: Discover & Swiping
  * Tests profile browsing, likes, passes, and filters
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fullstack-base.js';
 import {
   waitForPageLoad,
   FULLSTACK_AUTH,

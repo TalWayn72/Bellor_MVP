@@ -7,7 +7,7 @@
  * - /oauth/callback (without tokens shows "Login Failed" + "Missing authentication tokens",
  *   with error param shows mapped error message, then redirects to Onboarding)
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fullstack-base.js';
 import { collectConsoleMessages } from '../fixtures/index.js';
 
 test.describe('[P2][infra] Special Pages - Full Stack', () => {

@@ -35,10 +35,25 @@ async function globalSetup(_config: FullConfig) {
   console.log('Step 1.5: Clearing rate limits in Redis...');
   try {
     const { execSync } = await import('child_process');
-    execSync('docker exec bellor_redis redis-cli EVAL "local keys = redis.call(\'keys\', \'fastify-rate-limit*\') for i=1,#keys do redis.call(\'del\', keys[i]) end return #keys" 0', {
-      stdio: 'pipe',
-      timeout: 5000,
-    });
+    const redisPw = process.env.REDIS_PASSWORD;
+    const authFlag = redisPw ? `-a ${redisPw} --no-auth-warning` : '';
+    const delCmd = `redis-cli ${authFlag} KEYS 'fastify-rate-limit*' | xargs -r redis-cli ${authFlag} DEL`;
+    const containers = ['bellor-redis', 'bellor_redis'];
+    let cleared = false;
+    for (const container of containers) {
+      try {
+        execSync(`docker exec ${container} sh -c "${delCmd}"`, {
+          stdio: 'pipe',
+          timeout: 5000,
+        });
+        cleared = true;
+        break;
+      } catch { /* try next container name */ }
+    }
+    if (!cleared) {
+      execSync(`bash -c "${delCmd}"`, { stdio: 'pipe', timeout: 5000 });
+      cleared = true;
+    }
     console.log('  ✓ Rate limits cleared\n');
   } catch {
     console.log('  ⚠ Could not clear rate limits (non-critical)\n');

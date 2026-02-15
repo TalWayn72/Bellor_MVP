@@ -2,7 +2,7 @@
  * Full-Stack E2E: Edge Cases
  * Tests rapid interactions, boundary values, and unusual scenarios
  */
-import { test, expect } from '@playwright/test';
+import { test, expect, addAutoRefresh } from './fullstack-base.js';
 import {
   waitForPageLoad,
   FULLSTACK_AUTH,
@@ -184,6 +184,7 @@ test.describe('[P2][infra] Edge Cases - Full Stack', () => {
     const context = await browser.newContext({
       storageState: FULLSTACK_AUTH.user,
     });
+    await addAutoRefresh(context);
 
     const page1 = await context.newPage();
     const page2 = await context.newPage();

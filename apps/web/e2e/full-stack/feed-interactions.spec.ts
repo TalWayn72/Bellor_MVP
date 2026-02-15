@@ -2,7 +2,7 @@
  * Full-Stack E2E: Feed & SharedSpace Interactions
  * Tests real feed loading, likes, responses, and content creation
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fullstack-base.js';
 import {
   waitForPageLoad,
   scrollToElement,

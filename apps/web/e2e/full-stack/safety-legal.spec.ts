@@ -2,7 +2,7 @@
  * Full-Stack E2E: Safety & Legal Pages
  * Tests SafetyCenter, FAQ, TermsOfService, PrivacyPolicy, UserVerification
  */
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page } from './fullstack-base.js';
 import { waitForPageLoad, FULLSTACK_AUTH, collectConsoleMessages } from '../fixtures/index.js';
 
 async function ensureAuthenticated(page: Page): Promise<boolean> {

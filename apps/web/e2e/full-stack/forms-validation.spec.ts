@@ -2,7 +2,7 @@
  * Full-Stack E2E: Forms Validation
  * Tests all forms with valid, invalid, and edge case inputs
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fullstack-base.js';
 import {
   waitForPageLoad,
   fillForm,

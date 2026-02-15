@@ -2,7 +2,7 @@
  * Full-Stack E2E: Stories
  * Tests story viewing, creation, and expiry
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fullstack-base.js';
 import {
   waitForPageLoad,
   FULLSTACK_AUTH,

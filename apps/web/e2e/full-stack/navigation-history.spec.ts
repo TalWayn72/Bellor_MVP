@@ -2,7 +2,7 @@
  * Full-Stack E2E: Navigation & History
  * Tests drawer menu, bottom nav, back button, browser history
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fullstack-base.js';
 import {
   waitForPageLoad,
   navigateTo,

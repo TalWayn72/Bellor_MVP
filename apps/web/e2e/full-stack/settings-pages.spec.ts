@@ -12,7 +12,7 @@
  * - /HelpSupport (FAQ, Live Chat, Email Support links)
  * - /ThemeSettings (admin-only, non-admin sees "Admin Only" message)
  */
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page } from './fullstack-base.js';
 import {
   waitForPageLoad,
   FULLSTACK_AUTH,

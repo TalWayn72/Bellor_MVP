@@ -2,7 +2,7 @@
  * Full-Stack E2E: Console Warning Detection
  * Comprehensive scan of ALL routes for React warnings, prop leaks, and auth race conditions.
  */
-import { test } from '@playwright/test';
+import { test } from './fullstack-base.js';
 import {
   FULLSTACK_AUTH,
   assertPageHealthy,

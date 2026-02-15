@@ -2,7 +2,7 @@
  * Full-Stack E2E: Content Tasks (WriteTask, AudioTask, VideoTask, Creation)
  * Tests page load, key UI elements, navigation, and console warnings
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fullstack-base.js';
 import { waitForPageLoad, FULLSTACK_AUTH, collectConsoleMessages } from '../fixtures/index.js';
 
 test.describe('[P1][content] Content Tasks - Full Stack', () => {
