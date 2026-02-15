@@ -41,6 +41,7 @@ A  qa    →  151.145.94.190   (TTL: 600)
 
 | קטגוריה | מספר תקלות | חומרה | סטטוס |
 |----------|-------------|--------|--------|
+| **ISSUE-087: Nginx proxy_pass recurring 404 - certbot rewrite fix (Feb 15)** | 3 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-085: Upload 413 - Nginx missing client_max_body_size (Feb 15)** | 2 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-084: Mission Creation Schema Mismatch - Video/Audio/Write 400 Error (Feb 15)** | 3 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-083: Mixed Content + HTTPS OAuth + Nginx proxy fix (Feb 15)** | 4 | 🔴 קריטי | ✅ תוקן |
@@ -4884,6 +4885,41 @@ Then rebuild the web container: `docker compose up -d --build web`
 - Added `Mixed Content` to E2E console warning FAIL_PATTERNS
 - Created `npm run check:build-urls` script to detect HTTP URLs in production builds
 - **Files:** `scripts/check-build-urls.js`, `apps/web/e2e/fixtures/console-warning.helpers.ts`
+
+---
+
+## ✅ ISSUE-087: Nginx proxy_pass Recurring 404 - Certbot Rewrite Fix (15 פברואר 2026)
+
+### בעיה
+- `https://prod.bellor.app/api/health` ו-`https://qa.bellor.app/api/health` מחזירים **404** לסירוגין
+- Fastify מקבל `/api/health` במקום `/health` כי nginx לא מפשיט את ה-`/api/` prefix
+- **שורש הבעיה:** certbot renewal משנה `proxy_pass http://127.0.0.1:3000/;` (עם slash) ל-`proxy_pass http://127.0.0.1:3000;` (בלי slash)
+- `sites-enabled/bellor` נהפך מ-symlink לקובץ רגיל, מה שגורם לעדכונים ב-sites-available לא לחול
+
+### פתרון
+1. **הוספת `rewrite` directive** שcertbot לא נוגע בו:
+   ```nginx
+   location /api/ {
+       rewrite ^/api/(.*) /$1 break;
+       proxy_pass http://127.0.0.1:3000;
+   }
+   ```
+2. **יצירת symlink תקין:** `sites-enabled/bellor -> sites-available/bellor`
+3. **certbot post-renewal hook:** `/etc/letsencrypt/renewal-hooks/post/fix-nginx-proxy.sh`
+   - מוודא שrewrite קיים אחרי כל חידוש SSL
+   - מוודא ש-sites-enabled הוא symlink
+4. **עדכון FRONTEND_URL** ב-.env משני השרתים:
+   - PROD: `https://prod.bellor.app`
+   - QA: `https://qa.bellor.app`
+
+### קבצים שהשתנו (שרתים בלבד)
+- `/etc/nginx/sites-available/bellor` (PROD + QA)
+- `/etc/letsencrypt/renewal-hooks/post/fix-nginx-proxy.sh` (PROD + QA - חדש)
+- `/opt/bellor/.env` (PROD + QA)
+
+### סטטוס: ✅ תוקן
+- חומרה: 🔴 קריטי (API לא נגיש)
+- תאריך תיקון: 15 פברואר 2026
 
 ---
 
