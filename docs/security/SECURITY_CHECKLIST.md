@@ -52,7 +52,7 @@ Use this checklist before every release to verify security controls are in place
 - [x] Images re-encoded through sharp (neutralizes hidden payloads)
   > `processImage()` re-encodes to jpeg/png/webp via sharp pipeline. Output is a clean re-encoded buffer.
 - [x] File size limits enforced per type
-  > Image: 10MB, Audio: 5MB, Video: 100MB defined in `FILE_SECURITY`. Multipart plugin limit: 15MB. Validated in `validateImageFile()`, `validateAudioFile()`, and `validateFile()`.
+  > Image: 10MB, Audio: 50MB, Video: 100MB defined in `FILE_SECURITY`. Multipart plugin limit: 15MB. Validated in `validateImageFile()`, `validateAudioFile()`, and `validateFile()`.
 - [x] Image resolution limits enforced (max 4096x4096)
   > `FILE_SECURITY.image.maxWidth = 4096`, `maxHeight = 4096`. Validated in `validateImageDimensions()` which also checks total pixel count for decompression bomb protection.
 - [x] Random filenames generated (UUID + hash)
@@ -63,6 +63,8 @@ Use this checklist before every release to verify security controls are in place
   > `hasDoubleExtension()` in `file-validation-rules.ts` checks all middle extensions against `blockedExtensions`. Called in `validateImageFile()` and `validateAudioFile()`.
 - [x] Audio files validated (format, duration, size)
   > `validateAudioSecurity()` in `audio-processor.ts` validates size, detects type from magic bytes, estimates duration (rejects > 60s), and `stripAudioMetadata()` strips ID3 tags from MP3s.
+- [x] Nginx reverse proxy: `client_max_body_size 20m;` configured (3-layer upload validation: Nginx 20MB → Fastify Multipart 15MB → per-file type limits)
+  > `nginx-production.conf` sets `client_max_body_size 20m;` as the outermost upload gate. Requests exceeding 20MB are rejected at the proxy layer before reaching Node.js. Combined with Fastify Multipart's 15MB limit and per-type limits (Image 10MB, Audio 50MB, Video 100MB), this creates defense-in-depth upload validation.
 - [x] Upload rate limiting active (max 10/minute per user)
   > `RATE_LIMITS.api.upload = { max: 10, timeWindow: '1 minute' }`. `checkUploadRateLimit()` in `rate-limiter.ts` enforces per-user Redis-backed rate limiting.
 - [ ] Files quarantined until validation passes
@@ -195,14 +197,14 @@ Use this checklist before every release to verify security controls are in place
 | Section | Passed | Total | Coverage |
 |---------|--------|-------|----------|
 | 1. Input Validation | 13 | 13 | 100% |
-| 2. File Uploads | 13 | 14 | 93% |
+| 2. File Uploads | 14 | 15 | 93% |
 | 3. Authentication | 8 | 8 | 100% |
 | 4. HTTP Security Headers | 10 | 10 | 100% |
 | 5. API Security | 7 | 8 | 88% |
 | 6. Container Security | 10 | 10 | 100% |
 | 7. Data Protection | 6 | 7 | 86% |
 | 8. Monitoring | 7 | 8 | 88% |
-| **Total** | **74** | **78** | **95%** |
+| **Total** | **75** | **79** | **95%** |
 
 ## Items Requiring Attention
 
@@ -217,4 +219,4 @@ Use this checklist before every release to verify security controls are in place
 
 **Reviewer:** Claude Opus 4.6 (Automated Code Audit)
 **Date:** February 8, 2026
-**Pass/Fail:** **PASS** (95% — 71/75 items verified, 4 items noted for improvement)
+**Pass/Fail:** **PASS** (95% — 75/79 items verified, 4 items noted for improvement)

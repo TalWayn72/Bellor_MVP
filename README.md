@@ -5,7 +5,7 @@ A modern dating and social networking platform built for scale. Fully standalone
 [![CI](https://github.com/TalWayn72/Bellor_MVP/workflows/CI/badge.svg)](https://github.com/TalWayn72/Bellor_MVP/actions)
 ![Version](https://img.shields.io/badge/version-1.0.0--beta-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)
-![Tests](https://img.shields.io/badge/tests-3268%2B-green)
+![Tests](https://img.shields.io/badge/tests-3463%2B-green)
 ![License](https://img.shields.io/badge/license-Private-red)
 
 ---
@@ -269,19 +269,16 @@ docker compose -f infrastructure/docker/docker-compose.monitoring.yml up -d
 
 | Category | Count | Framework | Files |
 |----------|-------|-----------|-------|
-| Backend Unit | 306 services + middleware | Vitest | 27 test files |
-| **Backend Integration** | **240 controller tests** | **Vitest + Fastify inject()** | **10 test files** |
-| **Database Migration** | **97 migration tests** | **Vitest + PostgreSQL** | **3 test files** |
-| Frontend Unit | 18 pages + utils | Vitest | 20 test files |
-| **Frontend Accessibility** | **138 component tests** | **vitest-axe + jest-axe** | **7 test files** |
+| **Backend (Unit + Integration + Migration)** | **1,425 tests** | **Vitest** | **519 test files** |
+| **Frontend (Unit + Accessibility + Components)** | **1,224 tests** | **Vitest** | **416 test files** |
 | E2E (Mocked) | 224 | Playwright | 11 spec files |
 | **E2E Full-Stack** | **214 (207 passed, 7 skipped)** | **Playwright** | **22 spec files** |
 | **E2E Accessibility** | **56 page tests (28×2 viewports)** | **axe-core + Playwright** | **1 test file** |
 | **Visual Regression** | **20+ scenarios** | **Playwright** | **1 spec file** |
 | Load Testing | 7 scripts | k6 | smoke, sustained, stress, spike, WS, DB, memory |
 | Mutation Testing | Critical services | Stryker | Auth, Chat, Security, Middleware |
-| **🆕 Memory Leak Detection** | **Automated scan** | **Custom + Vitest** | **Static analysis + Runtime tests** |
-| **Total** | **3268+ tests** | | **103+ test files** |
+| **Memory Leak Detection** | **Automated scan** | **Custom + Vitest** | **Static analysis + Runtime tests** |
+| **Total** | **3,463+ tests** | | **935+ test files** |
 
 **Browsers (E2E):** Chromium, Mobile Chrome, Mobile Safari, Firefox (CI)
 

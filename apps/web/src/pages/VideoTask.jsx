@@ -37,12 +37,7 @@ export default function VideoTask() {
     try {
       let mission = todayMission;
       if (!mission?.id) {
-        const today = new Date().toISOString().split('T')[0];
-        const result = await missionService.createMission({
-          ...NEW_MISSION_TEMPLATE,
-          date: today,
-          isActive: true,
-        });
+        const result = await missionService.createMission(NEW_MISSION_TEMPLATE);
         mission = result.data;
       }
 

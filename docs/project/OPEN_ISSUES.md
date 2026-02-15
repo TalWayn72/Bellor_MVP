@@ -41,6 +41,8 @@ A  qa    →  151.145.94.190   (TTL: 600)
 
 | קטגוריה | מספר תקלות | חומרה | סטטוס |
 |----------|-------------|--------|--------|
+| **ISSUE-085: Upload 413 - Nginx missing client_max_body_size (Feb 15)** | 2 | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-084: Mission Creation Schema Mismatch - Video/Audio/Write 400 Error (Feb 15)** | 3 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-083: Mixed Content + HTTPS OAuth + Nginx proxy fix (Feb 15)** | 4 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-082: OAuth Google 404 - Missing /api/v1 prefix (Feb 15)** | 1 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-081: Oracle Cloud Deployment + Domain Setup (Feb 15)** | 8 | 🔴 קריטי | ✅ הושלם |
@@ -4882,3 +4884,86 @@ Then rebuild the web container: `docker compose up -d --build web`
 - Added `Mixed Content` to E2E console warning FAIL_PATTERNS
 - Created `npm run check:build-urls` script to detect HTTP URLs in production builds
 - **Files:** `scripts/check-build-urls.js`, `apps/web/e2e/fixtures/console-warning.helpers.ts`
+
+---
+
+## ✅ ISSUE-085: Upload 413 Error - Nginx Missing client_max_body_size (15 פברואר 2026)
+
+### בעיה
+- העלאת תמונת פרופיל ב-Onboarding Step 8 נכשלת עם שגיאת **413 Payload Too Large**
+- Nginx default limit = 1MB, תמונות פרופיל ~8MB
+- אותה בעיה קיימת בכל endpoint של upload (תמונות, וידאו, אודיו)
+- נמצא גם: **Audio size limit discrepancy** - security-validation.config.ts הגדיר 5MB במקום 50MB
+
+### גורם שורש
+1. **Nginx**: לא הוגדר `client_max_body_size` - ברירת מחדל 1MB
+2. **Audio config**: `security-validation.config.ts` הגביל ל-5MB, `storage-utils.ts` הגביל ל-50MB
+
+### פתרון
+1. **QA + PROD nginx**: הוספת `client_max_body_size 20m;` ב-server block
+2. **Audio fix**: תיקון `security-validation.config.ts` מ-5MB ל-50MB (התאמה ל-storage-utils)
+3. **nginx production config**: עדכון `infrastructure/docker/nginx-production.conf`
+
+### קבצים שהשתנו
+| קובץ | שינוי |
+|-------|--------|
+| QA: `/etc/nginx/sites-enabled/bellor` | `client_max_body_size 20m;` |
+| PROD: `/etc/nginx/sites-enabled/bellor` | `client_max_body_size 20m;` |
+| `apps/api/src/config/security-validation.config.ts` | Audio maxSize: 5MB → 50MB |
+
+### Upload Limits Summary
+| סוג | Nginx | Fastify Multipart | Security Config | Storage Utils |
+|------|-------|-------------------|-----------------|---------------|
+| Images | 20MB | 15MB | 10MB | 10MB |
+| Audio | 20MB | 15MB | 50MB (fixed) | 50MB |
+| Video | 20MB | 15MB | 100MB | 100MB |
+
+### חומרה: 🔴 קריטי
+
+---
+
+## ✅ ISSUE-084: Mission Creation Schema Mismatch - All Task Pages 400 Error (15 פברואר 2026)
+
+### בעיה
+כל דפי המשימות (VideoTask, AudioTask, WriteTask) נכשלו בשגיאת 400 בעת יצירת mission חדשה.
+Frontend שלח שדות שלא תואמים את ה-Zod schema של ה-Backend:
+
+**שדות שנשלחו (שגוי):**
+- `question` - לא קיים ב-schema
+- `category` - לא קיים ב-schema
+- `responseTypes` - לא קיים ב-schema
+- `date` - לא קיים ב-schema
+- `isActive` - לא קיים ב-schema
+
+**שדות נדרשים (Backend Zod):**
+- `title` ✅ (נשלח)
+- `description` ❌ (חסר - חובה)
+- `missionType` ❌ (חסר - חובה, enum: DAILY/WEEKLY/SPECIAL/ICE_BREAKER)
+
+### גורם שורש
+`NEW_MISSION_TEMPLATE` ב-constants files הכילו שדות שגויים שלא תואמים את `createMissionSchema` בצד השרת.
+נוסף: AudioTask.jsx הכיל את הנתונים השגויים inline (לא מ-constants file).
+
+### פתרון
+1. תוקנו קבצי Constants:
+   - `VideoTask.constants.js`: `question`→`description`, `category`→`missionType:"DAILY"`, הוסר `responseTypes`
+   - `WriteTask.constants.js`: אותו תיקון
+2. תוקן `AudioTask.jsx`: אותו תיקון inline
+3. תוקנו קריאות `createMission()` בכל 3 הדפים: הוסרו `date`, `isActive`
+
+### קבצים שתוקנו
+| קובץ | שינוי |
+|-------|--------|
+| `apps/web/src/pages/VideoTask.constants.js` | `question`→`description`, `category`→`missionType` |
+| `apps/web/src/pages/WriteTask.constants.js` | אותו תיקון |
+| `apps/web/src/pages/VideoTask.jsx` | הוסרו `date`, `isActive` מקריאת createMission |
+| `apps/web/src/pages/WriteTask.jsx` | אותו תיקון |
+| `apps/web/src/pages/AudioTask.jsx` | תיקון נתונים inline |
+
+### בדיקות
+- `VideoTask.test.jsx`: regression test - verifies createMission called with correct schema fields
+- `AudioTask.test.jsx`: regression test - same verification
+- `WriteTask.test.jsx`: regression test - same verification
+
+### חומרה: 🔴 קריטי
+כל דפי השיתוף (וידאו, אודיו, כתיבה) לא עבדו כלל כשלא היה mission יומי.

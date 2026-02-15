@@ -9,7 +9,6 @@ export const DEFAULT_MISSION = {
 
 export const NEW_MISSION_TEMPLATE = {
   title: "Share something about yourself",
-  question: "Share something interesting about yourself today",
-  category: "identity",
-  responseTypes: ['text', 'drawing', 'voice', 'video']
+  description: "Share something interesting about yourself today",
+  missionType: "DAILY",
 };

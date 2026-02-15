@@ -42,14 +42,10 @@ export default function AudioTask() {
     try {
       let mission = todayMission;
       if (!mission?.id) {
-        const today = new Date().toISOString().split('T')[0];
         const result = await missionService.createMission({
           title: "Share something about yourself",
-          question: "Share something interesting about yourself today",
-          category: "identity",
-          date: today,
-          isActive: true,
-          responseTypes: ['text', 'drawing', 'voice', 'video']
+          description: "Share something interesting about yourself today",
+          missionType: "DAILY",
         });
         mission = result.data;
       }

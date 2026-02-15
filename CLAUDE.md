@@ -77,6 +77,11 @@
 
 **Empty DB?** → `cd apps/api && npx prisma db seed`
 
+### Nginx Upload Config (required on QA/PROD servers)
+| Setting | Value | Location |
+|---------|-------|----------|
+| `client_max_body_size` | `20m` | `/etc/nginx/sites-enabled/bellor` server block |
+
 ## Commands Reference
 
 ### Development
@@ -282,3 +287,4 @@ After every `git push`, verify that GitHub Actions workflows are running:
 | Migration needed | `npm run prisma:migrate` |
 | OOM during tests | Run `apps/web` and `apps/api` tests separately |
 | Pre-commit hook fails | Run `npm run lint:fix` then re-stage |
+| Upload 413 error | Add `client_max_body_size 20m;` to nginx server block |

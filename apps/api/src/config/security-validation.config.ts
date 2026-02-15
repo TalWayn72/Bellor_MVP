@@ -109,7 +109,7 @@ export const FILE_SECURITY = {
   audio: {
     allowedMimeTypes: ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/webm', 'audio/x-m4a'],
     allowedExtensions: ['.mp3', '.wav', '.ogg', '.m4a', '.webm'],
-    maxSize: 5 * 1024 * 1024,
+    maxSize: 50 * 1024 * 1024,
     maxDurationSeconds: 60,
     magicBytes: {
       mp3: [0x49, 0x44, 0x33],
