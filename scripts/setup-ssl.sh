@@ -59,7 +59,7 @@ cp "${CERT_DIR}/privkey.pem" "${DOCKER_CERT_DIR}/privkey.pem"
 chmod 600 "${DOCKER_CERT_DIR}"/*.pem
 
 # Reload nginx without downtime
-docker exec bellor-nginx nginx -s reload 2>/dev/null || true
+docker exec bellor-web nginx -s reload 2>/dev/null || true
 HOOK
 chmod +x /etc/letsencrypt/renewal-hooks/deploy/bellor-reload.sh
 

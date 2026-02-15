@@ -2,22 +2,19 @@
 # Bellor MVP - Oracle Cloud Free Tier
 # ================================================
 # Optimized for Oracle Cloud Always Free:
-#   - ARM A1 Flex: 1 OCPU (2 vCPU), 6 GB RAM, 47 GB storage
-#   - Total memory budget: ~1,088 MB (leaves headroom for OS)
-#   - CPU budget: 1.5 of 2 vCPU (leaves 0.5 for OS)
+#   - AMD Micro: 1/8 OCPU, 1 GB RAM + 2 GB swap, 48 GB storage
+#   - Total memory budget: ~624 MB (leaves ~300 MB for OS)
 #
 # Usage:
 #   docker compose -f docker-compose.oracle-free.yml up -d
 #
 # Resource allocation:
-#   API:      384 MB / 0.50 CPU
-#   Web:      128 MB / 0.25 CPU
-#   Postgres: 512 MB / 0.50 CPU
-#   Redis:     64 MB / 0.25 CPU
-#   Total:  1,088 MB / 1.50 CPU
+#   API:      256 MB
+#   Web:       64 MB
+#   Postgres: 256 MB
+#   Redis:     48 MB
+#   Total:    624 MB
 # ================================================
-
-version: '3.8'
 
 services:
   # ======== API Service ========
@@ -47,10 +44,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 384M
-          cpus: '0.5'
-        reservations:
           memory: 256M
+        reservations:
+          memory: 128M
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -108,7 +104,7 @@ services:
     container_name: bellor-web
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "80:8080"
     # Security hardening
     security_opt:
       - no-new-privileges:true
@@ -128,16 +124,15 @@ services:
     deploy:
       resources:
         limits:
-          memory: 128M
-          cpus: '0.25'
-        reservations:
           memory: 64M
+        reservations:
+          memory: 32M
     networks:
       - bellor-network
     depends_on:
       - api
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -157,10 +152,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
-          cpus: '0.5'
-        reservations:
           memory: 256M
+        reservations:
+          memory: 128M
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-bellor}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -168,12 +162,12 @@ services:
       PGDATA: /var/lib/postgresql/data/pgdata
     command: >
       postgres
-      -c shared_buffers=64MB
-      -c max_connections=30
-      -c effective_cache_size=256MB
-      -c maintenance_work_mem=32MB
-      -c work_mem=2MB
-      -c wal_buffers=4MB
+      -c shared_buffers=32MB
+      -c max_connections=20
+      -c effective_cache_size=128MB
+      -c maintenance_work_mem=16MB
+      -c work_mem=1MB
+      -c wal_buffers=2MB
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:
@@ -201,11 +195,10 @@ services:
     deploy:
       resources:
         limits:
-          memory: 64M
-          cpus: '0.25'
+          memory: 48M
         reservations:
-          memory: 32M
-    command: redis-server --maxmemory 48mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD}
+          memory: 24M
+    command: redis-server --maxmemory 32mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis-data:/data
     ports:
