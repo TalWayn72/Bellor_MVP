@@ -126,7 +126,7 @@ For detailed architecture diagrams (Mermaid): [docs/architecture/ARCHITECTURE.md
 | **Frontend** | React 18.2, Vite 6.1, TypeScript 5.8, Tailwind CSS 3.4, Radix UI, TanStack Query 5, React Router 6, Framer Motion 11 |
 | **Backend** | Node.js 20+, Fastify 5.2, Prisma 6.19, Zod 3.23, Socket.io 4.8, Stripe 20.3, Firebase Admin 13.6 |
 | **Database** | PostgreSQL 16 (40+ indexes), Redis 7 (sessions, cache, presence) |
-| **Testing** | Vitest 2.1 (2774 unit/integration tests across 153 files), Playwright (224 mocked + 214 full-stack E2E tests + visual regression + accessibility), k6 (7 load test scripts) |
+| **Testing** | Vitest 2.1 (2,649 unit/integration tests across 935 files), Playwright (224 mocked + 214 full-stack E2E tests + visual regression + accessibility), k6 (7 load test scripts) |
 | **DevOps** | Docker 24+, Kubernetes 1.28+, GitHub Actions, Prometheus, Grafana, Loki, Alertmanager |
 
 ---
@@ -167,7 +167,7 @@ For detailed architecture diagrams (Mermaid): [docs/architecture/ARCHITECTURE.md
 - Security headers (CSP, HSTS, CORS, X-Frame-Options)
 - Container hardening (non-root, read-only FS, capability dropping)
 - K8s NetworkPolicy + RBAC for pod-to-pod traffic restriction
-- Full audit: [docs/security/SECURITY_CHECKLIST.md](docs/security/SECURITY_CHECKLIST.md) (71/75 items verified)
+- Full audit: [docs/security/SECURITY_CHECKLIST.md](docs/security/SECURITY_CHECKLIST.md) (75/79 items verified)
 
 ---
 
@@ -185,9 +185,9 @@ For detailed architecture diagrams (Mermaid): [docs/architecture/ARCHITECTURE.md
 | | `npm run prisma:migrate` | Run migrations (dev) |
 | | `npm run prisma:studio` | Prisma Studio (port 5555) |
 | | `npm run prisma:seed` | Seed 50 demo users |
-| **Test** | `npm run test` | All tests (3268+) |
-| | `npm run test:api` | Backend unit tests (1371) |
-| | `npm run test:web` | Frontend unit tests (1123) |
+| **Test** | `npm run test` | All tests (3,463+) |
+| | `npm run test:api` | Backend tests (1,425) |
+| | `npm run test:web` | Frontend tests (1,224) |
 | | `npm run test:e2e` | Playwright E2E mocked (224 tests) |
 | | `npm run test:e2e:fullstack` | Playwright E2E full-stack (214 tests) |
 | | `npm run test:migration` | Database migration tests (97 tests) |
@@ -434,7 +434,7 @@ VITE_WS_URL=ws://localhost:3000
 | 3 | Real-time -- Socket.io, Chat, Presence, Frontend integration | Complete |
 | 4 | Frontend Migration -- Remove Base44 dependencies | Complete |
 | 5 | Admin & Tools -- Dashboard, User/Report/Chat management | Complete |
-| 6 | Testing & QA -- 2774 unit/integration + 280 E2E tests, 75% backend coverage, 40% frontend baseline, WCAG 2.1 AA compliance | Complete |
+| 6 | Testing & QA -- 2,649 unit/integration + 514 E2E tests, 75% backend coverage, 40% frontend baseline, WCAG 2.1 AA compliance | Complete |
 | 7 | Deployment -- CI/CD, Docker builds, K8s, universal installers | Complete |
 | 8 | Universal Deployment -- Cloud-agnostic, free hosting, one-command deploy | Complete |
 | 9 | Final Polish -- Push notifications, audio playback, story viewer, TS cleanup, Logger | Complete |

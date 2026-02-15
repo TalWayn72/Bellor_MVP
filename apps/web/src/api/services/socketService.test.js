@@ -8,12 +8,17 @@ import { io } from 'socket.io-client';
 
 vi.mock('socket.io-client');
 
+vi.mock('../client/tokenStorage', () => ({
+  tokenStorage: { getAccessToken: vi.fn(() => 'test-token-12345') },
+}));
+
 describe('[P1][chat] Socket Service - Memory Leak Prevention', () => {
   let mockSocket;
   let SocketService;
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    vi.resetModules();
 
     // Mock socket instance
     mockSocket = {
@@ -40,24 +45,17 @@ describe('[P1][chat] Socket Service - Memory Leak Prevention', () => {
 
   describe('Listener accumulation prevention', () => {
     it('should not accumulate duplicate connect handlers', () => {
-      // Arrange
-      const connectHandlers = [];
-      mockSocket.on.mockImplementation((event, handler) => {
-        if (event === 'connect') {
-          connectHandlers.push(handler);
-        }
-      });
-
-      // Act - call connect multiple times
+      // Act - call connect (token is mocked, so io() will be called)
       SocketService.connect();
 
-      // Assert - should have exactly one connect handler with re-attach logic
+      // Assert - should have exactly one connect handler
       const connectCalls = mockSocket.on.mock.calls.filter(call => call[0] === 'connect');
       expect(connectCalls.length).toBeLessThanOrEqual(1);
     });
 
     it('should properly clean up listeners on disconnect', () => {
-      // Arrange
+      // Arrange - connect first so socket is set
+      SocketService.connect();
       const eventName = 'test:event';
       const callback = vi.fn();
 
@@ -70,20 +68,22 @@ describe('[P1][chat] Socket Service - Memory Leak Prevention', () => {
     });
 
     it('should re-attach listeners only once per reconnect', () => {
-      // Arrange
+      // Arrange - connect first to set up socket and handlers
+      SocketService.connect();
+
       const eventName = 'test:event';
       const callback = vi.fn();
       mockSocket.connected = true;
 
       SocketService.on(eventName, callback);
 
-      // Simulate reconnect
+      // Find the connect handler that was registered
       const connectHandler = mockSocket.on.mock.calls.find(call => call[0] === 'connect')?.[1];
 
-      // Act
+      // Act - simulate reconnect
       connectHandler?.();
 
-      // Assert - callback should be registered once
+      // Assert - callback should be registered at least once
       const offCalls = mockSocket.off.mock.calls.filter(call => call[0] === eventName);
       const onCalls = mockSocket.on.mock.calls.filter(call => call[0] === eventName);
 
@@ -97,7 +97,7 @@ describe('[P1][chat] Socket Service - Memory Leak Prevention', () => {
       // Arrange
       mockSocket.connected = false;
 
-      // Act
+      // Act - connect twice, should get same promise back
       const promise1 = SocketService.connect();
       const promise2 = SocketService.connect();
 
@@ -110,19 +110,29 @@ describe('[P1][chat] Socket Service - Memory Leak Prevention', () => {
       mockSocket.connected = false;
       const error = new Error('Connection failed');
 
-      // Simulate connection error
-      mockSocket.on.mockImplementation((event, handler) => {
-        if (event === 'connect_error') {
-          setTimeout(() => {
-            for (let i = 0; i < 5; i++) {
-              handler(error);
-            }
-          }, 0);
-        }
+      // Override io mock to simulate errors via on('connect_error')
+      vi.mocked(io).mockImplementation(() => {
+        const socket = { ...mockSocket, on: vi.fn(), off: vi.fn() };
+        // Register connect_error handler and fire it 5 times
+        socket.on.mockImplementation((event, handler) => {
+          if (event === 'connect_error') {
+            setTimeout(() => {
+              for (let i = 0; i < 5; i++) {
+                handler(error);
+              }
+            }, 0);
+          }
+        });
+        return socket;
       });
 
+      // Re-import to pick up new io mock
+      vi.resetModules();
+      const module = await import('./socketService.js');
+      const freshService = module.socketService;
+
       // Act & Assert
-      await expect(SocketService.connect()).rejects.toThrow();
+      await expect(freshService.connect()).rejects.toThrow('Connection failed');
     });
   });
 });
