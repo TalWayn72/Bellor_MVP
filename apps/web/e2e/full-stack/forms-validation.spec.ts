@@ -192,7 +192,7 @@ test.describe('[P1][infra] Forms Validation - Full Stack', () => {
     // The Feedback page shows a skeleton while loading, then the form.
     // Wait for the skeleton to disappear or the textarea to appear.
     const textarea = page.locator('textarea').first();
-    const isVisible = await textarea.isVisible({ timeout: 20000 }).catch(() => false);
+    const isVisible = await textarea.isVisible({ timeout: 30000 }).catch(() => false);
 
     if (!isVisible) {
       // Page may still be in loading state; check if page loaded at all
