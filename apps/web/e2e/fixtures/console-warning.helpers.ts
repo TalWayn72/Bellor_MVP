@@ -5,7 +5,7 @@
 import { Page, expect } from '@playwright/test';
 import { waitForPageLoad } from './navigation.helpers.js';
 
-// Patterns that FAIL the test (React warnings/errors)
+// Patterns that FAIL the test (React warnings/errors + security)
 const FAIL_PATTERNS = [
   'Unknown event handler property',
   'unknown prop',
@@ -15,6 +15,7 @@ const FAIL_PATTERNS = [
   'findDOMNode is deprecated',
   'Cannot update during an existing state transition',
   'Invalid DOM property',
+  'Mixed Content',
 ];
 
 // Patterns to IGNORE (dev tools, HMR, network)

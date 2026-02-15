@@ -41,6 +41,7 @@ A  qa    →  151.145.94.190   (TTL: 600)
 
 | קטגוריה | מספר תקלות | חומרה | סטטוס |
 |----------|-------------|--------|--------|
+| **ISSUE-083: Mixed Content + HTTPS OAuth + Nginx proxy fix (Feb 15)** | 4 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-082: OAuth Google 404 - Missing /api/v1 prefix (Feb 15)** | 1 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-081: Oracle Cloud Deployment + Domain Setup (Feb 15)** | 8 | 🔴 קריטי | ✅ הושלם |
 | **ISSUE-080: Pre-Deployment Quality Hardening (Feb 13)** | 6 | 🟡 בינוני | ✅ הושלם |
@@ -4839,3 +4840,45 @@ VITE_API_URL=http://129.159.132.180:3000/api/v1
 GOOGLE_REDIRECT_URI=http://<SERVER_IP>:3000/api/v1/oauth/google/callback
 ```
 Then rebuild the web container: `docker compose up -d --build web`
+
+---
+
+## ISSUE-083: Mixed Content + HTTPS OAuth + Nginx Proxy Fix (Feb 15, 2026)
+
+**Status:** ✅ תוקן
+**Severity:** 🔴 קריטי
+**Category:** Deployment / Security
+
+### Problems (4 sub-issues)
+
+1. **Google OAuth rejected HTTP redirect URIs** - App published as "In production" requires `https://`
+2. **Nginx `proxy_pass` trailing slash** stripped `/api/` prefix, breaking all API calls through domain
+3. **Frontend JS bundles used `http://` IP URLs** causing Mixed Content blocking on HTTPS pages
+4. **No cache-control headers** - stale JS files served from browser cache after server-side fixes
+
+### Solution
+
+#### 1. HTTPS OAuth Redirect URIs
+- Updated `GOOGLE_REDIRECT_URI` on both servers to `https://{domain}/api/v1/oauth/google/callback`
+- Updated `FRONTEND_URL` to `https://{domain}`
+- Registered HTTPS URIs in Google Cloud Console
+
+#### 2. Nginx proxy_pass fix
+- Changed `proxy_pass http://localhost:3000/;` → `proxy_pass http://localhost:3000;`
+- Trailing slash caused nginx to strip the `/api/` prefix before forwarding
+- Fixed in `/etc/nginx/sites-available/bellor` on both servers
+
+#### 3. Frontend bundle URLs → HTTPS domain
+- Replaced all `http://IP:3000/api/v1` → `https://DOMAIN/api/v1` in dist JS files
+- Replaced all `ws://IP:3000` → `wss://DOMAIN` for WebSocket
+- QA: `https://qa.bellor.app/api/v1` + `wss://qa.bellor.app`
+- PROD: `https://prod.bellor.app/api/v1` + `wss://prod.bellor.app`
+
+#### 4. Cache-control headers
+- Added nginx rules: `no-cache` for HTML, `immutable` for hashed assets
+- Prevents stale JS from being served after deployments
+
+### Prevention
+- Added `Mixed Content` to E2E console warning FAIL_PATTERNS
+- Created `npm run check:build-urls` script to detect HTTP URLs in production builds
+- **Files:** `scripts/check-build-urls.js`, `apps/web/e2e/fixtures/console-warning.helpers.ts`

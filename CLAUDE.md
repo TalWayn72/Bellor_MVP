@@ -59,7 +59,7 @@
 ### Required `.env` Variables (copy from `.env.example`)
 | Category | Key Variables |
 |----------|--------------|
-| Frontend | `VITE_API_URL`, `VITE_WS_URL` |
+| Frontend | `VITE_API_URL` (must include `/api/v1` suffix), `VITE_WS_URL` |
 | Backend | `NODE_ENV`, `PORT`, `HOST`, `FRONTEND_URL` |
 | Database | `DATABASE_URL` (PostgreSQL connection string) |
 | Redis | `REDIS_URL` |
@@ -114,6 +114,7 @@
 | `npm run test:domain:safety` | Domain: safety tests |
 | `npm run test:domain:profile` | Domain: profile tests |
 | `npm run check:file-length` | Enforce 150-line limit |
+| `npm run check:build-urls` | Detect Mixed Content HTTP URLs in production build |
 
 ### Load Testing (k6)
 | Command | Description |

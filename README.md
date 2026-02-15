@@ -406,7 +406,7 @@ JWT_REFRESH_SECRET=<32+ chars>
 NODE_ENV=development
 PORT=3000
 FRONTEND_URL=http://localhost:5173
-VITE_API_URL=http://localhost:3000
+VITE_API_URL=http://localhost:3000/api/v1
 VITE_WS_URL=ws://localhost:3000
 ```
 

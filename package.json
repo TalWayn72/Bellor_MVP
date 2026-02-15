@@ -28,6 +28,7 @@
     "test:memory-leak": "npm run test:api -- src/test/memory-leak-detection.test.ts && npm run test:web -- src/test/memory-leak-detection.test.ts",
     "check:file-length": "node scripts/check-file-length.js",
     "check:memory-leaks": "node scripts/check-memory-leaks.js",
+    "check:build-urls": "node scripts/check-build-urls.js",
     "type-check": "npm run type-check --workspaces --if-present",
     "prisma:generate": "npm run prisma:generate --workspace=@bellor/api",
     "prisma:migrate": "npm run prisma:migrate --workspace=@bellor/api",

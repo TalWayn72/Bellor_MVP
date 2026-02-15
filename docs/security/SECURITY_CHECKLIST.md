@@ -177,6 +177,12 @@ Use this checklist before every release to verify security controls are in place
   > `SecurityEvent` interface: `{ event, timestamp, ip, userAgent, userId, path, method, details }`. `LogEntry` interface includes request ID, method, URL, headers, body, response status, duration, error details.
 - [ ] Alert thresholds configured for suspicious patterns
   > **NOT IMPLEMENTED.** Logging infrastructure is in place, but no automated alerting system (e.g., Prometheus AlertManager rules, PagerDuty integration, or threshold-based notifications) is configured. The `infrastructure/docker/docker-compose.monitoring.yml` exists for Prometheus/Grafana setup, but alert rules have not been defined.
+- [x] Mixed Content detection in E2E tests
+  > `'Mixed Content'` added to `FAIL_PATTERNS` in `apps/web/e2e/fixtures/console-warning.helpers.ts`. Any E2E test that encounters a Mixed Content console error will fail automatically.
+- [x] Build URL validation for production
+  > `npm run check:build-urls` (`scripts/check-build-urls.js`) scans `apps/web/dist/assets/*.js` for HTTP URLs that would cause Mixed Content on HTTPS pages. Allowed: `localhost`, `127.0.0.1`, `www.w3.org`.
+- [x] VITE_API_URL must use HTTPS with `/api/v1` suffix in production
+  > `.env.example` documents correct format. CI/CD workflows use `https://api.bellor.app/api/v1`. Deployment docs in docker-compose files updated.
 - [x] npm audit run regularly
   > `ci.yml` runs `npm audit --audit-level=high` in the `security-scan` job on every push to main/develop and on pull requests.
 - [x] Docker image scan in CI/CD pipeline
@@ -195,8 +201,8 @@ Use this checklist before every release to verify security controls are in place
 | 5. API Security | 7 | 8 | 88% |
 | 6. Container Security | 10 | 10 | 100% |
 | 7. Data Protection | 6 | 7 | 86% |
-| 8. Monitoring | 4 | 5 | 80% |
-| **Total** | **71** | **75** | **95%** |
+| 8. Monitoring | 7 | 8 | 88% |
+| **Total** | **74** | **78** | **95%** |
 
 ## Items Requiring Attention
 
