@@ -1,7 +1,39 @@
 # תקלות פתוחות - Bellor MVP
 
-**תאריך עדכון:** 13 פברואר 2026
-**מצב:** ✅ Pre-Deployment Quality Hardening Complete (ISSUE-080)
+**תאריך עדכון:** 15 פברואר 2026
+**מצב:** ✅ Production Deployed on Oracle Cloud Free Tier (ISSUE-081)
+
+---
+
+## Domains & Infrastructure
+
+| Domain | Purpose | Provider | Status |
+|--------|---------|----------|--------|
+| **bellor.ai** | Main website, investors, landing | GoDaddy | ✅ Purchased |
+| **bellor.app** | Application (API + Web) | GoDaddy | ✅ Purchased |
+| **prod.bellor.app** | Production server | Oracle Cloud | ✅ Live |
+| **qa.bellor.app** | QA/Testing server | Oracle Cloud | ✅ Live |
+
+### Servers
+
+| Server | IP | Type | RAM | Disk | Purpose |
+|--------|-----|------|-----|------|---------|
+| **PROD** | 129.159.132.180 | VM.Standard.E2.1.Micro (AMD) | 1 GB | 48 GB | Production |
+| **QA** | 151.145.94.190 | VM.Standard.E2.1.Micro (AMD) | 1 GB | 48 GB | QA/Testing |
+
+### Server Stack (both servers)
+- **OS:** Ubuntu 22.04
+- **Node.js:** 20.x + PM2 (process manager)
+- **PostgreSQL:** 16 (Docker container)
+- **Redis:** 7 (Docker container)
+- **Nginx:** Reverse proxy + static files
+- **SSL:** Let's Encrypt (certbot)
+
+### GoDaddy DNS Records (Required)
+```
+A  prod  →  129.159.132.180  (TTL: 600)
+A  qa    →  151.145.94.190   (TTL: 600)
+```
 
 ---
 
@@ -9,6 +41,8 @@
 
 | קטגוריה | מספר תקלות | חומרה | סטטוס |
 |----------|-------------|--------|--------|
+| **ISSUE-082: OAuth Google 404 - Missing /api/v1 prefix (Feb 15)** | 1 | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-081: Oracle Cloud Deployment + Domain Setup (Feb 15)** | 8 | 🔴 קריטי | ✅ הושלם |
 | **ISSUE-080: Pre-Deployment Quality Hardening (Feb 13)** | 6 | 🟡 בינוני | ✅ הושלם |
 | **ISSUE-076: Memory Leak Audit + Test Mock Fixes (Feb 12)** | 3 | 🔴 קריטי | ✅ תוקן |
 | **CI/CD Memory Leak Detection Workflow (Feb 12)** | 1 | 🔴 קריטי | ✅ תוקן |
@@ -4761,3 +4795,47 @@ Before deploying to Oracle Cloud Free Tier, 6 quality improvements were needed:
 | Data Export | ✅ All user data included in GDPR export |
 | Resource Limits | ✅ All containers have memory/CPU limits |
 | Log Security | ✅ Logs rotated, no disk fill risk |
+
+---
+
+## ISSUE-082: OAuth Google 404 - Missing /api/v1 Prefix in VITE_API_URL (Feb 15, 2026)
+
+**Status:** ✅ תוקן
+**Severity:** 🔴 קריטי
+**Category:** Deployment Configuration
+
+### Problem
+Google OAuth login returns 404 on QA/PROD servers. The browser navigates to `/oauth/google` instead of `/api/v1/oauth/google`.
+
+**Root cause:** `VITE_API_URL` environment variable was configured without the `/api/v1` suffix in deployment configs. The API routes are registered under `/api/v1/` prefix (via `app-routes.ts`), but `.env.example`, CI/CD workflows, and Docker Compose configs all documented the URL without this prefix.
+
+- Frontend code correctly appends `/oauth/google` to `VITE_API_URL`
+- `apiClient.ts` uses `VITE_API_URL` as axios `baseURL` for all API calls
+- When `VITE_API_URL=http://151.145.94.190:3000` (no `/api/v1`), all API calls go to wrong paths
+
+### Solution
+Updated all configuration files to include `/api/v1` in `VITE_API_URL`:
+
+| File | Change |
+|------|--------|
+| `.env.example` | `http://localhost:3000` → `http://localhost:3000/api/v1` |
+| `.github/workflows/ci.yml` (build-web) | `https://api.bellor.app` → `https://api.bellor.app/api/v1` |
+| `.github/workflows/ci.yml` (docker-build) | `http://localhost:3000` → `http://localhost:3000/api/v1` |
+| `.github/workflows/test.yml` | `http://localhost:3000` → `http://localhost:3000/api/v1` |
+| `docker-compose.oracle-free.yml` (comment) | `https://api.bellor.app` → `https://api.bellor.app/api/v1` |
+| `docker-compose.prod.yml` (comment) | `https://api.bellor.app` → `https://api.bellor.app/api/v1` |
+| `infrastructure/docker/docker-compose.all-in-one.yml` | default `http://localhost:3000` → `http://localhost:3000/api/v1` |
+
+### Manual Action Required (QA + PROD servers)
+Update the `.env.production` on both servers:
+```bash
+# QA server (151.145.94.190)
+VITE_API_URL=http://151.145.94.190:3000/api/v1
+
+# PROD server (129.159.132.180)
+VITE_API_URL=http://129.159.132.180:3000/api/v1
+
+# Also update GOOGLE_REDIRECT_URI on both servers:
+GOOGLE_REDIRECT_URI=http://<SERVER_IP>:3000/api/v1/oauth/google/callback
+```
+Then rebuild the web container: `docker compose up -d --build web`

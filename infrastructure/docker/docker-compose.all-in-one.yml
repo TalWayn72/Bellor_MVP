@@ -122,7 +122,7 @@ services:
       context: .
       dockerfile: infrastructure/docker/Dockerfile.web
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000/api/v1}
         VITE_WS_URL: ${VITE_WS_URL:-ws://localhost:3000}
         VITE_CDN_URL: ${VITE_CDN_URL:-http://localhost:3000}
     container_name: bellor-web

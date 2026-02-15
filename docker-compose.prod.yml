@@ -222,7 +222,7 @@ volumes:
 # JWT_SECRET=your-very-long-secret-key-min-32-characters
 # JWT_REFRESH_SECRET=another-very-long-secret-key-min-32-characters
 # FRONTEND_URL=https://bellor.app
-# VITE_API_URL=https://api.bellor.app
+# VITE_API_URL=https://api.bellor.app/api/v1
 # VITE_WS_URL=wss://api.bellor.app
 # VITE_CDN_URL=https://cdn.bellor.app
 # R2_ENDPOINT=https://xxx.r2.cloudflarestorage.com
