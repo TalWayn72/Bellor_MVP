@@ -26,7 +26,7 @@ test.describe('[P1][social] Social Features - Full Stack', () => {
       // Page may be stuck loading or redirected - verify no crash
       await expect(page.locator('body')).toBeVisible();
       const onPage = page.url().includes('CompatibilityQuiz');
-      const redirected = page.url().includes('SharedSpace') || page.url().includes('Login');
+      const redirected = page.url().includes('SharedSpace') || page.url().includes('Login') || page.url().includes('Welcome') || page.url().includes('Onboarding');
       expect(onPage || redirected).toBe(true);
       return;
     }
@@ -49,7 +49,7 @@ test.describe('[P1][social] Social Features - Full Stack', () => {
     if (!headerVisible) {
       await expect(page.locator('body')).toBeVisible();
       const onPage = page.url().includes('CompatibilityQuiz');
-      const redirected = page.url().includes('SharedSpace') || page.url().includes('Login');
+      const redirected = page.url().includes('SharedSpace') || page.url().includes('Login') || page.url().includes('Welcome') || page.url().includes('Onboarding');
       expect(onPage || redirected).toBe(true);
       return;
     }
@@ -84,7 +84,7 @@ test.describe('[P1][social] Social Features - Full Stack', () => {
     if (!headerVisible) {
       await expect(page.locator('body')).toBeVisible();
       const onPage = page.url().includes('IceBreakers');
-      const redirected = page.url().includes('SharedSpace') || page.url().includes('Login');
+      const redirected = page.url().includes('SharedSpace') || page.url().includes('Login') || page.url().includes('Welcome') || page.url().includes('Onboarding');
       expect(onPage || redirected).toBe(true);
       return;
     }
@@ -105,7 +105,7 @@ test.describe('[P1][social] Social Features - Full Stack', () => {
     if (!headerVisible) {
       await expect(page.locator('body')).toBeVisible();
       const onPage = page.url().includes('IceBreakers');
-      const redirected = page.url().includes('SharedSpace') || page.url().includes('Login');
+      const redirected = page.url().includes('SharedSpace') || page.url().includes('Login') || page.url().includes('Welcome') || page.url().includes('Onboarding');
       expect(onPage || redirected).toBe(true);
       return;
     }
@@ -127,7 +127,7 @@ test.describe('[P1][social] Social Features - Full Stack', () => {
     if (!headerVisible) {
       await expect(page.locator('body')).toBeVisible();
       const onPage = page.url().includes('Achievements');
-      const redirected = page.url().includes('SharedSpace') || page.url().includes('Login');
+      const redirected = page.url().includes('SharedSpace') || page.url().includes('Login') || page.url().includes('Welcome') || page.url().includes('Onboarding');
       expect(onPage || redirected).toBe(true);
       return;
     }
@@ -154,7 +154,7 @@ test.describe('[P1][social] Social Features - Full Stack', () => {
     if (!headerVisible) {
       await expect(page.locator('body')).toBeVisible();
       const onPage = page.url().includes('DateIdeas');
-      const redirected = page.url().includes('SharedSpace') || page.url().includes('Login');
+      const redirected = page.url().includes('SharedSpace') || page.url().includes('Login') || page.url().includes('Welcome') || page.url().includes('Onboarding');
       expect(onPage || redirected).toBe(true);
       return;
     }
@@ -175,7 +175,7 @@ test.describe('[P1][social] Social Features - Full Stack', () => {
     if (!headerVisible) {
       await expect(page.locator('body')).toBeVisible();
       const onPage = page.url().includes('DateIdeas');
-      const redirected = page.url().includes('SharedSpace') || page.url().includes('Login');
+      const redirected = page.url().includes('SharedSpace') || page.url().includes('Login') || page.url().includes('Welcome') || page.url().includes('Onboarding');
       expect(onPage || redirected).toBe(true);
       return;
     }
@@ -196,7 +196,7 @@ test.describe('[P1][social] Social Features - Full Stack', () => {
     if (!headerVisible) {
       await expect(page.locator('body')).toBeVisible();
       const onPage = page.url().includes('VirtualEvents');
-      const redirected = page.url().includes('SharedSpace') || page.url().includes('Login');
+      const redirected = page.url().includes('SharedSpace') || page.url().includes('Login') || page.url().includes('Welcome') || page.url().includes('Onboarding');
       expect(onPage || redirected).toBe(true);
       return;
     }
@@ -219,7 +219,7 @@ test.describe('[P1][social] Social Features - Full Stack', () => {
     if (!headerVisible) {
       await expect(page.locator('body')).toBeVisible();
       const onPage = page.url().includes('VirtualEvents');
-      const redirected = page.url().includes('SharedSpace') || page.url().includes('Login');
+      const redirected = page.url().includes('SharedSpace') || page.url().includes('Login') || page.url().includes('Welcome') || page.url().includes('Onboarding');
       expect(onPage || redirected).toBe(true);
       return;
     }

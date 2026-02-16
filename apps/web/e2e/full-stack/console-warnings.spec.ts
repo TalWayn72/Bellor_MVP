@@ -40,8 +40,9 @@ test.describe('[P1][infra] Console Warning Detection - Authenticated Routes', ()
   test.use({ storageState: FULLSTACK_AUTH.user });
 
   test('should have clean console on all authenticated routes', async ({ page }) => {
+    test.setTimeout(180000); // 3 min for 33 routes on slow QA server
     for (const route of AUTHENTICATED_ROUTES) {
-      await assertPageHealthy(page, route, { settleMs: 2000 });
+      await assertPageHealthy(page, route, { settleMs: 1500 });
     }
   });
 

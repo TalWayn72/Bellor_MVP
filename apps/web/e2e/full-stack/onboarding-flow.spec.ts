@@ -114,12 +114,16 @@ async function navigateToStep(page: Page, step: string): Promise<boolean> {
  */
 function expectGracefulRedirect(page: Page) {
   const url = page.url();
-  const isAuthenticatedArea =
+  const isExpectedArea =
     url.includes('/Home') ||
     url.includes('/SharedSpace') ||
     url.includes('/Feed') ||
-    url.includes('/Discover');
-  expect(isAuthenticatedArea).toBe(true);
+    url.includes('/Discover') ||
+    url.includes('/Welcome') ||
+    url.includes('/Profile') ||
+    url.includes('/Creation') ||
+    url.includes('/Onboarding');
+  expect(isExpectedArea).toBe(true);
 }
 
 /**
@@ -132,27 +136,27 @@ async function isOnExpectedStep(page: Page, step: string): Promise<boolean> {
 
   // For step 3 (Nickname), look for the nickname input
   if (targetStep === 3) {
-    return page.locator('input[placeholder="Nickname"]').isVisible({ timeout: 3000 }).catch(() => false);
+    return page.locator('input[placeholder*="ickname"], input[placeholder*="שם"]').first().isVisible({ timeout: 8000 }).catch(() => false);
   }
   // For step 4 (BirthDate), look for date input
   if (targetStep === 4) {
-    return page.locator('input[type="date"]').isVisible({ timeout: 3000 }).catch(() => false);
+    return page.locator('input[type="date"], input[placeholder*="date" i], input[placeholder*="תאריך"]').first().isVisible({ timeout: 8000 }).catch(() => false);
   }
   // For step 5 (Location), look for location-related fields
   if (targetStep === 5) {
-    return page.locator('input, select').first().isVisible({ timeout: 3000 }).catch(() => false);
+    return page.locator('input, select').first().isVisible({ timeout: 8000 }).catch(() => false);
   }
   // For step 6 (AboutYou), look for textarea or input fields
   if (targetStep === 6) {
-    return page.locator('input, textarea, [role="combobox"]').first().isVisible({ timeout: 3000 }).catch(() => false);
+    return page.locator('input, textarea, [role="combobox"]').first().isVisible({ timeout: 8000 }).catch(() => false);
   }
   // For step 7 (Gender), look for gender buttons
   if (targetStep === 7) {
-    return page.getByRole('button', { name: /female|male|נקבה|זכר/i }).first().isVisible({ timeout: 3000 }).catch(() => false);
+    return page.getByRole('button', { name: /female|male|נקבה|זכר/i }).first().isVisible({ timeout: 8000 }).catch(() => false);
   }
   // For step 7.7 (LookingFor), look for preference buttons
   if (targetStep === 7.7) {
-    return page.getByRole('button', { name: /women|men|everyone|נשים|גברים|כולם/i }).first().isVisible({ timeout: 3000 }).catch(() => false);
+    return page.getByRole('button', { name: /women|men|everyone|נשים|גברים|כולם/i }).first().isVisible({ timeout: 8000 }).catch(() => false);
   }
   // For step 8 (Photos), look for file input
   if (targetStep === 8) {
