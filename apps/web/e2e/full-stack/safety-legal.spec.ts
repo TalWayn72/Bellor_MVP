@@ -31,7 +31,7 @@ test.describe('[P2][infra] Safety & Legal - Full Stack', () => {
       await expect(page.locator('h2').filter({ hasText: 'Your Safety Matters' })).toBeVisible({ timeout: 10000 });
       await expect(page.locator('text=Quick Actions')).toBeVisible({ timeout: 5000 });
       await expect(page.locator('.font-bold:has-text("Report an Issue")').first()).toBeVisible({ timeout: 5000 });
-      await expect(page.locator('text=Blocked Users')).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('.font-bold:has-text("Blocked Users")').first()).toBeVisible({ timeout: 5000 });
       cc.assertClean();
     });
 

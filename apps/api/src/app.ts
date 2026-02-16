@@ -20,6 +20,7 @@ const __dirname = path.dirname(__filename);
 
 // Create Fastify instance
 const app = Fastify({
+  pluginTimeout: 60000,
   logger: {
     level: env.LOG_LEVEL,
     transport: env.NODE_ENV === 'development'

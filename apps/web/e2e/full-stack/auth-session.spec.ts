@@ -277,8 +277,8 @@ test.describe('[P0][auth] Session Management - Full Stack', () => {
 
     await page.waitForURL(UNAUTHENTICATED_PAGE, { timeout: 20000 });
 
-    // Go back in browser history
-    await page.goBack();
+    // Go back in browser history (may throw ERR_ABORTED if frame detached during redirect)
+    await page.goBack().catch(() => {});
     await page.waitForTimeout(2000);
 
     // Should NOT show protected content - should redirect again or
