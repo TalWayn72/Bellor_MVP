@@ -266,13 +266,13 @@ export class MemoryMonitor {
   }
 
   start(): void {
-    if (typeof performance !== 'undefined' && performance.memory) {
+    if (typeof performance !== 'undefined' && (performance as any).memory) {
       this.baseline = (performance as any).memory.usedJSHeapSize;
     }
   }
 
   check(): { exceeded: boolean; growth: number } {
-    if (typeof performance !== 'undefined' && performance.memory) {
+    if (typeof performance !== 'undefined' && (performance as any).memory) {
       const current = (performance as any).memory.usedJSHeapSize;
       const growth = current - this.baseline;
 

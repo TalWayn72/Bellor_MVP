@@ -364,7 +364,7 @@ describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
         birthDate: '1990-05-15',
       });
 
-      const response = await apiClient.get('/users/me');
+      const response = await apiClient.get<Record<string, any>>('/users/me');
 
       expect(response.data.first_name).toBe('John');
       expect(response.data.last_name).toBe('Doe');
@@ -383,7 +383,7 @@ describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
         paginationInfo: { hasMore: true, totalCount: 50 },
       });
 
-      const response = await apiClient.get('/feed');
+      const response = await apiClient.get<Record<string, any>>('/feed');
 
       expect(response.data.items[0].response_type).toBe('TEXT');
       expect(response.data.items[0].created_date).toBe('2024-01-01');
@@ -424,7 +424,7 @@ describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
         data: { data: { accessToken: 'new-access-token' } },
       });
 
-      const response = await apiClient.get('/users/me');
+      const response = await apiClient.get<Record<string, any>>('/users/me');
 
       // Verify refresh was called with the refresh token
       expect(axiosPostSpy).toHaveBeenCalledWith(
@@ -633,7 +633,7 @@ describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
     it('get() sends GET request and returns response', async () => {
       mock.onGet('/users').reply(200, { data: [{ id: '1' }] });
 
-      const response = await apiClient.get('/users');
+      const response = await apiClient.get<Record<string, any>>('/users');
       expect(response.status).toBe(200);
       expect(response.data.data).toHaveLength(1);
     });
@@ -709,7 +709,7 @@ describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
         }];
       });
 
-      const response = await apiClient.post('/stories', {
+      const response = await apiClient.post<Record<string, any>>('/stories', {
         story_title: 'My Story',
         story_content: 'Some content',
       });
