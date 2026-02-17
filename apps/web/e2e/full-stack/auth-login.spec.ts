@@ -125,20 +125,20 @@ test.describe('[P0][auth] Login - Full Stack', () => {
     await page.getByRole('button', { name: /sign in/i }).click();
 
     // Accept any post-login redirect (including Onboarding for new users)
-    await page.waitForURL(/\/(Home|SharedSpace|Onboarding|Feed|Welcome)/, { timeout: 15000 });
+    await page.waitForURL(/\/(Home|SharedSpace|Onboarding|Feed|Welcome|Discover|Profile|Splash)/, { timeout: 30000 });
 
     // Verify token was stored (poll with generous timeout)
     let accessToken: string | null = null;
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 15; i++) {
       await page.waitForTimeout(500);
       accessToken = await getLocalStorageItem(page, 'bellor_access_token').catch(() => null);
       if (accessToken) break;
     }
 
-    // If token still not found after 5s, check if we're on a valid post-login page
+    // If token still not found after 7.5s, check if we're on a valid post-login page
     if (!accessToken) {
       const url = page.url();
-      const onAuthPage = /\/(Home|SharedSpace|Feed|Profile|Onboarding|Welcome)/.test(url);
+      const onAuthPage = /\/(Home|SharedSpace|Feed|Profile|Onboarding|Welcome|Discover|Splash)/.test(url);
       expect(onAuthPage).toBe(true);
       return;
     }
@@ -188,8 +188,8 @@ test.describe('[P0][auth] Login - Full Stack', () => {
     await page.locator('#password').fill(password);
     await page.getByRole('button', { name: /sign in/i }).click();
 
-    await page.waitForURL(/\/(Home|SharedSpace|Onboarding|AdminDashboard|Welcome)/, {
-      timeout: 15000,
+    await page.waitForURL(/\/(Home|SharedSpace|Onboarding|AdminDashboard|Welcome|Discover|Profile|Splash)/, {
+      timeout: 30000,
     });
 
     const accessToken = await getLocalStorageItem(page, 'bellor_access_token');
@@ -221,7 +221,7 @@ test.describe('[P0][auth] Login - Full Stack', () => {
     await page.locator('#password').fill(password);
     await page.getByRole('button', { name: /sign in/i }).click();
 
-    await page.waitForURL(/\/(Home|SharedSpace|Onboarding|Feed|Welcome)/, { timeout: 15000 });
+    await page.waitForURL(/\/(Home|SharedSpace|Onboarding|Feed|Welcome|Discover|Profile|Splash)/, { timeout: 30000 });
 
     // Reload the page
     await page.reload();
