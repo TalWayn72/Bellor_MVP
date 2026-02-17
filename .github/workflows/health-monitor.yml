@@ -1,0 +1,81 @@
+name: Health Monitor
+
+on:
+  schedule:
+    # Run every 15 minutes
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    name: Check Server Health
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check PROD API
+        id: prod
+        run: |
+          RESPONSE=$(curl -sf --max-time 15 https://prod.bellor.app/api/v1/health 2>&1) || true
+          echo "response=$RESPONSE" >> $GITHUB_OUTPUT
+          if echo "$RESPONSE" | grep -q '"status":"ok"'; then
+            echo "status=healthy" >> $GITHUB_OUTPUT
+            echo "✅ PROD: $RESPONSE"
+          else
+            echo "status=unhealthy" >> $GITHUB_OUTPUT
+            echo "🔴 PROD: ${RESPONSE:-timeout/unreachable}"
+          fi
+
+      - name: Check QA API
+        id: qa
+        run: |
+          RESPONSE=$(curl -sf --max-time 15 https://qa.bellor.app/api/v1/health 2>&1) || true
+          echo "response=$RESPONSE" >> $GITHUB_OUTPUT
+          if echo "$RESPONSE" | grep -q '"status":"ok"'; then
+            echo "status=healthy" >> $GITHUB_OUTPUT
+            echo "✅ QA: $RESPONSE"
+          else
+            echo "status=unhealthy" >> $GITHUB_OUTPUT
+            echo "🔴 QA: ${RESPONSE:-timeout/unreachable}"
+          fi
+
+      - name: Check PROD memory
+        id: prod_memory
+        run: |
+          RESPONSE=$(curl -sf --max-time 15 https://prod.bellor.app/health/memory 2>&1) || true
+          echo "PROD memory: ${RESPONSE:-unavailable}"
+
+      - name: Check QA memory
+        id: qa_memory
+        run: |
+          RESPONSE=$(curl -sf --max-time 15 https://qa.bellor.app/health/memory 2>&1) || true
+          echo "QA memory: ${RESPONSE:-unavailable}"
+
+      - name: Create GitHub issue on failure
+        if: steps.prod.outputs.status == 'unhealthy'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '🔴 PROD API Health Check Failed';
+            const body = `## Production API Down\n\n**Time:** ${new Date().toISOString()}\n**Response:** ${process.env.PROD_RESPONSE || 'timeout'}\n\n### Action Required\n- SSH to prod server: \`ssh -i ~/.ssh/oracle_bellor ubuntu@129.159.132.180\`\n- Check PM2: \`pm2 list && pm2 logs bellor-api --lines 50\`\n- Check memory: \`free -h\`\n- Restart if needed: \`pm2 restart bellor-api\``;
+
+            // Check if there's already an open issue
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'health-alert',
+              per_page: 5,
+            });
+
+            if (issues.data.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['health-alert', 'urgent'],
+              });
+            }
+        env:
+          PROD_RESPONSE: ${{ steps.prod.outputs.response }}

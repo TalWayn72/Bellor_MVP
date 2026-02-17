@@ -32,6 +32,11 @@ describe('[P0][profile] UsersService - deleteUserGDPR (GDPR Article 17)', () => 
         story: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
         userAchievement: { deleteMany: vi.fn().mockResolvedValue({ count: 2 }) },
         notification: { deleteMany: vi.fn().mockResolvedValue({ count: 10 }) },
+        deviceToken: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
+        feedback: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        payment: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        subscription: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        referral: { updateMany: vi.fn().mockResolvedValue({ count: 0 }) },
         chat: { deleteMany: vi.fn().mockResolvedValue({ count: 4 }) },
         report: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         like: { deleteMany: vi.fn().mockResolvedValue({ count: 8 }) },
@@ -67,6 +72,11 @@ describe('[P0][profile] UsersService - deleteUserGDPR (GDPR Article 17)', () => 
         story: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         userAchievement: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         notification: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        deviceToken: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        feedback: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        payment: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        subscription: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        referral: { updateMany: vi.fn().mockResolvedValue({ count: 0 }) },
         chat: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         report: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         like: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
@@ -93,6 +103,11 @@ describe('[P0][profile] UsersService - deleteUserGDPR (GDPR Article 17)', () => 
         story: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         userAchievement: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         notification: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        deviceToken: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        feedback: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        payment: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        subscription: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        referral: { updateMany: vi.fn().mockResolvedValue({ count: 0 }) },
         chat: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         report: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         like: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
@@ -101,7 +116,7 @@ describe('[P0][profile] UsersService - deleteUserGDPR (GDPR Article 17)', () => 
       };
       Object.entries(tx).forEach(([key, value]) => {
         const record = value as Record<string, ReturnType<typeof vi.fn>>;
-        const method = record.deleteMany || record.delete;
+        const method = record.deleteMany || record.updateMany || record.delete;
         if (method) deleteMocks[key] = method;
       });
       return cb(tx);
@@ -114,6 +129,13 @@ describe('[P0][profile] UsersService - deleteUserGDPR (GDPR Article 17)', () => 
     expect(deleteMocks['story']).toHaveBeenCalledWith({ where: { userId: 'test-user-id' } });
     expect(deleteMocks['userAchievement']).toHaveBeenCalledWith({ where: { userId: 'test-user-id' } });
     expect(deleteMocks['notification']).toHaveBeenCalledWith({ where: { userId: 'test-user-id' } });
+    expect(deleteMocks['deviceToken']).toHaveBeenCalledWith({ where: { userId: 'test-user-id' } });
+    expect(deleteMocks['feedback']).toHaveBeenCalledWith({ where: { userId: 'test-user-id' } });
+    expect(deleteMocks['payment']).toHaveBeenCalledWith({ where: { userId: 'test-user-id' } });
+    expect(deleteMocks['subscription']).toHaveBeenCalledWith({ where: { userId: 'test-user-id' } });
+    expect(deleteMocks['referral']).toHaveBeenCalledWith({
+      where: { referrerUserId: 'test-user-id' }, data: { referrerUserId: null },
+    });
     expect(deleteMocks['user']).toHaveBeenCalledWith({ where: { id: 'test-user-id' } });
   });
 
@@ -130,6 +152,11 @@ describe('[P0][profile] UsersService - deleteUserGDPR (GDPR Article 17)', () => 
         story: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         userAchievement: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         notification: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        deviceToken: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        feedback: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        payment: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        subscription: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        referral: { updateMany: vi.fn().mockResolvedValue({ count: 0 }) },
         chat: { deleteMany: vi.fn().mockImplementation((args: Record<string, unknown>) => { chatDeleteArgs = args; return { count: 0 }; }) },
         report: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         like: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },

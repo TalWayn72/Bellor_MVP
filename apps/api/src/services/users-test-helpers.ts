@@ -7,6 +7,16 @@
 
 import { vi } from 'vitest';
 
+// Mock cache (used by GDPR delete + getUserById caching)
+vi.mock('../lib/cache.js', () => ({
+  CacheKey: { user: (id: string) => `cache:user:${id}` },
+  CacheTTL: { USER: 600 },
+  cacheGet: vi.fn().mockResolvedValue(null),
+  cacheSet: vi.fn().mockResolvedValue(undefined),
+  cacheDel: vi.fn().mockResolvedValue(undefined),
+  cacheGetOrSet: vi.fn(async (_key: string, _ttl: number, fetcher: () => Promise<unknown>) => fetcher()),
+}));
+
 // Mock modules before importing the service
 vi.mock('../lib/prisma.js', () => ({
   prisma: {
@@ -44,6 +54,24 @@ vi.mock('../lib/prisma.js', () => ({
     },
     follow: {
       deleteMany: vi.fn(),
+    },
+    deviceToken: {
+      findMany: vi.fn().mockResolvedValue([]),
+      deleteMany: vi.fn(),
+    },
+    subscription: {
+      findMany: vi.fn().mockResolvedValue([]),
+      deleteMany: vi.fn(),
+    },
+    payment: {
+      findMany: vi.fn().mockResolvedValue([]),
+      deleteMany: vi.fn(),
+    },
+    feedback: {
+      deleteMany: vi.fn(),
+    },
+    referral: {
+      updateMany: vi.fn(),
     },
     $transaction: vi.fn(),
   },

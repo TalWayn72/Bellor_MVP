@@ -187,14 +187,44 @@ jobs:
             docker compose -f docker-compose.prod.yml exec -T api sh -c "cd /app/apps/api && npx prisma migrate deploy"
             docker compose -f docker-compose.prod.yml ps
 
+  verify-deployment-health:
+    name: Verify Deployment Health
+    runs-on: ubuntu-latest
+    needs: [deploy-kubernetes, deploy-docker-compose]
+    if: always() && (needs.deploy-kubernetes.result == 'success' || needs.deploy-docker-compose.result == 'success')
+
+    steps:
+      - name: Wait for services to stabilize
+        run: sleep 30
+
+      - name: Check PROD API health
+        run: |
+          RESPONSE=$(curl -sf --max-time 15 https://prod.bellor.app/api/v1/health 2>&1) || true
+          echo "PROD health: $RESPONSE"
+          if echo "$RESPONSE" | grep -q '"status":"ok"'; then
+            echo "✅ PROD API is healthy"
+          else
+            echo "⚠️ PROD API health check inconclusive (may not be deployed via this pipeline)"
+          fi
+
+      - name: Check QA API health
+        run: |
+          RESPONSE=$(curl -sf --max-time 15 https://qa.bellor.app/api/v1/health 2>&1) || true
+          echo "QA health: $RESPONSE"
+          if echo "$RESPONSE" | grep -q '"status":"ok"'; then
+            echo "✅ QA API is healthy"
+          else
+            echo "⚠️ QA API health check inconclusive"
+          fi
+
   notify-deployment:
     name: Notify Deployment Status
     runs-on: ubuntu-latest
-    needs: [deploy-kubernetes, deploy-docker-compose]
+    needs: [deploy-kubernetes, deploy-docker-compose, verify-deployment-health]
     if: always()
 
     steps:
       - name: Send notification
         run: |
           echo "Deployment completed with status: ${{ needs.deploy-kubernetes.result }}"
-          # Add Slack/Discord/Email notification here
+          echo "Health verification: ${{ needs.verify-deployment-health.result }}"

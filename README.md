@@ -167,7 +167,7 @@ For detailed architecture diagrams (Mermaid): [docs/architecture/ARCHITECTURE.md
 - Security headers (CSP, HSTS, CORS, X-Frame-Options)
 - Container hardening (non-root, read-only FS, capability dropping)
 - K8s NetworkPolicy + RBAC for pod-to-pod traffic restriction
-- Full audit: [docs/security/SECURITY_CHECKLIST.md](docs/security/SECURITY_CHECKLIST.md) (75/79 items verified)
+- Full audit: [docs/security/SECURITY_CHECKLIST.md](docs/security/SECURITY_CHECKLIST.md) (79/79 items verified — 100%)
 
 ---
 

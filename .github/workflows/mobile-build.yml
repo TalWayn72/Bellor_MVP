@@ -1,0 +1,80 @@
+name: Mobile Build (Android)
+
+on:
+  workflow_dispatch:
+    inputs:
+      track:
+        description: 'Release track'
+        required: true
+        default: 'internal'
+        type: choice
+        options:
+          - internal
+          - alpha
+          - production
+
+jobs:
+  build-android:
+    name: Build Android AAB
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web assets
+        run: npm run build --workspace=apps/web
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_WS_URL: ${{ secrets.VITE_WS_URL }}
+          VITE_CDN_URL: ${{ secrets.VITE_CDN_URL }}
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+        working-directory: apps/web
+
+      - name: Decode keystore
+        if: secrets.ANDROID_KEYSTORE_BASE64 != ''
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > apps/web/android/app/bellor-release.keystore
+
+      - name: Build release AAB
+        working-directory: apps/web/android
+        run: ./gradlew bundleRelease
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: bellor
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bellor-release-${{ github.sha }}
+          path: apps/web/android/app/build/outputs/bundle/release/*.aab
+          retention-days: 30
+
+      - name: Upload to Play Store
+        if: secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '' && github.event.inputs.track != ''
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.bellor.app
+          releaseFiles: apps/web/android/app/build/outputs/bundle/release/*.aab
+          track: ${{ github.event.inputs.track }}
+          status: completed

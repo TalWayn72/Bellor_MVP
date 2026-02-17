@@ -4,56 +4,56 @@
  */
 
 import { FastifyRequest, FastifyReply } from 'fastify';
+import { ZodError } from 'zod';
 import { PushNotificationsService } from '../services/push-notifications.service.js';
 import {
-  RegisterDeviceBody,
-  UnregisterDeviceBody,
-  SendTestNotificationBody,
+  registerDeviceBodySchema,
+  unregisterDeviceBodySchema,
+  sendTestNotificationBodySchema,
+  sendBroadcastBodySchema,
+  cleanupTokensBodySchema,
 } from './device-tokens/device-tokens-schemas.js';
 import { securityLogger } from '../security/logger.js';
 
+function handleError(error: unknown, reply: FastifyReply) {
+  if (error instanceof ZodError) {
+    return reply.status(400).send({ error: error.errors[0]?.message || 'Validation error' });
+  }
+  const message = error instanceof Error ? error.message : 'Unknown error';
+  return reply.status(500).send({ error: message });
+}
+
 export const DeviceTokensController = {
   /** POST /device-tokens/register */
-  async registerDevice(request: FastifyRequest<{ Body: RegisterDeviceBody }>, reply: FastifyReply) {
-    const userId = request.user!.id;
-    const { token, platform, deviceId, deviceName } = request.body;
-
-    if (!token || !platform) {
-      return reply.status(400).send({ error: 'Missing required fields: token, platform' });
-    }
-    if (!['IOS', 'ANDROID', 'WEB'].includes(platform)) {
-      return reply.status(400).send({ error: 'Invalid platform. Must be IOS, ANDROID, or WEB' });
-    }
-
+  async registerDevice(request: FastifyRequest, reply: FastifyReply) {
     try {
+      const userId = request.user!.id;
+      const body = registerDeviceBodySchema.parse(request.body);
       const deviceToken = await PushNotificationsService.registerDevice({
-        userId, token, platform, deviceId, deviceName,
+        userId, token: body.token, platform: body.platform,
+        deviceId: body.deviceId, deviceName: body.deviceName,
       });
       return reply.status(201).send({ deviceToken });
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(500).send({ error: message });
+      return handleError(error, reply);
     }
   },
 
   /** POST /device-tokens/unregister */
-  async unregisterDevice(request: FastifyRequest<{ Body: UnregisterDeviceBody }>, reply: FastifyReply) {
-    const { token } = request.body;
-    if (!token) return reply.status(400).send({ error: 'Missing required field: token' });
-
+  async unregisterDevice(request: FastifyRequest, reply: FastifyReply) {
     try {
-      const result = await PushNotificationsService.unregisterDevice(token);
+      const body = unregisterDeviceBodySchema.parse(request.body);
+      const result = await PushNotificationsService.unregisterDevice(body.token);
       return reply.send(result);
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(500).send({ error: message });
+      return handleError(error, reply);
     }
   },
 
   /** GET /device-tokens/my */
   async getMyDevices(request: FastifyRequest, reply: FastifyReply) {
-    const userId = request.user!.id;
     try {
+      const userId = request.user!.id;
       const devices = await PushNotificationsService.getUserDeviceTokens(userId);
       return reply.send({
         devices: devices.map(d => ({
@@ -63,61 +63,53 @@ export const DeviceTokensController = {
         })),
       });
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(500).send({ error: message });
+      return handleError(error, reply);
     }
   },
 
   /** POST /device-tokens/test */
-  async sendTestNotification(request: FastifyRequest<{ Body: SendTestNotificationBody }>, reply: FastifyReply) {
-    const userId = request.user!.id;
-    const { title = 'Test Notification', body = 'This is a test notification' } = request.body || {};
-
+  async sendTestNotification(request: FastifyRequest, reply: FastifyReply) {
     try {
+      const userId = request.user!.id;
+      const body = sendTestNotificationBodySchema.parse(request.body || {});
       const result = await PushNotificationsService.sendToUser({
-        userId, title, body, data: { test: 'true' },
+        userId, title: body.title, body: body.body, data: { test: 'true' },
       });
       return reply.send({ success: true, ...result });
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(500).send({ error: message });
+      return handleError(error, reply);
     }
   },
 
   /** POST /device-tokens/broadcast (admin only) */
-  async sendBroadcast(request: FastifyRequest<{ Body: { title: string; body: string } }>, reply: FastifyReply) {
+  async sendBroadcast(request: FastifyRequest, reply: FastifyReply) {
     const user = request.user as Record<string, unknown> | undefined;
     if (!user || !(user as Record<string, unknown>).isAdmin) {
       securityLogger.accessDenied(request, 'deviceTokens.sendBroadcast');
       return reply.status(403).send({ error: 'Admin access required' });
     }
-    const { title, body } = request.body;
-    if (!title || !body) return reply.status(400).send({ error: 'Missing required fields: title, body' });
-
     try {
-      const result = await PushNotificationsService.sendBroadcast(title, body);
+      const body = sendBroadcastBodySchema.parse(request.body);
+      const result = await PushNotificationsService.sendBroadcast(body.title, body.body);
       return reply.send({ success: true, ...result });
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(500).send({ error: message });
+      return handleError(error, reply);
     }
   },
 
   /** POST /device-tokens/cleanup (admin only) */
-  async cleanupInactiveTokens(request: FastifyRequest<{ Body: { daysOld?: number } }>, reply: FastifyReply) {
+  async cleanupInactiveTokens(request: FastifyRequest, reply: FastifyReply) {
     const user = request.user as Record<string, unknown> | undefined;
     if (!user || !(user as Record<string, unknown>).isAdmin) {
       securityLogger.accessDenied(request, 'deviceTokens.cleanupInactiveTokens');
       return reply.status(403).send({ error: 'Admin access required' });
     }
-    const { daysOld = 30 } = request.body || {};
-
     try {
-      const result = await PushNotificationsService.cleanupInactiveTokens(daysOld);
+      const body = cleanupTokensBodySchema.parse(request.body || {});
+      const result = await PushNotificationsService.cleanupInactiveTokens(body.daysOld);
       return reply.send({ success: true, ...result });
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return reply.status(500).send({ error: message });
+      return handleError(error, reply);
     }
   },
 };

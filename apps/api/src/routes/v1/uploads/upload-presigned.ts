@@ -35,7 +35,7 @@ export async function handlePresignedUrl(request: FastifyRequest, reply: Fastify
 
 /** DELETE /uploads/profile-image - Remove a profile image */
 export async function handleDeleteProfileImage(request: FastifyRequest, reply: FastifyReply) {
-  const { url } = request.body as { url: string };
+  const { url } = z.object({ url: z.string().min(1).url() }).parse(request.body);
 
   try {
     const user = await prisma.user.findUnique({

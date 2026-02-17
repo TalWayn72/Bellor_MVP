@@ -369,6 +369,7 @@ describe('[P2][profile] GET /api/v1/users/:id/export', () => {
       responses: [],
       stories: [],
       achievements: [],
+      feedbacks: [],
     } as unknown as User);
 
     const response = await app.inject({
@@ -408,6 +409,11 @@ describe('[P2][profile] DELETE /api/v1/users/:id/gdpr', () => {
         story: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         userAchievement: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         notification: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        deviceToken: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        feedback: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        payment: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        subscription: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        referral: { updateMany: vi.fn().mockResolvedValue({ count: 0 }) },
         chat: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         report: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
         like: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },

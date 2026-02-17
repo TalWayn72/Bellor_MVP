@@ -286,6 +286,7 @@ describe('[P2][profile] GET /api/v1/users/:id/export - Data Structure', () => {
       responses: [],
       stories: [],
       achievements: [],
+      feedbacks: [],
     } as unknown as User);
 
     const response = await app.inject({

@@ -111,12 +111,11 @@ export async function getJobs(_request: FastifyRequest, reply: FastifyReply) {
   }
 }
 
-export async function runJob(request: FastifyRequest<{ Body: { jobName: string } }>, reply: FastifyReply) {
+const runJobSchema = z.object({ jobName: z.string().min(1, 'jobName is required') });
+
+export async function runJob(request: FastifyRequest, reply: FastifyReply) {
   try {
-    const { jobName } = request.body as { jobName: string };
-    if (!jobName) {
-      return reply.code(400).send({ success: false, error: { code: 'VALIDATION_ERROR', message: 'jobName is required' } });
-    }
+    const { jobName } = runJobSchema.parse(request.body);
     const result = await runJobManually(jobName);
     return reply.send({ success: result.success, data: { message: result.message, timestamp: new Date().toISOString() } });
   } catch {
