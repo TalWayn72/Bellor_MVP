@@ -82,8 +82,13 @@ export async function login(input: LoginInput): Promise<AuthResponse> {
     throw new Error('Account is deactivated');
   }
 
+  // OAuth users have no password — reject password login
+  if (!user.passwordHash) {
+    throw new Error('Invalid email or password');
+  }
+
   // Verify password
-  const isPasswordValid = await bcrypt.compare(input.password, user.passwordHash!);
+  const isPasswordValid = await bcrypt.compare(input.password, user.passwordHash);
 
   if (!isPasswordValid) {
     throw new Error('Invalid email or password');
