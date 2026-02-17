@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-export default function MessageReactionPicker({ message, currentUserId, onReact }) {
+export default function MessageReactionPicker({ onReact }) {
   const [showPicker, setShowPicker] = useState(false);
   const queryClient = useQueryClient();
 

@@ -23,7 +23,7 @@ export default function FollowingCard({ userId, currentUserId }) {
         const result = await userService.getUserById(userId);
         if (!isMounted) return;
         setUserData(result.user || fallback);
-      } catch (error) {
+      } catch {
         if (isMounted) setUserData(fallback);
       }
     };

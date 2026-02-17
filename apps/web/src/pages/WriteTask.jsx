@@ -6,7 +6,6 @@ import { Video, FileText, Lightbulb, Mic } from 'lucide-react';
 import BackButton from '@/components/navigation/BackButton';
 import { useQuery } from '@tanstack/react-query';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
-import { extractHashtags } from '../components/feed/HashtagExtractor';
 import { extractMentions } from '../components/feed/MentionExtractor';
 import WritingPrompt from '@/components/tasks/WritingPrompt';
 import { useToast } from '@/components/ui/use-toast';
@@ -26,7 +25,7 @@ export default function WriteTask() {
       try {
         const result = await missionService.getTodaysMission();
         return result.data || DEFAULT_MISSION;
-      } catch (error) {
+      } catch {
         return DEFAULT_MISSION;
       }
     },
@@ -45,7 +44,6 @@ export default function WriteTask() {
         mission = result.data;
       }
 
-      const hashtags = extractHashtags(textContent);
       const mentions = extractMentions(textContent);
 
       const mentionedUserIds = [];

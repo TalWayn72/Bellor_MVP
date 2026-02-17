@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { useQuery } from '@tanstack/react-query';
 import { Heart } from 'lucide-react';
 import BackButton from '@/components/navigation/BackButton';
@@ -26,8 +26,7 @@ const categories = [
 ];
 
 export default function DateIdeas() {
-  const navigate = useNavigate();
-  const { currentUser, isLoading } = useCurrentUser();
+  const { isLoading } = useCurrentUser();
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   const { data: dateIdeas = demoDateIdeas } = useQuery({

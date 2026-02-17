@@ -71,7 +71,7 @@ export default function StepPhoneVerify({ formData, setFormData, isLoading, setI
                   toast({ title: 'Info', description: 'Demo Mode: User would be created/authenticated here' });
                 }
                 navigate(createPageUrl('Onboarding') + '?step=3');
-              } catch (error) {
+              } catch {
                 toast({ title: 'Error', description: 'Verification failed. Please try again.', variant: 'destructive' });
               } finally {
                 setIsLoading(false);

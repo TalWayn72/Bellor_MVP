@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { userService, likeService } from '@/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { SlidersHorizontal, Star } from 'lucide-react';
@@ -16,7 +16,6 @@ import { useToast } from '@/components/ui/use-toast';
 
 export default function Discover() {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { currentUser, isLoading } = useCurrentUser();
   const [filters, setFilters] = useState({

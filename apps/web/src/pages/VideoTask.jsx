@@ -25,13 +25,13 @@ export default function VideoTask() {
       try {
         const result = await missionService.getTodaysMission();
         return result.data || DEFAULT_MISSION;
-      } catch (error) {
+      } catch {
         return DEFAULT_MISSION;
       }
     },
   });
 
-  const handleShare = async (videoUrl, videoIsPublic) => {
+  const handleShare = async (videoUrl) => {
     if (!videoUrl || !currentUser) return;
 
     try {

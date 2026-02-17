@@ -11,7 +11,7 @@ import { useToast } from '@/components/ui/use-toast';
 
 export default function Feedback() {
   const queryClient = useQueryClient();
-  const { currentUser, isLoading } = useCurrentUser();
+  const { isLoading } = useCurrentUser();
   const [feedbackType, setFeedbackType] = useState('improvement');
   const [rating, setRating] = useState(0);
   const [title, setTitle] = useState('');

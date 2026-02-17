@@ -26,7 +26,7 @@ export default function AudioTask() {
           question: "If music lived inside you - what would you rhythm sound like?",
           subtitle: "Record it for me!"
         };
-      } catch (error) {
+      } catch {
         return {
           title: "If I Had a Rhythm",
           question: "If music lived inside you - what would you rhythm sound like?",

@@ -22,7 +22,7 @@ export default function CompatibilityQuiz() {
     queryFn: async () => demoQuestions,
   });
 
-  const { data: existingAnswers = localAnswers } = useQuery({
+  useQuery({
     queryKey: ['myCompatibilityAnswers', currentUser?.id],
     queryFn: async () => {
       if (!currentUser) return [];

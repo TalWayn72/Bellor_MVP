@@ -38,7 +38,7 @@ export default function StarSendersModal({ isOpen, onClose, response, currentUse
         try {
           const result = await userService.getUserById(like.user_id);
           return result?.user || result;
-        } catch (error) {
+        } catch {
           return null;
         }
       });

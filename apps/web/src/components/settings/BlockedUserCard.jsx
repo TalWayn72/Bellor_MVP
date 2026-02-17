@@ -13,7 +13,7 @@ export default function BlockedUserCard({ block, onUnblock, isPending }) {
       try {
         const result = await userService.getUserById(block.blocked_id);
         if (isMounted && result.user) setUser(result.user);
-      } catch (error) {
+      } catch {
         // User fetch failed - use fallback
       } finally {
         if (isMounted) setIsLoading(false);

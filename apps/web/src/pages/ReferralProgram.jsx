@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Share2, Users } from 'lucide-react';
 import BackButton from '@/components/navigation/BackButton';
@@ -14,7 +14,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { REFERRAL_REWARDS } from './ReferralProgram.constants';
 
 export default function ReferralProgram() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { currentUser, isLoading } = useCurrentUser();
   const { toast } = useToast();

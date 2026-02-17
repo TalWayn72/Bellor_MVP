@@ -8,7 +8,7 @@ export default function VideoRecorder({ onShare }) {
   const [isRecording, setIsRecording] = useState(false);
   const [hasRecording, setHasRecording] = useState(false);
   const [videoUrl, setVideoUrl] = useState(null);
-  const [isPublic, setIsPublic] = useState(true);
+  const [isPublic] = useState(true);
   const videoRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);

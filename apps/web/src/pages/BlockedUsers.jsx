@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { userService } from '@/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Ban } from 'lucide-react';
@@ -9,7 +9,6 @@ import { ListSkeleton, EmptyState } from '@/components/states';
 import BlockedUserCard from '@/components/settings/BlockedUserCard';
 
 export default function BlockedUsers() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { currentUser, isLoading } = useCurrentUser();
 

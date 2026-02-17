@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { followService } from '@/api';
 import { useQuery } from '@tanstack/react-query';
 import BackButton from '@/components/navigation/BackButton';
@@ -11,7 +11,6 @@ import { getDemoFollows } from '@/data/demoData';
 import FollowingCard from '@/components/profile/FollowingCard';
 
 export default function FollowingList() {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const userId = searchParams.get('userId');
   const defaultTab = searchParams.get('tab') || 'following';

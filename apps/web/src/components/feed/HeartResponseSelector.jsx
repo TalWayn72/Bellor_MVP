@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { FileText, Video, Mic, Pencil } from 'lucide-react';
 
-export default function HeartResponseSelector({ isOpen, onClose, targetUser, currentUser, responseId }) {
+export default function HeartResponseSelector({ isOpen, onClose, targetUser, currentUser }) {
   const navigate = useNavigate();
   const [sending, setSending] = useState(false);
 

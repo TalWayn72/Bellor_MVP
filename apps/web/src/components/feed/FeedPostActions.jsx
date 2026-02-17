@@ -7,7 +7,6 @@ export default function FeedPostActions({
   currentUser,
   userData,
   heartSent,
-  setHeartSent,
   starSent,
   setStarSent,
   chatRequestSent,

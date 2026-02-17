@@ -12,7 +12,7 @@ import { Card } from '@/components/ui/card';
 import FeedPostHeader from './FeedPostHeader';
 import FeedPostActions from './FeedPostActions';
 
-export default function FeedPost({ response, currentUser, theme, onChatRequest, onHashtagClick }) {
+export default function FeedPost({ response, currentUser, onChatRequest, onHashtagClick }) {
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [userData, setUserData] = React.useState(null);
   const [isHeartSelectorOpen, setIsHeartSelectorOpen] = React.useState(false);
@@ -42,7 +42,7 @@ export default function FeedPost({ response, currentUser, theme, onChatRequest, 
         const result = await likeService.getResponseLikes(response.id, 'POSITIVE');
         const existingLikes = result.likes || [];
         if (isMounted) setStarSent(existingLikes.some(like => like.user_id === currentUser.id));
-      } catch (error) { /* Ignore */ }
+      } catch { /* Ignore */ }
     };
     checkStarSent();
     return () => { isMounted = false; };
@@ -55,7 +55,7 @@ export default function FeedPost({ response, currentUser, theme, onChatRequest, 
       try {
         const result = await likeService.getResponseLikes(response.id, 'POSITIVE');
         return (result.likes || []).length > 0;
-      } catch (error) { return false; }
+      } catch { return false; }
     },
     enabled: !!currentUser && currentUser.id === response.user_id,
     refetchInterval: 30000,

@@ -10,7 +10,7 @@ export default function StoryUserAvatar({ userId }) {
       try {
         const result = await userService.getUserById(userId);
         if (isMounted && result.user) setUser(result.user);
-      } catch (error) {
+      } catch {
         // User fetch failed - use fallback avatar
       }
     };

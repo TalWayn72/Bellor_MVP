@@ -37,7 +37,7 @@ export default function TemporaryChats() {
         const result = await chatService.getChats({ is_temporary: true, limit: 50 });
         const chats = result.chats || [];
         return chats.length > 0 ? chats : getDemoTempChats(currentUser?.id);
-      } catch (error) {
+      } catch {
         return getDemoTempChats(currentUser?.id);
       }
     },

@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { userService } from '@/api';
 
-export default function CommentsList({ responseId, currentUser }) {
+export default function CommentsList({ responseId }) {
   // Demo comments (Comment service can be added in future)
   const { data: comments = [], isLoading } = useQuery({
     queryKey: ['comments', responseId],
@@ -32,13 +32,13 @@ export default function CommentsList({ responseId, currentUser }) {
   return (
     <div className="space-y-3">
       {comments.map((comment) => (
-        <CommentItem key={comment.id} comment={comment} currentUser={currentUser} />
+        <CommentItem key={comment.id} comment={comment} />
       ))}
     </div>
   );
 }
 
-function CommentItem({ comment, currentUser }) {
+function CommentItem({ comment }) {
   const [userData, setUserData] = React.useState(null);
 
   React.useEffect(() => {
@@ -53,7 +53,7 @@ function CommentItem({ comment, currentUser }) {
         if (!isMounted) return;
         const user = result?.user || result;
         setUserData(user || fallback);
-      } catch (error) {
+      } catch {
         if (isMounted) setUserData(fallback);
       }
     };

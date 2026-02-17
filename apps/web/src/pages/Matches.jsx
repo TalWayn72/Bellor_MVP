@@ -24,7 +24,7 @@ export default function Matches() {
         const result = await likeService.getReceivedLikes({ likeType: 'ROMANTIC' });
         const likes = result.likes || [];
         return likes.length > 0 ? likes : getDemoLikes('romantic', currentUser?.id);
-      } catch (error) {
+      } catch {
         return getDemoLikes('romantic', currentUser?.id);
       }
     },
@@ -39,7 +39,7 @@ export default function Matches() {
         const result = await likeService.getReceivedLikes({ likeType: 'POSITIVE' });
         const likes = result.likes || [];
         return likes.length > 0 ? likes : getDemoLikes('positive', currentUser?.id);
-      } catch (error) {
+      } catch {
         return getDemoLikes('positive', currentUser?.id);
       }
     },

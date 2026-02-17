@@ -10,7 +10,7 @@ import { useAuth } from '@/lib/AuthContext';
  * Wraps all pages with UserProvider and ThemeProvider
  * Fetches admin's selected theme and AppSettings for custom colors
  */
-export default function Layout({ children, currentPageName }) {
+export default function Layout({ children }) {
   const { isAuthenticated } = useAuth();
 
   // Fetch admin user to get selected theme
@@ -21,7 +21,7 @@ export default function Layout({ children, currentPageName }) {
         if (!isAuthenticated) return [];
         const result = await userService.searchUsers({ role: 'admin', limit: 1 });
         return result.users || [];
-      } catch (error) {
+      } catch {
         return [];
       }
     },

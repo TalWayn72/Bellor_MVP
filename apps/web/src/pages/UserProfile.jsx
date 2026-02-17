@@ -42,7 +42,7 @@ export default function UserProfile() {
         const result = await userService.getUserById(userId);
         const user = result?.user || result;
         return user ? transformUser(user) : null;
-      } catch (error) { return null; }
+      } catch { return null; }
     },
     enabled: !!userId && userId !== 'undefined',
   });
@@ -54,7 +54,7 @@ export default function UserProfile() {
       try {
         const result = await responseService.getUserResponses(userId, { limit: 10 });
         return result.responses || [];
-      } catch (error) { return []; }
+      } catch { return []; }
     },
     enabled: !!userId && userId !== 'undefined',
   });
@@ -74,7 +74,7 @@ export default function UserProfile() {
   const tabs = [{ id: 'about', label: 'About' }, { id: 'book', label: 'Book' }];
 
   const handleLike = async (type) => {
-    try { await likeService.likeUser(userId, type); toast({ title: 'Success', description: type === 'ROMANTIC' ? '\u05d4\u05e8\u05d0\u05ea \u05e2\u05e0\u05d9\u05d9\u05df \u05e8\u05d5\u05de\u05e0\u05d8\u05d9!' : '\u05e0\u05ea\u05ea \u05e4\u05d9\u05d3\u05d1\u05e7 \u05d7\u05d9\u05d5\u05d1\u05d9!' }); } catch (e) { /* Ignore */ }
+    try { await likeService.likeUser(userId, type); toast({ title: 'Success', description: type === 'ROMANTIC' ? '\u05d4\u05e8\u05d0\u05ea \u05e2\u05e0\u05d9\u05d9\u05df \u05e8\u05d5\u05de\u05e0\u05d8\u05d9!' : '\u05e0\u05ea\u05ea \u05e4\u05d9\u05d3\u05d1\u05e7 \u05d7\u05d9\u05d5\u05d1\u05d9!' }); } catch { /* Ignore */ }
   };
 
   const handleOpenChat = async () => {

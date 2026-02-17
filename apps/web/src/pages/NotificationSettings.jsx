@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { userService } from '@/api';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -17,7 +17,6 @@ const SETTING_TO_FIELD = {
 };
 
 export default function NotificationSettings() {
-  const navigate = useNavigate();
   const { currentUser, updateUser } = useCurrentUser();
   const [settings, setSettings] = useState({
     newMatches: true,

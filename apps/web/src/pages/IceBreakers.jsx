@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { useQuery } from '@tanstack/react-query';
 import { Copy, Check, MessageSquare } from 'lucide-react';
 import BackButton from '@/components/navigation/BackButton';
@@ -10,8 +10,7 @@ import { ListSkeleton, EmptyState } from '@/components/states';
 import { DEMO_ICE_BREAKERS, CATEGORIES } from './IceBreakers.constants';
 
 export default function IceBreakers() {
-  const navigate = useNavigate();
-  const { currentUser, isLoading } = useCurrentUser();
+  const { isLoading } = useCurrentUser();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [copiedId, setCopiedId] = useState(null);
 

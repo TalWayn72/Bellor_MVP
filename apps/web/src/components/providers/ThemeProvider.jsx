@@ -28,8 +28,6 @@ export { ThemeContext } from './theme/ThemeContext';
 
 export const ThemeProvider = ({
   children,
-  defaultTheme = 'system',
-  defaultColorTheme = 'rose',
   themeName,
 }) => {
   const [theme, setThemeState] = useState(() => getInitialTheme());

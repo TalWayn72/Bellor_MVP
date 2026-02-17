@@ -18,7 +18,7 @@ function UserCard({ userId }) {
         if (isMounted && result.user) {
           setUser(result.user);
         }
-      } catch (error) {
+      } catch {
         if (isMounted) {
           setUser({
             id: userId,
@@ -52,7 +52,7 @@ function UserInfo({ userId, type }) {
         if (isMounted && result.user) {
           setUser(result.user);
         }
-      } catch (error) {
+      } catch {
         if (isMounted) setUser({ id: userId, nickname: 'User' });
       }
     };

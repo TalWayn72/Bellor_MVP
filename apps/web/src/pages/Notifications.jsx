@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { notificationService, socketService } from '@/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import BackButton from '@/components/navigation/BackButton';
@@ -9,7 +9,6 @@ import { getDemoNotifications } from '@/data/demoData';
 import NotificationItem from '@/components/notifications/NotificationItem';
 
 export default function Notifications() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('today');
   const { currentUser, isLoading } = useCurrentUser();
@@ -35,7 +34,7 @@ export default function Notifications() {
         const result = await notificationService.getNotifications();
         const dbNotifications = result.notifications || [];
         return dbNotifications.length > 0 ? dbNotifications : getDemoNotifications(currentUser?.id);
-      } catch (error) {
+      } catch {
         return getDemoNotifications(currentUser?.id);
       }
     },

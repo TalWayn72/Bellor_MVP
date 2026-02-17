@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { achievementService } from '@/api';
 import { useQuery } from '@tanstack/react-query';
 import { Trophy } from 'lucide-react';
@@ -18,7 +18,6 @@ const defaultAchievements = [
 ];
 
 export default function Achievements() {
-  const navigate = useNavigate();
   const { currentUser, isLoading } = useCurrentUser();
   const [activeTab, setActiveTab] = useState('all');
 

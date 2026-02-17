@@ -50,7 +50,7 @@ export function MentionText({ text, mentionedUsers = [] }) {
   );
 }
 
-export function MentionList({ mentionedUsers, onMentionClick }) {
+export function MentionList({ mentionedUsers }) {
   const navigate = useNavigate();
   
   if (!mentionedUsers || mentionedUsers.length === 0) return null;

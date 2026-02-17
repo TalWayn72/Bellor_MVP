@@ -1,7 +1,6 @@
 import React from 'react';
 
 export default function ProgressBar({ currentStep, totalSteps }) {
-  const progress = Math.min(100, Math.round((currentStep / totalSteps) * 100));
   const segments = 10;
   const filledSegments = Math.round((currentStep / totalSteps) * segments);
 

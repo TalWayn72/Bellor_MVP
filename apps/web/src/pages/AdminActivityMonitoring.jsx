@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { userService } from '@/api';
 import { Activity, TrendingUp, Users } from 'lucide-react';
@@ -9,7 +9,6 @@ import { ListSkeleton } from '@/components/states';
 import ActivityFeed, { getActivityStatus } from '@/components/admin/ActivityFeed';
 
 export default function AdminActivityMonitoring() {
-  const [timeRange, setTimeRange] = useState('7days');
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['admin-activity-users'],

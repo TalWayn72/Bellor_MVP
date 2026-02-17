@@ -19,7 +19,7 @@ export default function NotificationItem({ notification }) {
         if (isMounted && result.user) {
           setRelatedUser(result.user);
         }
-      } catch (error) {
+      } catch {
         // User fetch failed - use fallback avatar
       }
     };
