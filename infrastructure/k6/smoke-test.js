@@ -32,49 +32,35 @@ export const options = {
 
 const BASE_URL = __ENV.API_URL || 'http://localhost:3000';
 
-// Test user for authentication
+// Use seeded demo user for authentication
 const testUser = {
-  email: `loadtest-${Date.now()}@test.com`,
-  password: 'TestPassword123!',
-  firstName: 'Load',
-  lastName: 'Test',
+  email: 'demo_sarah@bellor.app',
+  password: 'Demo123!',
+  firstName: 'Sarah',
+  lastName: 'Demo',
 };
 
 let authToken = null;
 
-// Setup: Register a test user
+// Setup: Login with seeded demo user
 export function setup() {
-  const registerRes = http.post(
-    `${BASE_URL}/api/v1/auth/register`,
+  const loginRes = http.post(
+    `${BASE_URL}/api/v1/auth/login`,
     JSON.stringify({
-      ...testUser,
-      gender: 'OTHER',
-      birthDate: '1990-01-01',
+      email: testUser.email,
+      password: testUser.password,
     }),
     {
       headers: { 'Content-Type': 'application/json' },
     }
   );
 
-  if (registerRes.status === 201 || registerRes.status === 409) {
-    // User created or already exists, try to login
-    const loginRes = http.post(
-      `${BASE_URL}/api/v1/auth/login`,
-      JSON.stringify({
-        email: testUser.email,
-        password: testUser.password,
-      }),
-      {
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
-
-    if (loginRes.status === 200) {
-      const body = JSON.parse(loginRes.body);
-      return { token: body.accessToken };
-    }
+  if (loginRes.status === 200) {
+    const body = JSON.parse(loginRes.body);
+    return { token: body.data?.accessToken || body.accessToken };
   }
 
+  console.log(`Login failed: ${loginRes.status} - ${loginRes.body}`);
   return { token: null };
 }
 
@@ -128,7 +114,10 @@ export default function (data) {
 
       const success = check(meRes, {
         'get user status is 200': (r) => r.status === 200,
-        'user has id': (r) => JSON.parse(r.body).user?.id !== undefined,
+        'user has id': (r) => {
+          const body = JSON.parse(r.body);
+          return (body.data?.id || body.user?.id) !== undefined;
+        },
       });
 
       errorRate.add(!success);
@@ -145,7 +134,10 @@ export default function (data) {
 
       check(usersRes, {
         'get users status is 200': (r) => r.status === 200,
-        'users response has array': (r) => Array.isArray(JSON.parse(r.body).users),
+        'users response has array': (r) => {
+          const body = JSON.parse(r.body);
+          return Array.isArray(body.data?.users || body.users || body.data);
+        },
       });
     });
   }
