@@ -41,6 +41,7 @@ A  qa    →  151.145.94.190   (TTL: 600)
 
 | קטגוריה | מספר תקלות | חומרה | סטטוס |
 |----------|-------------|--------|--------|
+| **ISSUE-092: QA server unreachable - OOM freeze (Feb 17)** | 1 | 🔴 קריטי | 🔴 פתוח |
 | **ISSUE-091: Login 500 - OAuth users null passwordHash (Feb 17)** | 1 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-090: 'Failed to send comment' - Zod case-insensitive (Feb 17)** | 1 | 🟡 בינוני | ✅ תוקן |
 | **ISSUE-089: Full Quality Verification Suite (Feb 17)** | ~2,846 tests | ✅ הושלם | ✅ עבר |
@@ -4889,6 +4890,35 @@ Then rebuild the web container: `docker compose up -d --build web`
 - Added `Mixed Content` to E2E console warning FAIL_PATTERNS
 - Created `npm run check:build-urls` script to detect HTTP URLs in production builds
 - **Files:** `scripts/check-build-urls.js`, `apps/web/e2e/fixtures/console-warning.helpers.ts`
+
+---
+
+## 🔴 ISSUE-092: QA server unreachable - OOM freeze (17 פברואר 2026)
+
+### חומרה: 🔴 קריטי | סטטוס: 🔴 פתוח
+
+### בעיה
+QA server (151.145.94.190) became completely unreachable - SSH timeout, HTTP timeout, ping 100% loss.
+Likely OOM freeze on 1GB RAM VM running Node.js + PostgreSQL + Redis + Nginx.
+
+### תסמינים
+- SSH: "Connection timed out during banner exchange" or "Connection reset by peer"
+- HTTP/HTTPS: timeout on all ports (80, 443, 3000)
+- Ping: 100% packet loss
+
+### שורש הבעיה (משוער)
+- 1GB RAM insufficient for concurrent Node.js build + PM2 + Docker containers
+- Previous SSH sessions from deploy agents may have exhausted resources
+- No memory-based auto-reboot configured
+
+### פתרון נדרש
+1. Restart VM from Oracle Cloud Console (https://cloud.oracle.com)
+2. After restart: `cd /opt/bellor && git pull && npx prisma generate && NODE_OPTIONS='--max-old-space-size=512' npm run build --workspace=apps/api && pm2 start ecosystem.config.cjs`
+3. Consider: cron job to auto-reboot on high memory (`echo 1 > /proc/sys/vm/oom_kill_allocating_task`)
+
+### קבצים
+- PM2 config: `ecosystem.config.cjs` (384MB heap limit)
+- Server: 151.145.94.190 (Oracle Cloud Free Tier)
 
 ---
 
