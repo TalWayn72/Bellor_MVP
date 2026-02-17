@@ -4893,32 +4893,48 @@ Then rebuild the web container: `docker compose up -d --build web`
 
 ---
 
-## 🔴 ISSUE-092: QA server unreachable - OOM freeze (17 פברואר 2026)
+## 🟡 ISSUE-092: QA server OOM + API 502 - Memory optimization (17 פברואר 2026)
 
-### חומרה: 🔴 קריטי | סטטוס: 🔴 פתוח
+### חומרה: 🔴 קריטי | סטטוס: 🟡 בטיפול
 
 ### בעיה
-QA server (151.145.94.190) became completely unreachable - SSH timeout, HTTP timeout, ping 100% loss.
-Likely OOM freeze on 1GB RAM VM running Node.js + PostgreSQL + Redis + Nginx.
+QA server (151.145.94.190) experienced OOM freeze → partial recovery (nginx + frontend OK, **API returns 502 Bad Gateway**).
+PM2/Node.js process crashed and didn't recover despite watchdog script.
 
-### תסמינים
-- SSH: "Connection timed out during banner exchange" or "Connection reset by peer"
-- HTTP/HTTPS: timeout on all ports (80, 443, 3000)
-- Ping: 100% packet loss
+### תסמינים (Updated 17/02/2026)
+- ~~SSH: timeout~~ → Server recovered, nginx serving static files
+- ~~HTTP/HTTPS: timeout~~ → Frontend accessible, returns "BellØr"
+- **API: 502 Bad Gateway** on `/api/v1/health` - PM2 process down
+- PROD server: fully operational ✅
 
-### שורש הבעיה (משוער)
-- 1GB RAM insufficient for concurrent Node.js build + PM2 + Docker containers
-- Previous SSH sessions from deploy agents may have exhausted resources
-- No memory-based auto-reboot configured
+### שורש הבעיה
+- 1GB RAM insufficient for Node.js (384MB heap) + PostgreSQL Docker + Redis Docker + nginx
+- Swagger/SwaggerUI loaded in production (~15-20MB heap wasted)
+- PM2 config too aggressive (384MB heap on 1GB VM)
+- No swap configured on servers
+- Watchdog script lacking swap/disk monitoring
 
-### פתרון נדרש
-1. Restart VM from Oracle Cloud Console (https://cloud.oracle.com)
-2. After restart: `cd /opt/bellor && git pull && npx prisma generate && NODE_OPTIONS='--max-old-space-size=512' npm run build --workspace=apps/api && pm2 start ecosystem.config.cjs`
-3. Consider: cron job to auto-reboot on high memory (`echo 1 > /proc/sys/vm/oom_kill_allocating_task`)
+### תיקונים שבוצעו (Phase B - Code Changes)
+1. **Swagger disabled in production** - `app-middleware.ts`: saves ~15-20MB heap
+2. **PM2 optimized** - `ecosystem.config.cjs`: heap 384→256MB, added `--expose-gc`, restart limits, kill_timeout
+3. **Watchdog enhanced** - `server-watchdog.sh`: added swap/disk monitoring, log rotation, restart counter
+4. **Memory monitor improved** - `memory-monitor.ts`: RSS absolute thresholds (250MB GC trigger, 280MB warning)
+5. **Prisma pool reduced** - `prisma.ts`: connection pool 5→3 in production
+
+### נדרש עדיין (SSH access)
+1. SSH to QA → restart PM2 with updated config
+2. Create 1GB swap file on both QA and PROD
+3. Install pm2-logrotate
+4. Verify crontab watchdog entry
+5. Deploy updated code to both servers
 
 ### קבצים
-- PM2 config: `ecosystem.config.cjs` (384MB heap limit)
-- Server: 151.145.94.190 (Oracle Cloud Free Tier)
+- `ecosystem.config.cjs` - PM2 config (256MB heap + expose-gc)
+- `apps/api/src/app-middleware.ts` - Swagger disabled in prod
+- `apps/api/src/lib/memory-monitor.ts` - RSS thresholds
+- `apps/api/src/lib/prisma.ts` - Pool size 3
+- `scripts/server-watchdog.sh` - Enhanced monitoring
+- Servers: QA 151.145.94.190, PROD 129.159.132.180
 
 ---
 

@@ -67,50 +67,52 @@ export async function registerMiddleware(app: FastifyInstance, dirname: string):
     decorateReply: false,
   });
 
-  // API Documentation (Swagger/OpenAPI)
-  await app.register(swagger, {
-    openapi: {
-      openapi: '3.0.0',
-      info: {
-        title: 'Bellor API',
-        description: 'Dating app API - Missions, Matching, Chat, Stories',
-        version: '1.0.0',
-      },
-      servers: [
-        { url: `http://localhost:${env.PORT}`, description: 'Development' },
-      ],
-      components: {
-        securitySchemes: {
-          bearerAuth: {
-            type: 'http',
-            scheme: 'bearer',
-            bearerFormat: 'JWT',
+  // API Documentation (Swagger/OpenAPI) - disabled in production to save ~15-20MB heap
+  if (env.NODE_ENV !== 'production') {
+    await app.register(swagger, {
+      openapi: {
+        openapi: '3.0.0',
+        info: {
+          title: 'Bellor API',
+          description: 'Dating app API - Missions, Matching, Chat, Stories',
+          version: '1.0.0',
+        },
+        servers: [
+          { url: `http://localhost:${env.PORT}`, description: 'Development' },
+        ],
+        components: {
+          securitySchemes: {
+            bearerAuth: {
+              type: 'http',
+              scheme: 'bearer',
+              bearerFormat: 'JWT',
+            },
           },
         },
+        tags: [
+          { name: 'Auth', description: 'Authentication endpoints' },
+          { name: 'Users', description: 'User profile management' },
+          { name: 'Chats', description: 'Chat and messaging' },
+          { name: 'Missions', description: 'Daily missions and challenges' },
+          { name: 'Responses', description: 'Mission responses' },
+          { name: 'Likes', description: 'User likes and matching' },
+          { name: 'Follows', description: 'Follow system' },
+          { name: 'Notifications', description: 'User notifications' },
+          { name: 'Stories', description: 'User stories' },
+          { name: 'Achievements', description: 'Achievements and badges' },
+          { name: 'Health', description: 'Service health checks' },
+        ],
       },
-      tags: [
-        { name: 'Auth', description: 'Authentication endpoints' },
-        { name: 'Users', description: 'User profile management' },
-        { name: 'Chats', description: 'Chat and messaging' },
-        { name: 'Missions', description: 'Daily missions and challenges' },
-        { name: 'Responses', description: 'Mission responses' },
-        { name: 'Likes', description: 'User likes and matching' },
-        { name: 'Follows', description: 'Follow system' },
-        { name: 'Notifications', description: 'User notifications' },
-        { name: 'Stories', description: 'User stories' },
-        { name: 'Achievements', description: 'Achievements and badges' },
-        { name: 'Health', description: 'Service health checks' },
-      ],
-    },
-  });
+    });
 
-  await app.register(swaggerUi, {
-    routePrefix: '/docs',
-    uiConfig: {
-      docExpansion: 'list',
-      deepLinking: true,
-    },
-  });
+    await app.register(swaggerUi, {
+      routePrefix: '/docs',
+      uiConfig: {
+        docExpansion: 'list',
+        deepLinking: true,
+      },
+    });
+  }
 
   // Register security middleware (input sanitization, headers, request validation)
   await registerSecurityMiddleware(app);

@@ -1,25 +1,9 @@
-/**
- * Memory Monitor - Real-time memory tracking with alerts and trend detection
- * Monitors heap usage, detects memory leaks, and triggers alerts
- */
-
+/** Memory Monitor - Real-time memory tracking with alerts and trend detection */
 import { logger } from './logger.js';
 import { metrics } from './metrics.js';
 
-interface MemorySnapshot {
-  timestamp: number;
-  heapUsed: number;
-  heapTotal: number;
-  rss: number;
-  external: number;
-}
-
-interface MemoryStats {
-  current: MemorySnapshot;
-  heapGrowthRateMBPerMin: number;
-  avgHeapUsedLast60Min: number;
-  peakHeapUsedLast60Min: number;
-}
+interface MemorySnapshot { timestamp: number; heapUsed: number; heapTotal: number; rss: number; external: number; }
+interface MemoryStats { current: MemorySnapshot; heapGrowthRateMBPerMin: number; avgHeapUsedLast60Min: number; peakHeapUsedLast60Min: number; }
 
 class MemoryMonitor {
   private static instance: MemoryMonitor;
@@ -27,6 +11,8 @@ class MemoryMonitor {
   private history: MemorySnapshot[] = [];
   private readonly maxHistorySize = 60;
   private readonly checkIntervalMs = 60000;
+  private readonly rssWarningMB = 280;
+  private readonly rssGcTriggerMB = 250;
   private gcRuns = 0;
   private constructor() {}
   static getInstance(): MemoryMonitor {
@@ -85,34 +71,20 @@ class MemoryMonitor {
     const heapTotalMB = snapshot.heapTotal / 1024 / 1024;
     const heapUsagePercent = (snapshot.heapUsed / snapshot.heapTotal) * 100;
 
-    // Check thresholds and force GC if critical
-    if (heapUsagePercent > 90) {
-      logger.error('MEMORY_MONITOR', 'CRITICAL: Heap usage above 90%', undefined, {
-        heapUsedMB: heapUsedMB.toFixed(1),
-        heapTotalMB: heapTotalMB.toFixed(1),
-        heapUsagePercent: heapUsagePercent.toFixed(1),
-        growthRateMBPerMin: stats.heapGrowthRateMBPerMin.toFixed(2),
-      });
-      this.forceGC();
-    } else if (heapUsagePercent > 80) {
-      logger.warn('MEMORY_MONITOR', 'WARNING: Heap usage above 80%', {
-        heapUsedMB: heapUsedMB.toFixed(1),
-        heapTotalMB: heapTotalMB.toFixed(1),
-        heapUsagePercent: heapUsagePercent.toFixed(1),
-        growthRateMBPerMin: stats.heapGrowthRateMBPerMin.toFixed(2),
-      });
-    }
+    const rssMB = snapshot.rss / 1024 / 1024;
+
+    const memData = { rssMB: rssMB.toFixed(1), heapUsedMB: heapUsedMB.toFixed(1), heapTotalMB: heapTotalMB.toFixed(1), heapUsagePercent: heapUsagePercent.toFixed(1), growthRateMBPerMin: stats.heapGrowthRateMBPerMin.toFixed(2) };
+
+    // RSS absolute threshold checks (critical for 1GB VMs with 300M PM2 limit)
+    if (rssMB > this.rssWarningMB) { logger.error('MEMORY_MONITOR', 'CRITICAL: RSS above 280MB', undefined, memData); this.forceGC(); }
+    else if (rssMB > this.rssGcTriggerMB) { logger.warn('MEMORY_MONITOR', 'WARNING: RSS above 250MB, triggering GC', memData); this.forceGC(); }
+
+    // Heap percentage threshold checks
+    if (heapUsagePercent > 90) { logger.error('MEMORY_MONITOR', 'CRITICAL: Heap usage above 90%', undefined, memData); this.forceGC(); }
+    else if (heapUsagePercent > 80) { logger.warn('MEMORY_MONITOR', 'WARNING: Heap usage above 80%', memData); }
 
     // Log periodic status (every 10 minutes)
-    if (this.history.length % 10 === 0) {
-      logger.info('MEMORY_MONITOR', 'Memory status check', {
-        heapUsedMB: heapUsedMB.toFixed(1),
-        heapTotalMB: heapTotalMB.toFixed(1),
-        rssMB: (snapshot.rss / 1024 / 1024).toFixed(1),
-        growthRateMBPerMin: stats.heapGrowthRateMBPerMin.toFixed(2),
-        gcRuns: this.gcRuns,
-      });
-    }
+    if (this.history.length % 10 === 0) { logger.info('MEMORY_MONITOR', 'Memory status check', { ...memData, gcRuns: this.gcRuns }); }
   }
 
   private forceGC(): void {

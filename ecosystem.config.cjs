@@ -3,8 +3,11 @@ module.exports = {
     name: 'bellor-api',
     script: 'apps/api/dist/app.js',
     cwd: '/opt/bellor',
-    node_args: '--max-old-space-size=384',
-    max_memory_restart: '350M',
+    node_args: '--max-old-space-size=256 --expose-gc',
+    max_memory_restart: '300M',
+    restart_delay: 5000,
+    max_restarts: 10,
+    kill_timeout: 5000,
     env: {
       NODE_ENV: 'production',
     },

@@ -7,7 +7,7 @@ const isProduction = env.NODE_ENV === 'production';
 
 const pool = new pg.Pool({
   connectionString: env.DATABASE_URL,
-  max: isProduction ? 5 : 10,
+  max: isProduction ? 3 : 10,
   idleTimeoutMillis: isProduction ? 10000 : 30000,
   connectionTimeoutMillis: 5000,
   statement_timeout: 30000,
