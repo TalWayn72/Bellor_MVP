@@ -17,7 +17,7 @@ export const MISSION_INCLUDE = {
  * Get today's active mission (or find an available one)
  */
 export async function getTodaysMission() {
-  const cached = await cacheGet<any>(CacheKey.missionToday());
+  const cached = await cacheGet<Record<string, unknown>>(CacheKey.missionToday());
   if (cached) return cached;
 
   const now = new Date();

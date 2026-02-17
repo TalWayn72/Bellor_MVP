@@ -4,18 +4,20 @@
  */
 
 import { SubscriptionWebhooks } from './subscriptions/subscriptions-webhooks.service.js';
+import { SubscriptionPaymentWebhooks } from './subscriptions/subscriptions-webhook-payments.service.js';
 import { SubscriptionsQueries } from './subscriptions/subscriptions-queries.service.js';
 import { SubscriptionsManagement } from './subscriptions/subscriptions-management.service.js';
 
 // Re-export sub-modules for backward compatibility
 export { SubscriptionWebhooks } from './subscriptions/subscriptions-webhooks.service.js';
+export { SubscriptionPaymentWebhooks } from './subscriptions/subscriptions-webhook-payments.service.js';
 export * from './subscriptions/subscriptions.types.js';
 
 export const SubscriptionsService = {
   // Delegated webhook handlers
   handleCheckoutCompleted: SubscriptionWebhooks.handleCheckoutCompleted,
-  handlePaymentSucceeded: SubscriptionWebhooks.handlePaymentSucceeded,
-  handlePaymentFailed: SubscriptionWebhooks.handlePaymentFailed,
+  handlePaymentSucceeded: SubscriptionPaymentWebhooks.handlePaymentSucceeded,
+  handlePaymentFailed: SubscriptionPaymentWebhooks.handlePaymentFailed,
   handleSubscriptionUpdated: SubscriptionWebhooks.handleSubscriptionUpdated,
   handleSubscriptionDeleted: SubscriptionWebhooks.handleSubscriptionDeleted,
 

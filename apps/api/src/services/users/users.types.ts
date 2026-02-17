@@ -63,7 +63,7 @@ export interface UpdateUserProfileInput {
   response_count?: number;
   chat_count?: number;
   mission_completed_count?: number;
-  [key: string]: any; // Allow extra fields from frontend
+  [key: string]: unknown; // Allow extra fields from frontend
 }
 
 export interface SearchUsersOptions {

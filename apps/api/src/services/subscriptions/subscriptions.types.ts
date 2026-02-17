@@ -29,3 +29,23 @@ export interface CreateCustomerPortalInput {
   userId: string;
   returnUrl: string;
 }
+
+/**
+ * Stripe Subscription with legacy period fields.
+ * The current_period_start/end fields exist in the Stripe API response
+ * but may not be present in newer @types/stripe versions.
+ */
+export interface StripeSubscriptionWithPeriod extends Stripe.Subscription {
+  current_period_start: number;
+  current_period_end: number;
+}
+
+/**
+ * Stripe Invoice with top-level subscription and payment_intent fields.
+ * These fields exist in the Stripe API response but may be typed differently
+ * in newer @types/stripe versions.
+ */
+export interface StripeInvoiceWithRefs extends Stripe.Invoice {
+  subscription: string | Stripe.Subscription;
+  payment_intent: string | Stripe.PaymentIntent | null;
+}

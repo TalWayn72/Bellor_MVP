@@ -39,7 +39,7 @@ export function createBcryptMock() {
 export function setupModuleSpy(
   module: Record<string, unknown>, propertyName: string, mockImplementation: unknown
 ): Mock {
-  return vi.spyOn(module as any, propertyName, 'get').mockReturnValue(mockImplementation) as unknown as Mock;
+  return vi.spyOn(module as Record<string, unknown>, propertyName, 'get').mockReturnValue(mockImplementation) as unknown as Mock;
 }
 
 export function createMockRequest(overrides: Record<string, unknown> = {}) {

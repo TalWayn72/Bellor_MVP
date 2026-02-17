@@ -29,7 +29,7 @@ export function getFirebaseApp(): admin.app.App {
       credential: admin.credential.cert(credentials),
     });
     return firebaseApp;
-  } catch (error) {
+  } catch {
     throw new Error('Failed to initialize Firebase: Invalid service account');
   }
 }

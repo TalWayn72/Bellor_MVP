@@ -112,7 +112,7 @@ export const storageService = {
       try {
         const filePath = path.join(LOCAL_UPLOADS_DIR, key);
         await fs.unlink(filePath);
-      } catch (e) {
+      } catch {
         // File might not exist, ignore error
       }
     }

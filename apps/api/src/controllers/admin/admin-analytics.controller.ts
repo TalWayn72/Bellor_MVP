@@ -9,7 +9,7 @@ export async function getDashboard(_request: FastifyRequest, reply: FastifyReply
   try {
     const overview = await AnalyticsService.getDashboardOverview();
     return reply.send({ success: true, data: overview });
-  } catch (error) {
+  } catch {
     return reply.code(500).send({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch dashboard data' } });
   }
 }
@@ -31,7 +31,7 @@ export async function getUserAnalytics(
     ]);
 
     return reply.send({ success: true, data: { growth, activity, retention } });
-  } catch (error) {
+  } catch {
     return reply.code(500).send({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch user analytics' } });
   }
 }
@@ -48,7 +48,7 @@ export async function getContentAnalytics(
 
     const content = await AnalyticsService.getContentMetrics({ startDate, endDate });
     return reply.send({ success: true, data: content });
-  } catch (error) {
+  } catch {
     return reply.code(500).send({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch content analytics' } });
   }
 }
@@ -57,7 +57,7 @@ export async function getModerationAnalytics(_request: FastifyRequest, reply: Fa
   try {
     const moderation = await AnalyticsService.getModerationMetrics();
     return reply.send({ success: true, data: moderation });
-  } catch (error) {
+  } catch {
     return reply.code(500).send({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch moderation analytics' } });
   }
 }
@@ -70,7 +70,7 @@ export async function getTopUsers(
     const limit = request.query.limit ? parseInt(request.query.limit) : 10;
     const topUsers = await AnalyticsService.getTopUsers(limit);
     return reply.send({ success: true, data: topUsers });
-  } catch (error) {
+  } catch {
     return reply.code(500).send({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch top users' } });
   }
 }
@@ -79,7 +79,7 @@ export async function getSystemHealth(_request: FastifyRequest, reply: FastifyRe
   try {
     const health = await AnalyticsService.getSystemHealth();
     return reply.send({ success: true, data: health });
-  } catch (error) {
+  } catch {
     return reply.code(500).send({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch system health' } });
   }
 }
@@ -112,7 +112,7 @@ export async function exportUsers(
       success: true,
       data: { users, exportedAt: now.toISOString(), range: { startDate: startDate.toISOString(), endDate: endDate.toISOString() } },
     });
-  } catch (error) {
+  } catch {
     return reply.code(500).send({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to export users' } });
   }
 }

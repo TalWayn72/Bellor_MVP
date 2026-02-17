@@ -9,6 +9,21 @@ import crypto from 'crypto';
 import { env } from '../config/env.js';
 import { securityLogger } from './logger.js';
 
+/** Cookie options for setCookie method from @fastify/cookie plugin */
+interface CookieOptions {
+  httpOnly?: boolean;
+  secure?: boolean | 'auto';
+  sameSite?: 'lax' | 'none' | 'strict' | boolean;
+  path?: string;
+  maxAge?: number;
+  domain?: string;
+}
+
+/** FastifyReply with cookie support from @fastify/cookie plugin */
+interface CookieReply extends FastifyReply {
+  setCookie(name: string, value: string, options?: CookieOptions): FastifyReply;
+}
+
 const CSRF_COOKIE_NAME = '__bellor_csrf';
 const CSRF_HEADER_NAME = 'x-csrf-token';
 const TOKEN_LENGTH = 32;
@@ -26,7 +41,7 @@ export function generateCsrfToken(): string {
 export function setCsrfCookie(reply: FastifyReply): string {
   const token = generateCsrfToken();
 
-  (reply as any).setCookie(CSRF_COOKIE_NAME, token, {
+  (reply as CookieReply).setCookie(CSRF_COOKIE_NAME, token, {
     httpOnly: false,  // Must be readable by JavaScript
     secure: env.NODE_ENV === 'production',
     sameSite: 'strict',

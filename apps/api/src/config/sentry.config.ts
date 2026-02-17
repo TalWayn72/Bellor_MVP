@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/node';
+import type { Integration } from '@sentry/core';
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import { env } from './env.js';
 
@@ -24,7 +25,7 @@ export function initSentry(): void {
 
     integrations: [
       // Performance profiling integration
-      nodeProfilingIntegration() as any,
+      nodeProfilingIntegration() as unknown as Integration,
     ],
 
     // Performance monitoring

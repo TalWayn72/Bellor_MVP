@@ -55,7 +55,7 @@ export async function validateImageDimensions(buffer: Buffer): Promise<{
     }
 
     return { valid: true, width: metadata.width, height: metadata.height };
-  } catch (error) {
+  } catch {
     return { valid: false, error: 'Failed to read image metadata — file may be corrupted or malicious' };
   }
 }

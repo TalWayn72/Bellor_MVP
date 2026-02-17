@@ -54,7 +54,7 @@ export async function listUsers(
         pagination: { total, limit: parseInt(limit), offset: parseInt(offset), hasMore: parseInt(offset) + users.length < total },
       },
     });
-  } catch (error) {
+  } catch {
     return reply.code(500).send({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to list users' } });
   }
 }

@@ -37,7 +37,7 @@ export async function listReports(
       success: true,
       data: { reports, pagination: { total, limit: parseInt(limit), offset: parseInt(offset), hasMore: parseInt(offset) + reports.length < total } },
     });
-  } catch (error) {
+  } catch {
     return reply.code(500).send({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to list reports' } });
   }
 }
@@ -97,7 +97,7 @@ export async function cleanupStories(_request: FastifyRequest, reply: FastifyRep
   try {
     const result = await StoriesService.cleanupExpiredStories();
     return reply.send({ success: true, data: { message: 'Story cleanup completed', deletedCount: result.deletedCount } });
-  } catch (error) {
+  } catch {
     return reply.code(500).send({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to cleanup stories' } });
   }
 }
@@ -106,7 +106,7 @@ export async function getJobs(_request: FastifyRequest, reply: FastifyReply) {
   try {
     const jobs = getJobsStatus();
     return reply.send({ success: true, data: { jobs, timestamp: new Date().toISOString() } });
-  } catch (error) {
+  } catch {
     return reply.code(500).send({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to get jobs status' } });
   }
 }
@@ -119,7 +119,7 @@ export async function runJob(request: FastifyRequest<{ Body: { jobName: string }
     }
     const result = await runJobManually(jobName);
     return reply.send({ success: result.success, data: { message: result.message, timestamp: new Date().toISOString() } });
-  } catch (error) {
+  } catch {
     return reply.code(500).send({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to run job' } });
   }
 }

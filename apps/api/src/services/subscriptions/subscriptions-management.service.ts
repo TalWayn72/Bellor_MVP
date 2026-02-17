@@ -2,7 +2,7 @@
 
 import { prisma } from '../../lib/prisma.js';
 import { stripeBreaker } from '../../lib/external-services.js';
-import { ensureStripeConfigured, CreateCheckoutSessionInput, CreateCustomerPortalInput } from './subscriptions.types.js';
+import { ensureStripeConfigured, CreateCheckoutSessionInput, CreateCustomerPortalInput, StripeSubscriptionWithPeriod } from './subscriptions.types.js';
 
 export const SubscriptionsManagement = {
   async getOrCreateStripeCustomer(userId: string): Promise<string> {
@@ -84,8 +84,9 @@ export const SubscriptionsManagement = {
         status: cancelAtPeriodEnd ? subscription.status : 'CANCELED',
       },
     });
-    const periodEnd = typeof (stripeSub as any).current_period_end === 'number'
-      ? new Date((stripeSub as any).current_period_end * 1000)
+    const subWithPeriod = stripeSub as unknown as StripeSubscriptionWithPeriod;
+    const periodEnd = typeof subWithPeriod.current_period_end === 'number'
+      ? new Date(subWithPeriod.current_period_end * 1000)
       : new Date();
     return { success: true, cancelAtPeriodEnd, currentPeriodEnd: periodEnd };
   },

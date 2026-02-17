@@ -34,7 +34,7 @@ export async function authMiddleware(
     }
 
     request.user = payload;
-  } catch (error) {
+  } catch {
     return sendAuthError(reply, 'INTERNAL_SERVER_ERROR', 'An error occurred during authentication', 500, request);
   }
 }
@@ -51,7 +51,7 @@ export async function optionalAuthMiddleware(
     if (payload) {
       request.user = payload;
     }
-  } catch (error) {
+  } catch {
     // Silently fail for optional auth
   }
 }

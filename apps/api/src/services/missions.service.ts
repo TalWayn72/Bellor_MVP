@@ -45,7 +45,7 @@ export class MissionsService {
    * Get mission by ID
    */
   static async getMissionById(id: string) {
-    const cached = await cacheGet<any>(CacheKey.mission(id));
+    const cached = await cacheGet<Record<string, unknown>>(CacheKey.mission(id));
     if (cached) return cached;
 
     const mission = await prisma.mission.findUnique({

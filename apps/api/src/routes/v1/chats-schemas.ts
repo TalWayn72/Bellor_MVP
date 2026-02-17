@@ -40,11 +40,15 @@ export const createChatBodySchema = z.object({
   { message: 'otherUserId is required' },
 );
 
+const messageTypeEnum = z.string().transform(v => v.toUpperCase()).pipe(
+  z.enum(['TEXT', 'IMAGE', 'AUDIO', 'VIDEO', 'SYSTEM']),
+);
+
 export const sendMessageBodySchema = z.object({
   content: z.string().min(1, 'content is required').max(5000),
-  messageType: z.enum(['TEXT', 'IMAGE', 'AUDIO', 'VIDEO', 'SYSTEM']).optional(),
-  message_type: z.enum(['TEXT', 'IMAGE', 'AUDIO', 'VIDEO', 'SYSTEM']).optional(),
-  type: z.enum(['TEXT', 'IMAGE', 'AUDIO', 'VIDEO', 'SYSTEM']).optional(),
+  messageType: messageTypeEnum.optional(),
+  message_type: messageTypeEnum.optional(),
+  type: messageTypeEnum.optional(),
 });
 
 // === Type Exports ===
