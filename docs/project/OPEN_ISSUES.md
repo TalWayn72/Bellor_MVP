@@ -41,6 +41,8 @@ A  qa    →  151.145.94.190   (TTL: 600)
 
 | קטגוריה | מספר תקלות | חומרה | סטטוס |
 |----------|-------------|--------|--------|
+| **ISSUE-091: Login 500 - OAuth users null passwordHash (Feb 17)** | 1 | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-090: 'Failed to send comment' - Zod case-insensitive (Feb 17)** | 1 | 🟡 בינוני | ✅ תוקן |
 | **ISSUE-089: Full Quality Verification Suite (Feb 17)** | ~2,846 tests | ✅ הושלם | ✅ עבר |
 | **ISSUE-088: E2E Full-Stack QA Run - 0 failures achieved (Feb 15-16)** | 0 failures (Run 12) | ✅ הושלם | ✅ תוקן |
 | **ISSUE-087: Nginx rewrite rule + watchdog breaking API routes (Feb 15)** | 3 | 🔴 קריטי | ✅ תוקן |
@@ -4887,6 +4889,52 @@ Then rebuild the web container: `docker compose up -d --build web`
 - Added `Mixed Content` to E2E console warning FAIL_PATTERNS
 - Created `npm run check:build-urls` script to detect HTTP URLs in production builds
 - **Files:** `scripts/check-build-urls.js`, `apps/web/e2e/fixtures/console-warning.helpers.ts`
+
+---
+
+## ✅ ISSUE-091: Login 500 - OAuth users null passwordHash (17 פברואר 2026)
+
+### חומרה: 🔴 קריטי | סטטוס: ✅ תוקן
+
+### בעיה
+Login endpoint returns 500 INTERNAL_ERROR for users registered via Google OAuth.
+`bcrypt.compare()` crashes with "data and hash arguments required" when `passwordHash` is `null`.
+
+### שורש הבעיה
+- Users registered via Google OAuth have no `passwordHash` (null in DB)
+- `bcrypt.compare(password, null)` throws error not caught by the expected error handlers
+- Error falls through to 500 catch block instead of returning 401
+
+### פתרון
+- Added null check for `passwordHash` before `bcrypt.compare()` in `auth-login.service.ts`
+- OAuth users attempting password login now get proper 401 "Invalid email or password"
+- Set password for admin user on both QA and PROD servers
+
+### קבצים שהשתנו
+- `apps/api/src/services/auth/auth-login.service.ts` - null passwordHash guard
+- Commit: `8115680`
+
+---
+
+## ✅ ISSUE-090: 'Failed to send comment' - Zod case-insensitive (17 פברואר 2026)
+
+### חומרה: 🟡 בינוני | סטטוס: ✅ תוקן
+
+### בעיה
+SharedSpace page shows toast error "Failed to send comment" when trying to send a comment.
+
+### שורש הבעיה
+- Frontend `CommentInputDialog.jsx` sends `type: 'text'` (lowercase)
+- Backend Zod schema expects `'TEXT'` (uppercase enum)
+- Validation fails before reaching the handler
+
+### פתרון
+- Made backend Zod schema case-insensitive with `.transform(v => v.toUpperCase()).pipe(z.enum([...]))`
+- Accepts both `'text'` and `'TEXT'` (and `'image'`, `'IMAGE'`, etc.)
+
+### קבצים שהשתנו
+- `apps/api/src/routes/v1/chats-schemas.ts` - case-insensitive messageType transform
+- Commit: `49d0b4f`
 
 ---
 
