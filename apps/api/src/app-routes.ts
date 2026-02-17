@@ -6,16 +6,25 @@ import { logger } from './lib/logger.js';
 import { AppError } from './lib/app-error.js';
 import { metrics, promClient } from './lib/metrics.js';
 
-/**
- * Registers the global error handler for the Fastify instance.
- * Handles AppError instances and unexpected errors (reported to Sentry).
- */
+/** Global error handler: AppError, Fastify errors (rate-limit 429), and unexpected errors (Sentry) */
 export function registerErrorHandlers(app: FastifyInstance): void {
   app.setErrorHandler((error, request, reply) => {
     if (error instanceof AppError) {
       return reply.status(error.statusCode).send({
         success: false,
         error: { code: error.code, message: error.message, details: error.details, requestId: request.id },
+      });
+    }
+
+    // Preserve statusCode from Fastify errors (rate-limit 429, validation 400, etc.)
+    const statusCode = (error as { statusCode?: number }).statusCode;
+    const errorCode = (error as { code?: string }).code;
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    if (statusCode && statusCode < 500) {
+      return reply.status(statusCode).send({
+        success: false,
+        error: { code: errorCode || 'REQUEST_ERROR', message: errorMessage, requestId: request.id },
       });
     }
 
@@ -35,7 +44,7 @@ export function registerErrorHandlers(app: FastifyInstance): void {
       user: request.user ? { id: request.user.userId } : undefined,
     });
 
-    return reply.status(500).send({
+    return reply.status(statusCode || 500).send({
       success: false,
       error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred', requestId: request.id },
     });
@@ -54,12 +63,7 @@ export function registerErrorHandlers(app: FastifyInstance): void {
   });
 }
 
-/**
- * Registers health check endpoints:
- *  - GET /health (liveness)
- *  - GET /health/ready (readiness - DB + Redis)
- *  - GET /health/memory (memory stats)
- */
+/** Health check endpoints: /health, /health/ready (DB+Redis), /health/memory */
 export function registerHealthChecks(app: FastifyInstance): void {
   app.get('/health', async () => ({
     status: 'ok',

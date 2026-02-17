@@ -4,6 +4,7 @@ import { AuthService } from '../../../services/auth.service.js';
 import { prisma } from '../../../lib/prisma.js';
 import { handleFailedLogin, handleSuccessfulLogin } from '../../../security/auth-hardening.js';
 import { securityLogger } from '../../../security/logger.js';
+import { logger } from '../../../lib/logger.js';
 import { registerSchema, loginSchema, refreshSchema, changePasswordSchema, forgotPasswordSchema, resetPasswordSchema } from './auth-schemas.js';
 
 function zodError(reply: FastifyReply, error: z.ZodError) {
@@ -42,6 +43,7 @@ export async function handleLogin(request: FastifyRequest, reply: FastifyReply) 
       }
       return reply.code(401).send({ success: false, error: { code: 'INVALID_CREDENTIALS', message: error.message } });
     }
+    logger.error('AUTH', 'Unexpected login error', error instanceof Error ? error : new Error(String(error)));
     return reply.code(500).send({ success: false, error: { code: 'INTERNAL_SERVER_ERROR', message: 'An error occurred during login' } });
   }
 }
