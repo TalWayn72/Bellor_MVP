@@ -1,0 +1,17 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAM_ID.com.bellor.app",
+        "paths": [
+          "/Chat/*",
+          "/Profile/*",
+          "/Discover",
+          "/Mission/*",
+          "/SharedSpace/*"
+        ]
+      }
+    ]
+  }
+}

@@ -434,23 +434,21 @@ VITE_WS_URL=ws://localhost:3000
 | 3 | Real-time -- Socket.io, Chat, Presence, Frontend integration | Complete |
 | 4 | Frontend Migration -- Remove Base44 dependencies | Complete |
 | 5 | Admin & Tools -- Dashboard, User/Report/Chat management | Complete |
-| 6 | Testing & QA -- 2,649 unit/integration + 514 E2E tests, 75% backend coverage, 40% frontend baseline, WCAG 2.1 AA compliance | Complete |
+| 6 | Testing & QA -- 2,649 unit/integration + 438 E2E tests (224 mocked + 214 full-stack), 75% backend coverage, 40% frontend baseline, WCAG 2.1 AA compliance | Complete |
 | 7 | Deployment -- CI/CD, Docker builds, K8s, universal installers | Complete |
 | 8 | Universal Deployment -- Cloud-agnostic, free hosting, one-command deploy | Complete |
 | 9 | Final Polish -- Push notifications, audio playback, story viewer, TS cleanup, Logger | Complete |
-| 10 | Mobile App -- Capacitor configured, Android + iOS platforms added | 30% |
+| 10 | Mobile App -- Capacitor 8 + 6 native plugins, lifecycle/push/network hooks, deep link config, CI/CD build pipeline | 70% |
 
-**Phase 10 remaining:** Upload keystore (Android), AAB build, store listing.
+**Phase 10 remaining:** Generate keystore, Firebase FCM setup, store accounts + listing, app assets.
 
 ---
 
 ## Next Steps
 
-1. Beta testing with 100 users
-2. Production deployment to cloud provider
-3. Mobile app store submission (Phase 10)
-4. Feature flags rollout system
-5. GDPR data export/deletion endpoints
+1. Beta testing with ~100 users
+2. Phase 10 completion: store accounts, keystore, Firebase FCM, app submission
+3. Feature flags rollout system
 
 ---
 

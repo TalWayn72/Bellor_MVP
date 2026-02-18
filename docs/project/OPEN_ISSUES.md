@@ -1,6 +1,6 @@
 # תקלות פתוחות - Bellor MVP
 
-**תאריך עדכון:** 17 פברואר 2026
+**תאריך עדכון:** 18 פברואר 2026
 **מצב:** ✅ Production Deployed on Oracle Cloud Free Tier (ISSUE-081)
 
 ---
@@ -41,6 +41,7 @@ A  qa    →  151.145.94.190   (TTL: 600)
 
 | קטגוריה | מספר תקלות | חומרה | סטטוס |
 |----------|-------------|--------|--------|
+| **ISSUE-094: Phase 10 Mobile - Capacitor plugins + hooks + deep links (Feb 18)** | 8 | 🟢 שיפור | ✅ הושלם |
 | **ISSUE-093: GDPR test fixes + Security 100% + Monitoring (Feb 17)** | 5 | 🟡 בינוני | ✅ הושלם |
 | **ISSUE-092: QA server unreachable - OOM freeze (Feb 17)** | 1 | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-091: Login 500 - OAuth users null passwordHash (Feb 17)** | 1 | 🔴 קריטי | ✅ תוקן |
@@ -4891,6 +4892,39 @@ Then rebuild the web container: `docker compose up -d --build web`
 - Added `Mixed Content` to E2E console warning FAIL_PATTERNS
 - Created `npm run check:build-urls` script to detect HTTP URLs in production builds
 - **Files:** `scripts/check-build-urls.js`, `apps/web/e2e/fixtures/console-warning.helpers.ts`
+
+---
+
+## ✅ ISSUE-094: Phase 10 Mobile - Capacitor Plugins + Hooks + Deep Links (18 פברואר 2026)
+
+**חומרה:** 🟢 שיפור | **סטטוס:** ✅ הושלם | **קבצים:** 8
+
+### בעיה
+Phase 10 (Mobile App) היה ב-30% - רק Capacitor config + native projects. חסרו: plugin initialization, lifecycle hooks, push notifications, deep linking, network detection.
+
+### פתרון
+1. **Capacitor Plugins (6):** התקנת `@capacitor/app`, `@capacitor/network`, `@capacitor/splash-screen`, `@capacitor/status-bar`, `@capacitor/keyboard`, `@capacitor/push-notifications`
+2. **capacitor-init.ts:** אתחול SplashScreen + StatusBar בעת עליית האפליקציה (no-op on web)
+3. **useAppLifecycle.ts:** Hook ל-pause/resume, Android back button, deep link URL handling
+4. **useNetworkStatus.ts:** Hook למעקב אחר חיבור רשת (Capacitor Network + web fallback)
+5. **usePushNotifications.ts:** Hook לרישום push notifications, token registration לbackend, ניווט מ-notification tap
+6. **Deep Links:** assetlinks.json (Android) + apple-app-site-association (iOS) ב-`.well-known/`
+7. **CI/CD:** mobile-build.yml workflow (מהסשן הקודם)
+8. **main.jsx:** הוספת `initCapacitor()` call
+
+### Phase 10 Progress: 30% → 70%
+- ✅ Capacitor config + native projects
+- ✅ Platform detection + tests
+- ✅ 6 native plugins installed
+- ✅ Plugin init + lifecycle hooks
+- ✅ Push notification hook
+- ✅ Network status hook
+- ✅ Deep link config files
+- ✅ CI/CD build pipeline
+- ⬜ Keystore generation (requires user)
+- ⬜ Firebase FCM setup (requires user)
+- ⬜ Store accounts + listing (requires user)
+- ⬜ App assets (icons, screenshots)
 
 ---
 
