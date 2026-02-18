@@ -94,10 +94,10 @@ export const chatService = {
     return response.data as ChatByIdResponse;
   },
 
-  async createOrGetChat(otherUserId: string): Promise<CreateOrGetChatResponse> {
+  async createOrGetChat(otherUserId: string, options?: { forceReal?: boolean }): Promise<CreateOrGetChatResponse> {
     validateUserId(otherUserId, 'createOrGetChat');
 
-    if (isDemoUser(otherUserId)) {
+    if (!options?.forceReal && isDemoUser(otherUserId)) {
       return {
         chat: createDemoChat(otherUserId) as Chat,
         demo: true,

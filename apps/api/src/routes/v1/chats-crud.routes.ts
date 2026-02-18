@@ -5,7 +5,6 @@
 
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { chatService } from '../../services/chat.service.js';
-import { isDemoUserId } from '../../utils/demoId.util.js';
 import {
   chatListQuerySchema,
   chatIdParamsSchema,
@@ -67,10 +66,6 @@ export default async function chatsCrudRoutes(app: FastifyInstance) {
 
     if (targetUserId === userId) {
       return reply.code(400).send({ error: 'Cannot create chat with yourself' });
-    }
-
-    if (isDemoUserId(targetUserId)) {
-      return reply.code(400).send({ error: 'Cannot perform operations on demo users' });
     }
 
     try {

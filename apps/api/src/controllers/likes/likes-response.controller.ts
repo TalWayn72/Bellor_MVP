@@ -6,7 +6,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { LikesService } from '../../services/likes.service.js';
-import { isDemoId } from '../../utils/demoId.util.js';
 import { AppError } from '../../lib/app-error.js';
 import {
   likeResponseBodySchema,
@@ -31,8 +30,6 @@ export const LikesResponseController = {
     try {
       const body = likeResponseBodySchema.parse(request.body);
       const userId = request.user!.id;
-      if (isDemoId(body.responseId)) return reply.status(400).send({ error: 'Cannot perform operations on demo content' });
-
       const like = await LikesService.likeResponse(userId, body.responseId);
       return reply.send({ like });
     } catch (error: unknown) {
@@ -49,8 +46,6 @@ export const LikesResponseController = {
     try {
       const params = responseIdParamsSchema.parse(request.params);
       const userId = request.user!.id;
-      if (isDemoId(params.responseId)) return reply.status(400).send({ error: 'Cannot perform operations on demo content' });
-
       const result = await LikesService.unlikeResponse(userId, params.responseId);
       return reply.send(result);
     } catch (error: unknown) {

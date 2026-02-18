@@ -6,7 +6,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { LikesService } from '../services/likes.service.js';
-import { isDemoUserId } from '../utils/demoId.util.js';
 import { AppError } from '../lib/app-error.js';
 import {
   likeUserBodySchema,
@@ -34,7 +33,6 @@ export const LikesController = {
       const userId = request.user!.id;
 
       if (userId === body.targetUserId) return reply.status(400).send({ error: 'Cannot like yourself' });
-      if (isDemoUserId(body.targetUserId)) return reply.status(400).send({ error: 'Cannot perform operations on demo users' });
 
       const result = await LikesService.likeUser(userId, body.targetUserId, body.likeType);
       return reply.send(result);
@@ -52,8 +50,6 @@ export const LikesController = {
     try {
       const params = targetUserParamsSchema.parse(request.params);
       const userId = request.user!.id;
-      if (isDemoUserId(params.targetUserId)) return reply.status(400).send({ error: 'Cannot perform operations on demo users' });
-
       const result = await LikesService.unlikeUser(userId, params.targetUserId);
       return reply.send(result);
     } catch (error: unknown) {

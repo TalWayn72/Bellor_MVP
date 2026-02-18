@@ -6,7 +6,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { FollowsService } from '../services/follows.service.js';
-import { isDemoUserId } from '../utils/demoId.util.js';
 import {
   followBodySchema,
   userIdParamsSchema,
@@ -26,10 +25,6 @@ export const FollowsController = {
       const body = followBodySchema.parse(request.body);
       const followerId = request.user!.id;
 
-      if (isDemoUserId(body.userId)) {
-        return reply.status(400).send({ error: 'Cannot perform operations on demo users' });
-      }
-
       const follow = await FollowsService.followUser(followerId, body.userId);
       return reply.send({ follow });
     } catch (error: unknown) {
@@ -44,10 +39,6 @@ export const FollowsController = {
     try {
       const params = userIdParamsSchema.parse(request.params);
       const followerId = request.user!.id;
-
-      if (isDemoUserId(params.userId)) {
-        return reply.status(400).send({ error: 'Cannot perform operations on demo users' });
-      }
 
       const result = await FollowsService.unfollowUser(followerId, params.userId);
       return reply.send(result);

@@ -6,7 +6,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { MessageType } from '@prisma/client';
 import { chatService } from '../../services/chat.service.js';
-import { isDemoId } from '../../utils/demoId.util.js';
 import { RATE_LIMITS } from '../../config/rate-limits.js';
 import {
   chatIdParamsSchema,
@@ -63,10 +62,6 @@ export default async function chatsMessagesRoutes(app: FastifyInstance) {
       const userId = request.user!.id;
       const { chatId } = params.data;
 
-      if (isDemoId(chatId)) {
-        return reply.code(400).send({ error: 'Cannot perform operations on demo chats' });
-      }
-
       const { content, messageType, message_type, type } = body.data;
       const msgType = messageType || message_type || type || 'TEXT';
 
@@ -116,11 +111,7 @@ export default async function chatsMessagesRoutes(app: FastifyInstance) {
         return reply.code(400).send({ error: 'Validation failed', details: params.error.errors });
       }
       const userId = request.user!.id;
-      const { chatId, messageId } = params.data;
-
-      if (isDemoId(chatId) || isDemoId(messageId)) {
-        return reply.code(400).send({ error: 'Cannot perform operations on demo content' });
-      }
+      const { messageId } = params.data;
 
       const result = await chatService.deleteMessage(messageId, userId);
 

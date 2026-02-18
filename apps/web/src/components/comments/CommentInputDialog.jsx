@@ -23,7 +23,7 @@ export default function CommentInputDialog({ isOpen, onClose, response, currentU
 
   const createCommentMutation = useMutation({
     mutationFn: async (text) => {
-      const chatResult = await chatService.createOrGetChat(response.user_id);
+      const chatResult = await chatService.createOrGetChat(response.user_id, { forceReal: true });
       await chatService.sendMessage(chatResult.chat.id, { content: text, type: 'text' });
       return chatResult;
     },

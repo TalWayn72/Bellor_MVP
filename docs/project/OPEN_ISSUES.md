@@ -41,6 +41,7 @@ A  qa    →  151.145.94.190   (TTL: 600)
 
 | קטגוריה | מספר תקלות | חומרה | סטטוס |
 |----------|-------------|--------|--------|
+| **ISSUE-095: SharedSpace comment fails - demo ID guards block all interactions (Feb 18)** | 7 guards | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-094: Phase 10 Mobile - Capacitor plugins + hooks + deep links (Feb 18)** | 8 | 🟢 שיפור | ✅ הושלם |
 | **ISSUE-093: GDPR test fixes + Security 100% + Monitoring (Feb 17)** | 5 | 🟡 בינוני | ✅ הושלם |
 | **ISSUE-092: QA server unreachable - OOM freeze (Feb 17)** | 1 | 🔴 קריטי | ✅ תוקן |
@@ -4895,6 +4896,69 @@ Then rebuild the web container: `docker compose up -d --build web`
 
 ---
 
+## ✅ ISSUE-095: SharedSpace Comment Fails - Demo ID Guards Block All Interactions (18 פברואר 2026)
+
+### חומרה: 🔴 קריטי | סטטוס: ✅ תוקן
+
+### בעיה
+SharedSpace page shows "Failed to send comment" error when a real user tries to comment on any post.
+Error persisted across 3 investigation rounds due to multi-layer blocking.
+
+### שורש הבעיה (מערכתי - 3 שכבות)
+
+**שכבה 1 - Frontend demo shortcut:**
+- `chatService.createOrGetChat()` detects `demo-user-*` IDs → returns fake chat ID (`demo-chat-demo-user-*`) instead of calling API
+- `CommentInputDialog.jsx` uses this fake ID to send message → backend rejects
+
+**שכבה 2 - Backend demo guards (7 locations):**
+- `chats-crud.routes.ts:72` - `isDemoUserId()` blocks `POST /chats` → 400
+- `chats-messages.routes.ts:66` - `isDemoId()` blocks `POST /chats/:id/messages` → 400
+- `chats-messages.routes.ts:121` - `isDemoId()` blocks `DELETE /chats/:id/messages/:id` → 400
+- `likes.controller.ts:37,55` - `isDemoUserId()` blocks like/unlike user → 400
+- `likes-response.controller.ts:34,52` - `isDemoId()` blocks like/unlike response → 400
+- `follows.controller.ts:29,48` - `isDemoUserId()` blocks follow/unfollow → 400
+
+**שכבה 3 - Architecture mismatch:**
+- Demo users are **real records in PostgreSQL** (created by seed)
+- But backend guards treat them as non-existent mock data
+- Guards were added as "safety" but actively blocked all real functionality
+
+### טיפול קודם שלא פתר (ISSUE-090, 17/02)
+- ISSUE-090 תיקן case-sensitivity ב-Zod schema (`type: 'text'` → `'TEXT'`)
+- התיקון היה נכון אך **לא היה שורש הבעיה** - הבקשה נחסמה ב-demo guard **לפני** שהגיעה ל-Zod validation
+
+### תיקון (18/02 - 3 שלבים)
+
+**שלב 1 - Frontend bypass:**
+- `chatService.ts` - Added `forceReal` option to `createOrGetChat()`
+- `CommentInputDialog.jsx` - Uses `{ forceReal: true }` to bypass demo shortcut
+
+**שלב 2 - Backend guards removal (7 guards from 5 files):**
+- Removed all `isDemoUserId()`/`isDemoId()` checks from route handlers
+- Demo users exist in DB → all CRUD operations work naturally via Prisma
+
+**שלב 3 - Full deployment:**
+- Built API (TypeScript) + frontend (Vite) locally
+- Deployed to both QA + PROD via SCP (servers OOM on local build)
+- PM2 restart + nginx reload on both servers
+- Fixed QA `.env.production` from HTTP→HTTPS URLs
+
+### קבצים שהשתנו
+- `apps/web/src/api/services/chatService.ts` - `forceReal` option
+- `apps/web/src/components/comments/CommentInputDialog.jsx` - `forceReal: true`
+- `apps/api/src/routes/v1/chats-crud.routes.ts` - Removed isDemoUserId guard
+- `apps/api/src/routes/v1/chats-messages.routes.ts` - Removed isDemoId guards (x2)
+- `apps/api/src/controllers/likes.controller.ts` - Removed isDemoUserId guards (x2)
+- `apps/api/src/controllers/likes/likes-response.controller.ts` - Removed isDemoId guards (x2)
+- `apps/api/src/controllers/follows.controller.ts` - Removed isDemoUserId guards (x2)
+
+### הערות deployment
+- שרתי 1GB RAM לא מסוגלים לבנות frontend (`vite build` → OOM)
+- Build מקומי + SCP הוא ה-workflow הנכון לשרתים אלה
+- QA env תוקן: `VITE_API_URL=http://IP:3000` → `https://qa.bellor.app/api/v1`
+
+---
+
 ## ✅ ISSUE-094: Phase 10 Mobile - Capacitor Plugins + Hooks + Deep Links (18 פברואר 2026)
 
 **חומרה:** 🟢 שיפור | **סטטוס:** ✅ הושלם | **קבצים:** 8
@@ -5038,15 +5102,17 @@ Login endpoint returns 500 INTERNAL_ERROR for users registered via Google OAuth.
 
 ## ✅ ISSUE-090: 'Failed to send comment' - Zod case-insensitive (17 פברואר 2026)
 
-### חומרה: 🟡 בינוני | סטטוס: ✅ תוקן
+### חומרה: 🟡 בינוני | סטטוס: ⚠️ תיקון חלקי → ראה ISSUE-095
 
 ### בעיה
 SharedSpace page shows toast error "Failed to send comment" when trying to send a comment.
 
-### שורש הבעיה
+### שורש הבעיה (אבחון חלקי)
 - Frontend `CommentInputDialog.jsx` sends `type: 'text'` (lowercase)
 - Backend Zod schema expects `'TEXT'` (uppercase enum)
 - Validation fails before reaching the handler
+
+**הערה:** תיקון זה היה נכון אך לא מספיק - הבקשה נחסמה ב-demo guard **לפני** שהגיעה ל-Zod validation. שורש הבעיה האמיתי תועד ב-ISSUE-095.
 
 ### פתרון
 - Made backend Zod schema case-insensitive with `.transform(v => v.toUpperCase()).pipe(z.enum([...]))`
