@@ -60,7 +60,7 @@ describe('[P1][onboarding] onboardingUtils - ISSUE-070 regression', () => {
       expect(result).toHaveProperty('birthDate', '2000-01-15');
       expect(result).toHaveProperty('gender', 'male');
       expect(result).toHaveProperty('lookingFor', ['female']);
-      expect(result).toHaveProperty('profileImages', ['img1.jpg']);
+      expect(result).not.toHaveProperty('profileImages');
       expect(result).toHaveProperty('sketchMethod', 'draw');
       expect(result).toHaveProperty('drawingUrl', 'draw.png');
       expect(result).toHaveProperty('lastActiveAt');
@@ -88,9 +88,9 @@ describe('[P1][onboarding] onboardingUtils - ISSUE-070 regression', () => {
       expect(result).toEqual({ lookingFor: ['female'] });
     });
 
-    it('step 8 should return profileImages', () => {
+    it('step 8 should return null (photos managed by upload handler)', () => {
       const result = buildStepSaveData(8, baseFormData);
-      expect(result).toEqual({ profileImages: ['img1.jpg'] });
+      expect(result).toBeNull();
     });
   });
 });

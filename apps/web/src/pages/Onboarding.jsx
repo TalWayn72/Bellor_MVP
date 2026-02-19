@@ -62,7 +62,12 @@ export default function Onboarding() {
 
   useEffect(() => {
     if (currentStep === 8 && isAuthenticated && authUser?.profile_images?.length > 0) {
-      setFormData(prev => ({ ...prev, profile_images: authUser.profile_images, main_profile_image_url: authUser.main_profile_image_url || authUser.profile_images?.[0] || '' }));
+      // Only load from authUser if local state has no photos (initial load)
+      // Don't overwrite local state from uploads/deletes with stale authUser data
+      setFormData(prev => {
+        if (prev.profile_images.length > 0) return prev;
+        return { ...prev, profile_images: authUser.profile_images, main_profile_image_url: authUser.main_profile_image_url || authUser.profile_images?.[0] || '' };
+      });
     }
   }, [currentStep, isAuthenticated, authUser]);
 

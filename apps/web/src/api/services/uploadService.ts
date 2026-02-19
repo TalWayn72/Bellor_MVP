@@ -8,6 +8,7 @@ import { apiClient } from '../client/apiClient';
 interface UploadResponse {
   url: string;
   key: string;
+  profile_images?: string[];
 }
 
 interface StoryMediaUploadResponse extends UploadResponse {

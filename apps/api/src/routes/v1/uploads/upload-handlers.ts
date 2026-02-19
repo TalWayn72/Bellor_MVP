@@ -35,7 +35,7 @@ export async function handleProfileImageUpload(request: FastifyRequest, reply: F
     const profileImages = user?.profileImages || [];
     profileImages.push(result.url);
     await prisma.user.update({ where: { id: request.user!.userId }, data: { profileImages } });
-    return { success: true, data: { url: result.url, key: result.key } };
+    return { success: true, data: { url: result.url, key: result.key, profileImages } };
   } catch (error) {
     request.log.error({ error }, 'Profile image upload failed');
     return reply.code(400).send({ success: false, error: { code: 'UPLOAD_FAILED', message: error instanceof Error ? error.message : 'Upload failed' } });

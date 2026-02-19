@@ -86,7 +86,9 @@ export function buildStepSaveData(step, formData) {
     const arr = Array.isArray(formData.looking_for) ? formData.looking_for : [formData.looking_for];
     return { lookingFor: arr };
   }
-  if (step === 8 && formData.profile_images?.length > 0) return { profileImages: formData.profile_images };
+  // Step 8 (photos): Backend already saves profileImages during upload/delete/reorder
+  // Do NOT send profileImages here - it would overwrite the authoritative backend data
+  if (step === 8) return null;
   return null;
 }
 
@@ -96,7 +98,7 @@ export function buildFinalUserData(formData) {
   return {
     nickname: formData.nickname, birthDate: formData.date_of_birth, gender: formData.gender, lookingFor: lookingForArray,
     location: formData.location_city && formData.location_state ? { city: formData.location_city, country: formData.location_state } : formData.location,
-    profileImages: formData.profile_images || [], sketchMethod: formData.sketch_method, drawingUrl: formData.drawing_url,
+    sketchMethod: formData.sketch_method, drawingUrl: formData.drawing_url,
     bio: formData.bio, occupation: formData.occupation || null, education: formData.education || null,
     phone: formData.phone || null, interests: formData.interests || [],
     canCurrentlyRelocate: !!formData.can_currently_relocate, canLanguageTravel: !!formData.can_language_travel, lastActiveAt: new Date().toISOString(),
