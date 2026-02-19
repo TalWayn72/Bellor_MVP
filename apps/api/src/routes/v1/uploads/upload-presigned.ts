@@ -35,7 +35,7 @@ export async function handlePresignedUrl(request: FastifyRequest, reply: Fastify
 
 /** DELETE /uploads/profile-image - Remove a profile image */
 export async function handleDeleteProfileImage(request: FastifyRequest, reply: FastifyReply) {
-  const { url } = z.object({ url: z.string().min(1).url() }).parse(request.body);
+  const { url } = z.object({ url: z.string().min(1) }).parse(request.body);
 
   try {
     const user = await prisma.user.findUnique({
@@ -52,8 +52,13 @@ export async function handleDeleteProfileImage(request: FastifyRequest, reply: F
 
     // Try to delete from storage (best-effort)
     try {
-      const urlObj = new URL(url);
-      const key = urlObj.pathname.replace(/^\//, '');
+      let key: string;
+      if (url.startsWith('/uploads/')) {
+        key = url.replace('/uploads/', '');
+      } else {
+        const urlObj = new URL(url);
+        key = urlObj.pathname.replace(/^\//, '');
+      }
       await storageService.deleteFile(key);
     } catch (e) {
       request.log.warn({ error: e, url }, 'Failed to delete file from storage');

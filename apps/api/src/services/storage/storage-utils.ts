@@ -62,10 +62,10 @@ export function getPublicUrl(key: string): string {
 }
 
 /**
- * Get local URL for a file
+ * Get local URL for a file (root-relative path works via Nginx and Fastify static)
  */
 export function getLocalUrl(key: string): string {
-  return `http://localhost:${env.PORT}/uploads/${key}`;
+  return `/uploads/${key}`;
 }
 
 /**
