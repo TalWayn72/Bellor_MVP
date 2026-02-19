@@ -9,7 +9,6 @@ export default function ProfileBookTab({ responses, onSelectResponse }) {
   const navigate = useNavigate();
 
   const totalResponses = responses.length;
-  const totalLikes = responses.reduce((sum, r) => sum + (r.likes_count || 0), 0);
   const responsesByType = responses.reduce((acc, r) => {
     acc[r.response_type] = (acc[r.response_type] || 0) + 1;
     return acc;
@@ -23,14 +22,10 @@ export default function ProfileBookTab({ responses, onSelectResponse }) {
           <CardTitle>My Book - My Content</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-foreground">{totalResponses}</div>
               <div className="text-xs text-muted-foreground mt-1">Total Posts</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-love">{totalLikes}</div>
-              <div className="text-xs text-muted-foreground mt-1">Total Likes</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-info">{Object.keys(responsesByType).length}</div>

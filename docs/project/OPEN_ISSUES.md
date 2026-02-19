@@ -1,6 +1,6 @@
 # תקלות פתוחות - Bellor MVP
 
-**תאריך עדכון:** 18 פברואר 2026
+**תאריך עדכון:** 19 פברואר 2026
 **מצב:** ✅ Production Deployed on Oracle Cloud Free Tier (ISSUE-081)
 
 ---
@@ -41,6 +41,8 @@ A  qa    →  151.145.94.190   (TTL: 600)
 
 | קטגוריה | מספר תקלות | חומרה | סטטוס |
 |----------|-------------|--------|--------|
+| **ISSUE-097: Remove ChatCarousel avatars from Feed screen (Feb 19)** | 1 | 🟢 נמוך | ✅ תוקן |
+| **ISSUE-096: Feed screen UI - oversized mission card, hidden posts, mismatched nav (Feb 19)** | 3 bugs | 🟡 בינוני | ✅ תוקן |
 | **ISSUE-095: SharedSpace comment fails - demo ID guards block all interactions (Feb 18)** | 7 guards | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-094: Phase 10 Mobile - Capacitor plugins + hooks + deep links (Feb 18)** | 8 | 🟢 שיפור | ✅ הושלם |
 | **ISSUE-093: GDPR test fixes + Security 100% + Monitoring (Feb 17)** | 5 | 🟡 בינוני | ✅ הושלם |
@@ -4896,6 +4898,58 @@ Then rebuild the web container: `docker compose up -d --build web`
 
 ---
 
+## ✅ ISSUE-097: Remove ChatCarousel Avatars from Feed Screen (19 פברואר 2026)
+
+### חומרה: 🟢 נמוך | סטטוס: ✅ תוקן
+
+**מקור:** QA testing feedback from product owner (screenshot from qa.bellor.app)
+
+### בעיה
+Circular profile pictures (ChatCarousel) appearing under "המרחב השיתופי" header in the Feed/SharedSpace screen. Product owner requested removal from feed - avatars should only appear in the Temporary Chats screen.
+
+### פתרון
+Removed `ChatCarousel` component from `SharedSpace.jsx`. The Temporary Chats page (`TemporaryChats.jsx`) uses its own `TempChatCard` component and was not affected.
+
+### קבצים שהשתנו
+| קובץ | שינוי |
+|------|-------|
+| `apps/web/src/pages/shared-space/SharedSpace.jsx` | Removed ChatCarousel import, removed `activeChatUsers` destructuring, removed `<ChatCarousel>` JSX |
+
+### בדיקות
+- [x] Build passes successfully
+- [x] Temporary Chats page unaffected (uses separate TempChatCard component)
+
+---
+
+## ✅ ISSUE-096: Feed Screen UI - Oversized Mission Card, Hidden Posts, Mismatched Nav (19 פברואר 2026)
+
+### חומרה: 🟡 בינוני | סטטוס: ✅ תוקן
+
+**מקור:** QA testing feedback from product owner (screenshot from qa.bellor.app)
+
+### בעיות שנמצאו
+
+| # | בעיה | קובץ | תיאור |
+|---|------|------|--------|
+| 1 | Daily Task card too large | `MissionCard.jsx` | Card takes ~30% of screen with full-width button, large padding, avatar |
+| 2 | Feed posts hidden | `FeedSection.jsx` | Posts barely visible due to oversized elements above (header+carousel+mission=~300px) |
+| 3 | Bottom nav mismatched | `BottomNavigation.jsx` | Generic grid/chat icons, oversized (w-7), no dating app feel |
+
+### תיקונים
+
+| # | קובץ | שינוי |
+|---|------|-------|
+| 1 | `apps/web/src/components/feed/MissionCard.jsx` | Converted from Card to compact horizontal banner: inline icon (w-8 h-8) + title/question + small CTA button. Reduced from ~180px to ~56px height |
+| 2 | `apps/web/src/pages/shared-space/FeedSection.jsx` | Adjusted viewport offset from 240px to 160px, changed from fixed height to min-height, items-center to items-start for natural content flow |
+| 3 | `apps/web/src/pages/shared-space/BottomNavigation.jsx` | Replaced custom SVGs with Lucide icons (Compass, MessageCircle, Heart, User), reduced icon size to w-6, added backdrop-blur, dating app color scheme (primary active, love on hover for heart), removed unused currentUser prop |
+
+### קבצים שהשתנו
+- `apps/web/src/components/feed/MissionCard.jsx`
+- `apps/web/src/pages/shared-space/FeedSection.jsx`
+- `apps/web/src/pages/shared-space/BottomNavigation.jsx`
+
+---
+
 ## ✅ ISSUE-095: SharedSpace Comment Fails - Demo ID Guards Block All Interactions (18 פברואר 2026)
 
 ### חומרה: 🔴 קריטי | סטטוס: ✅ תוקן
@@ -5650,3 +5704,56 @@ Frontend שלח שדות שלא תואמים את ה-Zod schema של ה-Backend:
 
 ### חומרה: 🔴 קריטי
 כל דפי השיתוף (וידאו, אודיו, כתיבה) לא עבדו כלל כשלא היה mission יומי.
+
+---
+
+## ✅ ISSUE-097: Profile My Book - Remove Total Likes Stat (19 פברואר 2026)
+
+### חומרה: 🟢 נמוך | סטטוס: ✅ תוקן
+
+**מקור:** QA testing feedback from product owner (screenshot from qa.bellor.app)
+
+### בעיה
+בפרופיל, לשונית "My Book", סקשן "My Book - My Content" הציג 3 סטטיסטיקות: Total Posts, Total Likes, Content Types. דרישת מוצר: להסיר את "Total Likes".
+
+### תיקון
+1. הסרת משתנה `totalLikes` (שורה 12) - לא נדרש יותר
+2. שינוי grid מ-3 עמודות ל-2: `grid-cols-3` → `grid-cols-2`
+3. הסרת בלוק ה-HTML של "Total Likes"
+
+### קבצים שהשתנו
+- `apps/web/src/components/profile/ProfileBookTab.jsx` - הסרת Total Likes stat מהגריד
+
+### הערות
+- `Heart` icon import נשאר - משמש לתצוגת לייקים בפוסטים בודדים
+- `Creation.jsx` לא השתנה - דף נפרד עם סטטיסטיקת "Hearts" משלו
+
+---
+
+## ✅ ISSUE-097: Drawing Canvas Color Picker Not Working - Only Black (19 פברואר 2026)
+
+### חומרה: 🟡 בינוני | סטטוס: ✅ תוקן
+
+**מקור:** QA testing feedback from product owner (screenshot from qa.bellor.app)
+
+### בעיה
+במסך הציור (שלב 10 מתוך 12 באונבורדינג, step 13 פנימי), כפתורי הצבעים (אדום, ירוק, כחול, צהוב, ורוד) לא שינו את צבע הקו. רק שחור עבד.
+
+### שורש הבעיה
+באג **React stale closure**: הפונקציה `drawStroke` קראה את `drawingColor` מ-React state דרך closure. עדכוני state (`setDrawingColor`) הם אסינכרוניים/batched - הערך החדש לא זמין עד ה-render הבא. באירועי touch/mouse מהירים, ה-handlers עדיין החזיקו בערך הישן (שחור `#000000`).
+
+בעיות משניות:
+- `isDrawing` ו-`drawingContext` ב-state גרמו לאיבוד פיקסלים ראשונים בכל קו
+- `ctx.stroke()` ציירה מחדש את כל ה-path המצטבר בכל אירוע move
+
+### תיקון
+1. החלפת `useState` ב-`useRef` לכל פרמטרי הציור (`drawingColor`, `drawingTool`, `lineWidth`, `isDrawing`) - גישה מיידית ללא תלות ב-render
+2. שמירת `useState` רק לממשק (הדגשת כפתורים, תצוגת slider)
+3. הסרת `drawingContext` מ-state - שימוש ישיר ב-`canvasRef.current.getContext('2d')`
+4. תיקון `drawStroke` עם `beginPath()`/`moveTo()` אחרי כל `stroke()` למניעת הצטברות path
+5. הסרת `console.error` מיותר (ה-toast כבר מטפל בשגיאה)
+6. הוספת E2E test שבודק צבע פיקסלים בפועל על ה-canvas
+
+### קבצים שהשתנו
+- `apps/web/src/components/onboarding/steps/StepDrawing.jsx` - תיקון stale closure + path accumulation
+- `apps/web/e2e/onboarding-drawing.spec.ts` - הוספת טסט אימות צבע ברמת פיקסל

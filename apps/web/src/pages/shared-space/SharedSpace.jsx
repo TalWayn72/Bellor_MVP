@@ -6,7 +6,6 @@ import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { FeedSkeleton } from '@/components/states';
 import SharedSpaceHeader from '@/components/feed/SharedSpaceHeader';
-import ChatCarousel from '@/components/feed/ChatCarousel';
 import MissionCard from '@/components/feed/MissionCard';
 import TemporaryChatRequestDialog from '@/components/chat/TemporaryChatRequestDialog';
 import DrawerMenu from '@/components/navigation/DrawerMenu';
@@ -27,7 +26,7 @@ export default function SharedSpace() {
   const [selectedHashtag, setSelectedHashtag] = useState(null);
   const [showTutorial, setShowTutorial] = useState(false);
 
-  const { todayMission, allResponses, userTodayResponse, activeChatUsers } = useSharedSpaceData(currentUser);
+  const { todayMission, allResponses, userTodayResponse } = useSharedSpaceData(currentUser);
 
   const [urlSearchParams, setUrlSearchParams] = useSearchParams();
 
@@ -64,7 +63,6 @@ export default function SharedSpace() {
     <div className="min-h-screen bg-background" dir="ltr">
       <SharedSpaceHeader currentUser={currentUser} onOpenDrawer={() => setIsDrawerOpen(true)} onNavigate={navigate} />
       <div className="max-w-2xl mx-auto pb-24">
-        <ChatCarousel activeChatUsers={activeChatUsers} onNavigate={navigate} />
         <HashtagFilter selectedHashtag={selectedHashtag} onClear={() => setSelectedHashtag(null)} />
         <MissionCard todayMission={todayMission} userTodayResponse={userTodayResponse} onOpenTaskSelector={() => setIsTaskSelectorOpen(true)} />
         <FeedSection responses={responses} currentUser={currentUser} theme={theme} onChatRequest={(user) => setChatRequestUser(user)} onHashtagClick={(hashtag) => setSelectedHashtag(hashtag)} onOpenTaskSelector={() => setIsTaskSelectorOpen(true)} />
