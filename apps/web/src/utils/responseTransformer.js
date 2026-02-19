@@ -9,14 +9,21 @@
  */
 export function transformResponse(r) {
   if (!r) return r;
-  // If already has snake_case fields (demo data), return as-is
-  if (r.user_id && r.response_type) return r;
+
+  // Normalize response_type to lowercase (Prisma returns UPPERCASE, frontend expects lowercase)
+  const rawType = r.response_type || r.responseType || '';
+  const normalizedType = rawType.toLowerCase();
+
+  // If already has snake_case fields (demo data), normalize type and return
+  if (r.user_id && r.response_type) {
+    return { ...r, response_type: normalizedType };
+  }
 
   return {
     ...r,
     user_id: r.user_id || r.userId,
     mission_id: r.mission_id || r.missionId,
-    response_type: r.response_type || r.responseType,
+    response_type: normalizedType,
     text_content: r.text_content || r.textContent,
     thumbnail_url: r.thumbnail_url || r.thumbnailUrl,
     view_count: r.view_count ?? r.viewCount ?? 0,
