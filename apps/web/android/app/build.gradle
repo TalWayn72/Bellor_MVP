@@ -16,10 +16,25 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            def ksPath = System.getenv("BELLOR_KEYSTORE_PATH") ?: "${rootDir}/bellor-release.keystore"
+            if (file(ksPath).exists()) {
+                storeFile file(ksPath)
+                storePassword System.getenv("BELLOR_KEYSTORE_PASSWORD") ?: ""
+                keyAlias System.getenv("BELLOR_KEY_ALIAS") ?: "bellor"
+                keyPassword System.getenv("BELLOR_KEY_PASSWORD") ?: ""
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            def ksPath = System.getenv("BELLOR_KEYSTORE_PATH") ?: "${rootDir}/bellor-release.keystore"
+            if (file(ksPath).exists()) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

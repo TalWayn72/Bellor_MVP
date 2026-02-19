@@ -14,8 +14,8 @@
 - [x] iOS platform added (`apps/web/ios/`)
 - [x] Push notifications configured (FCM)
 - [x] Splash screen configured (#EC4899 brand color)
-- [ ] Web build passes without errors (`npm run build`)
-- [ ] All tests pass (`npm run test`)
+- [x] Web build passes without errors (`npm run build`)
+- [x] All tests pass - 2,433 tests, 0 failures (Feb 19, 2026)
 
 ---
 
@@ -32,7 +32,7 @@
 - [ ] Back up keystore to a second secure location (losing it means you cannot update the app)
 
 ### 2. Gradle Signing Configuration
-- [ ] Configure `apps/web/android/app/build.gradle` signing config:
+- [x] Configure `apps/web/android/app/build.gradle` signing config (env-based, Feb 19, 2026):
   ```groovy
   android {
       signingConfigs {
@@ -53,9 +53,18 @@
   }
   ```
 - [ ] Set environment variables for CI/CD:
-  - `KEYSTORE_PASSWORD`
-  - `KEY_PASSWORD`
-  - `KEYSTORE_PATH`
+  - `BELLOR_KEYSTORE_PASSWORD`
+  - `BELLOR_KEY_PASSWORD`
+  - `BELLOR_KEY_ALIAS` (default: `bellor`)
+  - `BELLOR_KEYSTORE_PATH` (default: `{rootDir}/bellor-release.keystore`)
+
+### 2b. Firebase FCM Setup (Push Notifications)
+- [ ] Create Firebase project at https://console.firebase.google.com
+- [ ] Add Android app with package `com.bellor.app`
+- [ ] Download `google-services.json` to `apps/web/android/app/`
+- [ ] Copy FCM server key to backend `.env`: `FCM_SERVER_KEY=...`
+- [ ] For iOS: Add iOS app in Firebase, download `GoogleService-Info.plist` to `apps/web/ios/App/App/`
+- [ ] Test push: `npm run dev:api` → create user → trigger notification
 
 ### 3. App Configuration
 - [ ] Update `capacitor.config.ts` with keystore path and alias (see commented placeholders)
