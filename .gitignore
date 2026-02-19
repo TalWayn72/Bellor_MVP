@@ -1,5 +1,10 @@
 # Dependencies
 node_modules/
+
+# Android keystore (NEVER commit - contains signing keys)
+*.keystore
+*.jks
+google-services.json
 apps/*/node_modules/
 packages/*/node_modules/
 
