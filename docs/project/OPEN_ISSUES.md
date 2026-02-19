@@ -41,6 +41,9 @@ A  qa    →  151.145.94.190   (TTL: 600)
 
 | קטגוריה | מספר תקלות | חומרה | סטטוס |
 |----------|-------------|--------|--------|
+| **ISSUE-100: Video recording 00:00 / not saving - Cross-browser codec + missing duration (RECURRING) (Feb 19)** | 6 root causes | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-099: Onboarding Step 8 - Additional photos not saving (RECURRING) (Feb 19)** | 4 root causes | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-098: Voice recording fails with error - MIME mismatch + case bug (Feb 19)** | 5 root causes | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-097: Remove ChatCarousel avatars from Feed screen (Feb 19)** | 1 | 🟢 נמוך | ✅ תוקן |
 | **ISSUE-096: Feed screen UI - oversized mission card, hidden posts, mismatched nav (Feb 19)** | 3 bugs | 🟡 בינוני | ✅ תוקן |
 | **ISSUE-095: SharedSpace comment fails - demo ID guards block all interactions (Feb 18)** | 7 guards | 🔴 קריטי | ✅ תוקן |
@@ -4895,6 +4898,175 @@ Then rebuild the web container: `docker compose up -d --build web`
 - Added `Mixed Content` to E2E console warning FAIL_PATTERNS
 - Created `npm run check:build-urls` script to detect HTTP URLs in production builds
 - **Files:** `scripts/check-build-urls.js`, `apps/web/e2e/fixtures/console-warning.helpers.ts`
+
+---
+
+## ✅ ISSUE-100: Video Recording 00:00 / Not Saving - Cross-Browser Codec + Missing Duration (RECURRING) (19 פברואר 2026)
+
+### חומרה: 🔴 קריטי | סטטוס: ✅ תוקן
+
+**מקור:** QA testing by product owner on qa.bellor.app - Bellor Today → Video task. Video recording shows 00:00 duration and appears not saved. Recurring issue reported multiple times.
+
+**6 Root Causes Found:**
+
+1. **Cross-browser codec incompatibility (PRIMARY):** `VideoRecorder.jsx` hardcoded `{ type: 'video/webm' }` for blob regardless of actual browser codec. iOS Safari records MP4 (not WebM), but the blob was labeled as WebM → wrong MIME type → file unplayable.
+
+2. **No duration metadata:** Neither `VideoRecorder` nor `VideoTask` tracked recording duration. `createResponse()` called without `duration` field. Chrome's MediaRecorder WebM output lacks duration in Matroska header → player shows 00:00.
+
+3. **No timeslice in MediaRecorder.start():** Called without parameter → all data in single chunk at stop. Less reliable than chunked collection.
+
+4. **Blob URL indirection instead of direct blob:** VideoRecorder passed blob URL to parent, VideoTask then re-fetched it. Unnecessary round-trip. AudioRecorder correctly passed blob directly.
+
+5. **No minimum recording validation:** No check if recording captured actual data. Empty/corrupt blobs could upload without error.
+
+6. **Memory leak - blob URLs never revoked:** `URL.createObjectURL()` called but `URL.revokeObjectURL()` never called.
+
+**Fix Applied (comprehensive):**
+
+| File | Change |
+|------|--------|
+| `apps/web/src/components/tasks/recorderUtils.js` | **NEW** - Shared MIME type detection (`getRecorderMimeType`) with MP4-first preference for iOS compatibility, file extension mapping |
+| `apps/web/src/components/tasks/useRecordingTimer.js` | **NEW** - Shared recording timer hook with duration tracking, countdown support |
+| `apps/web/src/components/tasks/AudioRecorderUI.jsx` | **NEW** - Extracted UI from AudioRecorder (150-line limit compliance) |
+| `apps/web/src/components/tasks/VideoRecorder.jsx` | Rewritten: cross-browser codec detection via `MediaRecorder.isTypeSupported()`, actual MIME type from `mediaRecorder.mimeType`, timeslice `start(1000)`, duration timer, blob URL cleanup, minimum size validation, passes blob+duration+mimeType+ext to parent |
+| `apps/web/src/pages/VideoTask.jsx` | `handleShare` receives blob directly (not URL), creates File with correct MIME type and extension, passes `duration` to `createResponse()` |
+| `apps/web/src/components/tasks/AudioRecorder.jsx` | Refactored to use shared `recorderUtils` and `useRecordingTimer`, passes `duration` to `onShare` |
+| `apps/web/src/pages/AudioTask.jsx` | `handleShare` accepts `duration` param, passes to `createResponse()`, uses correct MIME type/extension |
+| `apps/web/src/components/feed/FeedPost.jsx` | Added `preload="metadata"` and `playsInline` to `<video>` element |
+| `apps/web/src/pages/VideoTask.test.jsx` | Updated mock to pass blob+duration+mimeType+ext, removed unnecessary fetch mock |
+| `apps/web/src/pages/AudioTask.test.jsx` | Updated mock to match new `onShare` signature with duration |
+
+**Tests:** 13/13 unit tests passing ✅ | ESLint clean ✅ | Build succeeds ✅ | All files under 150 lines ✅
+
+---
+
+## ✅ ISSUE-099: Onboarding Step 8 - Additional Photos Not Saving (RECURRING) (19 פברואר 2026)
+
+### חומרה: 🔴 קריטי | סטטוס: ✅ תוקן
+
+**מקור:** QA testing by product owner on qa.bellor.app - onboarding step 6 (Add Your Photos). Additional photos (beyond the first) fail to upload/save consistently. This is a recurring issue reported multiple times.
+
+### בעיה
+Profile photos uploaded in onboarding step 8 (Add Your Photos) either:
+- Show as broken images (URL exists in state but image doesn't load)
+- Disappear when navigating forward and back
+- Are lost when completing onboarding
+
+### שורש הבעיה (4 Root Causes Found)
+
+**Root Cause 1 (Critical): DUAL WRITE CONFLICT**
+- Backend `handleProfileImageUpload` automatically pushes new URL to `profileImages[]` in DB on every upload
+- Frontend `buildStepSaveData(8)` sends `{ profileImages: formData.profile_images }` when user clicks NEXT
+- If any upload response was lost (network glitch), frontend state is INCOMPLETE
+- Clicking NEXT OVERWRITES the correct DB data with incomplete frontend state
+- **This is why the bug kept recurring** - previous fixes addressed symptoms, not the architecture
+
+**Root Cause 2: Silent Error Handling**
+- Upload errors caught with `console.error()` only - NO user-visible notification
+- User has no way to know a photo upload failed
+- No retry mechanism
+
+**Root Cause 3: No State Sync from Backend**
+- Backend returns only `{ url, key }` - NOT the full profileImages array
+- Frontend can't verify its state matches the DB after upload
+
+**Root Cause 4: Stale authUser Overwrite**
+- `Onboarding.jsx` useEffect on step 8 entry overwrites local state with `authUser.profile_images`
+- If `authUser` hasn't been refreshed after uploads, recently uploaded photos are reverted
+
+### פתרון
+
+| # | Fix | File | Change |
+|---|-----|------|--------|
+| 1 | Backend returns full `profileImages` array in upload response | `upload-handlers.ts:38` | Added `profileImages` to response data |
+| 2 | Frontend syncs state from backend response | `StepPhotos.jsx:23-24` | Uses `result.profile_images` to update state |
+| 3 | Removed `profileImages` from step 8 save | `onboardingUtils.js:89-91` | `buildStepSaveData(8)` returns `null` |
+| 4 | Removed `profileImages` from final save | `onboardingUtils.js:101` | `buildFinalUserData` no longer includes `profileImages` |
+| 5 | Added toast error notifications | `StepPhotos.jsx:30,48,65` | Upload/delete/reorder failures shown to user |
+| 6 | Added loading state + disabled NEXT during upload | `StepPhotos.jsx:12,17,33,89,118` | `isUploading` state with Loader2 spinner |
+| 7 | Prevented stale authUser overwrite | `Onboarding.jsx:66` | Only loads from authUser if local state empty |
+| 8 | Updated UploadResponse type | `uploadService.ts:11` | Added `profile_images?: string[]` |
+
+### Architecture Change
+**Before:** Photos managed by BOTH upload handler (auto-save) AND step/final save (overwrite)
+**After:** Photos managed ONLY by upload handler (auto-save), delete (direct), and reorder (direct). General profile updates NEVER touch profileImages.
+
+### קבצים שהשתנו
+- `apps/api/src/routes/v1/uploads/upload-handlers.ts`
+- `apps/web/src/components/onboarding/steps/StepPhotos.jsx`
+- `apps/web/src/components/onboarding/utils/onboardingUtils.js`
+- `apps/web/src/components/onboarding/utils/onboardingUtils.test.js`
+- `apps/web/src/pages/Onboarding.jsx`
+- `apps/web/src/api/services/uploadService.ts`
+- `apps/web/e2e/onboarding-drawing.spec.ts`
+
+### בדיקות
+- Unit tests: 13/13 passed (onboardingUtils)
+- E2E Chromium: 11/14 passed (3 failures pre-existing, unrelated)
+- E2E All browsers: 23/42 passed (19 failures: Mobile Safari browser not installed)
+
+---
+
+## ✅ ISSUE-098: Voice Recording Fails - MIME Mismatch + Case Bug + No Timer (19 פברואר 2026)
+
+### חומרה: 🔴 קריטי | סטטוס: ✅ תוקן
+
+**מקור:** QA testing by product owner on qa.bellor.app - voice recording in SharedSpace Daily Task shows "שגיאה" (error) after finishing recording and fails to save. Tested 20+ times. Recurring issue.
+
+### בעיות שנמצאו (5 root causes)
+
+| # | בעיה | חומרה | תיאור |
+|---|------|--------|-------|
+| 1 | **MIME type hardcoded to audio/webm** | 🔴 Critical | `AudioRecorder.jsx` forced `audio/webm` regardless of browser. iOS Safari produces `audio/mp4` → audio player shows error, upload fails |
+| 2 | **Backend missing audio/mp4 in ALLOWED_AUDIO_TYPES** | 🔴 Critical | `storage-utils.ts` accepted only webm/mp3/wav/ogg but not mp4/m4a. iOS recordings rejected by double-validation |
+| 3 | **Response type case mismatch** | 🔴 Critical | Prisma returns `'VOICE'` (uppercase), but 5 frontend components check `=== 'voice'` (lowercase). Voice responses invisible in feed/profile |
+| 4 | **No 25-second recording limit or timer** | 🟡 Medium | No auto-stop, no countdown, no visual timer for recording duration |
+| 5 | **Poor error handling** | 🟡 Medium | Generic "Error saving recording" with no API error details. `console.error` instead of proper logging. No `onerror` handler on MediaRecorder |
+
+### פתרון
+
+**Frontend - AudioRecorder (split into 4 files for 150-line limit):**
+- `recorderUtils.js`: Cross-browser MIME detection via `MediaRecorder.isTypeSupported()` - tries webm first, falls back to mp4 for Safari
+- `useRecordingTimer.js`: Custom hook for countdown timer with auto-stop at 25 seconds
+- `AudioRecorderUI.jsx`: Presentation with countdown timer display + progress bar
+- `AudioRecorder.jsx`: Main logic with stream cleanup on unmount, proper error handlers
+
+**Frontend - AudioTask.jsx:**
+- Receives actual MIME type and file extension from recorder (not hardcoded)
+- Creates File with correct MIME (`audio.m4a` for Safari, `audio.webm` for Chrome)
+- Null check on upload result URL before creating response
+- Shows actual API error message in toast
+
+**Frontend - responseTransformer.js:**
+- Added `.toLowerCase()` normalization for `response_type` field
+- Handles both demo data (already snake_case) and API data (camelCase UPPERCASE)
+
+**Backend - storage-utils.ts:**
+- Added `audio/mp4` and `audio/x-m4a` to `ALLOWED_AUDIO_TYPES`
+
+### קבצים שהשתנו
+| קובץ | שינוי |
+|------|-------|
+| `apps/web/src/components/tasks/AudioRecorder.jsx` | Complete rewrite: MIME detection, stream ref cleanup, timer integration |
+| `apps/web/src/components/tasks/AudioRecorderUI.jsx` | **NEW** - Extracted UI with countdown timer + progress bar |
+| `apps/web/src/components/tasks/recorderUtils.js` | **NEW** - Cross-browser MIME type detection (shared with video) |
+| `apps/web/src/components/tasks/useRecordingTimer.js` | **NEW** - Recording timer hook with auto-stop |
+| `apps/web/src/pages/AudioTask.jsx` | MIME-aware file creation, API error display, null check on upload |
+| `apps/web/src/utils/responseTransformer.js` | Case normalization: `response_type` always lowercase |
+| `apps/api/src/services/storage/storage-utils.ts` | Added `audio/mp4`, `audio/x-m4a` to ALLOWED_AUDIO_TYPES |
+
+### בדיקות
+- [x] ESLint passes on all modified files
+- [x] TypeScript build passes (API + Web)
+- [x] Vite production build passes
+- [x] E2E tests: 13/14 pass on onboarding-drawing, 6/21 pass on feed (pre-existing failures)
+- [ ] Manual QA on qa.bellor.app (requires deploy)
+
+### סיבות חוזרות
+This bug recurred multiple times because:
+1. No cross-browser audio MIME type testing (iOS Safari vs Chrome)
+2. Double validation in backend (file-validator + storage-utils) with different allowed lists
+3. Case mismatch between Prisma enum (UPPERCASE) and frontend checks (lowercase) never caught
 
 ---
 

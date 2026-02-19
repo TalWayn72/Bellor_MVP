@@ -86,6 +86,7 @@ test.describe('Onboarding Drawing Flow (ISSUE-007)', () => {
             data: {
               url: 'http://localhost:3000/uploads/profiles/new-photo.webp',
               key: 'profiles/test-user/new-photo.webp',
+              profileImages: ['http://localhost:3000/uploads/profiles/new-photo.webp'],
             },
           }),
         });
@@ -292,6 +293,46 @@ test.describe('Onboarding Drawing Flow (ISSUE-007)', () => {
       // Check for range input (line width slider)
       const slider = page.locator('input[type="range"]');
       await expect(slider).toBeVisible();
+    });
+
+    test('color picker should change stroke color on canvas', async ({ page }) => {
+      await page.goto('/onboarding?step=13');
+      await waitForPageLoad(page);
+
+      // Click the red color button
+      const redButton = page.locator('button[style*="background-color"]').nth(1);
+      await redButton.click();
+
+      // Draw a stroke on the canvas
+      const canvas = page.locator('canvas');
+      const box = await canvas.boundingBox();
+      if (!box) throw new Error('Canvas not found');
+      const startX = box.x + 50;
+      const startY = box.y + 50;
+      await page.mouse.move(startX, startY);
+      await page.mouse.down();
+      await page.mouse.move(startX + 100, startY);
+      await page.mouse.up();
+
+      // Read pixel data from the canvas at the midpoint of the stroke
+      const pixelColor = await page.evaluate(() => {
+        const cvs = document.querySelector('canvas');
+        if (!cvs) return { r: 0, g: 0, b: 0, a: 0 };
+        const ctx = cvs.getContext('2d');
+        if (!ctx) return { r: 0, g: 0, b: 0, a: 0 };
+        const rect = cvs.getBoundingClientRect();
+        const scaleX = cvs.width / rect.width;
+        const sampleX = Math.round(100 * scaleX);
+        const sampleY = Math.round(50 * (cvs.height / rect.height));
+        const pixel = ctx.getImageData(sampleX, sampleY, 1, 1).data;
+        return { r: pixel[0], g: pixel[1], b: pixel[2], a: pixel[3] };
+      });
+
+      // The stroke should be red (high red channel, low green and blue)
+      expect(pixelColor.r).toBeGreaterThan(200);
+      expect(pixelColor.g).toBeLessThan(50);
+      expect(pixelColor.b).toBeLessThan(50);
+      expect(pixelColor.a).toBeGreaterThan(0);
     });
   });
 

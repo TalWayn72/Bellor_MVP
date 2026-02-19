@@ -10,7 +10,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useCurrentUser } from '../components/hooks/useCurrentUser';
 import AudioRecorder from '@/components/tasks/AudioRecorder';
 import { useToast } from '@/components/ui/use-toast';
-
 export default function AudioTask() {
   const navigate = useNavigate();
   const { currentUser } = useCurrentUser();
@@ -36,7 +35,7 @@ export default function AudioTask() {
     },
   });
 
-  const handleShare = async (audioBlob, isPublic) => {
+  const handleShare = async (audioBlob, isPublic, duration, mimeType = 'audio/webm', ext = '.webm') => {
     if (!audioBlob || !currentUser) return;
 
     try {
@@ -50,14 +49,21 @@ export default function AudioTask() {
         mission = result.data;
       }
 
-      const file = new File([audioBlob], 'audio.webm', { type: 'audio/webm' });
+      const baseMime = mimeType.split(';')[0];
+      const fileName = `audio${ext}`;
+      const file = new File([audioBlob], fileName, { type: baseMime });
       const uploadResult = await uploadService.uploadFile(file);
-      const file_url = uploadResult.url;
+
+      if (!uploadResult?.url) {
+        toast({ title: 'Upload Error', description: 'Failed to upload audio file. Please try again.', variant: 'destructive' });
+        return;
+      }
 
       await responseService.createResponse({
         missionId: mission.id,
         responseType: 'VOICE',
-        content: file_url,
+        content: uploadResult.url,
+        duration: duration || undefined,
         isPublic: isPublic
       });
 
@@ -71,8 +77,9 @@ export default function AudioTask() {
 
       navigate(createPageUrl('SharedSpace'));
     } catch (error) {
-      console.error('Error uploading audio:', error);
-      toast({ title: 'Error', description: 'Error saving recording', variant: 'destructive' });
+      const apiMsg = error?.response?.data?.error?.message;
+      const description = apiMsg || 'Error saving recording. Please try again.';
+      toast({ title: 'Error', description, variant: 'destructive' });
     }
   };
 
