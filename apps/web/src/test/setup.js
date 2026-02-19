@@ -4,7 +4,13 @@
  */
 
 import '@testing-library/jest-dom';
+import { cleanup } from '@testing-library/react';
 import { toHaveNoViolations } from 'jest-axe';
+
+// Clean up DOM after each test to prevent state contamination
+afterEach(() => {
+  cleanup();
+});
 
 // Extend expect with axe matchers
 expect.extend(toHaveNoViolations);

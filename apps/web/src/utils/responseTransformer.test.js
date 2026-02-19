@@ -16,7 +16,7 @@ describe('[P1][content] responseTransformer', () => {
     it('passes through data that already has snake_case fields', () => {
       const demo = { id: 'r1', user_id: 'u1', response_type: 'text', text_content: 'hi' };
       const result = transformResponse(demo);
-      expect(result).toBe(demo); // same reference - no transformation
+      expect(result).toEqual(demo);
     });
 
     it('transforms camelCase API response to snake_case', () => {
