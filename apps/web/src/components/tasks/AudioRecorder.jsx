@@ -1,10 +1,10 @@
-import React, { useState, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Mic, ArrowRight, Eye } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
+import { getRecorderMimeType, getFileExtension } from './recorderUtils';
+import { useRecordingTimer } from './useRecordingTimer';
+import AudioRecorderUI from './AudioRecorderUI';
+
+const MAX_DURATION_SECONDS = 25;
 
 export default function AudioRecorder({ onShare }) {
   const { toast } = useToast();
@@ -13,113 +13,119 @@ export default function AudioRecorder({ onShare }) {
   const [audioUrl, setAudioUrl] = useState(null);
   const [audioBlob, setAudioBlob] = useState(null);
   const [isPublic, setIsPublic] = useState(true);
+  const [detectedMime, setDetectedMime] = useState('audio/webm');
   const mediaRecorderRef = useRef(null);
+  const streamRef = useRef(null);
   const chunksRef = useRef([]);
+  const { secondsLeft, startTimer, stopTimer, getDuration } = useRecordingTimer(MAX_DURATION_SECONDS);
+
+  // Cleanup stream + URL on unmount (e.g. user navigates away mid-recording)
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
+    };
+  }, [audioUrl]);
+
+  const stopRecording = useCallback(() => {
+    stopTimer();
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecording(false);
+  }, [stopTimer]);
 
   const startRecording = async () => {
     try {
+      if (typeof MediaRecorder === 'undefined') {
+        toast({ title: 'Not supported', description: 'Audio recording is not supported in this browser', variant: 'destructive' });
+        return;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      streamRef.current = stream;
+      const mimeType = getRecorderMimeType('audio');
+      setDetectedMime(mimeType || 'audio/webm');
+
+      const options = mimeType ? { mimeType } : {};
+      const mediaRecorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
 
       mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          chunksRef.current.push(e.data);
-        }
+        if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        const url = URL.createObjectURL(blob);
-        setAudioUrl(url);
-        setAudioBlob(blob);
-        setHasRecording(true);
         stream.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+        stopTimer();
+
+        if (chunksRef.current.length === 0) {
+          toast({ title: 'Error', description: 'No audio data was captured. Please try again.', variant: 'destructive' });
+          return;
+        }
+
+        const actualMime = mimeType || 'audio/webm';
+        const blob = new Blob(chunksRef.current, { type: actualMime });
+        if (blob.size === 0) {
+          toast({ title: 'Error', description: 'Recording is empty. Please try again.', variant: 'destructive' });
+          return;
+        }
+
+        if (audioUrl) URL.revokeObjectURL(audioUrl);
+        setAudioUrl(URL.createObjectURL(blob));
+        setAudioBlob(blob);
+        setDetectedMime(actualMime);
+        setHasRecording(true);
       };
 
-      mediaRecorder.start();
-      setIsRecording(true);
-    } catch (error) {
-      console.error('Error accessing microphone:', error);
-      toast({ title: 'Error', description: 'Unable to access microphone', variant: 'destructive' });
-    }
-  };
+      mediaRecorder.onerror = () => {
+        stream.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+        stopTimer();
+        setIsRecording(false);
+        toast({ title: 'Recording Error', description: 'An error occurred during recording.', variant: 'destructive' });
+      };
 
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
+      mediaRecorder.start(1000);
+      setIsRecording(true);
+      startTimer(stopRecording);
+    } catch (error) {
+      const msg = error instanceof DOMException && error.name === 'NotAllowedError'
+        ? 'Microphone permission denied. Please allow microphone access.'
+        : 'Unable to access microphone';
+      toast({ title: 'Error', description: msg, variant: 'destructive' });
     }
   };
 
   const handleRecordAgain = () => {
+    if (audioUrl) URL.revokeObjectURL(audioUrl);
     setAudioUrl(null);
     setAudioBlob(null);
     setHasRecording(false);
     chunksRef.current = [];
   };
 
+  const handleShare = () => {
+    if (!audioBlob) return;
+    const ext = getFileExtension(detectedMime);
+    onShare(audioBlob, isPublic, getDuration(), detectedMime, ext);
+  };
+
   return (
     <div className="w-full max-w-md mb-6">
       <div className="bg-card rounded-3xl p-8 shadow-lg border border-border">
-        {!hasRecording ? (
-          <div className="flex flex-col items-center">
-            <div className="w-32 h-32 mb-6 relative">
-              <div className={`w-full h-full rounded-full flex items-center justify-center ${
-                isRecording ? 'bg-destructive animate-pulse' : 'bg-muted'
-              }`}>
-                <Mic className={`w-16 h-16 ${isRecording ? 'text-destructive-foreground' : 'text-muted-foreground'}`} />
-              </div>
-            </div>
-
-            {isRecording && (
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-2 h-2 bg-destructive rounded-full animate-pulse"></div>
-                <span className="text-sm text-muted-foreground">Recording...</span>
-              </div>
-            )}
-
-            <Button
-              onClick={isRecording ? stopRecording : startRecording}
-              className={`w-full h-12 text-sm font-medium ${
-                isRecording ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground' : ''
-              }`}
-            >
-              {isRecording ? 'STOP' : 'START RECORDING'}
-            </Button>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center">
-            <div className="w-full mb-6">
-              <audio src={audioUrl} controls className="w-full" />
-            </div>
-
-            <Card className="mb-4">
-              <CardContent className="p-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Eye className="w-5 h-5 text-muted-foreground" />
-                    <Label htmlFor="public-switch" className="text-sm font-medium">
-                      {isPublic ? 'Public' : 'Private'}
-                    </Label>
-                  </div>
-                  <Switch id="public-switch" checked={isPublic} onCheckedChange={setIsPublic} />
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="w-full flex gap-3">
-              <Button onClick={handleRecordAgain} variant="outline" className="flex-1 h-12 text-sm font-medium">
-                RECORD AGAIN
-              </Button>
-              <Button onClick={() => onShare(audioBlob, isPublic)} className="flex-1 h-12 text-sm font-medium">
-                SHARE
-                <ArrowRight className="w-4 h-4 mr-2" />
-              </Button>
-            </div>
-          </div>
-        )}
+        <AudioRecorderUI
+          isRecording={isRecording} hasRecording={hasRecording}
+          audioUrl={audioUrl} secondsLeft={secondsLeft ?? MAX_DURATION_SECONDS}
+          isPublic={isPublic} setIsPublic={setIsPublic}
+          onStart={startRecording} onStop={stopRecording}
+          onRecordAgain={handleRecordAgain} onShare={handleShare}
+        />
       </div>
     </div>
   );

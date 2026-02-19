@@ -118,7 +118,7 @@ export default function FeedPost({ response, currentUser, onChatRequest, onHasht
         <div className="px-3 pb-3"><div className="bg-muted rounded-xl p-3 border border-border"><img src={response.content} alt="Drawing" className="w-full h-auto rounded-lg" loading="lazy" /></div></div>
       )}
       {response.response_type === 'video' && response.content && (
-        <div className="px-3 pb-3"><video src={response.content} controls className="w-full rounded-xl" /></div>
+        <div className="px-3 pb-3"><video src={response.content} controls preload="metadata" playsInline className="w-full rounded-xl" /></div>
       )}
 
       <FeedPostActions response={response} currentUser={currentUser} userData={userData} heartSent={heartSent} setHeartSent={setHeartSent} starSent={starSent} setStarSent={setStarSent} chatRequestSent={chatRequestSent} setChatRequestSent={setChatRequestSent} hasNewComments={hasNewComments} hasNewStars={hasNewStars} onOpenHeartSelector={() => setIsHeartSelectorOpen(true)} onOpenComments={() => setIsCommentsOpen(true)} onOpenCommentInput={() => setIsCommentInputOpen(true)} onOpenStarSenders={() => setIsStarSendersOpen(true)} onChatRequest={onChatRequest} />

@@ -31,8 +31,8 @@ export default function VideoTask() {
     },
   });
 
-  const handleShare = async (videoUrl) => {
-    if (!videoUrl || !currentUser) return;
+  const handleShare = async (videoBlob, isPublicFlag, duration, mimeType, ext) => {
+    if (!videoBlob || !currentUser) return;
 
     try {
       let mission = todayMission;
@@ -41,8 +41,9 @@ export default function VideoTask() {
         mission = result.data;
       }
 
-      const blob = await fetch(videoUrl).then(r => r.blob());
-      const file = new File([blob], 'video.webm', { type: 'video/webm' });
+      const filename = `video${ext || '.webm'}`;
+      const fileType = mimeType ? mimeType.split(';')[0] : 'video/webm';
+      const file = new File([videoBlob], filename, { type: fileType });
       const uploadResult = await uploadService.uploadFile(file);
       const file_url = uploadResult.url;
 
@@ -50,7 +51,8 @@ export default function VideoTask() {
         missionId: mission.id,
         responseType: 'VIDEO',
         content: file_url,
-        isPublic: isPublic
+        duration: duration || undefined,
+        isPublic: isPublicFlag ?? isPublic
       });
 
       const currentResponseCount = currentUser.response_count || 0;

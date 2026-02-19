@@ -34,7 +34,7 @@ vi.mock('@/components/navigation/BackButton', () => ({
 vi.mock('@/components/tasks/VideoRecorder', () => ({
   default: ({ onShare }) => (
     <div data-testid="video-recorder">
-      <button onClick={() => onShare('blob:test', true)}>Record</button>
+      <button onClick={() => onShare(new Blob(['video'], { type: 'video/webm' }), true, 10, 'video/webm', '.webm')}>Record</button>
     </div>
   ),
 }));
@@ -98,12 +98,6 @@ describe('[P1][regression] ISSUE-084 - mission creation schema', () => {
     missionService.getTodaysMission.mockResolvedValue({ data: null });
     missionService.createMission.mockResolvedValue({ data: { id: 'new-mission-1' } });
 
-    // Mock fetch for blob:test URL conversion in handleShare
-    const originalFetch = globalThis.fetch;
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      blob: () => Promise.resolve(new Blob(['video'], { type: 'video/webm' })),
-    });
-
     render(<VideoTask />, { wrapper: createWrapper() });
 
     // Wait for component to finish loading (query resolves)
@@ -128,7 +122,5 @@ describe('[P1][regression] ISSUE-084 - mission creation schema', () => {
     expect(callArg).not.toHaveProperty('responseTypes');
     expect(callArg).not.toHaveProperty('date');
     expect(callArg).not.toHaveProperty('isActive');
-
-    globalThis.fetch = originalFetch;
   });
 });

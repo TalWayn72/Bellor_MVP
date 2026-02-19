@@ -32,7 +32,7 @@ vi.mock('@/components/navigation/BackButton', () => ({
 vi.mock('@/components/tasks/AudioRecorder', () => ({
   default: ({ onShare }) => (
     <div data-testid="audio-recorder">
-      <button onClick={() => onShare(new Blob(), true)}>Record</button>
+      <button onClick={() => onShare(new Blob(['audio'], { type: 'audio/webm' }), true, 10, 'audio/webm', '.webm')}>Record</button>
     </div>
   ),
 }));
