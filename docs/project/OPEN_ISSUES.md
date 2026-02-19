@@ -4938,6 +4938,10 @@ Then rebuild the web container: `docker compose up -d --build web`
 
 **Tests:** 13/13 unit tests passing ✅ | ESLint clean ✅ | Build succeeds ✅ | All files under 150 lines ✅
 
+### פריסה
+- **QA (qa.bellor.app):** ✅ Deployed `875ce40` - Feb 19, 2026
+- **PROD (prod.bellor.app):** ✅ Deployed `ec78d80` - Feb 19, 2026
+
 ---
 
 ## ✅ ISSUE-099: Onboarding Step 8 - Additional Photos Not Saving (RECURRING) (19 פברואר 2026)
@@ -5005,6 +5009,10 @@ Profile photos uploaded in onboarding step 8 (Add Your Photos) either:
 - E2E Chromium: 11/14 passed (3 failures pre-existing, unrelated)
 - E2E All browsers: 23/42 passed (19 failures: Mobile Safari browser not installed)
 
+### פריסה
+- **QA (qa.bellor.app):** ✅ Deployed `ec78d80` - Feb 19, 2026
+- **PROD (prod.bellor.app):** ✅ Deployed `ec78d80` - Feb 19, 2026
+
 ---
 
 ## ✅ ISSUE-098: Voice Recording Fails - MIME Mismatch + Case Bug + No Timer (19 פברואר 2026)
@@ -5068,6 +5076,10 @@ This bug recurred multiple times because:
 2. Double validation in backend (file-validator + storage-utils) with different allowed lists
 3. Case mismatch between Prisma enum (UPPERCASE) and frontend checks (lowercase) never caught
 
+### פריסה
+- **QA (qa.bellor.app):** ✅ Deployed `39dd6fe` - Feb 19, 2026
+- **PROD (prod.bellor.app):** ✅ Deployed `ec78d80` - Feb 19, 2026
+
 ---
 
 ## ✅ ISSUE-097: Remove ChatCarousel Avatars from Feed Screen (19 פברואר 2026)
@@ -5090,6 +5102,10 @@ Removed `ChatCarousel` component from `SharedSpace.jsx`. The Temporary Chats pag
 ### בדיקות
 - [x] Build passes successfully
 - [x] Temporary Chats page unaffected (uses separate TempChatCard component)
+
+### פריסה
+- **QA (qa.bellor.app):** ✅ Deployed `47f9cc6` - Feb 19, 2026
+- **PROD (prod.bellor.app):** ✅ Deployed `ec78d80` - Feb 19, 2026
 
 ---
 
@@ -5119,6 +5135,10 @@ Removed `ChatCarousel` component from `SharedSpace.jsx`. The Temporary Chats pag
 - `apps/web/src/components/feed/MissionCard.jsx`
 - `apps/web/src/pages/shared-space/FeedSection.jsx`
 - `apps/web/src/pages/shared-space/BottomNavigation.jsx`
+
+### פריסה
+- **QA (qa.bellor.app):** ✅ Deployed `6fbb3e9` - Feb 19, 2026
+- **PROD (prod.bellor.app):** ✅ Deployed `ec78d80` - Feb 19, 2026
 
 ---
 
@@ -5182,6 +5202,10 @@ Error persisted across 3 investigation rounds due to multi-layer blocking.
 - שרתי 1GB RAM לא מסוגלים לבנות frontend (`vite build` → OOM)
 - Build מקומי + SCP הוא ה-workflow הנכון לשרתים אלה
 - QA env תוקן: `VITE_API_URL=http://IP:3000` → `https://qa.bellor.app/api/v1`
+
+### פריסה
+- **QA (qa.bellor.app):** ✅ Deployed `4606ff5` - Feb 18, 2026
+- **PROD (prod.bellor.app):** ✅ Deployed `ec78d80` - Feb 19, 2026
 
 ---
 
