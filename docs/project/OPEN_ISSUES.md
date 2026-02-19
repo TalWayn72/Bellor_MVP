@@ -41,6 +41,7 @@ A  qa    →  151.145.94.190   (TTL: 600)
 
 | קטגוריה | מספר תקלות | חומרה | סטטוס |
 |----------|-------------|--------|--------|
+| **ISSUE-101: Onboarding photos not displaying after upload - useEffect overwrite + stale closure + no error handling (RECURRING) (Feb 19)** | 4 root causes | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-100: Video recording 00:00 / not saving - Cross-browser codec + missing duration (RECURRING) (Feb 19)** | 6 root causes | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-099: Onboarding Step 8 - Additional photos not saving (RECURRING) (Feb 19)** | 4 root causes | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-098: Voice recording fails with error - MIME mismatch + case bug (Feb 19)** | 5 root causes | 🔴 קריטי | ✅ תוקן |
@@ -4898,6 +4899,74 @@ Then rebuild the web container: `docker compose up -d --build web`
 - Added `Mixed Content` to E2E console warning FAIL_PATTERNS
 - Created `npm run check:build-urls` script to detect HTTP URLs in production builds
 - **Files:** `scripts/check-build-urls.js`, `apps/web/e2e/fixtures/console-warning.helpers.ts`
+
+---
+
+## ✅ ISSUE-101: Onboarding Photos Not Displaying After Upload - useEffect Overwrite + Stale Closure + No Error Handling (RECURRING) (19 פברואר 2026)
+
+### חומרה: 🔴 קריטי | סטטוס: ✅ תוקן
+
+**מקור:** QA testing by product owner on qa.bellor.app - Onboarding step 8 (Add Your Photos). Photos uploaded but not displayed - 3 out of 4 slots show dark backgrounds with "Profile" alt text instead of the actual images. Continues after ISSUE-099 fix.
+
+**לוגים:** Checked all error logs (Feb 17-19) - **zero upload/photo/image errors found**. Uploads succeed on the backend. The bug is entirely in frontend state management and image display.
+
+### בעיה
+After uploading photos in onboarding step 8:
+- Photo slots show star icon and X delete button (meaning URLs exist in state)
+- But actual images don't render - only "Profile" alt text visible on dark background
+- 1 out of 4 photos may display correctly, others broken
+- Previous fix (ISSUE-099, commit ec78d80) was incomplete
+
+### שורש הבעיה (4 Root Causes Found)
+
+**Root Cause 1 (Critical): General useEffect overwrites fresh upload data**
+- `Onboarding.jsx` line 53: General useEffect runs on ANY `authUser` change
+- Unconditionally sets `profile_images` from `authUser.profile_images` (which is stale)
+- ISSUE-099 fix only added guard to the step-8-specific useEffect (line 67-68)
+- But **forgot the general useEffect** on line 43-61 which has no guard
+- If `authUser` object changes during/after upload (token refresh, re-fetch), fresh URLs are overwritten
+
+**Root Cause 2 (Significant): Stale closure in handleFileChange**
+- `StepPhotos.jsx` line 36: `setFormData({ ...formData, ... })` uses closure variable
+- Should use functional updater: `setFormData(prev => ({ ...prev, ... }))`
+- If component re-renders during async upload, the spread `...formData` contains stale data
+
+**Root Cause 3 (UX Critical): No image load error handling**
+- `StepPhotos.jsx` line 88: `<img src={...} alt="Profile" />` with no `onError` handler
+- When image URL is broken (404, CORS, stale CDN), user sees dark background + "Profile" text
+- No visual feedback that image failed to load, no way to detect/remove broken URLs
+
+**Root Cause 4: Delete doesn't use proper delete endpoint**
+- `StepPhotos.jsx` line 61-63: Uses `userService.updateUser()` to update profileImages array
+- Should call `uploadService.deleteProfileImage(url)` which also removes file from R2 storage
+- Leaves orphaned files in R2, and doesn't return updated profileImages from server
+
+### פתרון
+
+| # | Fix | File | Change |
+|---|-----|------|--------|
+| 1 | Guard general useEffect for step 8 | `Onboarding.jsx:53` | Skip `profile_images` overwrite when on step 8 |
+| 2 | Use functional updater in handleFileChange | `StepPhotos.jsx:36` | `setFormData(prev => ...)` instead of `setFormData({ ...formData, ... })` |
+| 3 | Add image onError handler with broken state | `StepPhotos.jsx:88` | Show broken image indicator, allow removal |
+| 4 | Use proper delete endpoint | `StepPhotos.jsx:61` | Call `uploadService.deleteProfileImage()` + sync from server response |
+
+### קבצים שהשתנו
+- `apps/web/src/pages/Onboarding.jsx`
+- `apps/web/src/components/onboarding/steps/StepPhotos.jsx`
+
+### בדיקות
+- Unit tests: 13/13 passed (onboardingUtils)
+- Build: SUCCESS (API tsc + Web vite)
+- Lint: 0 errors, 0 warnings
+- File lengths: StepPhotos.jsx 144 lines, Onboarding.jsx 148 lines (both under 150)
+
+### QA Checklist
+- [ ] Upload single photo → displays immediately
+- [ ] Upload multiple photos → all display correctly
+- [ ] Navigate away from step 8 and back → photos persist
+- [ ] Delete a photo → removed from display and R2 storage
+- [ ] Broken image URL → shows error indicator with remove option
+- [ ] Complete onboarding → photos saved correctly
 
 ---
 

@@ -42,23 +42,27 @@ export default function Onboarding() {
 
   useEffect(() => {
     if (isAuthenticated && authUser) {
-      setFormData(prev => ({
-        ...prev, nickname: authUser.nickname || prev.nickname,
-        date_of_birth: formatDateForInput(authUser.birth_date) || prev.date_of_birth,
-        location: typeof authUser.location === 'object' ? authUser.location?.city : (authUser.location || prev.location),
-        location_city: authUser.location?.city || authUser.location_city || prev.location_city,
-        location_state: authUser.location?.country || authUser.location_state || prev.location_state,
-        gender: authUser.gender || prev.gender,
-        looking_for: Array.isArray(authUser.looking_for) ? authUser.looking_for[0] : (authUser.looking_for || prev.looking_for),
-        profile_images: (authUser.profile_images?.length > 0) ? authUser.profile_images : prev.profile_images,
-        main_profile_image_url: authUser.profile_images?.[0] || prev.main_profile_image_url,
-        sketch_method: authUser.sketch_method || prev.sketch_method, drawing_url: authUser.drawing_url || prev.drawing_url,
-        bio: authUser.bio || prev.bio, occupation: authUser.occupation || prev.occupation,
-        education: authUser.education || prev.education, phone: authUser.phone || prev.phone,
-        interests: authUser.interests?.length > 0 ? authUser.interests : prev.interests,
-      }));
+      setFormData(prev => {
+        // On step 8, don't overwrite profile_images - uploads manage them via server-authoritative data
+        const skipPhotos = currentStep === 8 && prev.profile_images.length > 0;
+        return {
+          ...prev, nickname: authUser.nickname || prev.nickname,
+          date_of_birth: formatDateForInput(authUser.birth_date) || prev.date_of_birth,
+          location: typeof authUser.location === 'object' ? authUser.location?.city : (authUser.location || prev.location),
+          location_city: authUser.location?.city || authUser.location_city || prev.location_city,
+          location_state: authUser.location?.country || authUser.location_state || prev.location_state,
+          gender: authUser.gender || prev.gender,
+          looking_for: Array.isArray(authUser.looking_for) ? authUser.looking_for[0] : (authUser.looking_for || prev.looking_for),
+          profile_images: skipPhotos ? prev.profile_images : ((authUser.profile_images?.length > 0) ? authUser.profile_images : prev.profile_images),
+          main_profile_image_url: skipPhotos ? prev.main_profile_image_url : (authUser.profile_images?.[0] || prev.main_profile_image_url),
+          sketch_method: authUser.sketch_method || prev.sketch_method, drawing_url: authUser.drawing_url || prev.drawing_url,
+          bio: authUser.bio || prev.bio, occupation: authUser.occupation || prev.occupation,
+          education: authUser.education || prev.education, phone: authUser.phone || prev.phone,
+          interests: authUser.interests?.length > 0 ? authUser.interests : prev.interests,
+        };
+      });
     }
-  }, [isAuthenticated, authUser]);
+  }, [isAuthenticated, authUser, currentStep]);
 
   useEffect(() => {
     if (currentStep === 8 && isAuthenticated && authUser?.profile_images?.length > 0) {
