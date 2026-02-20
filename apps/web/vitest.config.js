@@ -15,7 +15,7 @@ export default defineConfig({
     pool: isCI ? 'threads' : 'forks',
     poolOptions: {
       threads: {
-        maxThreads: 6,
+        maxThreads: 2,
         minThreads: 1,
       },
       forks: {
