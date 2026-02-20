@@ -132,7 +132,7 @@ jobs:
         run: npx vitest run --shard=${{ matrix.shard }}/3
         working-directory: apps/web
         env:
-          NODE_OPTIONS: '--max-old-space-size=4096'
+          NODE_OPTIONS: '--max-old-space-size=2048'
 
   build-api:
     name: Build API

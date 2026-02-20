@@ -15,7 +15,7 @@ export default defineConfig({
     pool: 'forks',
     poolOptions: {
       forks: {
-        maxForks: 2,
+        maxForks: isCI ? 1 : 2,
         minForks: 1,
       },
     },
