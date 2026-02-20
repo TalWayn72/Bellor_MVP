@@ -23,6 +23,10 @@ COPY apps/api ./apps/api
 COPY packages ./packages
 COPY package.json ./
 
+# Restore workspace symlinks broken by Docker COPY
+RUN rm -rf node_modules/@bellor/shared && \
+    ln -s ../../packages/shared node_modules/@bellor/shared
+
 # Generate Prisma Client
 WORKDIR /app/apps/api
 RUN npx prisma generate

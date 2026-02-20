@@ -22,6 +22,10 @@ COPY apps/web ./apps/web
 COPY packages ./packages
 COPY package.json ./
 
+# Restore workspace symlinks broken by Docker COPY
+RUN rm -rf node_modules/@bellor/shared && \
+    ln -s ../../packages/shared node_modules/@bellor/shared
+
 WORKDIR /app/apps/web
 
 # Build arguments for environment variables

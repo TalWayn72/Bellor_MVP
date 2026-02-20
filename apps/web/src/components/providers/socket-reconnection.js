@@ -33,7 +33,7 @@ export async function connectSocket(socketService, tokenStorage, callbacks) {
 
 /**
  * Start heartbeat interval to maintain presence
- * Returns the interval ID for cleanup
+ * Returns the interval ID for cleanup via stopHeartbeat()
  */
 export function startHeartbeat(socketService, intervalMs = 30000) {
   return setInterval(() => {
@@ -41,6 +41,15 @@ export function startHeartbeat(socketService, intervalMs = 30000) {
       socketService.sendHeartbeat();
     }
   }, intervalMs);
+}
+
+/**
+ * Stop heartbeat interval
+ */
+export function stopHeartbeat(intervalId) {
+  if (intervalId) {
+    clearInterval(intervalId);
+  }
 }
 
 /**
