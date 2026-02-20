@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -13,20 +13,26 @@ export default function VideoRecorder({ onShare }) {
   const [isPublic] = useState(true);
   const videoRef = useRef(null);
   const mediaRecorderRef = useRef(null);
+  const streamRef = useRef(null);
   const chunksRef = useRef([]);
   const recordedBlobRef = useRef(null);
   const mimeTypeRef = useRef('video/webm');
   const { recordingTime, startTimer, stopTimer, getDuration, formatTime } = useRecordingTimer();
 
   useEffect(() => {
-    return () => { if (videoUrl) URL.revokeObjectURL(videoUrl); };
+    return () => {
+      if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
+      if (videoUrl) URL.revokeObjectURL(videoUrl);
+    };
   }, [videoUrl]);
 
   const startRecording = async () => {
     try {
+      if (typeof MediaRecorder === 'undefined') { toast({ title: 'Not supported', description: 'Video recording is not supported in this browser', variant: 'destructive' }); return; }
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      streamRef.current = stream;
       videoRef.current.srcObject = stream;
-      videoRef.current.play();
+      videoRef.current.play().catch(() => {});
 
       const mimeType = getRecorderMimeType('video');
       mimeTypeRef.current = mimeType;
@@ -37,14 +43,16 @@ export default function VideoRecorder({ onShare }) {
       chunksRef.current = [];
 
       mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data);
+        if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
       };
 
       mediaRecorder.onstop = () => {
         stopTimer();
-        const blob = new Blob(chunksRef.current, { type: mimeTypeRef.current });
         stream.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
 
+        if (chunksRef.current.length === 0) { toast({ title: 'Error', description: 'No video data was captured. Please try again.', variant: 'destructive' }); return; }
+        const blob = new Blob(chunksRef.current, { type: mimeTypeRef.current });
         if (blob.size < 1000) {
           toast({ title: 'Recording too short', description: 'Please record a longer video', variant: 'destructive' });
           return;
@@ -56,27 +64,30 @@ export default function VideoRecorder({ onShare }) {
         setHasRecording(true);
       };
 
+      mediaRecorder.onerror = () => {
+        stream.getTracks().forEach(t => t.stop()); streamRef.current = null; stopTimer(); setIsRecording(false);
+        toast({ title: 'Recording Error', description: 'An error occurred during video recording.', variant: 'destructive' });
+      };
+
       mediaRecorder.start(1000);
       startTimer();
       setIsRecording(true);
-    } catch {
-      toast({ title: 'Error', description: 'Unable to access camera', variant: 'destructive' });
+    } catch (error) {
+      if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
+      const msg = error instanceof DOMException && error.name === 'NotAllowedError'
+        ? 'Camera permission denied. Please allow camera access.' : 'Unable to access camera';
+      toast({ title: 'Error', description: msg, variant: 'destructive' });
     }
   };
 
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-    }
-  };
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current?.state === 'recording') mediaRecorderRef.current.stop();
+    setIsRecording(false);
+  }, []);
 
   const handleRecordAgain = () => {
     if (videoUrl) URL.revokeObjectURL(videoUrl);
-    setVideoUrl(null);
-    setHasRecording(false);
-    recordedBlobRef.current = null;
-    chunksRef.current = [];
+    setVideoUrl(null); setHasRecording(false); recordedBlobRef.current = null; chunksRef.current = [];
   };
 
   const handleShare = () => {
@@ -95,7 +106,7 @@ export default function VideoRecorder({ onShare }) {
             </div>
           ) : (
             <div className="absolute inset-0 bg-gray-900">
-              <video src={videoUrl} className="w-full h-full object-cover" controls preload="metadata" />
+              <video src={videoUrl} className="w-full h-full object-cover" controls autoPlay playsInline preload="auto" />
             </div>
           )}
 

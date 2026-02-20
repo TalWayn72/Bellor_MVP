@@ -41,6 +41,7 @@ A  qa    →  151.145.94.190   (TTL: 600)
 
 | קטגוריה | מספר תקלות | חומרה | סטטוס |
 |----------|-------------|--------|--------|
+| **ISSUE-102: Video playback black screen after recording - missing playsInline + preload + autoPlay + no error handling (Feb 19)** | 7 root causes | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-101: Onboarding photos not displaying after upload - useEffect overwrite + stale closure + no error handling (RECURRING) (Feb 19)** | 4 root causes | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-100: Video recording 00:00 / not saving - Cross-browser codec + missing duration (RECURRING) (Feb 19)** | 6 root causes | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-099: Onboarding Step 8 - Additional photos not saving (RECURRING) (Feb 19)** | 4 root causes | 🔴 קריטי | ✅ תוקן |
@@ -4899,6 +4900,73 @@ Then rebuild the web container: `docker compose up -d --build web`
 - Added `Mixed Content` to E2E console warning FAIL_PATTERNS
 - Created `npm run check:build-urls` script to detect HTTP URLs in production builds
 - **Files:** `scripts/check-build-urls.js`, `apps/web/e2e/fixtures/console-warning.helpers.ts`
+
+---
+
+## ✅ ISSUE-102: Video Playback Black Screen After Recording - Missing playsInline + preload + autoPlay + No Error Handling (19 פברואר 2026)
+
+### חומרה: 🔴 קריטי | סטטוס: ✅ תוקן
+
+**מקור:** QA testing on qa.bellor.app/VideoTask - User records video, sees black screen on playback. Video appears to record but preview shows nothing.
+
+### בעיה
+After recording a video on the VideoTask page:
+- Recording completes (RECORD AGAIN and SHARE buttons appear)
+- Video preview area shows black screen instead of recorded content
+- No visual feedback or error messages
+- Comparison with AudioRecorder revealed 7 missing patterns
+
+### שורש הבעיה (7 Root Causes Found)
+
+**Root Cause 1 (Critical): Missing `playsInline` on playback video**
+- `VideoRecorder.jsx` line 98: `<video src={videoUrl} controls preload="metadata" />`
+- On iOS/mobile browsers, without `playsInline`, video won't play inline → shows black screen
+- FeedPost.jsx already had `playsInline` but VideoRecorder didn't
+
+**Root Cause 2 (Critical): `preload="metadata"` insufficient for blob URLs**
+- Only loads video metadata, not the first frame
+- On many browsers, shows black rectangle until user presses play
+- For locally recorded blob URLs, should use `preload="auto"` to load fully
+
+**Root Cause 3 (Significant): Missing `autoPlay` on playback**
+- After recording, user expects immediate playback preview
+- Without `autoPlay`, video shows as black rectangle with controls barely visible against dark bg
+- Controls blend with `bg-gray-900` background, making it appear broken
+
+**Root Cause 4 (Medium): No `onerror` handler on MediaRecorder**
+- If recording fails mid-stream, no error feedback given to user
+- Camera stays on, component stuck in recording state
+- AudioRecorder has this handler but VideoRecorder didn't
+
+**Root Cause 5 (Medium): No empty chunks validation**
+- `chunksRef.current` could be empty if no data was captured
+- Only checked `blob.size < 1000` but not `length === 0`
+- AudioRecorder validates both
+
+**Root Cause 6 (Medium): Stream not stored in ref for cleanup**
+- Stream captured in closure but not in `streamRef`
+- If user navigates away mid-recording, camera stays on (memory/resource leak)
+- AudioRecorder uses `streamRef` pattern for proper cleanup
+
+**Root Cause 7 (Low): `play()` promise not caught**
+- `videoRef.current.play()` returns Promise that can reject
+- Causes unhandled promise rejection in console
+
+### פתרון
+- Added `playsInline`, `autoPlay`, `preload="auto"` to playback video element
+- Added `streamRef` for proper stream lifecycle management
+- Added `MediaRecorder` availability check before recording
+- Added `onerror` handler on MediaRecorder with user feedback
+- Added empty chunks validation (`chunksRef.current.length === 0`)
+- Added `play().catch(() => {})` to handle promise rejection
+- Added stream cleanup in useEffect for unmount during recording
+- Changed `stopRecording` to check `mediaRecorder.state === 'recording'` (not `isRecording`)
+- Better error messages (permission denied vs general error)
+- Removed `console.error` from VideoTask.jsx (CLAUDE.md rule: no console.log)
+
+**Files Changed:**
+- `apps/web/src/components/tasks/VideoRecorder.jsx` - 7 fixes applied
+- `apps/web/src/pages/VideoTask.jsx` - Removed console.error
 
 ---
 

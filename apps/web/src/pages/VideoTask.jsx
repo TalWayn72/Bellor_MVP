@@ -64,8 +64,7 @@ export default function VideoTask() {
       });
 
       navigate(createPageUrl('SharedSpace'));
-    } catch (error) {
-      console.error('Error uploading video:', error);
+    } catch {
       toast({ title: 'Error', description: 'Error saving video', variant: 'destructive' });
     }
   };
