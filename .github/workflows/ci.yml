@@ -109,6 +109,7 @@ jobs:
     name: Test Web
     runs-on: ubuntu-latest
     needs: lint
+    timeout-minutes: 30
 
     steps:
       - name: Checkout code
@@ -125,6 +126,8 @@ jobs:
 
       - name: Run Web tests
         run: npm run test:web -- --coverage
+        env:
+          NODE_OPTIONS: '--max-old-space-size=4096'
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v4
@@ -289,6 +292,11 @@ jobs:
         run: npm ci
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
+      - name: Download web build
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: apps/web/dist
       - name: Setup database
         run: |
           cd apps/api
@@ -296,6 +304,10 @@ jobs:
           npx prisma db seed
         env:
           DATABASE_URL: postgresql://bellor:bellor_test@localhost:5432/bellor_test
+      - name: Serve frontend
+        run: npx serve -s apps/web/dist -l 5173 &
+      - name: Wait for frontend
+        run: npx wait-on http://localhost:5173 --timeout 30000
       - name: Run E2E tests
         run: npm run test:e2e -- --project=chromium
         env:
@@ -348,6 +360,11 @@ jobs:
         run: npm ci
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
+      - name: Download web build
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: apps/web/dist
       - name: Setup database
         run: |
           cd apps/api
@@ -355,6 +372,10 @@ jobs:
           npx prisma db seed
         env:
           DATABASE_URL: postgresql://bellor:bellor_test@localhost:5432/bellor_test
+      - name: Serve frontend
+        run: npx serve -s apps/web/dist -l 5173 &
+      - name: Wait for frontend
+        run: npx wait-on http://localhost:5173 --timeout 30000
       - name: Run visual regression tests
         run: npm run test:visual -- --project=chromium
         env:
