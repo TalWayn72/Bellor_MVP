@@ -15,14 +15,12 @@ export default defineConfig({
     pool: 'forks',
     poolOptions: {
       forks: {
-        maxForks: isCI ? 1 : 2,
+        maxForks: 2,
         minForks: 1,
-        singleFork: isCI,
       },
     },
     testTimeout: isCI ? 30000 : 60000,
-    clearMocks: true,
-    isolate: !isCI,
+    isolate: true,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],

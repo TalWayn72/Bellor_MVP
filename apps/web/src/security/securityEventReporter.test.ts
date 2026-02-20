@@ -22,8 +22,6 @@ import { tokenStorage } from '@/api/client/tokenStorage';
 
 describe('[P0][safety] securityEventReporter', () => {
   let fetchSpy: ReturnType<typeof vi.fn>;
-  const originalFetch = globalThis.fetch;
-
   beforeEach(() => {
     fetchSpy = vi.fn().mockResolvedValue({ ok: true });
     globalThis.fetch = fetchSpy;
@@ -31,8 +29,7 @@ describe('[P0][safety] securityEventReporter', () => {
   });
 
   afterEach(() => {
-    globalThis.fetch = originalFetch;
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('reportAuthRedirect', () => {
