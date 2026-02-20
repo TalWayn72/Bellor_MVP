@@ -3,14 +3,6 @@
  * Validates that client-side auth/access events are reported correctly to the backend.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-
-// Mock tokenStorage before importing the module under test
-vi.mock('@/api/client/tokenStorage', () => ({
-  tokenStorage: {
-    getAccessToken: vi.fn(),
-  },
-}));
-
 import {
   reportAuthRedirect,
   reportAdminDenied,
@@ -22,13 +14,16 @@ import { tokenStorage } from '@/api/client/tokenStorage';
 
 describe('[P0][safety] securityEventReporter', () => {
   let fetchSpy: ReturnType<typeof vi.fn>;
+  const originalFetch = globalThis.fetch;
+
   beforeEach(() => {
     fetchSpy = vi.fn().mockResolvedValue({ ok: true });
     globalThis.fetch = fetchSpy;
-    vi.mocked(tokenStorage.getAccessToken).mockReturnValue(null);
+    vi.spyOn(tokenStorage, 'getAccessToken').mockReturnValue(null);
   });
 
   afterEach(() => {
+    globalThis.fetch = originalFetch;
     vi.restoreAllMocks();
   });
 

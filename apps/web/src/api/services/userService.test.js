@@ -1,21 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-// Mock apiClient
-vi.mock('../client/apiClient', () => ({
-  apiClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
-
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { userService } from './userService';
 import { apiClient } from '../client/apiClient';
 
 describe('[P2][profile] userService', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.spyOn(apiClient, 'get').mockResolvedValue(undefined);
+    vi.spyOn(apiClient, 'post').mockResolvedValue(undefined);
+    vi.spyOn(apiClient, 'patch').mockResolvedValue(undefined);
+    vi.spyOn(apiClient, 'delete').mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   describe('updateProfile', () => {
@@ -28,19 +24,13 @@ describe('[P2][profile] userService', () => {
 
       await userService.updateProfile(userId, data);
 
-      // Verify the URL contains the userId, not [object Object]
       expect(apiClient.patch).toHaveBeenCalledWith('/users/user-123', data);
     });
 
     it('should NOT accept data object as first parameter (bug pattern)', () => {
-      // This test documents the bug that was fixed
-      // BAD: userService.updateProfile({ response_count: 5 })
-      // Would result in: PATCH /users/[object Object]
-
       const dataAsFirstParam = { response_count: 5 };
       const interpolatedUrl = `/users/${dataAsFirstParam}`;
 
-      // This is what happens when object is passed as userId
       expect(interpolatedUrl).toBe('/users/[object Object]');
     });
 
@@ -85,15 +75,12 @@ describe('[P2][profile] userService', () => {
     });
 
     it('should NOT use object as userId', () => {
-      // This documents the anti-pattern
       const wrongUsage = { profile_images: ['image.jpg'] };
       const resultUrl = `/users/${wrongUsage}`;
 
-      // This is what happens with wrong usage
       expect(resultUrl).toBe('/users/[object Object]');
     });
 
-    // New validation tests (ISSUE-013)
     it('should throw error when userId is undefined', async () => {
       const data = { profile_images: ['image1.jpg'] };
 
@@ -162,13 +149,11 @@ describe('[P2][profile] userService', () => {
 describe('[P2][profile] Task Pages - User Update Pattern', () => {
   describe('Correct usage pattern', () => {
     it('should always pass currentUser.id as first param to updateProfile', () => {
-      // Simulating correct pattern from AudioTask/VideoTask
       const currentUser = { id: 'cm123user', response_count: 5 };
 
-      // Correct pattern
       const correctParams = [
-        currentUser.id, // First param: userId string
-        {               // Second param: data object
+        currentUser.id,
+        {
           response_count: currentUser.response_count + 1,
           mission_completed_count: 1
         }
@@ -182,12 +167,10 @@ describe('[P2][profile] Task Pages - User Update Pattern', () => {
     it('should detect incorrect pattern (object as first param)', () => {
       const currentUser = { id: 'cm123user', response_count: 5 };
 
-      // WRONG pattern (bug that was fixed)
       const wrongFirstParam = {
         response_count: currentUser.response_count + 1
       };
 
-      // When object is used as URL param, it becomes [object Object]
       expect(String(wrongFirstParam)).toBe('[object Object]');
     });
   });
