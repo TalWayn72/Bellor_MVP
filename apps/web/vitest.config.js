@@ -2,6 +2,8 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
+const isCI = !!process.env.CI;
+
 export default defineConfig({
   plugins: [react()],
   test: {
@@ -13,11 +15,11 @@ export default defineConfig({
     pool: 'forks',
     poolOptions: {
       forks: {
-        maxForks: 2,
+        maxForks: isCI ? 1 : 2,
         minForks: 1,
       },
     },
-    testTimeout: 60000,
+    testTimeout: isCI ? 30000 : 60000,
     isolate: true,
     coverage: {
       provider: 'v8',
