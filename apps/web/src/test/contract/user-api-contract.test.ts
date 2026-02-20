@@ -6,15 +6,18 @@
  * @see PRD.md Section 10 - Phase 6 Testing
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { UserResponseSchema } from '@bellor/shared/schemas';
 import { userService } from '../../api/services/userService';
 import { apiClient } from '../../api/client/apiClient';
 
-vi.mock('../../api/client/apiClient');
-
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.spyOn(apiClient, 'get').mockResolvedValue({ data: {} } as any);
+  vi.spyOn(apiClient, 'patch').mockResolvedValue({ data: {} } as any);
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 const mockUserResponse = {
