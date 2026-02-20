@@ -12,19 +12,17 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.js'],
     include: ['src/**/*.test.{js,jsx,ts,tsx}'],
     exclude: ['src/test/tiers/**'],
-    pool: isCI ? 'threads' : 'forks',
+    pool: 'forks',
     poolOptions: {
-      threads: {
-        maxThreads: 2,
-        minThreads: 1,
-      },
       forks: {
-        maxForks: 2,
+        maxForks: isCI ? 1 : 2,
         minForks: 1,
+        singleFork: isCI,
       },
     },
     testTimeout: isCI ? 30000 : 60000,
-    isolate: true,
+    clearMocks: true,
+    isolate: !isCI,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],

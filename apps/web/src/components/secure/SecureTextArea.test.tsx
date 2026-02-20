@@ -16,7 +16,7 @@ describe('[P0][safety] SecureTextArea', () => {
   afterEach(() => {
     vi.runOnlyPendingTimers();
     vi.useRealTimers();
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   // ──────────────────────────────────────────────

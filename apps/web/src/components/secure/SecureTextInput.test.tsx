@@ -16,7 +16,7 @@ describe('[P0][safety] SecureTextInput', () => {
   afterEach(() => {
     vi.runOnlyPendingTimers();
     vi.useRealTimers();
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   // ──────────────────────────────────────────────

@@ -40,7 +40,7 @@ describe('[P1][chat] Socket Service - Memory Leak Prevention', () => {
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Listener accumulation prevention', () => {
