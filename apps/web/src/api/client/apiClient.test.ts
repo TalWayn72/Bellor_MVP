@@ -4,6 +4,9 @@
  * This file tests the ACTUAL production code by importing real transformation
  * functions from apiTransformers.js and exercising the real axios interceptors
  * registered by ApiClient via axios-mock-adapter.
+ *
+ * Uses vi.spyOn (not vi.mock + vi.resetModules) to avoid unbounded memory
+ * growth from repeated module cache resets in isolate:false CI mode.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -16,36 +19,15 @@ import {
   transformKeysToCamelCase,
   fieldAliases,
 } from './apiTransformers';
+import { apiClient } from './apiClient';
+import { tokenStorage } from './tokenStorage';
+import * as securityEventReporter from '@/security/securityEventReporter';
 
 // ---------------------------------------------------------------------------
-// Mocks that must be declared BEFORE importing apiClient (hoisted by vitest)
+// Module-level axios instance (reused across all tests – no vi.resetModules)
 // ---------------------------------------------------------------------------
-
-// Mock tokenStorage so we can control token presence per test
-const mockGetAccessToken = vi.fn<() => string | null>(() => null);
-const mockGetRefreshToken = vi.fn<() => string | null>(() => null);
-const mockSetAccessToken = vi.fn();
-const mockClearTokens = vi.fn();
-
-vi.mock('./tokenStorage', () => ({
-  tokenStorage: {
-    getAccessToken: (...args: unknown[]) => mockGetAccessToken(...(args as [])),
-    getRefreshToken: (...args: unknown[]) => mockGetRefreshToken(...(args as [])),
-    setAccessToken: (...args: unknown[]) => mockSetAccessToken(...(args as [])),
-    clearTokens: (...args: unknown[]) => mockClearTokens(...(args as [])),
-  },
-}));
-
-// Mock security event reporter (fire-and-forget, we just track calls)
-const mockReportAuthRedirect = vi.fn();
-vi.mock('@/security/securityEventReporter', () => ({
-  reportAuthRedirect: (...args: unknown[]) => mockReportAuthRedirect(...args),
-}));
-
-// ---- Dynamic import so the mocks above are in place first ----
-// We must import apiClient AFTER mocks are set up.
-// Using a top-level dynamic import pattern that vitest supports.
-let apiClient: typeof import('./apiClient')['apiClient'];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const axiosInstance = (apiClient as any).client;
 
 // ---------------------------------------------------------------------------
 // Section 1 - Transformation functions (imported from REAL source)
@@ -256,28 +238,27 @@ describe('[P0][infra] Transformation Functions (from apiTransformers)', () => {
 describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
   let mock: MockAdapter;
 
-  beforeEach(async () => {
-    // Reset all mocks between tests
-    vi.clearAllMocks();
-    mockGetAccessToken.mockReturnValue(null);
-    mockGetRefreshToken.mockReturnValue(null);
+  beforeEach(() => {
+    // Spy on tokenStorage methods so interceptors see controlled values.
+    // tokenStorage is an object – spyOn replaces the method on the shared
+    // instance, so the interceptors (which call tokenStorage.getAccessToken()
+    // via object reference) pick up the spy automatically.
+    vi.spyOn(tokenStorage, 'getAccessToken').mockReturnValue(null);
+    vi.spyOn(tokenStorage, 'getRefreshToken').mockReturnValue(null);
+    vi.spyOn(tokenStorage, 'setAccessToken').mockImplementation(() => {});
+    vi.spyOn(tokenStorage, 'clearTokens').mockImplementation(() => {});
 
-    // Reset module registry so ApiClient re-instantiates with fresh interceptors
-    vi.resetModules();
+    // Suppress fire-and-forget security reports (they hit the backend).
+    vi.spyOn(securityEventReporter, 'reportAuthRedirect').mockImplementation(() => {});
 
-    // Re-import with fresh module state
-    const mod = await import('./apiClient');
-    apiClient = mod.apiClient;
-
-    // Attach MockAdapter to the underlying axios instance.
-    // ApiClient wraps an AxiosInstance created via axios.create().
-    // We can access it through the private field using bracket notation.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const axiosInstance = (apiClient as any).client;
+    // Attach a fresh MockAdapter to the shared axios instance.
+    // This replaces the HTTP adapter for every test without re-creating
+    // the ApiClient or re-registering interceptors.
     mock = new MockAdapter(axiosInstance);
 
     // Suppress location.href assignments in jsdom
     Object.defineProperty(window, 'location', {
+      configurable: true,
       writable: true,
       value: { href: '', assign: vi.fn(), replace: vi.fn() },
     });
@@ -285,6 +266,7 @@ describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
 
   afterEach(() => {
     mock.restore();
+    vi.restoreAllMocks();
   });
 
   // -----------------------------------------------------------------------
@@ -292,7 +274,7 @@ describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
   // -----------------------------------------------------------------------
   describe('Request interceptor', () => {
     it('adds Authorization header when access token exists', async () => {
-      mockGetAccessToken.mockReturnValue('my-jwt-token');
+      vi.mocked(tokenStorage.getAccessToken).mockReturnValue('my-jwt-token');
       mock.onGet('/users/me').reply((config) => {
         expect(config.headers?.Authorization).toBe('Bearer my-jwt-token');
         return [200, { id: '1' }];
@@ -302,7 +284,7 @@ describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
     });
 
     it('does NOT add Authorization header when no token', async () => {
-      mockGetAccessToken.mockReturnValue(null);
+      // getAccessToken already returns null from beforeEach spy
       mock.onGet('/public/health').reply((config) => {
         expect(config.headers?.Authorization).toBeUndefined();
         return [200, { status: 'ok' }];
@@ -405,8 +387,8 @@ describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
   // -----------------------------------------------------------------------
   describe('401 Token refresh flow', () => {
     it('attempts token refresh and retries original request on 401', async () => {
-      mockGetAccessToken.mockReturnValue('expired-token');
-      mockGetRefreshToken.mockReturnValue('valid-refresh-token');
+      vi.mocked(tokenStorage.getAccessToken).mockReturnValue('expired-token');
+      vi.mocked(tokenStorage.getRefreshToken).mockReturnValue('valid-refresh-token');
 
       let callCount = 0;
       mock.onGet('/users/me').reply(() => {
@@ -419,7 +401,6 @@ describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
       });
 
       // Mock the refresh endpoint (called via plain axios, not through the client)
-      // We need to intercept at the axios level for the refresh call
       const axiosPostSpy = vi.spyOn(axios, 'post').mockResolvedValueOnce({
         data: { data: { accessToken: 'new-access-token' } },
       });
@@ -433,7 +414,7 @@ describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
       );
 
       // Verify new token was stored
-      expect(mockSetAccessToken).toHaveBeenCalledWith('new-access-token');
+      expect(tokenStorage.setAccessToken).toHaveBeenCalledWith('new-access-token');
 
       // Verify the retried request succeeded
       expect(response.status).toBe(200);
@@ -444,8 +425,8 @@ describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
     });
 
     it('handles refresh response with access_token (snake_case) field', async () => {
-      mockGetAccessToken.mockReturnValue('expired-token');
-      mockGetRefreshToken.mockReturnValue('valid-refresh-token');
+      vi.mocked(tokenStorage.getAccessToken).mockReturnValue('expired-token');
+      vi.mocked(tokenStorage.getRefreshToken).mockReturnValue('valid-refresh-token');
 
       mock.onGet('/users/me').replyOnce(401).onGet('/users/me').replyOnce(200, { id: '1' });
 
@@ -455,31 +436,31 @@ describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
 
       const response = await apiClient.get('/users/me');
 
-      expect(mockSetAccessToken).toHaveBeenCalledWith('new-token-snake');
+      expect(tokenStorage.setAccessToken).toHaveBeenCalledWith('new-token-snake');
       expect(response.status).toBe(200);
 
       axiosPostSpy.mockRestore();
     });
 
     it('clears tokens and redirects to /Welcome when no refresh token', async () => {
-      mockGetAccessToken.mockReturnValue('expired-token');
-      mockGetRefreshToken.mockReturnValue(null);
+      vi.mocked(tokenStorage.getAccessToken).mockReturnValue('expired-token');
+      // getRefreshToken already returns null from beforeEach spy
 
       mock.onGet('/protected').reply(401, { message: 'Unauthorized' });
 
       await expect(apiClient.get('/protected')).rejects.toThrow();
 
-      expect(mockClearTokens).toHaveBeenCalled();
+      expect(tokenStorage.clearTokens).toHaveBeenCalled();
       expect(window.location.href).toBe('/Welcome');
-      expect(mockReportAuthRedirect).toHaveBeenCalledWith(
+      expect(securityEventReporter.reportAuthRedirect).toHaveBeenCalledWith(
         expect.any(String),
         '/Welcome'
       );
     });
 
     it('clears tokens and redirects when refresh call itself fails', async () => {
-      mockGetAccessToken.mockReturnValue('expired-token');
-      mockGetRefreshToken.mockReturnValue('invalid-refresh');
+      vi.mocked(tokenStorage.getAccessToken).mockReturnValue('expired-token');
+      vi.mocked(tokenStorage.getRefreshToken).mockReturnValue('invalid-refresh');
 
       mock.onGet('/protected').reply(401, { message: 'Unauthorized' });
 
@@ -489,16 +470,16 @@ describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
 
       await expect(apiClient.get('/protected')).rejects.toThrow();
 
-      expect(mockClearTokens).toHaveBeenCalled();
+      expect(tokenStorage.clearTokens).toHaveBeenCalled();
       expect(window.location.href).toBe('/Welcome');
-      expect(mockReportAuthRedirect).toHaveBeenCalled();
+      expect(securityEventReporter.reportAuthRedirect).toHaveBeenCalled();
 
       axiosPostSpy.mockRestore();
     });
 
     it('clears tokens when refresh response has no access token', async () => {
-      mockGetAccessToken.mockReturnValue('expired-token');
-      mockGetRefreshToken.mockReturnValue('valid-refresh');
+      vi.mocked(tokenStorage.getAccessToken).mockReturnValue('expired-token');
+      vi.mocked(tokenStorage.getRefreshToken).mockReturnValue('valid-refresh');
 
       mock.onGet('/protected').reply(401);
 
@@ -508,20 +489,18 @@ describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
 
       await expect(apiClient.get('/protected')).rejects.toThrow();
 
-      expect(mockClearTokens).toHaveBeenCalled();
+      expect(tokenStorage.clearTokens).toHaveBeenCalled();
       expect(window.location.href).toBe('/Welcome');
 
       axiosPostSpy.mockRestore();
     });
 
     it('does NOT retry on second consecutive 401 (_retry flag)', async () => {
-      mockGetAccessToken.mockReturnValue('expired-token');
-      mockGetRefreshToken.mockReturnValue('valid-refresh');
+      vi.mocked(tokenStorage.getAccessToken).mockReturnValue('expired-token');
+      vi.mocked(tokenStorage.getRefreshToken).mockReturnValue('valid-refresh');
 
       // First call: 401 -> refresh succeeds -> retry also returns 401
-      let callCount = 0;
       mock.onGet('/protected').reply(() => {
-        callCount++;
         return [401, { message: 'Unauthorized' }];
       });
 
@@ -543,7 +522,7 @@ describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
   // -----------------------------------------------------------------------
   describe('Non-401 error handling', () => {
     it('does NOT attempt refresh on 403 errors', async () => {
-      mockGetAccessToken.mockReturnValue('valid-token');
+      vi.mocked(tokenStorage.getAccessToken).mockReturnValue('valid-token');
 
       mock.onGet('/admin').reply(403, { message: 'Forbidden' });
 
@@ -553,7 +532,7 @@ describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
 
       // No refresh attempt for 403
       expect(axiosPostSpy).not.toHaveBeenCalled();
-      expect(mockClearTokens).not.toHaveBeenCalled();
+      expect(tokenStorage.clearTokens).not.toHaveBeenCalled();
 
       axiosPostSpy.mockRestore();
     });
@@ -614,7 +593,7 @@ describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
     });
 
     it('does NOT attempt token refresh on network error', async () => {
-      mockGetAccessToken.mockReturnValue('some-token');
+      vi.mocked(tokenStorage.getAccessToken).mockReturnValue('some-token');
       mock.onGet('/data').networkError();
 
       const axiosPostSpy = vi.spyOn(axios, 'post');
@@ -691,7 +670,7 @@ describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
   // -----------------------------------------------------------------------
   describe('End-to-end interceptor integration', () => {
     it('request transforms body keys and response transforms back', async () => {
-      mockGetAccessToken.mockReturnValue('token-123');
+      vi.mocked(tokenStorage.getAccessToken).mockReturnValue('token-123');
 
       mock.onPost('/stories').reply((config) => {
         const body = JSON.parse(config.data);
