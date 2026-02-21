@@ -12,9 +12,9 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.js'],
     include: ['src/**/*.test.{js,jsx,ts,tsx}'],
     exclude: ['src/test/tiers/**'],
-    pool: 'threads',
+    pool: 'vmThreads',
     poolOptions: {
-      threads: {
+      vmThreads: {
         maxThreads: isCI ? 2 : 4,
         minThreads: 1,
       },
