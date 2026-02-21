@@ -8,8 +8,11 @@ import { cleanup } from '@testing-library/react';
 import { toHaveNoViolations } from 'jest-axe';
 
 // Clean up DOM after each test to prevent state contamination
+// Also force GC (when --expose-gc is set) to free React fiber trees
+// and prevent memory accumulation in worker threads across heavy test files.
 afterEach(() => {
   cleanup();
+  if (typeof global.gc === 'function') global.gc();
 });
 
 // Extend expect with axe matchers
