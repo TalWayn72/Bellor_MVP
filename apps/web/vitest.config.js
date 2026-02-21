@@ -12,12 +12,11 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.js'],
     include: ['src/**/*.test.{js,jsx,ts,tsx}'],
     exclude: ['src/test/tiers/**'],
-    pool: 'forks',
+    pool: 'threads',
     poolOptions: {
-      forks: {
-        singleFork: false,
-        maxForks: isCI ? 2 : 4,
-        minForks: 1,
+      threads: {
+        maxThreads: isCI ? 2 : 4,
+        minThreads: 1,
       },
     },
     testTimeout: isCI ? 30000 : 60000,
