@@ -112,13 +112,20 @@ describe('[P0][auth] AuthContext', () => {
 
   describe('Initial state', () => {
     it('should start with isLoadingAuth=true before auth check resolves', () => {
-      // Keep auth check pending forever by returning a never-resolving promise
+      // Use a deferred promise so the component can be properly unmounted after assertion
+      let resolveCurrentUser;
+      authService.getCurrentUser.mockImplementation(
+        () => new Promise((resolve) => { resolveCurrentUser = resolve; })
+      );
       tokenStorage.isAuthenticated.mockReturnValue(true);
-      authService.getCurrentUser.mockReturnValue(new Promise(() => {}));
 
-      const { result } = renderAuthHook();
+      const { result, unmount } = renderAuthHook();
 
       expect(result.current.isLoadingAuth).toBe(true);
+
+      // Resolve and unmount to allow proper cleanup (no leaked pending promises)
+      resolveCurrentUser(null);
+      unmount();
     });
 
     it('should provide default context values', async () => {
