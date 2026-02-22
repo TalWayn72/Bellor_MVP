@@ -130,14 +130,15 @@ jobs:
 
       - name: Run Web tests (shard ${{ matrix.shard }}/44)
         # a11y tests excluded via vitest.config.js (not CLI) for reliability.
+        # pool:'forks', maxForks=1: sequential execution, no concurrent memory spikes.
         # 87 files / 44 shards = max 2 files per shard.
-        # pool:'forks', VITEST_MAX_FORKS=2: 2 concurrent forks → each handles 1 file.
-        # No inter-file memory accumulation. Peak: 2 × ~2.5GB + main = 5.2GB (< 7GB).
+        # EditProfile.test.jsx alone needs ~5469MB; 6000MB limit gives 531MB headroom.
+        # Single fork peak: 6000MB + ~500MB main = 6.5GB (within 7GB ubuntu-latest RAM).
         run: npx vitest run --shard=${{ matrix.shard }}/44
         working-directory: apps/web
         env:
-          NODE_OPTIONS: '--max-old-space-size=5500 --expose-gc'
-          VITEST_MAX_FORKS: '2'
+          NODE_OPTIONS: '--max-old-space-size=6000 --expose-gc'
+          VITEST_MAX_FORKS: '1'
 
   test-web-a11y:
     name: Test Web (a11y)
@@ -159,14 +160,14 @@ jobs:
         run: npm ci
 
       - name: Run A11y tests
-        # axe-core needs ~3GB per test file. Run sequentially (VITEST_MAX_FORKS=1).
+        # axe-core needs ~3GB per test file. Run sequentially (VITEST_MAX_THREADS=1).
         # VITEST_A11Y_ONLY=true: prevents vitest.config.js from excluding a11y files.
         # Use path filter (not glob) — vitest treats positional args as regex, not glob.
         run: npx vitest run src/test/a11y
         working-directory: apps/web
         env:
-          NODE_OPTIONS: '--max-old-space-size=6144 --expose-gc'
-          VITEST_MAX_FORKS: '1'
+          NODE_OPTIONS: '--max-old-space-size=6144'
+          VITEST_MAX_THREADS: '1'
           VITEST_A11Y_ONLY: 'true'
 
   build-api:

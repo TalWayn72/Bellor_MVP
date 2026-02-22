@@ -19,14 +19,15 @@ export default defineConfig({
       // Excluded from shard runs but NOT from the a11y job (controlled via VITEST_A11Y_ONLY).
       ...(isA11yJob ? [] : ['src/test/a11y/**']),
     ],
-    // In CI: pool:'forks' gives each test file its own child process.
-    // Child processes inherit --expose-gc (unlike Worker threads), so global.gc()
-    // in setup.js actually works. Also prevents cross-file memory accumulation.
+    // pool:'forks': each shard runs in a child process with NODE_OPTIONS heap limit.
+    // 44 shards (max 2 files/shard) + maxForks=1 (sequential) prevents accumulation.
+    // EditProfile.test.jsx alone needs ~5469MB (lucide-react transitive dep).
+    // 6000MB heap: 5469MB EditProfile < 6000MB limit; 6000MB fork + 500MB main = 6.5GB (< 7GB).
     pool: isCI ? 'forks' : 'threads',
     poolOptions: {
       forks: {
-        // Allow VITEST_MAX_FORKS env var to override (used by a11y job to run sequentially)
-        maxForks: process.env.VITEST_MAX_FORKS ? parseInt(process.env.VITEST_MAX_FORKS) : 2,
+        // maxForks=1: sequential execution prevents concurrent memory spikes.
+        maxForks: process.env.VITEST_MAX_FORKS ? parseInt(process.env.VITEST_MAX_FORKS) : 1,
         minForks: 1,
       },
       threads: {

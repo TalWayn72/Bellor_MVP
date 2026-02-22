@@ -33,6 +33,36 @@ vi.mock('../components/providers/ThemeProvider', () => ({
   useTheme: vi.fn(() => ({})),
 }));
 
+// Prevent loading lucide-react (41MB → gigabytes in memory) via @/components/states
+vi.mock('@/components/states', () => ({
+  ProfileSkeleton: () => null,
+}));
+
+// Prevent loading Radix UI / other heavy deps not needed by these tests
+vi.mock('@/components/ui/button', () => ({
+  Button: ({ children, ...props }) => <button {...props}>{children}</button>,
+}));
+
+vi.mock('@/components/ui/use-toast', () => ({
+  useToast: () => ({ toast: vi.fn() }),
+}));
+
+vi.mock('@/utils', () => ({
+  createPageUrl: (path) => path,
+}));
+
+// Prevent loading react-router-dom and @tanstack/react-query through Vite's
+// Babel transform pipeline — they account for ~1GB of memory in a fork.
+vi.mock('react-router-dom', () => ({
+  BrowserRouter: ({ children }) => children,
+  useNavigate: vi.fn(() => vi.fn()),
+}));
+
+vi.mock('@tanstack/react-query', () => ({
+  QueryClient: class QueryClient { constructor() {} },
+  QueryClientProvider: ({ children }) => children,
+}));
+
 import EditProfile from './EditProfile';
 
 const createWrapper = () => {

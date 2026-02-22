@@ -1,7 +1,7 @@
 import json, urllib.request, sys, datetime
 
-CI_RUN = '22270814418'
-TESTS_RUN = '22270814416'
+CI_RUN = '22270925075'
+TESTS_RUN = '22270925078'
 CI_TOTAL = 55   # 30 shards + 1 a11y + 10 other jobs
 TESTS_TOTAL = 6
 
