@@ -7,11 +7,18 @@ import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
 import { toHaveNoViolations } from 'jest-axe';
 
-// Clean up DOM after each test to prevent state contamination
-// Also force GC (when --expose-gc is set) to free React fiber trees
-// and prevent memory accumulation in worker threads across heavy test files.
+// Clean up DOM after each test to prevent state contamination.
+// Force GC after each TEST (cleans up React fiber trees between tests)
+// and after each FILE (cleans up module-level objects between files in the same fork).
+// global.gc() works in pool:'forks' child processes (inherits --expose-gc from NODE_OPTIONS).
 afterEach(() => {
   cleanup();
+  if (typeof global.gc === 'function') global.gc();
+});
+
+// Force a full GC after all tests in a file complete, BEFORE the next file loads
+// in the same fork process. This prevents cross-file memory accumulation.
+afterAll(() => {
   if (typeof global.gc === 'function') global.gc();
 });
 

@@ -158,11 +158,12 @@ jobs:
 
       - name: Run A11y tests
         # axe-core needs ~3GB per test file. Run sequentially (VITEST_MAX_FORKS=1)
-        # so only 1 file runs at a time within the 7GB GitHub Actions memory budget.
+        # so only 1 file runs at a time. afterAll gc() in setup.js clears between files.
+        # 6GB per process (only 1 runs at a time), well within 7GB GitHub Actions limit.
         run: npx vitest run 'src/test/a11y/**'
         working-directory: apps/web
         env:
-          NODE_OPTIONS: '--max-old-space-size=5120 --expose-gc'
+          NODE_OPTIONS: '--max-old-space-size=6144 --expose-gc'
           VITEST_MAX_FORKS: '1'
 
   build-api:
