@@ -10,14 +10,14 @@ import React from 'react';
 
 // Mock lucide-react to prevent OOM (41MB package expands to 2-3GB via Vite pipeline).
 // X renders an <svg> so the close-button test can still find the button element.
+// Explicit object required by vitest 2.x named-import validation (no Proxy).
+// SvgX is called at render-time so React is available via the import above.
 vi.mock('lucide-react', () => {
   const c = () => null;
-  // SvgX is called at render-time (not factory-time) so React is available via the import above.
   const SvgX = () => React.createElement('svg', null);
-  return new Proxy(
-    { __esModule: true, default: c, X: SvgX },
-    { get: (t, k) => (k in t ? t[k] : c) },
-  );
+  const obj = { __esModule: true, default: c, X: SvgX };
+  'Activity,AlertCircle,AlertTriangle,ArrowLeft,ArrowRight,Ban,Bell,Book,Calendar,Camera,Check,CheckCircle,ChevronDown,ChevronLeft,ChevronRight,ChevronUp,Circle,Clock,Copy,Crown,Download,ExternalLink,Eye,EyeOff,File,FileText,Flag,Flame,Gift,GripVertical,Heart,HelpCircle,Image,Info,Lightbulb,Loader2,Lock,LogOut,Mail,MapPin,Menu,MessageCircle,MessageSquare,Mic,MicOff,Minus,MoreHorizontal,MoreVertical,Palette,PanelLeft,Pencil,Phone,Plus,RefreshCw,Save,Search,Send,Settings,Share2,Shield,SlidersHorizontal,Sparkles,Square,Star,TrendingUp,Trophy,Type,Upload,User,UserCheck,UserPlus,Users,Video,VideoOff,Volume2,XCircle,Zap'.split(',').forEach(k => { obj[k] = c; });
+  return obj;
 });
 
 // Mock useToast to control toast data

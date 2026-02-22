@@ -4,11 +4,15 @@
  * the underlying HTML element, preventing React warnings.
  */
 
-// Belt-and-suspenders: explicit mock in addition to setup.js global mock.
-// toast.jsx imports lucide-react directly; without this the fork OOMs.
+// Belt-and-suspenders: explicit per-file mock (in addition to setup.js global).
+// toast.jsx imports { X, CheckCircle, AlertTriangle, XCircle, Info } directly.
+// Vitest 2.x validates named imports against the mock's own-key list, so the
+// mock must be an explicit object, not a Proxy (Proxy.ownKeys omits icon names).
 vi.mock('lucide-react', () => {
   const c = () => null;
-  return new Proxy({ __esModule: true, default: c }, { get: (t, k) => (k in t ? t[k] : c) });
+  const obj = { __esModule: true, default: c };
+  'Activity,AlertCircle,AlertTriangle,ArrowLeft,ArrowRight,Ban,Bell,Book,Calendar,Camera,Check,CheckCircle,ChevronDown,ChevronLeft,ChevronRight,ChevronUp,Circle,Clock,Copy,Crown,Download,ExternalLink,Eye,EyeOff,File,FileText,Flag,Flame,Gift,GripVertical,Heart,HelpCircle,Image,Info,Lightbulb,Loader2,Lock,LogOut,Mail,MapPin,Menu,MessageCircle,MessageSquare,Mic,MicOff,Minus,MoreHorizontal,MoreVertical,Palette,PanelLeft,Pencil,Phone,Plus,RefreshCw,Save,Search,Send,Settings,Share2,Shield,SlidersHorizontal,Sparkles,Square,Star,TrendingUp,Trophy,Type,Upload,User,UserCheck,UserPlus,Users,Video,VideoOff,Volume2,X,XCircle,Zap'.split(',').forEach(k => { obj[k] = c; });
+  return obj;
 });
 
 import { describe, it, expect, vi } from 'vitest';
