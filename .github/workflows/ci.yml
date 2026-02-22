@@ -327,11 +327,14 @@ jobs:
         with:
           name: web-build
           path: apps/web/dist
+      - name: Generate Prisma client
+        run: npx prisma generate
+        working-directory: apps/api
       - name: Setup database
         run: |
-          cd apps/api
           npx prisma migrate deploy
           npx prisma db seed
+        working-directory: apps/api
         env:
           DATABASE_URL: postgresql://bellor:bellor_test@localhost:5432/bellor_test
       - name: Serve frontend
@@ -395,11 +398,14 @@ jobs:
         with:
           name: web-build
           path: apps/web/dist
+      - name: Generate Prisma client
+        run: npx prisma generate
+        working-directory: apps/api
       - name: Setup database
         run: |
-          cd apps/api
           npx prisma migrate deploy
           npx prisma db seed
+        working-directory: apps/api
         env:
           DATABASE_URL: postgresql://bellor:bellor_test@localhost:5432/bellor_test
       - name: Serve frontend

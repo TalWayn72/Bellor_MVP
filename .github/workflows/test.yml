@@ -193,8 +193,10 @@ jobs:
       - name: Generate Prisma client
         run: npm run prisma:generate
 
-      - name: Run database migrations
-        run: npx prisma migrate deploy
+      - name: Setup database
+        run: |
+          npx prisma migrate deploy
+          npx prisma db seed
         working-directory: apps/api
         env:
           DATABASE_URL: postgresql://bellor:bellor_test@localhost:5432/bellor_test
