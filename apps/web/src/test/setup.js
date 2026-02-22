@@ -8,14 +8,11 @@ import { cleanup } from '@testing-library/react';
 import { toHaveNoViolations } from 'jest-axe';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Global OOM prevention mocks (applied before EVERY test file via setupFiles)
+// Global OOM prevention mock (applied before EVERY test file via setupFiles)
 //
 // lucide-react: 41MB on disk; Vite's Babel pipeline expands it to ~2-3GB in
 // memory per fork because it processes every icon SVG. Mocking it globally
 // prevents the library from being loaded at all.
-//
-// @/components/states: imports LoadingState → lucide-react (transitive OOM).
-// Mocked globally so test files don't need to know about this transitive dep.
 //
 // Vitest 2.x validates every named import against the mock object's own keys.
 // A Proxy with only a get() trap fails because ownKeys() returns only the
@@ -25,24 +22,12 @@ import { toHaveNoViolations } from 'jest-axe';
 // ─────────────────────────────────────────────────────────────────────────────
 // Inline factories: vi.mock() is hoisted above const declarations, so
 // factory logic must live inside the factory function (no outer variables).
-// Icon list: grep -r "from 'lucide-react'" src --include="*.jsx|tsx" | extract
+// Icon list: grep -r "from ['\""]lucide-react['\""]" src | extract all names
 vi.mock('lucide-react', () => {
   const c = () => null;
   const obj = { __esModule: true, default: c };
-  'Activity,AlertCircle,AlertTriangle,ArrowLeft,ArrowRight,Ban,Bell,Book,Calendar,Camera,Check,CheckCircle,ChevronDown,ChevronLeft,ChevronRight,ChevronUp,Circle,Clock,Copy,Crown,Download,ExternalLink,Eye,EyeOff,File,FileText,Flag,Flame,Gift,GripVertical,Heart,HelpCircle,Image,Info,Lightbulb,Loader2,Lock,LogOut,Mail,MapPin,Menu,MessageCircle,MessageSquare,Mic,MicOff,Minus,MoreHorizontal,MoreVertical,Palette,PanelLeft,Pencil,Phone,Plus,RefreshCw,Save,Search,Send,Settings,Share2,Shield,SlidersHorizontal,Sparkles,Square,Star,TrendingUp,Trophy,Type,Upload,User,UserCheck,UserPlus,Users,Video,VideoOff,Volume2,X,XCircle,Zap'.split(',').forEach(k => { obj[k] = c; });
+  'Activity,AlertCircle,AlertTriangle,ArrowLeft,ArrowRight,Ban,Bell,Book,Briefcase,Calendar,Camera,Check,CheckCircle,ChevronDown,ChevronLeft,ChevronRight,ChevronUp,Circle,Clock,Compass,Copy,Crown,Download,ExternalLink,Eye,EyeOff,File,FileText,Flag,Flame,Gift,GripVertical,Heart,HelpCircle,Image,Info,Lightbulb,Loader2,Lock,LogOut,Mail,MapPin,Menu,MessageCircle,MessageSquare,Mic,MicOff,Minus,MoreHorizontal,MoreVertical,Palette,PanelLeft,Pencil,Phone,Plus,RefreshCw,Save,Search,Send,Settings,Share2,Shield,SlidersHorizontal,Sparkles,Square,Star,Trash2,TrendingUp,Trophy,Type,Upload,User,UserCheck,UserPlus,Users,Video,VideoOff,Volume2,X,XCircle,Zap'.split(',').forEach(k => { obj[k] = c; });
   return obj;
-});
-vi.mock('@/components/states', () => {
-  const c = () => null;
-  return {
-    __esModule: true, default: c,
-    LoadingState: c, PageLoading: c, CardsSkeleton: c, ListSkeleton: c,
-    ProfileSkeleton: c, ChatSkeleton: c, FeedSkeleton: c,
-    EmptyState: c, NoMessages: c, NoMatches: c, NoNotifications: c,
-    NoSearchResults: c, NoFeedPosts: c, NoFollowers: c, NoAchievements: c,
-    ErrorState: c, NetworkError: c, ServerError: c, NotFoundError: c,
-    UnauthorizedError: c, ForbiddenError: c, GenericError: c,
-  };
 });
 
 // Clean up DOM after each test to prevent state contamination.
