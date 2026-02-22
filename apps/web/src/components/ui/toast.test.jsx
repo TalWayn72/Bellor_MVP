@@ -4,6 +4,13 @@
  * the underlying HTML element, preventing React warnings.
  */
 
+// Belt-and-suspenders: explicit mock in addition to setup.js global mock.
+// toast.jsx imports lucide-react directly; without this the fork OOMs.
+vi.mock('lucide-react', () => {
+  const c = () => null;
+  return new Proxy({ __esModule: true, default: c }, { get: (t, k) => (k in t ? t[k] : c) });
+});
+
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import React from 'react';

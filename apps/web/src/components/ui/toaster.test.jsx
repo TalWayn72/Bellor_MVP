@@ -8,6 +8,18 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 
+// Mock lucide-react to prevent OOM (41MB package expands to 2-3GB via Vite pipeline).
+// X renders an <svg> so the close-button test can still find the button element.
+vi.mock('lucide-react', () => {
+  const c = () => null;
+  // SvgX is called at render-time (not factory-time) so React is available via the import above.
+  const SvgX = () => React.createElement('svg', null);
+  return new Proxy(
+    { __esModule: true, default: c, X: SvgX },
+    { get: (t, k) => (k in t ? t[k] : c) },
+  );
+});
+
 // Mock useToast to control toast data
 vi.mock('@/components/ui/use-toast', () => ({
   useToast: vi.fn(() => ({ toasts: [] })),
