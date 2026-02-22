@@ -1,8 +1,8 @@
 import json, urllib.request, sys, datetime
 
-CI_RUN = '22270925075'
-TESTS_RUN = '22270925078'
-CI_TOTAL = 55   # 30 shards + 1 a11y + 10 other jobs
+CI_RUN = '22273155584'
+TESTS_RUN = '22273155588'
+CI_TOTAL = 55   # 44 shards + 1 a11y + 10 other jobs
 TESTS_TOTAL = 6
 
 ci = json.loads(urllib.request.urlopen(f'https://api.github.com/repos/TalWayn72/Bellor_MVP/actions/runs/{CI_RUN}/jobs?per_page=50').read())
