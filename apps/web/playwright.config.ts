@@ -72,34 +72,25 @@ export default defineConfig({
       ...(isCI ? [{ name: 'firefox', use: { ...devices['Desktop Firefox'] } }] : []),
     ].map((p) => ({ ...p, testIgnore: /full-stack|visual/, timeout: 15000, retries: 0 })),
 
-    // === Full-Stack E2E Tests (real backend required) ===
-    {
-      name: 'fullstack-setup',
-      testMatch: /global-setup\.ts/,
-      teardown: 'fullstack-teardown',
-    },
-    {
-      name: 'fullstack-teardown',
-      testMatch: /global-teardown\.ts/,
-    },
-    {
-      name: 'fullstack-chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: resolve(__dirname, 'playwright/.auth/user.json'),
-      },
-      testMatch: /full-stack\/.*\.spec\.ts/,
-      dependencies: isFullStack ? ['fullstack-setup'] : [],
-    },
-    {
-      name: 'fullstack-mobile',
-      use: {
-        ...devices['Pixel 5'],
-        storageState: resolve(__dirname, 'playwright/.auth/user.json'),
-      },
-      testMatch: /full-stack\/.*\.spec\.ts/,
-      dependencies: isFullStack ? ['fullstack-setup'] : [],
-    },
+    // === Full-Stack E2E Tests (only when FULLSTACK env is set) ===
+    ...(isFullStack
+      ? [
+          { name: 'fullstack-setup', testMatch: /global-setup\.ts/, teardown: 'fullstack-teardown' },
+          { name: 'fullstack-teardown', testMatch: /global-teardown\.ts/ },
+          {
+            name: 'fullstack-chromium',
+            use: { ...devices['Desktop Chrome'], storageState: resolve(__dirname, 'playwright/.auth/user.json') },
+            testMatch: /full-stack\/.*\.spec\.ts/,
+            dependencies: ['fullstack-setup'],
+          },
+          {
+            name: 'fullstack-mobile',
+            use: { ...devices['Pixel 5'], storageState: resolve(__dirname, 'playwright/.auth/user.json') },
+            testMatch: /full-stack\/.*\.spec\.ts/,
+            dependencies: ['fullstack-setup'],
+          },
+        ]
+      : []),
   ],
 
   // Run your local dev server before starting the tests
