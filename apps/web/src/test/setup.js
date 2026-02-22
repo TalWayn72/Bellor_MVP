@@ -7,6 +7,31 @@ import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
 import { toHaveNoViolations } from 'jest-axe';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Global OOM prevention mocks (applied before EVERY test file via setupFiles)
+//
+// lucide-react: 41MB on disk; Vite's Babel pipeline expands it to ~2-3GB in
+// memory per fork because it processes every icon SVG. Mocking it globally
+// prevents the library from being loaded at all.
+//
+// @/components/states: imports LoadingState → lucide-react (transitive OOM).
+// Mocked globally so test files don't need to know about this transitive dep.
+//
+// Both mocks use a Proxy so they handle ALL named exports automatically —
+// any icon/component gets a no-op () => null React component.
+// Per-file vi.mock() calls override these global defaults when needed.
+// ─────────────────────────────────────────────────────────────────────────────
+// Inline factories: vi.mock() is hoisted above const declarations, so
+// factory logic must live inside the factory function (no outer variables).
+vi.mock('lucide-react', () => {
+  const c = () => null;
+  return new Proxy({ __esModule: true, default: c }, { get: (t, k) => (k in t ? t[k] : c) });
+});
+vi.mock('@/components/states', () => {
+  const c = () => null;
+  return new Proxy({ __esModule: true, default: c }, { get: (t, k) => (k in t ? t[k] : c) });
+});
+
 // Clean up DOM after each test to prevent state contamination.
 // Force GC after each TEST (cleans up React fiber trees between tests)
 // and after each FILE (cleans up module-level objects between files in the same fork).
