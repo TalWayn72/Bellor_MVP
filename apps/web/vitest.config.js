@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 const isCI = !!process.env.CI;
+// Set by the test-web-a11y CI job to prevent a11y files from being excluded
+const isA11yJob = !!process.env.VITEST_A11Y_ONLY;
 
 export default defineConfig({
   plugins: [react()],
@@ -13,8 +15,9 @@ export default defineConfig({
     include: ['src/**/*.test.{js,jsx,ts,tsx}'],
     exclude: [
       'src/test/tiers/**',
-      // a11y tests (axe-core ~3GB each) run in a dedicated CI job — always excluded from shards
-      'src/test/a11y/**',
+      // a11y tests (axe-core ~3GB each) run in a dedicated CI job.
+      // Excluded from shard runs but NOT from the a11y job (controlled via VITEST_A11Y_ONLY).
+      ...(isA11yJob ? [] : ['src/test/a11y/**']),
     ],
     // In CI: pool:'forks' gives each test file its own child process.
     // Child processes inherit --expose-gc (unlike Worker threads), so global.gc()
