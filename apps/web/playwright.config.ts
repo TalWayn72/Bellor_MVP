@@ -31,8 +31,8 @@ export default defineConfig({
   // Retry on CI only
   retries: isCI ? 1 : 0,
 
-  // Use 2 workers in CI for faster execution
-  workers: isCI ? 2 : undefined,
+  // Use 4 workers in CI for faster parallel execution
+  workers: isCI ? 4 : undefined,
 
   // Reporter to use
   reporter: [
@@ -70,7 +70,7 @@ export default defineConfig({
       { name: 'Mobile Chrome', use: { ...devices['Pixel 5'] } },
       { name: 'Mobile Safari', use: { ...devices['iPhone 12'] } },
       ...(isCI ? [{ name: 'firefox', use: { ...devices['Desktop Firefox'] } }] : []),
-    ].map((p) => ({ ...p, testIgnore: /full-stack/, timeout: 30000, retries: 0 })),
+    ].map((p) => ({ ...p, testIgnore: /full-stack/, timeout: 15000, retries: 0 })),
 
     // === Full-Stack E2E Tests (real backend required) ===
     {
@@ -137,7 +137,7 @@ export default defineConfig({
     : {}),
 
   expect: {
-    timeout: 10000,
+    timeout: 5000,
     toHaveScreenshot: { maxDiffPixels: 100, threshold: 0.2, animations: 'disabled' },
   },
   snapshotDir: './e2e/visual/snapshots',
