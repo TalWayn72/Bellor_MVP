@@ -180,9 +180,8 @@ describe('[P0][ui] Toaster - non-DOM prop filtering', () => {
 
     render(<Toaster />);
 
-    // Find the close button (contains SVG X icon)
-    const closeButtons = screen.getAllByRole('button');
-    const closeBtn = closeButtons.find((btn) => btn.querySelector('svg'));
+    // Find the close button (ToastClose is the only button rendered in the toast)
+    const closeBtn = screen.getByRole('button');
     expect(closeBtn).toBeTruthy();
 
     fireEvent.click(closeBtn);

@@ -8,12 +8,15 @@ vi.mock('@/api', () => ({
   uploadService: { uploadStoryMedia: vi.fn().mockResolvedValue({ url: 'http://test.com/story.jpg' }) },
 }));
 
-vi.mock('../components/hooks/useCurrentUser', () => ({
-  useCurrentUser: vi.fn(() => ({
+// IMPORTANT: return a STABLE object reference. Components with useEffect([currentUser])
+// will infinite-loop if the mock returns a new object on every call.
+vi.mock('../components/hooks/useCurrentUser', () => {
+  const stable = {
     currentUser: { id: 'user-1', nickname: 'TestUser' },
     isLoading: false,
-  })),
-}));
+  };
+  return { useCurrentUser: vi.fn(() => stable) };
+});
 
 vi.mock('../components/providers/ThemeProvider', () => ({
   useTheme: vi.fn(() => ({})),

@@ -19,10 +19,16 @@ export default defineConfig({
       // Excluded from shard runs but NOT from the a11y job (controlled via VITEST_A11Y_ONLY).
       ...(isA11yJob ? [] : ['src/test/a11y/**']),
     ],
+    // server.deps.external: Prevents Vite from transforming lucide-react (41MB → ~3GB V8)
+    // even when it is transitively imported. vi.mock('lucide-react') still intercepts
+    // the import at runtime. Without this, EditProfile.test.jsx OOMs even with 8GB heap.
+    server: {
+      deps: {
+        external: [/lucide-react/],
+      },
+    },
     // pool:'forks': each shard runs in a child process with NODE_OPTIONS heap limit.
     // 44 shards (max 2 files/shard) + maxForks=1 (sequential) prevents accumulation.
-    // EditProfile.test.jsx alone needs ~5469MB (lucide-react transitive dep).
-    // 6000MB heap: 5469MB EditProfile < 6000MB limit; 6000MB fork + 500MB main = 6.5GB (< 7GB).
     pool: isCI ? 'forks' : 'threads',
     poolOptions: {
       forks: {
@@ -57,6 +63,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      // Redirect lucide-react to a tiny stub at the Vite resolve level.
+      // This prevents Vite from ever finding/transforming the real 41MB package.
+      // The stub exports a Proxy where every icon is () => null.
+      'lucide-react': path.resolve(__dirname, './src/test/lucide-react-stub.js'),
     },
   },
 });

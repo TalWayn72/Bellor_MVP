@@ -15,13 +15,16 @@ vi.mock('@/api', () => ({
   userService: { updateUser: vi.fn().mockResolvedValue({}) },
 }));
 
-vi.mock('../components/hooks/useCurrentUser', () => ({
-  useCurrentUser: vi.fn(() => ({
+// IMPORTANT: return a STABLE object reference. Components with useEffect([currentUser])
+// will infinite-loop if the mock returns a new object on every call.
+vi.mock('../components/hooks/useCurrentUser', () => {
+  const stable = {
     currentUser: { id: 'user-1', nickname: 'TestUser' },
     isLoading: false,
-    updateUser: vi.fn(),
-  })),
-}));
+    updateUser: () => {},
+  };
+  return { useCurrentUser: vi.fn(() => stable) };
+});
 
 vi.mock('@/components/navigation/BackButton', () => ({
   default: () => <div data-testid="back-button">Back</div>,
@@ -29,6 +32,25 @@ vi.mock('@/components/navigation/BackButton', () => ({
 
 vi.mock('../components/providers/ThemeProvider', () => ({
   useTheme: vi.fn(() => ({})),
+}));
+
+// Prevent loading heavy transitive deps not needed by these basic render tests
+vi.mock('@/components/ui/card', () => ({
+  Card: ({ children, ...props }) => <div {...props}>{children}</div>,
+}));
+vi.mock('@/components/ui/switch', () => ({
+  Switch: (props) => <input type="checkbox" {...props} />,
+}));
+vi.mock('@/components/ui/label', () => ({
+  Label: ({ children, ...props }) => <label {...props}>{children}</label>,
+}));
+vi.mock('react-router-dom', () => ({
+  BrowserRouter: ({ children }) => children,
+  useNavigate: vi.fn(() => vi.fn()),
+}));
+vi.mock('@tanstack/react-query', () => ({
+  QueryClient: class QueryClient { constructor() {} },
+  QueryClientProvider: ({ children }) => children,
 }));
 
 import NotificationSettings from './NotificationSettings';

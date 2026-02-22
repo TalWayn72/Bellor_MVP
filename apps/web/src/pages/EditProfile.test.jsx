@@ -17,13 +17,16 @@ vi.mock('@/api', () => ({
   userService: { updateUser: (...args) => mockUpdateUser(...args) },
 }));
 
-vi.mock('../components/hooks/useCurrentUser', () => ({
-  useCurrentUser: vi.fn(() => ({
+// IMPORTANT: return a STABLE object reference. Components with useEffect([currentUser])
+// will infinite-loop if the mock returns a new object on every call.
+vi.mock('../components/hooks/useCurrentUser', () => {
+  const stable = {
     currentUser: { id: 'user-1', nickname: 'TestUser', bio: 'Hello', gender: 'MALE', interests: [] },
     isLoading: false,
-    updateUser: vi.fn(),
-  })),
-}));
+    updateUser: () => {},
+  };
+  return { useCurrentUser: vi.fn(() => stable) };
+});
 
 vi.mock('@/components/navigation/BackButton', () => ({
   default: () => <div data-testid="back-button">Back</div>,

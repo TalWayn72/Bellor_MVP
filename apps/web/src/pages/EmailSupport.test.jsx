@@ -3,12 +3,15 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-vi.mock('../components/hooks/useCurrentUser', () => ({
-  useCurrentUser: vi.fn(() => ({
+// IMPORTANT: return a STABLE object reference. Components with useEffect([currentUser])
+// will infinite-loop if the mock returns a new object on every call.
+vi.mock('../components/hooks/useCurrentUser', () => {
+  const stable = {
     currentUser: { id: 'user-1', nickname: 'TestUser', email: 'test@test.com', full_name: 'Test User' },
     isLoading: false,
-  })),
-}));
+  };
+  return { useCurrentUser: vi.fn(() => stable) };
+});
 
 vi.mock('@/components/navigation/BackButton', () => ({
   default: () => <div data-testid="back-button">Back</div>,
