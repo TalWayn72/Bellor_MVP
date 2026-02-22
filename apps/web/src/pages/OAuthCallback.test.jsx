@@ -65,9 +65,10 @@ describe('[P0][auth] OAuthCallback', () => {
     expect(container).toBeDefined();
   });
 
-  it('renders completing sign in text with valid tokens', async () => {
-    // Make checkUserAuth hang so we can see the loading state
-    mockCheckUserAuth.mockReturnValue(new Promise(() => {}));
+  it('renders completing sign in text with valid tokens', () => {
+    // Use a resolvable promise to show loading state without leaving pending callbacks
+    let resolveAuth;
+    mockCheckUserAuth.mockReturnValue(new Promise(res => { resolveAuth = res; }));
 
     render(<OAuthCallback />, {
       wrapper: createMemoryWrapper([
@@ -76,10 +77,12 @@ describe('[P0][auth] OAuthCallback', () => {
     });
     // The loading state is the initial render before useEffect completes
     expect(screen.getByText('Completing Sign In')).toBeInTheDocument();
+    resolveAuth({});
   });
 
-  it('renders loading spinner message with valid tokens', async () => {
-    mockCheckUserAuth.mockReturnValue(new Promise(() => {}));
+  it('renders loading spinner message with valid tokens', () => {
+    let resolveAuth;
+    mockCheckUserAuth.mockReturnValue(new Promise(res => { resolveAuth = res; }));
 
     render(<OAuthCallback />, {
       wrapper: createMemoryWrapper([
@@ -87,14 +90,16 @@ describe('[P0][auth] OAuthCallback', () => {
       ]),
     });
     expect(screen.getByText('Please wait while we set up your account...')).toBeInTheDocument();
+    resolveAuth({});
   });
 
   // --- New behavioral tests ---
 
   describe('loading state', () => {
     it('should show loading state while processing OAuth tokens', () => {
-      // Make checkUserAuth hang indefinitely so loading state persists
-      mockCheckUserAuth.mockReturnValue(new Promise(() => {}));
+      // Use a resolvable promise to show loading state without leaving pending callbacks
+      let resolveAuth;
+      mockCheckUserAuth.mockReturnValue(new Promise(res => { resolveAuth = res; }));
 
       render(<OAuthCallback />, {
         wrapper: createMemoryWrapper([
@@ -104,6 +109,7 @@ describe('[P0][auth] OAuthCallback', () => {
 
       expect(screen.getByText('Completing Sign In')).toBeInTheDocument();
       expect(screen.getByText('Please wait while we set up your account...')).toBeInTheDocument();
+      resolveAuth({});
     });
   });
 

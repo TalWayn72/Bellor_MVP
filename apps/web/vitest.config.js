@@ -11,18 +11,20 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.js'],
     include: ['src/**/*.test.{js,jsx,ts,tsx}'],
-    exclude: ['src/test/tiers/**'],
+    exclude: [
+      'src/test/tiers/**',
+      // a11y tests (axe-core ~3GB each) run in a dedicated CI job — always excluded from shards
+      'src/test/a11y/**',
+    ],
     // In CI: pool:'forks' gives each test file its own child process.
     // Child processes inherit --expose-gc (unlike Worker threads), so global.gc()
     // in setup.js actually works. Also prevents cross-file memory accumulation.
-    // a11y tests (axe-core, ~3GB each) run in a dedicated CI job — excluded from shards.
     pool: isCI ? 'forks' : 'threads',
     poolOptions: {
       forks: {
         // Allow VITEST_MAX_FORKS env var to override (used by a11y job to run sequentially)
         maxForks: process.env.VITEST_MAX_FORKS ? parseInt(process.env.VITEST_MAX_FORKS) : 2,
         minForks: 1,
-        // singleFork:false (default) = fresh process per file = no cross-file OOM
       },
       threads: {
         maxThreads: 4,

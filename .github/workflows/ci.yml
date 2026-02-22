@@ -129,14 +129,15 @@ jobs:
         run: npm ci
 
       - name: Run Web tests (shard ${{ matrix.shard }}/20)
-        # a11y tests (axe-core, ~3GB each) are excluded — run in test-web-a11y job.
-        # pool:'forks', VITEST_MAX_FORKS=1: 1 persistent fork per shard runs files
+        # a11y tests excluded via vitest.config.js (not CLI) for reliability.
+        # pool:'forks', VITEST_MAX_FORKS=1: 1 persistent fork runs all shard files
         # sequentially. afterAll gc() in setup.js clears memory between files.
-        # 3GB heap, 1 fork = 3GB total per shard (safe within 7GB GitHub Actions limit).
-        run: npx vitest run --shard=${{ matrix.shard }}/20 --exclude 'src/test/a11y/**'
+        # 5500MB heap handles memory accumulated across ~5 files per shard.
+        # maxForks=1: only 1 fork active = 5500MB + ~200MB main = 5.7GB (within 7GB).
+        run: npx vitest run --shard=${{ matrix.shard }}/20
         working-directory: apps/web
         env:
-          NODE_OPTIONS: '--max-old-space-size=3000 --expose-gc'
+          NODE_OPTIONS: '--max-old-space-size=5500 --expose-gc'
           VITEST_MAX_FORKS: '1'
 
   test-web-a11y:
