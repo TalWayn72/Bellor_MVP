@@ -113,11 +113,15 @@ describe('[P0][auth] UserProvider', () => {
 
     it('should return isLoading=true initially', () => {
       tokenStorage.isAuthenticated.mockReturnValue(true);
-      authService.getCurrentUser.mockReturnValue(new Promise(() => {})); // never resolves
+      const deferred = createDeferred();
+      authService.getCurrentUser.mockReturnValue(deferred.promise);
 
       const { result } = renderHook(() => useUser(), { wrapper });
 
       expect(result.current.isLoading).toBe(true);
+
+      // Resolve so the fork can exit cleanly
+      deferred.resolve(MOCK_USER);
     });
 
     it('should return null currentUser when no user is authenticated', async () => {
