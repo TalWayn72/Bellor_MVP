@@ -12,8 +12,9 @@
  * Priority: High
  */
 
-import { test, expect } from '@playwright/test';
 import {
+  test,
+  expect,
   setupAuthenticatedUser,
   mockApiResponse,
   mockLikes,

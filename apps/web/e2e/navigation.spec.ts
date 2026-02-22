@@ -7,8 +7,7 @@
  * Priority: High
  */
 
-import { test, expect } from '@playwright/test';
-import { waitForPageLoad, mockApiResponse, checkAccessibility } from './fixtures';
+import { test, expect, waitForPageLoad, mockApiResponse, checkAccessibility } from './fixtures';
 
 // Mock authenticated user data
 const mockUser = {

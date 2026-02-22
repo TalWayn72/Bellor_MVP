@@ -6,14 +6,16 @@
 // Test data
 export { testUser, newTestUser, STORAGE_STATE_PATH } from './test-data.js';
 
-// Auth fixtures (mocked + full-stack)
+// Auth fixtures (mocked)
 export type { TestFixtures } from './auth.helpers.js';
+export { test, setupAuthenticatedUser } from './auth.helpers.js';
+
+// Auth fixtures (full-stack)
 export {
-  test, setupAuthenticatedUser,
   fullstackTest, FULLSTACK_AUTH,
   loginWithRealCredentials, registerNewUser,
   getAuthTokens, isAuthenticated,
-} from './auth.helpers.js';
+} from './fullstack-auth.helpers.js';
 
 // API mocking
 export {

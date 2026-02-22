@@ -12,8 +12,7 @@
  * Priority: High
  */
 
-import { test, expect } from '@playwright/test';
-import { waitForPageLoad, mockApiResponse } from './fixtures';
+import { test, expect, waitForPageLoad, mockApiResponse } from './fixtures';
 
 test.describe('API Client Transformers', () => {
   test.describe('Request Transformer (snake_case -> camelCase)', () => {

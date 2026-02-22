@@ -10,8 +10,9 @@
  * Priority: Critical
  */
 
-import { test, expect } from '@playwright/test';
 import {
+  test,
+  expect,
   testUser,
   waitForPageLoad,
   mockApiResponse,

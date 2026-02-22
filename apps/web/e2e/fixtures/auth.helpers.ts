@@ -1,24 +1,61 @@
 /**
- * E2E Authentication Helpers
- * Utilities for setting up authenticated test sessions
- * Supports both mocked and full-stack authentication
+ * E2E Authentication Helpers (Mocked)
+ * Test fixtures with catch-all API mocking and auth setup
  */
 import { test as base, Page } from '@playwright/test';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import { STORAGE_STATE_PATH } from './test-data.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 import { mockApiResponse } from './api-mock.helpers.js';
 import { createMockUser } from './factories/index.js';
 import type { MockUser } from './factories/index.js';
 
 export interface TestFixtures {
   authenticatedPage: Page;
+  _apiCatchAll: void;
+}
+
+/** JSON helper to reduce repetition in catch-all handler */
+function json(data: object, status = 200) {
+  return { status, contentType: 'application/json', body: JSON.stringify(data) };
 }
 
 export const test = base.extend<TestFixtures>({
+  /**
+   * Auto-fixture: catch-all API mock that runs BEFORE any test navigation.
+   * Prevents unmocked API calls from hanging (e.g., SPA init calls to production).
+   * Individual test mocks override this via Playwright's LIFO route matching.
+   */
+  _apiCatchAll: [async ({ page }, use) => {
+    await page.route('**/api/v1/**', (route) => {
+      const url = route.request().url();
+      const method = route.request().method();
+
+      // Auth endpoints - return 401 (unauthenticated by default)
+      if (url.includes('/auth/me') || url.includes('/users/me')) {
+        return route.fulfill(json({ error: 'Not authenticated' }, 401));
+      }
+
+      // Common GET endpoints - return empty data
+      if (method === 'GET') {
+        if (url.includes('/notifications'))
+          return route.fulfill(json({ notifications: [], unreadCount: 0 }));
+        if (url.includes('/missions/today'))
+          return route.fulfill(json({ mission: null }));
+        if (url.includes('/responses'))
+          return route.fulfill(json({ responses: [], pagination: { total: 0, page: 1, limit: 20 } }));
+        if (url.includes('/chats'))
+          return route.fulfill(json({ chats: [] }));
+        if (url.includes('/follows'))
+          return route.fulfill(json({ following: [], followers: [] }));
+        if (url.includes('/likes'))
+          return route.fulfill(json({ likes: [] }));
+      }
+
+      // Default: return empty success for any unhandled API call
+      return route.fulfill(json({}));
+    });
+    await use();
+  }, { auto: true }],
+
   authenticatedPage: async ({ browser }, use) => {
     const context = await browser.newContext({
       storageState: STORAGE_STATE_PATH,
@@ -45,104 +82,4 @@ export async function setupAuthenticatedUser(page: Page, user?: Partial<MockUser
   await mockApiResponse(page, '**/api/v1/users/me', mockUser);
 
   return mockUser;
-}
-
-// --- Full-stack authentication helpers ---
-
-/** Storage state paths for full-stack tests */
-export const FULLSTACK_AUTH = {
-  user: resolve(__dirname, '../../playwright/.auth/user.json'),
-  user2: resolve(__dirname, '../../playwright/.auth/user2.json'),
-  admin: resolve(__dirname, '../../playwright/.auth/admin.json'),
-} as const;
-
-/** Full-stack test fixture with real authentication */
-export const fullstackTest = base.extend<TestFixtures>({
-  authenticatedPage: async ({ browser }, use) => {
-    const context = await browser.newContext({
-      storageState: FULLSTACK_AUTH.user,
-    }).catch(() => browser.newContext());
-
-    const page = await context.newPage();
-    await use(page);
-    await context.close();
-  },
-});
-
-/** Login using real credentials against the running backend */
-export async function loginWithRealCredentials(
-  page: Page,
-  email: string,
-  password: string,
-): Promise<void> {
-  await page.goto('/Login');
-  await page.waitForLoadState('networkidle');
-
-  const emailInput = page.locator(
-    'input[type="email"], input[placeholder*="email" i], input[placeholder*="אימייל" i]',
-  ).first();
-  const passwordInput = page.locator(
-    'input[type="password"], input[placeholder*="password" i], input[placeholder*="סיסמ" i]',
-  ).first();
-
-  await emailInput.fill(email);
-  await passwordInput.fill(password);
-
-  const submitBtn = page.locator(
-    'button[type="submit"], button:has-text("login"), button:has-text("התחבר"), button:has-text("כניסה")',
-  ).first();
-  await submitBtn.click();
-
-  // Wait for redirect to authenticated area
-  await page.waitForURL(/\/(Home|SharedSpace|Feed)/, { timeout: 15000 });
-}
-
-/** Register a new user through the real onboarding flow */
-export async function registerNewUser(
-  page: Page,
-  userData: {
-    email: string;
-    password: string;
-    nickname: string;
-    birthDate?: string;
-  },
-): Promise<void> {
-  await page.goto('/Onboarding');
-  await page.waitForLoadState('networkidle');
-
-  // Fill registration form fields as they appear in onboarding steps
-  const emailInput = page.locator(
-    'input[type="email"], input[placeholder*="email" i], input[placeholder*="אימייל" i]',
-  ).first();
-  if (await emailInput.isVisible().catch(() => false)) {
-    await emailInput.fill(userData.email);
-  }
-
-  const passwordInput = page.locator(
-    'input[type="password"], input[placeholder*="password" i], input[placeholder*="סיסמ" i]',
-  ).first();
-  if (await passwordInput.isVisible().catch(() => false)) {
-    await passwordInput.fill(userData.password);
-  }
-}
-
-/** Get auth tokens from localStorage (checks both bellor_ prefixed and legacy keys) */
-export async function getAuthTokens(page: Page) {
-  return page.evaluate(() => ({
-    accessToken:
-      localStorage.getItem('bellor_access_token') ||
-      localStorage.getItem('accessToken'),
-    refreshToken:
-      localStorage.getItem('bellor_refresh_token') ||
-      localStorage.getItem('refreshToken'),
-    user:
-      localStorage.getItem('bellor_user') ||
-      localStorage.getItem('user'),
-  }));
-}
-
-/** Check if user is currently authenticated */
-export async function isAuthenticated(page: Page): Promise<boolean> {
-  const tokens = await getAuthTokens(page);
-  return tokens.accessToken !== null;
 }

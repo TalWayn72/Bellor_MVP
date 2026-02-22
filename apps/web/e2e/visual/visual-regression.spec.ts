@@ -13,8 +13,9 @@
  * - npm run test:visual:update       # Update baseline screenshots
  */
 
-import { test, expect } from '@playwright/test';
 import {
+  test,
+  expect,
   setupAuthenticatedUser,
   mockFeedResponses,
   createMockResponse,

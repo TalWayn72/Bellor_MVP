@@ -7,7 +7,7 @@
  * @see https://www.deque.com/axe/core-documentation/api-documentation/
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 import AxeBuilder from '@axe-core/playwright';
 
 // Test both desktop and mobile viewports

@@ -3,7 +3,7 @@
  * Tests that clicking on user avatar shows their bio
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test.describe('Temporary Chats - User Bio Dialog', () => {
   test.beforeEach(async ({ page }) => {
