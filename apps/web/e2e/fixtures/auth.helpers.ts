@@ -25,6 +25,15 @@ export const test = base.extend<TestFixtures>({
    * Individual test mocks override this via Playwright's LIFO route matching.
    */
   _apiCatchAll: [async ({ page }, use) => {
+    // Reduce timeouts for mocked tests - tests should fail fast, not hang
+    page.setDefaultNavigationTimeout(10000);
+    page.setDefaultTimeout(15000);
+
+    // Abort ALL external requests (non-localhost) to prevent load event delays
+    // from unreachable CDN images, fonts, analytics, etc. Registered FIRST so
+    // the API catch-all below (LIFO) takes priority for /api/v1/ URLs.
+    await page.route(/^https?:\/\/(?!localhost)/, (route) => route.abort());
+
     await page.route('**/api/v1/**', (route) => {
       const url = route.request().url();
       const method = route.request().method();
@@ -71,7 +80,7 @@ export const test = base.extend<TestFixtures>({
 export async function setupAuthenticatedUser(page: Page, user?: Partial<MockUser>) {
   const mockUser = createMockUser(user);
 
-  await page.goto('/');
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.evaluate((u) => {
     localStorage.setItem('accessToken', 'mock-access-token');
     localStorage.setItem('refreshToken', 'mock-refresh-token');

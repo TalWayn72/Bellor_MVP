@@ -64,31 +64,13 @@ export default defineConfig({
 
   // Configure projects for major browsers
   projects: [
-    // === Mocked E2E Tests (fast, no backend needed) ===
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-      testIgnore: /full-stack/,
-    },
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-      testIgnore: /full-stack/,
-    },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
-      testIgnore: /full-stack/,
-    },
-    ...(isCI
-      ? [
-          {
-            name: 'firefox',
-            use: { ...devices['Desktop Firefox'] },
-            testIgnore: /full-stack/,
-          },
-        ]
-      : []),
+    // Mocked E2E Tests: catch-all API fixture, no retries (deterministic), fast timeout
+    ...[
+      { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+      { name: 'Mobile Chrome', use: { ...devices['Pixel 5'] } },
+      { name: 'Mobile Safari', use: { ...devices['iPhone 12'] } },
+      ...(isCI ? [{ name: 'firefox', use: { ...devices['Desktop Firefox'] } }] : []),
+    ].map((p) => ({ ...p, testIgnore: /full-stack/, timeout: 30000, retries: 0 })),
 
     // === Full-Stack E2E Tests (real backend required) ===
     {
@@ -154,20 +136,9 @@ export default defineConfig({
       }
     : {}),
 
-  // Expect timeout
   expect: {
     timeout: 10000,
-    // Visual regression screenshot comparison settings
-    toHaveScreenshot: {
-      // Maximum number of pixels that can differ
-      maxDiffPixels: 100,
-      // Threshold for pixel difference (0-1, where 0 is identical)
-      threshold: 0.2,
-      // Enable animations to complete before screenshot
-      animations: 'disabled',
-    },
+    toHaveScreenshot: { maxDiffPixels: 100, threshold: 0.2, animations: 'disabled' },
   },
-
-  // Screenshot directory for visual regression tests
   snapshotDir: './e2e/visual/snapshots',
 });
