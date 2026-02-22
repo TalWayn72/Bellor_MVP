@@ -70,7 +70,7 @@ export default defineConfig({
       { name: 'Mobile Chrome', use: { ...devices['Pixel 5'] } },
       { name: 'Mobile Safari', use: { ...devices['iPhone 12'] } },
       ...(isCI ? [{ name: 'firefox', use: { ...devices['Desktop Firefox'] } }] : []),
-    ].map((p) => ({ ...p, testIgnore: /full-stack/, timeout: 15000, retries: 0 })),
+    ].map((p) => ({ ...p, testIgnore: /full-stack|visual/, timeout: 15000, retries: 0 })),
 
     // === Full-Stack E2E Tests (real backend required) ===
     {
@@ -125,8 +125,8 @@ export default defineConfig({
           : []),
       ],
 
-  // Global timeout for each test
-  timeout: 60000,
+  // Global timeout: 15s in CI (mocked tests fail fast), 60s locally
+  timeout: isCI ? 15000 : 60000,
 
   // Global setup/teardown for full-stack tests
   ...(isFullStack
