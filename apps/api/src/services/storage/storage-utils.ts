@@ -91,22 +91,29 @@ export async function saveFileLocally(key: string, buffer: Buffer): Promise<stri
 
 /**
  * Sanitize a stored image URL.
- * Converts raw R2 S3 endpoint URLs (which require AWS auth) to local URLs.
- * This fixes existing broken URLs already persisted in the database.
+ * Fixes ALL known broken URL patterns persisted in the database:
+ * 1. http://localhost:3000/uploads/... (from old code versions)
+ * 2. http(s)://ANY_HOST/uploads/... (absolute URLs with host prefix)
+ * 3. R2 S3 endpoint URLs (require AWS auth, not browser-loadable)
  */
 export function sanitizeImageUrl(url: string): string {
   if (!url) return url;
-  // Already a local URL — nothing to fix
+  // Already a correct local URL — nothing to fix
   if (url.startsWith('/uploads/')) return url;
   // CDN URL — already publicly accessible
   if (CDN_URL && url.startsWith(CDN_URL)) return url;
-  // External URLs (Unsplash, pravatar, etc.) — leave as-is
-  if (!env.R2_ENDPOINT) return url;
+  // Any absolute URL containing /uploads/ — strip host, keep path
+  // Catches: http://localhost:3000/uploads/..., https://qa.bellor.app/uploads/...
+  const uploadsIdx = url.indexOf('/uploads/');
+  if (uploadsIdx > 0) {
+    return url.slice(uploadsIdx);
+  }
   // Detect R2 S3 endpoint URL and convert to local path
-  const r2Prefix = `${env.R2_ENDPOINT}/${BUCKET}/`;
-  if (url.startsWith(r2Prefix)) {
-    const key = url.slice(r2Prefix.length);
-    return getLocalUrl(key);
+  if (env.R2_ENDPOINT) {
+    const r2Prefix = `${env.R2_ENDPOINT}/${BUCKET}/`;
+    if (url.startsWith(r2Prefix)) {
+      return getLocalUrl(url.slice(r2Prefix.length));
+    }
   }
   return url;
 }
