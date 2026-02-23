@@ -50,6 +50,7 @@ export default function VideoRecorder({ onShare }) {
         stopTimer();
         stream.getTracks().forEach(track => track.stop());
         streamRef.current = null;
+        if (videoRef.current) videoRef.current.srcObject = null;
 
         if (chunksRef.current.length === 0) { toast({ title: 'Error', description: 'No video data was captured. Please try again.', variant: 'destructive' }); return; }
         const blob = new Blob(chunksRef.current, { type: mimeTypeRef.current });
@@ -102,11 +103,11 @@ export default function VideoRecorder({ onShare }) {
         <div className="relative bg-white rounded-3xl overflow-hidden shadow-lg" style={{ aspectRatio: '9/16' }}>
           {!hasRecording ? (
             <div className="absolute inset-0 bg-gray-900">
-              <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+              <video key="live" ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
             </div>
           ) : (
             <div className="absolute inset-0 bg-gray-900">
-              <video src={videoUrl} className="w-full h-full object-cover" controls autoPlay playsInline preload="auto" />
+              <video key="playback" src={videoUrl} className="w-full h-full object-cover" controls autoPlay playsInline preload="auto" />
             </div>
           )}
 

@@ -1,6 +1,6 @@
 # תקלות פתוחות - Bellor MVP
 
-**תאריך עדכון:** 22 פברואר 2026
+**תאריך עדכון:** 23 פברואר 2026
 **מצב:** ✅ Production Deployed on Oracle Cloud Free Tier (ISSUE-081)
 
 ---
@@ -41,8 +41,9 @@ A  qa    →  151.145.94.190   (TTL: 600)
 
 | קטגוריה | מספר תקלות | חומרה | סטטוס |
 |----------|-------------|--------|--------|
+| **ISSUE-104: Video playback black screen - srcObject overrides src on reconciled DOM node (TRUE ROOT CAUSE) (Feb 23)** | 1 root cause | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-103: Onboarding photo "Load failed" - R2 URLs not publicly accessible (TRUE ROOT CAUSE) (Feb 23)** | 4 root causes | 🔴 קריטי | ✅ תוקן |
-| **ISSUE-102: Video playback black screen after recording - missing playsInline + preload + autoPlay + no error handling (Feb 19)** | 7 root causes | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-102: Video playback black screen after recording - missing playsInline + preload + autoPlay + no error handling (Feb 19)** | 7 root causes | 🔴 קריטי | ✅ תוקן (חלקי - לא טיפל בשורש) |
 | **ISSUE-101: Onboarding photos not displaying after upload - useEffect overwrite + stale closure + no error handling (RECURRING) (Feb 19)** | 4 root causes | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-100: Video recording 00:00 / not saving - Cross-browser codec + missing duration (RECURRING) (Feb 19)** | 6 root causes | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-099: Onboarding Step 8 - Additional photos not saving (RECURRING) (Feb 19)** | 4 root causes | 🔴 קריטי | ✅ תוקן |
@@ -4901,6 +4902,49 @@ Then rebuild the web container: `docker compose up -d --build web`
 - Added `Mixed Content` to E2E console warning FAIL_PATTERNS
 - Created `npm run check:build-urls` script to detect HTTP URLs in production builds
 - **Files:** `scripts/check-build-urls.js`, `apps/web/e2e/fixtures/console-warning.helpers.ts`
+
+---
+
+## ✅ ISSUE-104: Video Playback Black Screen - srcObject Overrides src on Reconciled DOM Node (TRUE ROOT CAUSE) (23 פברואר 2026)
+
+### חומרה: 🔴 קריטי | סטטוס: ✅ תוקן
+
+**מקור:** QA testing on qa.bellor.app/VideoTask - User records video, presses play, video stays black. Not a single frame displays. **Issue persisted since initial implementation** because ISSUE-102 addressed symptoms (missing attributes) but not the true root cause.
+
+### שורש הבעיה האמיתי (TRUE ROOT CAUSE)
+
+**React DOM Reconciliation + Imperative srcObject Conflict**
+
+In `VideoRecorder.jsx`, a ternary renders two `<video>` elements at the same position in the component tree:
+
+```jsx
+{!hasRecording ? (
+  <video ref={videoRef} ... />   // live preview: srcObject set imperatively
+) : (
+  <video src={videoUrl} ... />   // playback: blob URL
+)}
+```
+
+React performs reconciliation: it sees the same element type (`video`) at the same tree position, so it **reuses the existing DOM node** instead of creating a new one. It updates HTML attributes (`src`, `controls`, etc.) but does NOT clear `srcObject` which was set imperatively via `videoRef.current.srcObject = stream`.
+
+**Per the HTML spec:** When `srcObject` is non-null, the browser uses it and ignores `src`. Even though the stream tracks were stopped, `srcObject` still points to a MediaStream object (with dead tracks) → browser renders black.
+
+### למה ISSUE-102 לא תיקנה את הבעיה
+
+| ISSUE-102 Fix | Effect | Why Not Enough |
+|---------------|--------|----------------|
+| Added `playsInline` | Prevents fullscreen on iOS | Doesn't clear srcObject |
+| Added `autoPlay` | Auto-starts playback | Still plays dead srcObject stream |
+| Added `preload="auto"` | Preloads video data | src is ignored while srcObject exists |
+| Added error handlers | Better error reporting | Doesn't fix the playback mechanism |
+
+### פתרון
+
+1. **Clear `srcObject` in `onstop` handler** — `if (videoRef.current) videoRef.current.srcObject = null;` ensures the DOM node's srcObject is null before React reconciles
+2. **Add `key` props** — `key="live"` vs `key="playback"` forces React to create separate DOM nodes, preventing reconciliation entirely (defense in depth)
+
+**Files Changed:**
+- `apps/web/src/components/tasks/VideoRecorder.jsx` — 2 changes (srcObject cleanup + key props)
 
 ---
 
