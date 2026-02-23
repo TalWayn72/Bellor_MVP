@@ -1,20 +1,17 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Loader2, AlertTriangle } from 'lucide-react';
 import ProgressBar from '@/components/onboarding/ProgressBar';
 import { TOTAL_STEPS } from '@/components/onboarding/utils/onboardingUtils';
 import { uploadService, userService } from '@/api';
 import { useToast } from '@/components/ui/use-toast';
+import { useImageRetry } from '@/hooks/useImageRetry';
 
 export default function StepPhotos({ formData, setFormData, handleNext, isAuthenticated, authUser }) {
   const fileInputRef = useRef(null);
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
-  const [brokenImages, setBrokenImages] = useState(new Set());
-
-  const handleImageError = useCallback((url) => {
-    setBrokenImages(prev => new Set(prev).add(url));
-  }, []);
+  const { handleImageError, retryImage, clearAll, getRetrySrc, isBroken } = useImageRetry();
 
   const handleFileChange = async (e) => {
     const files = Array.from(e.target.files);
@@ -35,7 +32,7 @@ export default function StepPhotos({ formData, setFormData, handleNext, isAuthen
     }
     setIsUploading(false);
     if (!latestImages) return;
-    setBrokenImages(new Set());
+    clearAll();
     setFormData(prev => ({
       ...prev,
       profile_images: latestImages,
@@ -64,7 +61,7 @@ export default function StepPhotos({ formData, setFormData, handleNext, isAuthen
       ? (newImages.length > 0 ? newImages[0] : '')
       : formData.main_profile_image_url;
     setFormData(prev => ({ ...prev, profile_images: newImages, main_profile_image_url: newMainImage }));
-    setBrokenImages(prev => { const next = new Set(prev); next.delete(deletedUrl); return next; });
+    retryImage(deletedUrl);
     try {
       if (isAuthenticated && authUser?.id) {
         await uploadService.deleteProfileImage(deletedUrl);
@@ -93,16 +90,16 @@ export default function StepPhotos({ formData, setFormData, handleNext, isAuthen
           <div className="grid grid-cols-3 gap-3 mb-6">
             {[0, 1, 2, 3, 4, 5].map((i) => {
               const imageUrl = formData.profile_images[i];
-              const isBroken = imageUrl && brokenImages.has(imageUrl);
+              const broken = imageUrl && isBroken(imageUrl);
               return (
                 <div key={i} className="relative aspect-square">
                   <button onClick={() => !isUploading && fileInputRef.current?.click()} className={`w-full h-full rounded-xl bg-muted border-2 flex items-center justify-center overflow-hidden ${imageUrl && isMainImage(imageUrl) ? 'border-primary border-4 shadow-lg' : 'border-dashed border-border hover:border-border'} ${isUploading ? 'opacity-60 cursor-wait' : ''}`}>
-                    {imageUrl && !isBroken ? (
-                      <img src={imageUrl} alt="Profile" className="w-full h-full object-cover" onError={() => handleImageError(imageUrl)} />
-                    ) : isBroken ? (
-                      <div className="flex flex-col items-center gap-1 text-destructive">
+                    {imageUrl && !broken ? (
+                      <img src={getRetrySrc(imageUrl)} alt="Profile" className="w-full h-full object-cover" onError={() => handleImageError(imageUrl)} />
+                    ) : broken ? (
+                      <div className="flex flex-col items-center gap-1 text-destructive cursor-pointer" onClick={(e) => { e.stopPropagation(); retryImage(imageUrl); }}>
                         <AlertTriangle className="w-6 h-6" />
-                        <span className="text-[10px]">Load failed</span>
+                        <span className="text-[10px]">Tap to retry</span>
                       </div>
                     ) : isUploading && i === formData.profile_images.length ? (
                       <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />

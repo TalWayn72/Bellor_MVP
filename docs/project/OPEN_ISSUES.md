@@ -1,6 +1,6 @@
 # תקלות פתוחות - Bellor MVP
 
-**תאריך עדכון:** 19 פברואר 2026
+**תאריך עדכון:** 22 פברואר 2026
 **מצב:** ✅ Production Deployed on Oracle Cloud Free Tier (ISSUE-081)
 
 ---
@@ -41,6 +41,7 @@ A  qa    →  151.145.94.190   (TTL: 600)
 
 | קטגוריה | מספר תקלות | חומרה | סטטוס |
 |----------|-------------|--------|--------|
+| **ISSUE-103: Onboarding photo "Load failed" - no retry + backend race condition (RECURRING) (Feb 22)** | 3 root causes | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-102: Video playback black screen after recording - missing playsInline + preload + autoPlay + no error handling (Feb 19)** | 7 root causes | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-101: Onboarding photos not displaying after upload - useEffect overwrite + stale closure + no error handling (RECURRING) (Feb 19)** | 4 root causes | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-100: Video recording 00:00 / not saving - Cross-browser codec + missing duration (RECURRING) (Feb 19)** | 6 root causes | 🔴 קריטי | ✅ תוקן |
@@ -4900,6 +4901,40 @@ Then rebuild the web container: `docker compose up -d --build web`
 - Added `Mixed Content` to E2E console warning FAIL_PATTERNS
 - Created `npm run check:build-urls` script to detect HTTP URLs in production builds
 - **Files:** `scripts/check-build-urls.js`, `apps/web/e2e/fixtures/console-warning.helpers.ts`
+
+---
+
+## ✅ ISSUE-103: Onboarding Photo "Load Failed" - No Retry + Backend Race Condition (RECURRING) (22 פברואר 2026)
+
+### חומרה: 🔴 קריטי | סטטוס: ✅ תוקן
+
+**מקור:** QA testing on qa.bellor.app/Onboarding?step=8 - User uploads photo, image shows "Load failed" warning triangle instead of the uploaded photo.
+
+### שורשי הבעיה (3 root causes)
+
+| # | Root Cause | File | Severity |
+|---|-----------|------|----------|
+| 1 | **No image load retry** - When `<img>` onError fires (CDN delay, network glitch), image is immediately marked as broken with no retry. Single transient failure = permanent "Load failed". | `StepPhotos.jsx` | 🔴 Critical |
+| 2 | **Backend race condition on profileImages** - Non-atomic read-modify-write: `findUnique` → `push` → `update`. Concurrent uploads can lose images. | `upload-handlers.ts:34-37` | 🔴 Critical |
+| 3 | **No visual test for photo upload** - No E2E visual regression test covering step 8 photo grid, so broken image states were never caught automatically. | Missing test | 🟡 Medium |
+
+### Related: 13 components with missing `<img>` onError handlers
+
+FeedPost, MessageList, CreationResponseGrid, DateIdeaCard, StoryPreview, MyStoriesSection, RecentStoriesGrid, Profile, Settings, Login, UserProfileAbout, FeedPostHeader, FollowingCard.
+
+### תיקונים שבוצעו
+
+| # | Fix | File | Details |
+|---|-----|------|---------|
+| 1 | **Added `useImageRetry` hook** | `apps/web/src/hooks/useImageRetry.js` | Auto-retries failed images 2x with cache-busting query param. After exhausting retries, shows "Tap to retry" (manual retry). |
+| 2 | **Replaced "Load failed" with "Tap to retry"** | `apps/web/src/components/onboarding/steps/StepPhotos.jsx` | Users can now manually retry broken images instead of seeing a dead-end error state. |
+| 3 | **Atomic Prisma push** | `apps/api/src/routes/v1/uploads/upload-handlers.ts` | Replaced `findUnique` → `push` → `update` with `prisma.user.update({ data: { profileImages: { push: url } } })` - single atomic DB operation. |
+| 4 | **Visual regression test** | `apps/web/e2e/visual/onboarding-photos-visual.spec.ts` | 3 tests: uploaded photos grid, broken image state, empty grid. Catches future photo display regressions. |
+
+### בדיקות
+
+- `apps/web/e2e/visual/onboarding-photos-visual.spec.ts` - 3 visual regression tests
+- `npm run test:visual -- --grep "Onboarding Photos"` to run
 
 ---
 

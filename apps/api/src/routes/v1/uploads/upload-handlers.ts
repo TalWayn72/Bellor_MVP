@@ -31,11 +31,12 @@ export async function handleProfileImageUpload(request: FastifyRequest, reply: F
     const { data, buffer, validation } = prepared;
     const result = await storageService.uploadProfileImage(buffer, data.mimetype, validation.sanitizedFilename, request.user!.userId);
     securityLogger.uploadSuccess(request, 'image', buffer.length);
-    const user = await prisma.user.findUnique({ where: { id: request.user!.userId }, select: { profileImages: true } });
-    const profileImages = user?.profileImages || [];
-    profileImages.push(result.url);
-    await prisma.user.update({ where: { id: request.user!.userId }, data: { profileImages } });
-    return { success: true, data: { url: result.url, key: result.key, profileImages } };
+    const updated = await prisma.user.update({
+      where: { id: request.user!.userId },
+      data: { profileImages: { push: result.url } },
+      select: { profileImages: true },
+    });
+    return { success: true, data: { url: result.url, key: result.key, profileImages: updated.profileImages } };
   } catch (error) {
     request.log.error({ error }, 'Profile image upload failed');
     return reply.code(400).send({ success: false, error: { code: 'UPLOAD_FAILED', message: error instanceof Error ? error.message : 'Upload failed' } });
