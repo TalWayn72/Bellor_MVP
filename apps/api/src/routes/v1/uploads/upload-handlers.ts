@@ -3,6 +3,7 @@ import { storageService } from '../../../services/storage.service.js';
 import { prisma } from '../../../lib/prisma.js';
 import { validateUploadedFile } from '../../../middleware/upload.middleware.js';
 import { securityLogger } from '../../../security/logger.js';
+import { sanitizeImageUrls } from '../../../services/storage/storage-utils.js';
 
 /** Helper: check storage and get file buffer with validation */
 async function prepareUpload(request: FastifyRequest, reply: FastifyReply, type: 'image' | 'audio' | 'video') {
@@ -36,7 +37,7 @@ export async function handleProfileImageUpload(request: FastifyRequest, reply: F
       data: { profileImages: { push: result.url } },
       select: { profileImages: true },
     });
-    return { success: true, data: { url: result.url, key: result.key, profileImages: updated.profileImages } };
+    return { success: true, data: { url: result.url, key: result.key, profileImages: sanitizeImageUrls(updated.profileImages) } };
   } catch (error) {
     request.log.error({ error }, 'Profile image upload failed');
     return reply.code(400).send({ success: false, error: { code: 'UPLOAD_FAILED', message: error instanceof Error ? error.message : 'Upload failed' } });

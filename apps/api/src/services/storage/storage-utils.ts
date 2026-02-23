@@ -52,13 +52,16 @@ export function generateFileKey(folder: string, originalName: string, userId: st
 }
 
 /**
- * Get public URL for a file (cloud storage)
+ * Get public URL for a file.
+ * Returns CDN URL when configured, otherwise falls back to local URL.
+ * NEVER returns raw R2 S3 endpoint URLs — they require AWS auth and
+ * are not loadable by browsers (root cause of ISSUE-103).
  */
 export function getPublicUrl(key: string): string {
   if (CDN_URL) {
     return `${CDN_URL}/${key}`;
   }
-  return `${env.R2_ENDPOINT}/${BUCKET}/${key}`;
+  return getLocalUrl(key);
 }
 
 /**
@@ -84,6 +87,33 @@ export async function saveFileLocally(key: string, buffer: Buffer): Promise<stri
   const filePath = await ensureLocalDir(key);
   await fs.writeFile(filePath, buffer);
   return getLocalUrl(key);
+}
+
+/**
+ * Sanitize a stored image URL.
+ * Converts raw R2 S3 endpoint URLs (which require AWS auth) to local URLs.
+ * This fixes existing broken URLs already persisted in the database.
+ */
+export function sanitizeImageUrl(url: string): string {
+  if (!url) return url;
+  // Already a local URL — nothing to fix
+  if (url.startsWith('/uploads/')) return url;
+  // CDN URL — already publicly accessible
+  if (CDN_URL && url.startsWith(CDN_URL)) return url;
+  // External URLs (Unsplash, pravatar, etc.) — leave as-is
+  if (!env.R2_ENDPOINT) return url;
+  // Detect R2 S3 endpoint URL and convert to local path
+  const r2Prefix = `${env.R2_ENDPOINT}/${BUCKET}/`;
+  if (url.startsWith(r2Prefix)) {
+    const key = url.slice(r2Prefix.length);
+    return getLocalUrl(key);
+  }
+  return url;
+}
+
+/** Sanitize an array of image URLs (e.g. profileImages from DB) */
+export function sanitizeImageUrls(urls: string[]): string[] {
+  return urls.map(sanitizeImageUrl);
 }
 
 /**

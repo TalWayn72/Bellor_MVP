@@ -41,7 +41,7 @@ A  qa    →  151.145.94.190   (TTL: 600)
 
 | קטגוריה | מספר תקלות | חומרה | סטטוס |
 |----------|-------------|--------|--------|
-| **ISSUE-103: Onboarding photo "Load failed" - no retry + backend race condition (RECURRING) (Feb 22)** | 3 root causes | 🔴 קריטי | ✅ תוקן |
+| **ISSUE-103: Onboarding photo "Load failed" - R2 URLs not publicly accessible (TRUE ROOT CAUSE) (Feb 23)** | 4 root causes | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-102: Video playback black screen after recording - missing playsInline + preload + autoPlay + no error handling (Feb 19)** | 7 root causes | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-101: Onboarding photos not displaying after upload - useEffect overwrite + stale closure + no error handling (RECURRING) (Feb 19)** | 4 root causes | 🔴 קריטי | ✅ תוקן |
 | **ISSUE-100: Video recording 00:00 / not saving - Cross-browser codec + missing duration (RECURRING) (Feb 19)** | 6 root causes | 🔴 קריטי | ✅ תוקן |
@@ -4904,32 +4904,60 @@ Then rebuild the web container: `docker compose up -d --build web`
 
 ---
 
-## ✅ ISSUE-103: Onboarding Photo "Load Failed" - No Retry + Backend Race Condition (RECURRING) (22 פברואר 2026)
+## ✅ ISSUE-103: Onboarding Photo "Load Failed" - R2 URLs Not Publicly Accessible (TRUE ROOT CAUSE) (23 פברואר 2026)
 
 ### חומרה: 🔴 קריטי | סטטוס: ✅ תוקן
 
-**מקור:** QA testing on qa.bellor.app/Onboarding?step=8 - User uploads photo, image shows "Load failed" warning triangle instead of the uploaded photo.
+**מקור:** QA testing on qa.bellor.app/Onboarding?step=8 - User uploads photo, image shows "Load failed" warning triangle instead of the uploaded photo. **Issue recurred multiple times** (ISSUE-099, ISSUE-101) because previous fixes addressed symptoms, not the true root cause.
 
-### שורשי הבעיה (3 root causes)
+### שורש הבעיה האמיתי (TRUE ROOT CAUSE)
+
+`getPublicUrl()` in `storage-utils.ts` returned raw R2 S3 API endpoint URLs when `CDN_URL` was not configured:
+
+```
+// BEFORE (BROKEN):
+return `${env.R2_ENDPOINT}/${BUCKET}/${key}`;
+// Example: https://xxx.r2.cloudflarestorage.com/bellor-media/profiles/user/123.webp
+```
+
+**These URLs require AWS Signature V4 authentication** — browsers receive 403 Forbidden when loading them as `<img src>`. This is why the issue was configuration-dependent and kept recurring despite code fixes.
+
+### שורשי הבעיה (4 root causes)
 
 | # | Root Cause | File | Severity |
 |---|-----------|------|----------|
-| 1 | **No image load retry** - When `<img>` onError fires (CDN delay, network glitch), image is immediately marked as broken with no retry. Single transient failure = permanent "Load failed". | `StepPhotos.jsx` | 🔴 Critical |
-| 2 | **Backend race condition on profileImages** - Non-atomic read-modify-write: `findUnique` → `push` → `update`. Concurrent uploads can lose images. | `upload-handlers.ts:34-37` | 🔴 Critical |
-| 3 | **No visual test for photo upload** - No E2E visual regression test covering step 8 photo grid, so broken image states were never caught automatically. | Missing test | 🟡 Medium |
+| 1 | **`getPublicUrl()` returns non-public R2 S3 endpoint URLs** - When `CDN_URL` is not set, `getPublicUrl()` fell back to raw R2 API URLs that require AWS auth. Browsers cannot load these. **This is WHY the issue kept recurring.** | `storage-utils.ts:57-62` | 🔴 Critical |
+| 2 | **`uploadToStorage()` didn't save locally when R2 available** - When S3 client existed but CDN_URL was missing, files were uploaded to R2 only — no local copy. The returned R2 URL was unloadable AND no local fallback existed. | `upload-core.ts:27-42` | 🔴 Critical |
+| 3 | **No image load retry in frontend** - When `<img>` onError fires, image immediately marked as broken with no retry. | `StepPhotos.jsx` | 🟡 Medium |
+| 4 | **Backend race condition on profileImages** - Non-atomic read-modify-write on concurrent uploads. | `upload-handlers.ts` | 🟡 Medium |
 
-### Related: 13 components with missing `<img>` onError handlers
+### Why previous fixes didn't work
 
-FeedPost, MessageList, CreationResponseGrid, DateIdeaCard, StoryPreview, MyStoriesSection, RecentStoriesGrid, Profile, Settings, Login, UserProfileAbout, FeedPostHeader, FollowingCard.
+| Issue | What it fixed | Why it wasn't enough |
+|-------|-------------|---------------------|
+| ISSUE-099 | Dual-write conflict (frontend overwriting backend) | Correct but unrelated to URL accessibility |
+| ISSUE-101 | Stale useEffect overwriting photos | Correct but unrelated to URL accessibility |
+| ISSUE-103 (initial) | Added retry + atomic push | Symptom fix — retrying a non-public R2 URL will always fail |
 
 ### תיקונים שבוצעו
 
 | # | Fix | File | Details |
 |---|-----|------|---------|
-| 1 | **Added `useImageRetry` hook** | `apps/web/src/hooks/useImageRetry.js` | Auto-retries failed images 2x with cache-busting query param. After exhausting retries, shows "Tap to retry" (manual retry). |
-| 2 | **Replaced "Load failed" with "Tap to retry"** | `apps/web/src/components/onboarding/steps/StepPhotos.jsx` | Users can now manually retry broken images instead of seeing a dead-end error state. |
-| 3 | **Atomic Prisma push** | `apps/api/src/routes/v1/uploads/upload-handlers.ts` | Replaced `findUnique` → `push` → `update` with `prisma.user.update({ data: { profileImages: { push: url } } })` - single atomic DB operation. |
-| 4 | **Visual regression test** | `apps/web/e2e/visual/onboarding-photos-visual.spec.ts` | 3 tests: uploaded photos grid, broken image state, empty grid. Catches future photo display regressions. |
+| 1 | **`getPublicUrl()` never returns R2 API URLs** | `storage-utils.ts` | Falls back to `getLocalUrl(key)` instead of raw R2 endpoint URL when `CDN_URL` is not set. |
+| 2 | **`uploadToStorage()` always saves locally when no CDN** | `upload-core.ts` | When R2 is configured but CDN_URL is not: uploads to R2 (backup) AND saves locally, returns local URL. |
+| 3 | **URL sanitizer for existing DB records** | `storage-utils.ts` | `sanitizeImageUrl()` / `sanitizeImageUrls()` converts existing broken R2 URLs in DB to local URLs at read time. |
+| 4 | **Sanitizer applied to auth + upload handlers** | `auth-handlers.ts`, `upload-handlers.ts`, `upload-presigned.ts` | `handleGetMe` and profile image upload/delete responses now sanitize profileImages before returning to client. |
+| 5 | **Frontend retry mechanism** | `useImageRetry.js` + `StepPhotos.jsx` | Auto-retry 2x with cache-busting + "Tap to retry" manual retry (from initial ISSUE-103 fix). |
+| 6 | **Atomic Prisma push** | `upload-handlers.ts` | Single atomic DB operation for concurrent upload safety (from initial ISSUE-103 fix). |
+| 7 | **Visual regression test** | `onboarding-photos-visual.spec.ts` | 3 tests covering uploaded photos, broken image state, empty grid. |
+
+### URL Strategy (post-fix)
+
+| Configuration | Upload behavior | URL returned |
+|--------------|----------------|-------------|
+| CDN_URL + R2 | Upload to R2 | `https://media.bellor.app/{key}` (CDN) |
+| R2 only (no CDN) | Upload to R2 + save locally | `/uploads/{key}` (local, served by Nginx/Fastify) |
+| No R2 | Save locally only | `/uploads/{key}` (local) |
 
 ### בדיקות
 

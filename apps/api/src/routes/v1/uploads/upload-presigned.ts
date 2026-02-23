@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { storageService } from '../../../services/storage.service.js';
 import { prisma } from '../../../lib/prisma.js';
+import { sanitizeImageUrl } from '../../../services/storage/storage-utils.js';
 
 export const presignedUrlQuerySchema = z.object({
   folder: z.enum(['profiles', 'stories', 'audio', 'responses']),
@@ -43,7 +44,8 @@ export async function handleDeleteProfileImage(request: FastifyRequest, reply: F
       select: { profileImages: true },
     });
 
-    const profileImages = (user?.profileImages || []).filter(img => img !== url);
+    // Compare sanitized URLs — frontend sends local URL, DB may have R2 URL
+    const profileImages = (user?.profileImages || []).filter(img => sanitizeImageUrl(img) !== url);
 
     await prisma.user.update({
       where: { id: request.user!.userId },
