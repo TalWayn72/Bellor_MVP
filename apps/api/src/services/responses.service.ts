@@ -4,6 +4,7 @@ import {
   CreateResponseInput,
   ListResponsesParams,
   RESPONSE_INCLUDE,
+  sanitizeResponseUrls,
 } from './responses/response-utils.js';
 
 export class ResponsesService {
@@ -34,7 +35,7 @@ export class ResponsesService {
       }),
     ]);
 
-    return response;
+    return sanitizeResponseUrls(response);
   }
 
   /**
@@ -50,7 +51,7 @@ export class ResponsesService {
       throw new Error('Response not found');
     }
 
-    return response;
+    return sanitizeResponseUrls(response);
   }
 
   /**
@@ -65,7 +66,7 @@ export class ResponsesService {
     if (responseType) where.responseType = responseType;
     if (isPublic !== undefined) where.isPublic = isPublic;
 
-    const [responses, total] = await Promise.all([
+    const [rawResponses, total] = await Promise.all([
       prisma.response.findMany({
         where,
         skip: offset,
@@ -77,12 +78,12 @@ export class ResponsesService {
     ]);
 
     return {
-      responses,
+      responses: rawResponses.map(sanitizeResponseUrls),
       pagination: {
         total,
         limit,
         offset,
-        hasMore: offset + responses.length < total,
+        hasMore: offset + rawResponses.length < total,
       },
     };
   }

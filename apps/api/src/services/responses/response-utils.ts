@@ -4,6 +4,7 @@
  */
 
 import { ResponseType } from '@prisma/client';
+import { sanitizeImageUrl, sanitizeImageUrls } from '../storage/storage-utils.js';
 
 export interface CreateResponseInput {
   userId: string;
@@ -45,3 +46,14 @@ export const RESPONSE_INCLUDE = {
   user: { select: RESPONSE_USER_SELECT },
   mission: { select: RESPONSE_MISSION_SELECT },
 } as const;
+
+/** Sanitize media URLs in a response (content, thumbnailUrl, user.profileImages) */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function sanitizeResponseUrls<T extends Record<string, any>>(response: T): T {
+  if (response.content) response.content = sanitizeImageUrl(response.content);
+  if (response.thumbnailUrl) response.thumbnailUrl = sanitizeImageUrl(response.thumbnailUrl);
+  if (response.user?.profileImages) {
+    response.user.profileImages = sanitizeImageUrls(response.user.profileImages);
+  }
+  return response;
+}
