@@ -13,9 +13,33 @@ export interface MockUser {
   birthDate: Date;
   gender: 'MALE' | 'FEMALE' | 'NON_BINARY' | 'OTHER';
   preferredLanguage: 'ENGLISH' | 'HEBREW' | 'SPANISH' | 'GERMAN' | 'FRENCH';
+  bio: string | null;
+  profileImages: string[];
+  drawingUrl: string | null;
+  sketchMethod: string | null;
+  location: string | null;
+  lookingFor: string | null;
+  ageRangeMin: number;
+  ageRangeMax: number;
+  maxDistance: number;
+  phone: string | null;
+  occupation: string | null;
+  education: string | null;
+  interests: string[];
+  showOnline: boolean;
+  showDistance: boolean;
+  showAge: boolean;
+  privateProfile: boolean;
+  doNotSell: boolean;
+  notifyNewMatches: boolean;
+  notifyNewMessages: boolean;
+  notifyChatRequests: boolean;
+  notifyDailyMissions: boolean;
+  notifyEmail: boolean;
   isBlocked: boolean;
   isVerified: boolean;
   isPremium: boolean;
+  isAdmin: boolean;
   role: 'USER' | 'ADMIN';
   createdAt: Date;
   updatedAt: Date;
@@ -32,9 +56,33 @@ export const createMockUser = (overrides: Partial<MockUser> = {}): MockUser => (
   birthDate: new Date('1990-01-01'),
   gender: 'MALE',
   preferredLanguage: 'ENGLISH',
+  bio: null,
+  profileImages: [],
+  drawingUrl: null,
+  sketchMethod: null,
+  location: null,
+  lookingFor: null,
+  ageRangeMin: 18,
+  ageRangeMax: 50,
+  maxDistance: 50,
+  phone: null,
+  occupation: null,
+  education: null,
+  interests: [],
+  showOnline: true,
+  showDistance: true,
+  showAge: true,
+  privateProfile: false,
+  doNotSell: false,
+  notifyNewMatches: true,
+  notifyNewMessages: true,
+  notifyChatRequests: true,
+  notifyDailyMissions: true,
+  notifyEmail: true,
   isBlocked: false,
   isVerified: false,
   isPremium: false,
+  isAdmin: false,
   role: 'USER',
   createdAt: new Date(),
   updatedAt: new Date(),

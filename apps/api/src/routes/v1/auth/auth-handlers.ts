@@ -87,9 +87,12 @@ export async function handleGetMe(request: FastifyRequest, reply: FastifyReply) 
     });
     if (!user) return reply.code(404).send({ success: false, error: { code: 'USER_NOT_FOUND', message: 'User not found' } });
     // Sanitize profile image URLs — convert broken R2 S3 endpoint URLs to local paths
-    const sanitizedUser = { ...user, profileImages: sanitizeImageUrls(user.profileImages) };
+    const sanitizedUser = { ...user, profileImages: sanitizeImageUrls(user.profileImages ?? []) };
     return reply.code(200).send({ success: true, data: sanitizedUser });
-  } catch { return reply.code(500).send({ success: false, error: { code: 'INTERNAL_SERVER_ERROR', message: 'An error occurred while fetching user data' } }); }
+  } catch (error) {
+    logger.error('AUTH', 'Failed to fetch user profile', error instanceof Error ? error : new Error(String(error)));
+    return reply.code(500).send({ success: false, error: { code: 'INTERNAL_SERVER_ERROR', message: 'An error occurred while fetching user data' } });
+  }
 }
 
 export async function handleChangePassword(request: FastifyRequest, reply: FastifyReply) {
