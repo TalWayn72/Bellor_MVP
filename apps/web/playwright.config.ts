@@ -72,6 +72,15 @@ export default defineConfig({
       ...(isCI ? [{ name: 'firefox', use: { ...devices['Desktop Firefox'] } }] : []),
     ].map((p) => ({ ...p, testIgnore: /full-stack|visual/, timeout: 15000, retries: 0 })),
 
+    // === Visual Regression Tests ===
+    {
+      name: 'visual',
+      use: { ...devices['Desktop Chrome'] },
+      testMatch: /visual\/.*\.spec\.ts/,
+      timeout: 30000,
+      retries: 0,
+    },
+
     // === Full-Stack E2E Tests (only when FULLSTACK env is set) ===
     ...(isFullStack
       ? [

@@ -50,10 +50,11 @@ export const RESPONSE_INCLUDE = {
 /** Sanitize media URLs in a response (content, thumbnailUrl, user.profileImages) */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function sanitizeResponseUrls<T extends Record<string, any>>(response: T): T {
-  if (response.content) response.content = sanitizeImageUrl(response.content);
-  if (response.thumbnailUrl) response.thumbnailUrl = sanitizeImageUrl(response.thumbnailUrl);
-  if (response.user?.profileImages) {
-    response.user.profileImages = sanitizeImageUrls(response.user.profileImages);
+  const r = response as Record<string, any>;
+  if (r.content) r.content = sanitizeImageUrl(r.content);
+  if (r.thumbnailUrl) r.thumbnailUrl = sanitizeImageUrl(r.thumbnailUrl);
+  if (r.user?.profileImages) {
+    r.user.profileImages = sanitizeImageUrls(r.user.profileImages);
   }
   return response;
 }

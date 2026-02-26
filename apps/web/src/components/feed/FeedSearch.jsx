@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Search, X, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { InputWithIcon } from '@/components/ui/input';
 
 export default function FeedSearch({ onSearch, onFilter }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,14 +25,15 @@ export default function FeedSearch({ onSearch, onFilter }) {
     return (
       <div className="bg-white px-4 py-3 mb-2">
         <div className="flex gap-2">
-          <div className="flex-1 relative">
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
-            <Input
+          <div className="flex-1">
+            <InputWithIcon
+              icon={<Search className="w-4 h-4" />}
+              iconPosition="right"
               placeholder="חפש בפיד..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              className="pr-10 h-10"
+              className="h-10"
             />
           </div>
           <Button

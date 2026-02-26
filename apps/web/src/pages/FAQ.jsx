@@ -4,7 +4,7 @@ import { ChevronDown, ChevronUp, Search, HelpCircle } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { InputWithIcon } from '@/components/ui/input';
 import BackButton from '@/components/navigation/BackButton';
 import { EmptyState } from '@/components/states';
 import { faqs } from '@/components/support/faqData';
@@ -36,14 +36,14 @@ export default function FAQ() {
       </header>
 
       <div className="max-w-2xl mx-auto p-4 space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <Input
+        <div>
+          <InputWithIcon
+            icon={<Search className="w-5 h-5" />}
+            iconPosition="left"
             type="text"
             placeholder="Search questions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
           />
         </div>
 

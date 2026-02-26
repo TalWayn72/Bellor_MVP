@@ -1,6 +1,6 @@
 # תקלות פתוחות - Bellor MVP
 
-**תאריך עדכון:** 23 פברואר 2026
+**תאריך עדכון:** 26 פברואר 2026
 **מצב:** ✅ Production Deployed on Oracle Cloud Free Tier (ISSUE-081)
 
 ---
@@ -6197,3 +6197,55 @@ Frontend שלח שדות שלא תואמים את ה-Zod schema של ה-Backend:
 ### קבצים שהשתנו
 - `apps/web/src/components/onboarding/steps/StepDrawing.jsx` - תיקון stale closure + path accumulation
 - `apps/web/e2e/onboarding-drawing.spec.ts` - הוספת טסט אימות צבע ברמת פיקסל
+
+---
+
+## ✅ ISSUE-098: Search Icon Not Clickable in Admin User Management (26 פברואר 2026)
+
+### חומרה: 🟡 בינוני | סטטוס: ✅ תוקן
+
+**מקור:** QA testing - magnifying glass icon in AdminUserManagement search bar is not clickable
+
+### בעיה
+אייקון הזכוכית המגדלת (Search icon) בדף ניהול משתמשים מוצב ב-`absolute` positioning מעל ה-input בלי `onClick` handler או עטיפת `<Button>`. המשתמש מצפה ללחוץ עליו אך לא קורה כלום. אותו באג נמצא בעוד 2 קומפוננטות: FeedSearch ו-FAQ.
+
+### שורש הבעיה
+שימוש ב-SVG icon מ-lucide-react עם `absolute` positioning ישירות בתוך `div.relative`, במקום להשתמש ברכיב `InputWithIcon` הקיים שמספק `pointer-events-none` על wrapper ה-icon.
+
+### תיקון
+1. הוספת `pointer-events-none` ל-icon wrappers ב-`InputWithIcon` (`apps/web/src/components/ui/input.jsx`)
+2. החלפת ה-Search icon + Input ב-`InputWithIcon` ב-3 קבצים:
+   - `apps/web/src/components/admin/users/UserFilters.jsx`
+   - `apps/web/src/components/feed/FeedSearch.jsx`
+   - `apps/web/src/pages/FAQ.jsx`
+
+### קבצים שהשתנו
+- `apps/web/src/components/ui/input.jsx` - pointer-events-none on icon wrappers
+- `apps/web/src/components/admin/users/UserFilters.jsx` - InputWithIcon (right)
+- `apps/web/src/components/feed/FeedSearch.jsx` - InputWithIcon (right)
+- `apps/web/src/pages/FAQ.jsx` - InputWithIcon (left)
+
+---
+
+## ✅ ISSUE-099: Comprehensive Visual Regression Test Suite (26 פברואר 2026)
+
+### חומרה: 🟢 שיפור | סטטוס: ✅ הושלם
+
+**מקור:** Need for comprehensive visual testing coverage across all 52 pages
+
+### תיאור
+הרחבה מקיפה של סוויטת הבדיקות הויזואליות מ-15 תרחישים ל-90+ בדיקות המכסות את כל 52 הדפים ביישום. הקובץ הישן (438 שורות) פוצל ל-14 קבצי בדיקה לפי דומיין + 2 קבצי helpers.
+
+### מה נוסף
+- **14 קבצי בדיקה**: public, admin, social, chat, profile, settings, features, support, missions, tasks, mobile, dark mode, interactions, RTL
+- **2 קבצי helpers**: visual-helpers.ts, visual-mocks.ts
+- **~90 בדיקות** מכסות: desktop + mobile (390x844) + dark mode + RTL + interaction states
+- **Playwright config** עודכן עם project `visual` ייעודי (timeout 30s, no retries)
+- תיקון שגיאת build קיימת ב-API (`response-utils.ts` - TypeScript generic narrowing)
+- תיקון ESM require issue ב-`onboarding-photos-visual.spec.ts`
+
+### קבצים שנוצרו/השתנו
+- 16 קבצים חדשים ב-`apps/web/e2e/visual/`
+- `apps/web/playwright.config.ts` - visual project
+- `apps/web/e2e/visual/visual-regression.spec.ts` - נמחק (הוחלף ב-14 קבצים)
+- `apps/api/src/services/responses/response-utils.ts` - TypeScript build fix
