@@ -10,12 +10,10 @@ import EditProfileImages from '@/components/profile/EditProfileImages';
 import EditProfileForm from '@/components/profile/EditProfileForm';
 import { useToast } from '@/components/ui/use-toast';
 
-function getLocationString(location) {
-  if (!location) return '';
-  if (typeof location === 'string') return location;
-  if (typeof location === 'object') return location.city || '';
-  return '';
-}
+const getLocationCountry = (loc) =>
+  loc && typeof loc === 'object' ? loc.country || '' : '';
+const getLocationCity = (loc) =>
+  !loc ? '' : typeof loc === 'object' ? loc.city || '' : String(loc);
 
 function getAge(birthDate) {
   if (!birthDate) return '';
@@ -44,7 +42,7 @@ export default function EditProfile() {
   const { currentUser, isLoading: userLoading, updateUser } = useCurrentUser();
   const [formData, setFormData] = useState({
     nickname: '', bio: '', age: '', gender: '', looking_for: '',
-    location: '', phone: '', occupation: '', education: '',
+    location_country: '', location_city: '', phone: '', occupation: '', education: '',
     interests: [], profile_images: [],
   });
   const [newInterest, setNewInterest] = useState('');
@@ -58,7 +56,8 @@ export default function EditProfile() {
         age: getAge(currentUser.birthDate),
         gender: (currentUser.gender || '').toLowerCase(),
         looking_for: getLookingFor(currentUser.lookingFor || currentUser.looking_for),
-        location: getLocationString(currentUser.location),
+        location_country: getLocationCountry(currentUser.location),
+        location_city: getLocationCity(currentUser.location),
         phone: currentUser.phone || '',
         occupation: currentUser.occupation || '',
         education: currentUser.education || '',
@@ -73,6 +72,9 @@ export default function EditProfile() {
     setIsSaving(true);
     try {
       const ageNum = parseInt(formData.age, 10);
+      const location = formData.location_country
+        ? { city: formData.location_city || '', country: formData.location_country }
+        : formData.location_city ? { city: formData.location_city } : null;
       const updateData = {
         nickname: formData.nickname,
         bio: formData.bio,
@@ -80,7 +82,7 @@ export default function EditProfile() {
         lookingFor: formData.looking_for
           ? (formData.looking_for === 'both' ? ['MALE', 'FEMALE'] : [formData.looking_for.toUpperCase()])
           : [],
-        location: formData.location,
+        location,
         profileImages: formData.profile_images || [],
         phone: formData.phone || null,
         occupation: formData.occupation || null,

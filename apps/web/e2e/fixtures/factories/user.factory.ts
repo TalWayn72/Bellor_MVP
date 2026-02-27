@@ -11,10 +11,14 @@ export interface MockUser {
   nickname?: string;
   age?: number;
   bio?: string;
-  location?: string;
+  birthDate?: string;
+  gender?: string;
+  lookingFor?: string[];
+  location?: string | { city?: string; country?: string };
   profileImages?: string[];
   isVerified?: boolean;
   isPremium?: boolean;
+  [key: string]: unknown;
 }
 
 export function createMockUser(overrides: Partial<MockUser> = {}): MockUser {

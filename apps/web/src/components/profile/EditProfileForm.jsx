@@ -4,8 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { countries, findCountry } from '@/data/countries';
 
 export default function EditProfileForm({ formData, setFormData, newInterest, setNewInterest }) {
+  const selectedCountry = findCountry(formData.location_country);
   const handleAddInterest = () => {
     if (newInterest.trim() && !formData.interests.includes(newInterest.trim())) {
       setFormData({ ...formData, interests: [...formData.interests, newInterest.trim()] });
@@ -57,8 +59,22 @@ export default function EditProfileForm({ formData, setFormData, newInterest, se
               </select>
             </div>
             <div>
-              <label className="block text-sm text-muted-foreground mb-1">Location</label>
-              <Input value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} placeholder="City, Country" className="w-full" />
+              <label className="block text-sm text-muted-foreground mb-1">Country</label>
+              <select value={formData.location_country} onChange={(e) => setFormData({ ...formData, location_country: e.target.value, location_city: '' })} className="w-full h-10 px-3 rounded-md border border-border bg-background text-foreground">
+                <option value="">Select country...</option>
+                {countries.map(c => (
+                  <option key={c.code} value={c.name}>{c.flag} {c.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm text-muted-foreground mb-1">City</label>
+              <select value={formData.location_city} onChange={(e) => setFormData({ ...formData, location_city: e.target.value })} className="w-full h-10 px-3 rounded-md border border-border bg-background text-foreground" disabled={!selectedCountry}>
+                <option value="">Select city...</option>
+                {selectedCountry?.cities.map(city => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm text-muted-foreground mb-1">Phone</label>

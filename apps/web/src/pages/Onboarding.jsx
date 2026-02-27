@@ -48,9 +48,9 @@ export default function Onboarding() {
         return {
           ...prev, nickname: authUser.nickname || prev.nickname,
           date_of_birth: formatDateForInput(authUser.birth_date) || prev.date_of_birth,
-          location: typeof authUser.location === 'object' ? authUser.location?.city : (authUser.location || prev.location),
-          location_city: authUser.location?.city || authUser.location_city || prev.location_city,
-          location_state: authUser.location?.country || authUser.location_state || prev.location_state,
+          location: typeof authUser.location === 'object' ? (authUser.location?.country || '') : (authUser.location || prev.location),
+          location_city: typeof authUser.location === 'object' ? (authUser.location?.city || '') : (authUser.location_city || prev.location_city),
+          location_state: typeof authUser.location === 'object' ? (authUser.location?.country || '') : (authUser.location_state || prev.location_state),
           gender: authUser.gender || prev.gender,
           looking_for: Array.isArray(authUser.looking_for) ? authUser.looking_for[0] : (authUser.looking_for || prev.looking_for),
           profile_images: skipPhotos ? prev.profile_images : ((authUser.profile_images?.length > 0) ? authUser.profile_images : prev.profile_images),
