@@ -1,28 +1,35 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '@/lib/AuthContext';
 import { createPageUrl } from '@/utils';
 
 /**
- * Home Page - Default entry point
- * This is the page that loads when user visits the root URL
- * Redirects to Welcome page to start the onboarding flow
+ * Home Page - Default entry point.
+ * Redirects users to the correct authenticated or public entry point.
  */
 export default function Home() {
-  const navigate = useNavigate();
+  const { user, isAuthenticated, isLoadingAuth } = useAuth();
 
-  useEffect(() => {
-    // Always redirect to Welcome page - start of the flow
-    navigate(createPageUrl('Welcome'), { replace: true });
-  }, [navigate]);
+  if (isLoadingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-500 via-primary-400 to-secondary-400 flex items-center justify-center">
+        <img
+          src="/bellor-logo.png"
+          alt="Bellor"
+          className="w-48 h-auto drop-shadow-2xl animate-pulse"
+        />
+      </div>
+    );
+  }
 
-  // Show splash while redirecting
+  if (!isAuthenticated) {
+    return <Navigate to={createPageUrl('Welcome')} replace />;
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-500 via-primary-400 to-secondary-400 flex items-center justify-center">
-      <img
-        src="/bellor-logo.png"
-        alt="Bellør"
-        className="w-48 h-auto drop-shadow-2xl animate-pulse"
-      />
-    </div>
+    <Navigate
+      to={createPageUrl(user?.is_admin ? 'AdminDashboard' : 'SharedSpace')}
+      replace
+    />
   );
 }
