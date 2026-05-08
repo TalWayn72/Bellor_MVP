@@ -51,8 +51,10 @@ jobs:
         working-directory: apps/web
 
       - name: Decode keystore
-        if: secrets.ANDROID_KEYSTORE_BASE64 != ''
-        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > apps/web/android/app/bellor-release.keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        if: env.ANDROID_KEYSTORE_BASE64 != ''
+        run: echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > apps/web/android/app/bellor-release.keystore
 
       - name: Build release AAB
         working-directory: apps/web/android
@@ -70,7 +72,9 @@ jobs:
           retention-days: 30
 
       - name: Upload to Play Store
-        if: secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '' && github.event.inputs.track != ''
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        if: env.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '' && github.event.inputs.track != ''
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
