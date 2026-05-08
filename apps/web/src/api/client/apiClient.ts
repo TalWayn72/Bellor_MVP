@@ -35,7 +35,7 @@ class ApiClient {
     this.client.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
         const token = tokenStorage.getAccessToken();
-        if (token) {
+        if (token && token !== 'undefined') {
           config.headers.Authorization = `Bearer ${token}`;
         }
         if (config.data && !(config.data instanceof FormData)) {

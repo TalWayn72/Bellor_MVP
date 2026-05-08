@@ -5,6 +5,12 @@
 
 import { apiClient } from '../client/apiClient';
 import { tokenStorage } from '../client/tokenStorage';
+import {
+  type AuthResponse,
+  type RefreshResponse,
+  normalizeAuthResponse,
+  normalizeRefreshResponse,
+} from './authTokenResponse';
 
 interface RegisterData {
   email: string;
@@ -29,12 +35,6 @@ interface AuthUser {
   [key: string]: unknown;
 }
 
-interface AuthResponse {
-  user: AuthUser;
-  accessToken: string;
-  refreshToken: string;
-}
-
 interface ChangePasswordData {
   oldPassword: string;
   newPassword: string;
@@ -44,31 +44,27 @@ interface ChangePasswordResponse {
   message: string;
 }
 
-interface RefreshResponse {
-  accessToken: string;
-}
-
 export const authService = {
   async register(data: RegisterData): Promise<AuthResponse> {
     const response = await apiClient.post('/auth/register', data);
-    const responseData = ((response.data as { data?: AuthResponse }).data || response.data) as AuthResponse;
-    const { user, accessToken, refreshToken } = responseData;
+    const authResponse = normalizeAuthResponse(response.data);
+    const { user, accessToken, refreshToken } = authResponse;
 
     tokenStorage.setTokens(accessToken, refreshToken);
     tokenStorage.setUser(user);
 
-    return responseData;
+    return authResponse;
   },
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const response = await apiClient.post('/auth/login', credentials);
-    const responseData = ((response.data as { data?: AuthResponse }).data || response.data) as AuthResponse;
-    const { user, accessToken, refreshToken } = responseData;
+    const authResponse = normalizeAuthResponse(response.data);
+    const { user, accessToken, refreshToken } = authResponse;
 
     tokenStorage.setTokens(accessToken, refreshToken);
     tokenStorage.setUser(user);
 
-    return responseData;
+    return authResponse;
   },
 
   async logout(): Promise<void> {
@@ -87,12 +83,12 @@ export const authService = {
     }
 
     const response = await apiClient.post('/auth/refresh', { refreshToken });
-    const responseData = ((response.data as { data?: RefreshResponse }).data || response.data) as RefreshResponse;
-    const { accessToken } = responseData;
+    const refreshResponse = normalizeRefreshResponse(response.data);
+    const { accessToken } = refreshResponse;
 
     tokenStorage.setAccessToken(accessToken);
 
-    return responseData;
+    return refreshResponse;
   },
 
   async changePassword(data: ChangePasswordData): Promise<ChangePasswordResponse> {
