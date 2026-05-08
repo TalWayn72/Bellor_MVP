@@ -34,6 +34,7 @@
     "prisma:generate": "npm run prisma:generate --workspace=@bellor/api",
     "prisma:migrate": "npm run prisma:migrate --workspace=@bellor/api",
     "prisma:migrate:deploy": "cd apps/api && npx prisma migrate deploy",
+    "prisma:seed": "npm run prisma:seed --workspace=@bellor/api",
     "prisma:studio": "npm run prisma:studio --workspace=@bellor/api",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
