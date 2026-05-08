@@ -24,7 +24,7 @@ For full product context: [`docs/product/PRD.md`](./docs/product/PRD.md).
 ## Stack at a glance
 
 ### Backend (`apps/api`)
-- **Runtime:** Node.js 20+
+- **Runtime:** Node.js 20.19+ (or 22.12+, or 24+) — older 20.x versions fail with `require() of ES Module` errors due to jsdom@28's transitive ESM deps
 - **Framework:** Fastify 5
 - **ORM:** Prisma
 - **Database:** PostgreSQL 16

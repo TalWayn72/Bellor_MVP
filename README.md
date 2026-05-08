@@ -12,7 +12,7 @@ A modern dating and social networking platform built for scale. Fully standalone
 
 ## Quick Start
 
-**Prerequisites:** Node.js 20+, npm 9+, Docker Desktop
+**Prerequisites:** Node.js 20.19+ (or 22.12+, or 24+), npm 9+, Docker Desktop
 
 ```bash
 git clone https://github.com/TalWayn72/Bellor_MVP.git
@@ -124,7 +124,7 @@ For detailed architecture diagrams (Mermaid): [docs/architecture/ARCHITECTURE.md
 | Layer | Technologies |
 |-------|-------------|
 | **Frontend** | React 18.2, Vite 6.1, TypeScript 5.8, Tailwind CSS 3.4, Radix UI, TanStack Query 5, React Router 6, Framer Motion 11 |
-| **Backend** | Node.js 20+, Fastify 5.2, Prisma 6.19, Zod 3.23, Socket.io 4.8, Stripe 20.3, Firebase Admin 13.6 |
+| **Backend** | Node.js 20.19+ (or 22.12+, or 24+), Fastify 5.2, Prisma 6.19, Zod 3.23, Socket.io 4.8, Stripe 20.3, Firebase Admin 13.6 |
 | **Database** | PostgreSQL 16 (40+ indexes), Redis 7 (sessions, cache, presence) |
 | **Testing** | Vitest 2.1 (2,649 unit/integration tests across 935 files), Playwright (224 mocked + 214 full-stack E2E tests + visual regression + accessibility), k6 (7 load test scripts) |
 | **DevOps** | Docker 24+, Kubernetes 1.28+, GitHub Actions, Prometheus, Grafana, Loki, Alertmanager |

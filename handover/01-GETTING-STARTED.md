@@ -12,15 +12,17 @@ Install these on your development machine:
 
 | Tool | Minimum version | Why |
 |------|-----------------|-----|
-| **Node.js** | 20.x or higher | Runtime for both frontend and backend |
+| **Node.js** | **20.19.0** or 22.12+ or 24+ | Runtime for both frontend and backend. **Older 20.x will fail** when running tests — `jsdom@28` (a transitive dev dep) needs `require(esm)` support, added in 20.19. |
 | **npm** | 9.x or higher | Comes with modern Node — verify with `npm -v` |
 | **Docker Desktop** | latest | Runs PostgreSQL + Redis locally |
 | **Git** | any recent | Cloning, pushing |
 | **GitHub CLI (`gh`)** | optional but recommended | Easier CI/CD verification |
 
+> **If you see** `require() of ES Module @exodus/bytes/encoding-lite.js from html-encoding-sniffer is not supported` **when running tests** — your Node is too old. Upgrade to 20.19+ (or use [Volta](https://volta.sh/) / [nvm](https://github.com/nvm-sh/nvm) to switch).
+
 **Verify everything:**
 ```bash
-node -v        # should print v20.x.x or higher
+node -v        # should print v20.19.x or higher (or v22.12+, or v24+)
 npm -v         # should print 9.x.x or higher
 docker -v      # should print Docker version
 git --version
