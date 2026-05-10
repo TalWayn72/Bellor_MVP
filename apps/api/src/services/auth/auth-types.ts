@@ -20,6 +20,7 @@ export interface AuthResponse {
     firstName: string;
     lastName: string;
     preferredLanguage: string;
+    isAdmin: boolean;
   };
   accessToken: string;
   refreshToken: string;

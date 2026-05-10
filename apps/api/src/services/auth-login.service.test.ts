@@ -39,6 +39,7 @@ describe('[P0][auth] AuthService - login', () => {
       lastName: 'Doe',
       preferredLanguage: 'ENGLISH',
       isBlocked: false,
+      isAdmin: false,
     };
 
     mockPrisma.user.findUnique.mockResolvedValue(mockUser);
@@ -50,6 +51,28 @@ describe('[P0][auth] AuthService - login', () => {
     expect(result).toHaveProperty('accessToken');
     expect(result).toHaveProperty('refreshToken');
     expect(result.user.email).toBe(loginInput.email);
+    expect(result.user.isAdmin).toBe(false);
+  });
+
+  it('should return admin status on successful login', async () => {
+    const hashedPassword = await bcrypt.hash(loginInput.password, 12);
+    const mockUser = {
+      id: 'admin-user-id',
+      email: loginInput.email,
+      passwordHash: hashedPassword,
+      firstName: 'Admin',
+      lastName: 'User',
+      preferredLanguage: 'ENGLISH',
+      isBlocked: false,
+      isAdmin: true,
+    };
+
+    mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+    mockPrisma.user.update.mockResolvedValue(mockUser);
+
+    const result = await AuthService.login(loginInput);
+
+    expect(result.user.isAdmin).toBe(true);
   });
 
   it('should update lastActiveAt on successful login', async () => {
@@ -60,6 +83,7 @@ describe('[P0][auth] AuthService - login', () => {
       passwordHash: hashedPassword,
       isBlocked: false,
       preferredLanguage: 'ENGLISH',
+      isAdmin: false,
     };
 
     mockPrisma.user.findUnique.mockResolvedValue(mockUser);
@@ -81,6 +105,7 @@ describe('[P0][auth] AuthService - login', () => {
       passwordHash: hashedPassword,
       isBlocked: false,
       preferredLanguage: 'ENGLISH',
+      isAdmin: false,
     };
 
     mockPrisma.user.findUnique.mockResolvedValue(mockUser);
@@ -144,6 +169,7 @@ describe('[P0][auth] AuthService - login', () => {
       lastName: null,
       isBlocked: false,
       preferredLanguage: 'ENGLISH',
+      isAdmin: false,
     };
 
     mockPrisma.user.findUnique.mockResolvedValue(mockUser);
