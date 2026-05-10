@@ -10,6 +10,7 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 import path from 'path';
 import fs from 'fs/promises';
 import { env } from '../config/env.js';
+import type { Env } from '../config/env.js';
 import {
   UploadResult,
   ImageUploadOptions,
@@ -28,13 +29,34 @@ import {
 // Re-export types for backward compatibility
 export type { UploadResult, ImageUploadOptions };
 
+type R2Config = Pick<Env, 'R2_ENDPOINT' | 'R2_ACCESS_KEY_ID' | 'R2_SECRET_ACCESS_KEY' | 'R2_BUCKET'>;
+
+const hasValue = (value: string | undefined): value is string => !!value?.trim();
+
+const isPlaceholderEndpoint = (endpoint: string): boolean => {
+  const normalized = endpoint.trim().toLowerCase();
+  return normalized.startsWith('https://xxx') || normalized.startsWith('http://xxx');
+};
+
+export function isR2ConfigComplete(config: R2Config): boolean {
+  return (
+    hasValue(config.R2_ENDPOINT) &&
+    !isPlaceholderEndpoint(config.R2_ENDPOINT) &&
+    hasValue(config.R2_ACCESS_KEY_ID) &&
+    hasValue(config.R2_SECRET_ACCESS_KEY) &&
+    hasValue(config.R2_BUCKET)
+  );
+}
+
+const useCloudStorage = isR2ConfigComplete(env);
+
 // R2/S3 Client Configuration
-const s3Client = env.R2_ENDPOINT ? new S3Client({
+const s3Client = useCloudStorage ? new S3Client({
   region: 'auto',
-  endpoint: env.R2_ENDPOINT,
+  endpoint: env.R2_ENDPOINT!.trim(),
   credentials: {
-    accessKeyId: env.R2_ACCESS_KEY_ID || '',
-    secretAccessKey: env.R2_SECRET_ACCESS_KEY || '',
+    accessKeyId: env.R2_ACCESS_KEY_ID!.trim(),
+    secretAccessKey: env.R2_SECRET_ACCESS_KEY!.trim(),
   },
 }) : null;
 
@@ -51,7 +73,7 @@ export const storageService = {
    * Check if using cloud storage
    */
   isCloudConfigured(): boolean {
-    return s3Client !== null && !!env.R2_ENDPOINT;
+    return s3Client !== null;
   },
 
   async uploadProfileImage(

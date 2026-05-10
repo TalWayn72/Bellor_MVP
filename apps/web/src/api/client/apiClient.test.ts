@@ -310,17 +310,33 @@ describe('[P0][infra] ApiClient (interceptors & HTTP methods)', () => {
       });
     });
 
-    it('does not transform FormData request bodies', async () => {
+    it('does not transform FormData request bodies or force JSON content type', async () => {
       // Spy on the transformer to verify it is NOT called for FormData
       const transformSpy = await import('./apiTransformers');
       const camelSpy = vi.spyOn(transformSpy, 'transformKeysToCamelCase');
 
       const formData = new FormData();
-      formData.append('file_name', 'avatar.jpg');
+      formData.append('file', new Blob(['test'], { type: 'image/png' }), 'avatar.png');
 
-      mock.onPost('/upload').reply(200, { url: 'https://cdn.example.com/avatar.jpg' });
+      mock.onPost('/uploads/drawing').reply((config) => {
+        const headers = config.headers as
+          | Record<string, unknown>
+          | { get?: (header: string) => unknown; toJSON?: () => Record<string, unknown> };
+        const contentType =
+          typeof headers?.get === 'function'
+            ? headers.get('Content-Type')
+            : headers?.['Content-Type'] || headers?.['content-type'];
+        const serializedHeaders =
+          typeof headers?.toJSON === 'function' ? headers.toJSON() : headers;
 
-      await apiClient.post('/upload', formData);
+        expect(config.data).toBe(formData);
+        expect(contentType).not.toBe('application/json');
+        expect(serializedHeaders?.['Content-Type']).toBeUndefined();
+        expect(serializedHeaders?.['content-type']).toBeUndefined();
+        return [200, { url: 'https://cdn.example.com/avatar.jpg' }];
+      });
+
+      await apiClient.post('/uploads/drawing', formData);
 
       // The interceptor checks instanceof FormData and skips transformation.
       // transformKeysToCamelCase should NOT have been called with the FormData instance.
