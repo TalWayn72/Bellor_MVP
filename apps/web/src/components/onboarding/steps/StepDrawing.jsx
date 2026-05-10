@@ -56,7 +56,8 @@ export default function StepDrawing({ formData, setFormData, handleNext, handleB
       const file = new File([blob], 'drawing.png', { type: 'image/png' });
       const result = await uploadService.uploadDrawing(file);
       setFormData({ ...formData, drawing_url: result.url });
-    } catch {
+    } catch (err) {
+      console.error('Drawing upload failed', err);
       toast({ title: 'Error', description: 'Error saving drawing. Please try again.', variant: 'destructive' });
       setIsLoading(false);
       return;

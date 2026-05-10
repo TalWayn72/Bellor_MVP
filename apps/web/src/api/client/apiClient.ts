@@ -38,7 +38,17 @@ class ApiClient {
         if (token && token !== 'undefined') {
           config.headers.Authorization = `Bearer ${token}`;
         }
-        if (config.data && !(config.data instanceof FormData)) {
+        const isFormData = config.data instanceof FormData;
+        if (isFormData) {
+          if (typeof config.headers.delete === 'function') {
+            config.headers.delete('Content-Type');
+          }
+          delete (config.headers as Record<string, unknown>)['Content-Type'];
+          delete (config.headers as Record<string, unknown>)['content-type'];
+          if (typeof config.headers.setContentType === 'function') {
+            config.headers.setContentType(null);
+          }
+        } else if (config.data) {
           config.data = transformKeysToCamelCase(config.data);
         }
         return config;

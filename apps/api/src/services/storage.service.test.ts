@@ -55,7 +55,7 @@ vi.mock('../config/env.js', () => ({
 }));
 
 // Import after mocking
-import { storageService } from './storage.service.js';
+import { storageService, isR2ConfigComplete } from './storage.service.js';
 import sharp from 'sharp';
 
 describe('[P2][infra] StorageService', () => {
@@ -83,6 +83,38 @@ describe('[P2][infra] StorageService', () => {
   describe('isCloudConfigured', () => {
     it('should return false when R2 is not configured', () => {
       expect(storageService.isCloudConfigured()).toBe(false);
+    });
+  });
+
+  describe('isR2ConfigComplete', () => {
+    const completeConfig = {
+      R2_ENDPOINT: 'https://account-id.r2.cloudflarestorage.com',
+      R2_ACCESS_KEY_ID: 'access-key',
+      R2_SECRET_ACCESS_KEY: 'secret-key',
+      R2_BUCKET: 'bellor-media',
+    };
+
+    it('should return true when all required R2 values are present', () => {
+      expect(isR2ConfigComplete(completeConfig)).toBe(true);
+    });
+
+    it('should return false when R2 credentials are missing', () => {
+      expect(isR2ConfigComplete({
+        ...completeConfig,
+        R2_ACCESS_KEY_ID: '',
+      })).toBe(false);
+
+      expect(isR2ConfigComplete({
+        ...completeConfig,
+        R2_SECRET_ACCESS_KEY: '   ',
+      })).toBe(false);
+    });
+
+    it('should return false for placeholder R2 endpoints', () => {
+      expect(isR2ConfigComplete({
+        ...completeConfig,
+        R2_ENDPOINT: 'https://xxx.r2.cloudflarestorage.com',
+      })).toBe(false);
     });
   });
 

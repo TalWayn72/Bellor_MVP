@@ -24,9 +24,7 @@ export const uploadService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await apiClient.post('/uploads/profile-image', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await apiClient.post('/uploads/profile-image', formData);
 
     const data = response.data as { data?: UploadResponse } & UploadResponse;
     return data.data || data;
@@ -36,9 +34,7 @@ export const uploadService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await apiClient.post('/uploads/story-media', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await apiClient.post('/uploads/story-media', formData);
 
     const data = response.data as { data?: StoryMediaUploadResponse } & StoryMediaUploadResponse;
     return data.data || data;
@@ -48,9 +44,7 @@ export const uploadService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await apiClient.post('/uploads/audio', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await apiClient.post('/uploads/audio', formData);
 
     const data = response.data as { data?: UploadResponse } & UploadResponse;
     return data.data || data;
@@ -60,9 +54,7 @@ export const uploadService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await apiClient.post('/uploads/video', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await apiClient.post('/uploads/video', formData);
 
     const data = response.data as { data?: UploadResponse } & UploadResponse;
     return data.data || data;
@@ -81,9 +73,7 @@ export const uploadService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await apiClient.post('/uploads/drawing', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await apiClient.post('/uploads/drawing', formData);
 
     const data = response.data as { data?: UploadResponse } & UploadResponse;
     return data.data || data;
@@ -93,9 +83,7 @@ export const uploadService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await apiClient.post('/uploads/response-media', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await apiClient.post('/uploads/response-media', formData);
 
     const data = response.data as { data?: UploadResponse } & UploadResponse;
     return data.data || data;
