@@ -39,6 +39,7 @@ describe('[P0][auth] AuthService - register', () => {
       firstName: validInput.firstName,
       lastName: validInput.lastName,
       preferredLanguage: 'ENGLISH',
+      isAdmin: false,
     };
 
     prismaMock.user.findUnique.mockResolvedValue(null);
@@ -52,6 +53,7 @@ describe('[P0][auth] AuthService - register', () => {
     expect(result.user.email).toBe(validInput.email);
     expect(result.user.firstName).toBe(validInput.firstName);
     expect(result.user.lastName).toBe(validInput.lastName);
+    expect(result.user.isAdmin).toBe(false);
   });
 
   it('should check if email already exists', async () => {
