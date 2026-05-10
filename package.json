@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "npm run dev --workspace=@bellor/web",
     "dev:api": "npm run dev --workspace=@bellor/api",
-    "dev:all": "concurrently --kill-others-on-fail --names api,web --prefix-colors blue,green \"npm run dev --workspace=@bellor/api\" \"npm run dev --workspace=@bellor/web\"",
+    "dev:all": "concurrently --raw --kill-others-on-fail \"npm run dev --workspace=@bellor/api\" \"npm run dev --workspace=@bellor/web\"",
     "build": "npm run build --workspaces --if-present",
     "build:web": "npm run build --workspace=@bellor/web",
     "build:api": "npm run build --workspace=@bellor/api",
