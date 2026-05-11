@@ -5,12 +5,18 @@ import ProgressBar from '@/components/onboarding/ProgressBar';
 import { TOTAL_STEPS } from '@/components/onboarding/utils/onboardingUtils';
 import { useToast } from '@/components/ui/use-toast';
 import CameraIcon from './CameraIcon';
-
 export default function StepVerification({ formData, setFormData, handleNext, handleBack, subStep }) {
   const { toast } = useToast();
   const [verificationStream, setVerificationStream] = useState(null);
   const [verificationPhoto, setVerificationPhoto] = useState(null);
   const videoRef = useRef(null);
+
+  const handleSkipVerification = () => {
+    const skipUntil = new Date();
+    skipUntil.setHours(skipUntil.getHours() + 72);
+    setFormData({ ...formData, verification_skip_until: skipUntil.toISOString() });
+    handleNext();
+  };
 
   const startCamera = async () => {
     try {
@@ -57,7 +63,7 @@ export default function StepVerification({ formData, setFormData, handleNext, ha
               </ul>
             </div>
             <div className="flex gap-3">
-              <Button onClick={handleBack} variant="outline" className="px-8 h-12 text-sm border-2 border-border">SKIP IT</Button>
+              <Button onClick={handleSkipVerification} variant="outline" className="px-8 h-12 text-sm border-2 border-border">SKIP IT</Button>
               <Button onClick={handleNext} className="flex-1 h-12 bg-primary hover:bg-primary/90 text-primary-foreground">VERIFY NOW <ArrowRight className="w-4 h-4 mr-2" /></Button>
             </div>
           </div>
@@ -87,8 +93,6 @@ export default function StepVerification({ formData, setFormData, handleNext, ha
       </div>
     );
   }
-
-  // Default: subStep === 9 (camera selfie)
   return (
     <div className="flex-1 flex flex-col bg-white">
       <div className="flex-1 px-6 py-8 flex flex-col items-center justify-center">
@@ -130,7 +134,7 @@ export default function StepVerification({ formData, setFormData, handleNext, ha
               </>
             ) : (
               <>
-                <Button onClick={() => { const skipUntil = new Date(); skipUntil.setHours(skipUntil.getHours() + 72); setFormData({ ...formData, verification_skip_until: skipUntil.toISOString() }); handleNext(); }} variant="outline" className="px-8 h-12 text-sm border-2 border-border">SKIP</Button>
+                <Button onClick={handleSkipVerification} variant="outline" className="px-8 h-12 text-sm border-2 border-border">SKIP</Button>
                 <Button onClick={startCamera} className="flex-1 h-12 bg-primary hover:bg-primary/90 text-primary-foreground">
                   START CAMERA
                   <ArrowRight className="w-4 h-4 mr-2" />
