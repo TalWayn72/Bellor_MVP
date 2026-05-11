@@ -1,6 +1,5 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
 import { formatLocation } from '@/utils';
 
 export default function TemporaryChatRequestDialog({ user, isOpen, onClose, onSend }) {
@@ -11,6 +10,7 @@ export default function TemporaryChatRequestDialog({ user, isOpen, onClose, onSe
       <div 
         className="bg-white rounded-3xl p-6 max-w-sm w-full"
         onClick={(e) => e.stopPropagation()}
+        dir="rtl"
       >
         {/* User Info */}
         <div className="flex items-center gap-3 mb-6">
@@ -21,7 +21,7 @@ export default function TemporaryChatRequestDialog({ user, isOpen, onClose, onSe
           />
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-base">{user?.nickname || 'User'} • {user?.age || '24'}</h3>
+              <h3 className="font-semibold text-base">{user?.nickname || 'משתמש'} • {user?.age || '24'}</h3>
               {user?.is_verified && (
                 <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center">
                   <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -30,21 +30,18 @@ export default function TemporaryChatRequestDialog({ user, isOpen, onClose, onSe
                 </div>
               )}
             </div>
-            <p className="text-xs text-gray-500">{formatLocation(user?.location) || 'NY • Tribeca'}</p>
+            <p className="text-xs text-gray-500">{formatLocation(user?.location) || 'מיקום לא צוין'}</p>
           </div>
         </div>
 
         {/* Content */}
         <div className="mb-6">
-          <h4 className="font-semibold text-base mb-2">temporary chat request</h4>
+          <h4 className="font-semibold text-base mb-2">בקשת צ'אט זמני</h4>
           <p className="text-sm text-gray-700 leading-relaxed mb-1">
-            Send temporary chat request
-          </p>
-          <p className="text-sm text-gray-700 leading-relaxed mb-1">
-            This request open a 24h temporary chat
+            זהו צ'אט זמני. אם השיחה לא תהפוך לקבועה, היא תימחק לאחר 24 שעות.
           </p>
           <p className="text-sm text-gray-700 leading-relaxed">
-            Send a request to <span className="font-semibold">{user?.nickname || 'Fidodido'}</span> ?
+            לשלוח בקשת צ'אט זמני אל <span className="font-semibold">{user?.nickname || 'המשתמש'}</span>?
           </p>
         </div>
 
@@ -55,7 +52,7 @@ export default function TemporaryChatRequestDialog({ user, isOpen, onClose, onSe
             variant="outline"
             className="flex-1 h-12 text-sm border-2 border-gray-300 text-gray-700 hover:bg-gray-50"
           >
-            CANCEL
+            ביטול
           </Button>
           <Button
             onClick={() => {
@@ -64,8 +61,7 @@ export default function TemporaryChatRequestDialog({ user, isOpen, onClose, onSe
             }}
             className="flex-1 h-12 text-sm bg-gray-900 hover:bg-gray-800 text-white"
           >
-            SEND
-            <ArrowRight className="w-4 h-4 mr-2" />
+            שליחה
           </Button>
         </div>
       </div>
