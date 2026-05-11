@@ -103,7 +103,10 @@ export const chatService = {
         demo: true,
       };
     }
-    const response = await apiClient.post('/chats', { otherUserId });
+    const payload = options?.forceReal
+      ? { otherUserId, isTemporary: false }
+      : { otherUserId };
+    const response = await apiClient.post('/chats', payload);
     return response.data as CreateOrGetChatResponse;
   },
 

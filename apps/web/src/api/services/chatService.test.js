@@ -64,6 +64,24 @@ describe('[P1][chat] chatService', () => {
       expect(apiClient.post).toHaveBeenCalledWith('/chats', { otherUserId: 'real-user-id-456' });
       expect(result).toEqual(mockResponse.data);
     });
+
+    it('should send permanent chat intent when forceReal is true', async () => {
+      const mockResponse = {
+        data: {
+          success: true,
+          data: { chat: { id: 'real-chat-123' } }
+        }
+      };
+      apiClient.post.mockResolvedValue(mockResponse);
+
+      const result = await chatService.createOrGetChat('real-user-id-456', { forceReal: true });
+
+      expect(apiClient.post).toHaveBeenCalledWith('/chats', {
+        otherUserId: 'real-user-id-456',
+        isTemporary: false
+      });
+      expect(result).toEqual(mockResponse.data);
+    });
   });
 
   describe('getChats', () => {
