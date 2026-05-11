@@ -3,80 +3,111 @@
 **תאריך עדכון:** 26 פברואר 2026
 **מצב:** ✅ Production Deployed on Oracle Cloud Free Tier (ISSUE-081)
 
-### ISSUE-105: Onboarding audit findings - verification loop + unclear inputs (11 May 2026)
+## ISSUE-105: Onboarding audit findings - verification loop + unclear inputs (11 May 2026)
 
-**סטטוס:** ⏳ פתוח | **חומרה:** 🔴 קריטי | **אזור:** Onboarding
+### חומרה: 🔴 קריטי | סטטוס: 🔴 פתוח
 
-During the onboarding audit, the following issues were found and are not fixed yet:
+**מקור:** Onboarding audit / developer QA
+
+**תיאור הבעיה:**  
+During the onboarding audit, multiple issues were found across the onboarding flow:
 
 1. **Step 3 — unclear matching/location copy**
    - “Can currently relocate?” sounds job-related and unclear in a dating app context.
    - “Can language-travel?” is not natural English and does not clearly explain what the user is choosing.
-   - Suggested classification: UX/content issue.
-   - Priority: 🟢 Low/Medium.
+   - This requires product clarification before changing the wording.
 
 2. **Interests field — comma-separated instruction does not match input behavior**
    - The field label says: “Interests (comma separated)”.
    - Comma input is blocked, so users cannot follow the instruction.
    - The field still allows unrelated punctuation/symbols, so validation behavior feels inconsistent.
-   - Suggested classification: functional UX/input validation bug.
-   - Priority: 🟡 Medium.
 
 3. **Gender selection — broken and confusing options**
    - “PREFER NOT TO SAY” appears as a selectable option but does not work.
    - Selecting “OTHER” opens an “Other Options” list that includes duplicated/confusing values like “MALE” and “OTHER”.
    - This creates confusing behavior in a sensitive onboarding field.
-   - Suggested classification: functional UX/data-options bug.
-   - Priority: 🟡 Medium/High.
 
 4. **Photo Verification — user can get stuck**
    - “START CAMERA” does not open the camera/capture flow.
    - “SKIP IT” loops the user between verification screens instead of advancing/skipping.
    - This can block onboarding progress or trap the user in the verification step.
-   - Suggested classification: critical onboarding flow bug.
-   - Priority: 🔴 Critical.
 
-**Priority order for fixes:**
+**שורש הבעיה:**  
+Not fully investigated yet. Initial classification:
+
+- Step 3 appears to be a product/UX ambiguity that requires product-owner clarification.
+- Interests field appears to be an input validation/copy mismatch.
+- Gender selection appears to be broken option handling and/or invalid option configuration.
+- Photo Verification appears to be a broken onboarding navigation/camera flow.
+
+**פתרון:**  
+Open. No code changes yet. Recommended priority order:
 
 1. Photo Verification loop — 🔴 Critical
 2. Gender selection broken option/confusing values — 🟡 Medium/High
 3. Interests comma mismatch — 🟡 Medium
-4. Relocation/language-travel wording — 🟢 Low/Medium
+4. Relocation/language-travel wording — 🟢 Low/Medium, requires product decision
 
-### ISSUE-106: Temporary chat request cancel marks request as sent (11 May 2026)
+**Stakeholder לבירור מוצרי:**
 
-**סטטוס:** ⏳ פתוח | **חומרה:** 🟡 בינוני | **אזור:** Chat / Feed
+- `talwa` for Step 3 relocation/language-travel meaning.
 
-During chat flow testing, a frontend state bug was found in the temporary chat request confirmation flow.
+**קבצים:**  
+TBD after investigation. Likely onboarding-related files, including relevant Step components under:
 
-1. **Temporary chat cancel state bug**
-   - User clicks “צ'אט זמני ל-24 שעות”.
-   - Confirmation dialog opens.
-   - User clicks “ביטול”.
-   - No `POST /api/v1/chats` request is sent — verified in Network.
-   - The UI still changes the button state to “בקשה זמנית נשלחה”.
+- `apps/web/src/components/onboarding/`
+- `apps/web/src/pages/Onboarding.jsx`
 
-**Expected behavior:**
+**טסטים:**  
+TBD after fixes. Expected regression coverage:
+
+- Onboarding flow test for Photo Verification skip/camera behavior.
+- Gender selection test for “PREFER NOT TO SAY” and “OTHER” option behavior.
+- Interests input validation test for comma-separated behavior or updated label.
+
+## ISSUE-106: Temporary chat request cancel marks request as sent (11 May 2026)
+
+### חומרה: 🟡 בינוני | סטטוס: 🔴 פתוח
+
+**מקור:** Chat flow testing / developer QA
+
+**תיאור הבעיה:**  
+A frontend state bug was found in the temporary chat request confirmation flow.
+
+Flow:
+
+1. User clicks “צ'אט זמני ל-24 שעות”.
+2. Confirmation dialog opens.
+3. User clicks “ביטול”.
+4. No `POST /api/v1/chats` request is sent — verified in Network.
+5. The UI still changes the button state to “בקשה זמנית נשלחה”.
+
+**Expected behavior:**  
 Cancel should close the dialog and leave the request button unchanged.
 
-**Actual behavior:**
+**Actual behavior:**  
 Cancel closes the dialog, but the UI marks the request as sent even though no backend request happened.
 
-**Classification:**
-Frontend state bug.
+**שורש הבעיה:**  
+Not fully investigated yet. Suspected frontend state bug: the “request sent” state may be updated when opening the dialog, or on dialog close, instead of only after the confirm/send action succeeds.
 
-**Suggested investigation:**
+**פתרון:**  
+Open. Investigate the temporary chat request state flow and update the UI state only after a successful confirm/send action.
 
-- Check where the “request sent” state is updated.
-- Verify whether the state is being changed when the dialog opens instead of only after confirm/send succeeds.
-- Likely files:
-  - `FeedPostActions.jsx`
-  - `FeedPost.jsx`
-  - `SharedSpace.jsx`
-  - `TemporaryChatRequestDialog.jsx`
+**קבצים:**  
+Likely files:
 
-**Priority:**
-🟡 Medium — does not send a backend request, but misleads the user and makes the chat request state inaccurate.
+- `FeedPostActions.jsx`
+- `FeedPost.jsx`
+- `SharedSpace.jsx`
+- `TemporaryChatRequestDialog.jsx`
+
+**טסטים:**  
+Add regression coverage for cancel behavior:
+
+- Opening the temporary chat request dialog and clicking “ביטול” should not call `POST /api/v1/chats`.
+- The feed action should remain “צ'אט זמני ל-24 שעות” after cancel.
+- The “בקשה זמנית נשלחה” state should only appear after successful confirmation/send.
 
 ---
 
