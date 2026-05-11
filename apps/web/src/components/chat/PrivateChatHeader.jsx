@@ -12,6 +12,7 @@ export default function PrivateChatHeader({
   otherUserId,
   chatId,
   isTemporary,
+  isPermanent,
   timeLeft,
   isOtherUserOnline,
   isOtherUserTyping,
@@ -20,6 +21,9 @@ export default function PrivateChatHeader({
   onNavigate,
   onBlockUser,
 }) {
+  const tierLabel = isTemporary ? "צ'אט זמני" : isPermanent ? "צ'אט קבוע" : "צ'אט קבוע";
+  const showTemporaryCountdown = isTemporary && timeLeft !== null;
+
   return (
     <header className="bg-card sticky top-0 z-10 shadow-sm border-b border-border">
       <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -37,15 +41,18 @@ export default function PrivateChatHeader({
           </div>
           <div>
             <h1 className="font-semibold text-base text-foreground">{otherUser.nickname}</h1>
-            {isTemporary && timeLeft !== null ? (
-              <Badge variant="warning" size="sm">&#9200; {timeLeft}h left</Badge>
-            ) : isOtherUserTyping ? (
-              <span className="text-xs text-primary animate-pulse">typing...</span>
-            ) : (
-              <span className={`text-xs ${isOtherUserOnline ? 'text-success' : 'text-muted-foreground'}`}>
-                {isOtherUserOnline ? 'Online' : 'Offline'}
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              <Badge variant={isTemporary ? 'warning' : 'secondary'} size="sm">
+                {showTemporaryCountdown ? `${tierLabel} · נשארו ${timeLeft} שעות` : tierLabel}
+              </Badge>
+              {isOtherUserTyping ? (
+                <span className="text-xs text-primary animate-pulse">typing...</span>
+              ) : (
+                <span className={`text-xs ${isOtherUserOnline ? 'text-success' : 'text-muted-foreground'}`}>
+                  {isOtherUserOnline ? 'Online' : 'Offline'}
+                </span>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-1">

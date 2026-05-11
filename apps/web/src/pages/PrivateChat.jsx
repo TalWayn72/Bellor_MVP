@@ -89,7 +89,8 @@ export default function PrivateChat() {
     return loadingSkeleton;
   }
 
-  const isTemporary = chat?.is_temporary && !chat?.is_permanent;
+  const isTemporary = !!(chat?.is_temporary && !chat?.is_permanent);
+  const isPermanent = !isTemporary;
   const expiresAt = chat?.expires_at ? new Date(chat.expires_at) : null;
   const timeLeft = expiresAt ? Math.max(0, Math.floor((expiresAt - new Date()) / 1000 / 60 / 60)) : null;
 
@@ -97,7 +98,7 @@ export default function PrivateChat() {
     <div className="min-h-screen bg-background flex flex-col" dir="ltr">
       <PrivateChatHeader
         otherUser={otherUser} otherUserId={otherUserId} chatId={chatId}
-        isTemporary={isTemporary} timeLeft={timeLeft}
+        isTemporary={isTemporary} isPermanent={isPermanent} timeLeft={timeLeft}
         isOtherUserOnline={isOtherUserOnline} isOtherUserTyping={isOtherUserTyping}
         showActions={showActions} onToggleActions={() => setShowActions(!showActions)}
         onNavigate={navigate} onBlockUser={() => handleBlockUser(otherUserId)}
