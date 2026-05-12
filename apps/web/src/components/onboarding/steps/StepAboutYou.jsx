@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,6 +7,8 @@ import ProgressBar from '@/components/onboarding/ProgressBar';
 import { TOTAL_STEPS } from '@/components/onboarding/utils/onboardingUtils';
 
 export default function StepAboutYou({ formData, setFormData, handleNext }) {
+  const [interestsText, setInterestsText] = useState(() => (formData.interests || []).join(', '));
+
   return (
     <div className="flex-1 flex flex-col bg-white overflow-hidden">
       <div className="flex-1 flex flex-col">
@@ -38,7 +40,7 @@ export default function StepAboutYou({ formData, setFormData, handleNext }) {
               </div>
               <div>
                 <label className="block text-sm text-gray-500 mb-2">Interests (comma separated)</label>
-                <Input placeholder="Music, Art, Travel..." value={formData.interests.join(', ')} onChange={(e) => { const interests = e.target.value.split(',').map(i => i.trim()).filter(i => i); setFormData({ ...formData, interests }); }} className="w-full h-12 text-base" />
+                <Input placeholder="Music, Art, Travel..." value={interestsText} onChange={(e) => { const value = e.target.value; setInterestsText(value); const interests = value.split(',').map(i => i.trim()).filter(i => i); setFormData({ ...formData, interests }); }} className="w-full h-12 text-base" />
               </div>
             </div>
           </div>
