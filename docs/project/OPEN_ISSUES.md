@@ -19,8 +19,8 @@ During the onboarding audit, multiple issues were found across the onboarding fl
 
 2. **Interests field — comma-separated instruction does not match input behavior**
    - The field label says: “Interests (comma separated)”.
-   - Comma input is blocked, so users cannot follow the instruction.
-   - The field still allows unrelated punctuation/symbols, so validation behavior feels inconsistent.
+   - Fixed: comma-separated typing is now supported in the textbox.
+   - Interests still save as a trimmed string array using the existing split/trim/filter parsing.
 
 3. **Gender selection — broken and confusing options**
    - “PREFER NOT TO SAY” appears as a selectable option but does not work.
@@ -47,7 +47,7 @@ Open. No code changes yet. Recommended priority order:
 
 1. Photo Verification loop — 🔴 Critical
 2. Gender selection broken option/confusing values — ✅ Fixed
-3. Interests comma mismatch — 🟡 Medium
+3. Interests comma mismatch — ✅ Fixed
 4. Relocation/language-travel wording — 🟢 Low/Medium, requires product decision
 
 **Stakeholder לבירור מוצרי:**
@@ -65,7 +65,7 @@ TBD after fixes. Expected regression coverage:
 
 - Onboarding flow test for Photo Verification skip/camera behavior.
 - Gender selection test for removed “PREFER NOT TO SAY” and cleaned “OTHER” option behavior.
-- Interests input validation test for comma-separated behavior or updated label.
+- Interests input validation test for comma-separated behavior — ✅ Added.
 
 ## ISSUE-106: Temporary chat request cancel marks request as sent (11 May 2026)
 
