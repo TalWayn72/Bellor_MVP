@@ -69,7 +69,7 @@ TBD after fixes. Expected regression coverage:
 
 ## ISSUE-106: Temporary chat request cancel marks request as sent (11 May 2026)
 
-### חומרה: 🟡 בינוני | סטטוס: 🔴 פתוח
+### Severity: Medium | Status: Fixed
 
 **מקור:** Chat flow testing / developer QA
 
@@ -91,10 +91,12 @@ Cancel should close the dialog and leave the request button unchanged.
 Cancel closes the dialog, but the UI marks the request as sent even though no backend request happened.
 
 **שורש הבעיה:**  
-Not fully investigated yet. Suspected frontend state bug: the “request sent” state may be updated when opening the dialog, or on dialog close, instead of only after the confirm/send action succeeds.
+Fixed. Root cause confirmed: `FeedPostActions.handleChatRequest` marked `chatRequestSent` as `true` immediately when opening the confirmation dialog.
+
+Separate note: there is no dedicated temporary chat request/approval model or endpoint; the existing send path creates or gets a temporary chat through `POST /api/v1/chats`. That product/backend gap remains out of scope for this focused fix.
 
 **פתרון:**  
-Open. Investigate the temporary chat request state flow and update the UI state only after a successful confirm/send action.
+Fixed for the premature frontend sent-state bug. Opening/canceling the confirmation dialog no longer marks the feed action as sent; the feed action is marked sent only after the existing send path succeeds.
 
 **קבצים:**  
 Likely files:

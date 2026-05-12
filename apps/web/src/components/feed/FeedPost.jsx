@@ -101,6 +101,13 @@ export default function FeedPost({ response, currentUser, onChatRequest, onHasht
     setIsPlaying(!isPlaying);
   };
 
+  const handleChatRequest = (user) => {
+    onChatRequest?.({
+      ...user,
+      onChatRequestSent: () => setChatRequestSent(true),
+    });
+  };
+
   return (
     <Card className="overflow-hidden">
       <FeedPostHeader userData={userData} response={response} isPlaying={isPlaying} onPlayVoice={handlePlayVoice} />
@@ -121,7 +128,7 @@ export default function FeedPost({ response, currentUser, onChatRequest, onHasht
         <div className="px-3 pb-3"><video src={response.content} controls preload="metadata" playsInline className="w-full rounded-xl" /></div>
       )}
 
-      <FeedPostActions response={response} currentUser={currentUser} userData={userData} heartSent={heartSent} setHeartSent={setHeartSent} starSent={starSent} setStarSent={setStarSent} chatRequestSent={chatRequestSent} setChatRequestSent={setChatRequestSent} hasNewComments={hasNewComments} hasNewStars={hasNewStars} onOpenHeartSelector={() => setIsHeartSelectorOpen(true)} onOpenComments={() => setIsCommentsOpen(true)} onOpenCommentInput={() => setIsCommentInputOpen(true)} onOpenStarSenders={() => setIsStarSendersOpen(true)} onChatRequest={onChatRequest} />
+      <FeedPostActions response={response} currentUser={currentUser} userData={userData} heartSent={heartSent} setHeartSent={setHeartSent} starSent={starSent} setStarSent={setStarSent} chatRequestSent={chatRequestSent} setChatRequestSent={setChatRequestSent} hasNewComments={hasNewComments} hasNewStars={hasNewStars} onOpenHeartSelector={() => setIsHeartSelectorOpen(true)} onOpenComments={() => setIsCommentsOpen(true)} onOpenCommentInput={() => setIsCommentInputOpen(true)} onOpenStarSenders={() => setIsStarSendersOpen(true)} onChatRequest={handleChatRequest} />
 
       <HeartResponseSelector isOpen={isHeartSelectorOpen} onClose={(sent) => { setIsHeartSelectorOpen(false); if (sent) setHeartSent(true); }} targetUser={userData} currentUser={currentUser} responseId={response.id} />
       <CommentsDialog isOpen={isCommentsOpen} onClose={() => setIsCommentsOpen(false)} response={response} currentUser={currentUser} />
