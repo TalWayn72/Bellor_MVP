@@ -53,7 +53,7 @@ export default function SharedSpace() {
   const handleSendChatRequest = async () => {
     if (!chatRequestUser) return;
     if (!chatRequestUser.id || chatRequestUser.id.startsWith('demo-')) { setChatRequestUser(null); return; }
-    try { const r = await chatService.createOrGetChat(chatRequestUser.id); setChatRequestUser(null); navigate(createPageUrl('PrivateChat') + `?chatId=${r.chat.id}&userId=${chatRequestUser.id}`); } catch {}
+    try { const r = await chatService.createOrGetChat(chatRequestUser.id); chatRequestUser.onChatRequestSent?.(); setChatRequestUser(null); navigate(createPageUrl('PrivateChat') + `?chatId=${r.chat.id}&userId=${chatRequestUser.id}`); } catch {}
   };
 
   if (isLoading) return <div className="min-h-screen bg-background"><div className="max-w-2xl mx-auto px-4 py-6"><FeedSkeleton count={3} /></div></div>;

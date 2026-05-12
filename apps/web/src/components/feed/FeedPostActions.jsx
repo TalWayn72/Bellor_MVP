@@ -38,7 +38,6 @@ export default function FeedPostActions({
   const handleChatRequest = () => {
     if (!chatRequestSent && onChatRequest && response.user_id) {
       onChatRequest({ ...userData, id: response.user_id });
-      setChatRequestSent(true);
     }
   };
 

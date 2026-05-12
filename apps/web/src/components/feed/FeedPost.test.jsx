@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, waitFor, act } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, act } from '@testing-library/react';
 import FeedPost from './FeedPost';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -11,6 +11,9 @@ vi.mock('@/api', () => ({
   followService: {},
   chatService: {},
 }));
+
+const TEMP_CHAT_LABEL = "\u05E6'\u05D0\u05D8 \u05D6\u05DE\u05E0\u05D9 \u05DC-24 \u05E9\u05E2\u05D5\u05EA";
+const TEMP_CHAT_SENT_LABEL = '\u2713 \u05D1\u05E7\u05E9\u05D4 \u05D6\u05DE\u05E0\u05D9\u05EA \u05E0\u05E9\u05DC\u05D7\u05D4';
 
 // Create a new QueryClient for each test
 const createTestQueryClient = () =>
@@ -52,6 +55,42 @@ describe('[P1][content] FeedPost', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it('marks the temporary chat request as sent only when the send success callback runs', async () => {
+    const { userService } = await import('@/api');
+    const onChatRequest = vi.fn();
+    userService.getUserById.mockResolvedValue({
+      user: { id: 'user-2', nickname: 'OtherUser', profile_images: [] },
+    });
+
+    render(
+      <FeedPost
+        response={mockResponse}
+        currentUser={mockCurrentUser}
+        theme={{}}
+        onChatRequest={onChatRequest}
+      />,
+      { wrapper: createWrapper() }
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(TEMP_CHAT_LABEL)).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText(TEMP_CHAT_LABEL));
+
+    const requestPayload = onChatRequest.mock.calls[0][0];
+    expect(requestPayload).toMatchObject({ nickname: 'OtherUser', id: 'user-2' });
+    expect(requestPayload.onChatRequestSent).toEqual(expect.any(Function));
+    expect(screen.getByText(TEMP_CHAT_LABEL)).toBeInTheDocument();
+    expect(screen.queryByText(TEMP_CHAT_SENT_LABEL)).not.toBeInTheDocument();
+
+    act(() => {
+      requestPayload.onChatRequestSent();
+    });
+
+    expect(screen.getByText(TEMP_CHAT_SENT_LABEL)).toBeInTheDocument();
   });
 
   describe('Defensive checks for undefined arrays', () => {
