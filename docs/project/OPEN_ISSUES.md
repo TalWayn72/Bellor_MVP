@@ -26,6 +26,8 @@ During the onboarding audit, multiple issues were found across the onboarding fl
    - “PREFER NOT TO SAY” appears as a selectable option but does not work.
    - Selecting “OTHER” opens an “Other Options” list that includes duplicated/confusing values like “MALE” and “OTHER”.
    - This creates confusing behavior in a sensitive onboarding field.
+   - Fixed: removed disabled PREFER NOT TO SAY option and cleaned OTHER sub-options by removing MALE and exact OTHER.
+   - Future support for PREFER NOT TO SAY would require product decision + Prisma enum/schema migration.
 
 4. **Photo Verification — user can get stuck**
    - “START CAMERA” does not open the camera/capture flow.
@@ -44,7 +46,7 @@ Not fully investigated yet. Initial classification:
 Open. No code changes yet. Recommended priority order:
 
 1. Photo Verification loop — 🔴 Critical
-2. Gender selection broken option/confusing values — 🟡 Medium/High
+2. Gender selection broken option/confusing values — ✅ Fixed
 3. Interests comma mismatch — 🟡 Medium
 4. Relocation/language-travel wording — 🟢 Low/Medium, requires product decision
 
@@ -62,7 +64,7 @@ TBD after investigation. Likely onboarding-related files, including relevant Ste
 TBD after fixes. Expected regression coverage:
 
 - Onboarding flow test for Photo Verification skip/camera behavior.
-- Gender selection test for “PREFER NOT TO SAY” and “OTHER” option behavior.
+- Gender selection test for removed “PREFER NOT TO SAY” and cleaned “OTHER” option behavior.
 - Interests input validation test for comma-separated behavior or updated label.
 
 ## ISSUE-106: Temporary chat request cancel marks request as sent (11 May 2026)
