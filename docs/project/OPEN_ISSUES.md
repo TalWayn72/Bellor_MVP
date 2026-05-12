@@ -335,14 +335,6 @@ Do not fix now. This requires a product/architecture decision.
 - `apps/api/prisma/schema.prisma`
 - `apps/api/src/jobs/` temporary chat cleanup jobs
 
-Constraints:
-
-- Modify only docs/project/OPEN_ISSUES.md.
-- Add ISSUE-107, ISSUE-108, and ISSUE-109.
-- Preserve existing file style.
-- Do not change source code.
-- Do not modify unrelated issues.
-
 ---
 
 ## Domains & Infrastructure
