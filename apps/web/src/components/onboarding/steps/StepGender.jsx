@@ -1,7 +1,5 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
 import ProgressBar from '@/components/onboarding/ProgressBar';
 import { TOTAL_STEPS } from '@/components/onboarding/utils/onboardingUtils';
 import { createPageUrl } from '@/utils';
@@ -26,19 +24,13 @@ export default function StepGender({ formData, setFormData, handleNext, subStep 
             <ProgressBar currentStep={5} totalSteps={TOTAL_STEPS} />
             <p className="text-sm text-gray-500 mb-4">Other Options</p>
             <div className="space-y-3">
-              {['GENDERQUEER', 'NON-BINARY', 'ANDROGYNE', 'TRANS', 'DEMI-BOY', 'MALE', 'OTHER', 'QUESTIONING'].map((option) => (
+              {['GENDERQUEER', 'NON-BINARY', 'ANDROGYNE', 'TRANS', 'DEMI-BOY', 'QUESTIONING'].map((option) => (
                 <button key={option} onClick={() => { setFormData({ ...formData, gender: 'other', gender_other: option }); navigate(createPageUrl('Onboarding') + '?step=7.7'); }} className="w-full h-12 bg-white border-2 border-gray-200 rounded-xl hover:border-primary text-sm font-medium text-gray-800">
                   {option}
                 </button>
               ))}
             </div>
           </div>
-        </div>
-        <div className="p-6 border-t" style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}>
-          <Button onClick={() => navigate(createPageUrl('Onboarding') + '?step=7.7')} className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground">
-            NEXT
-            <ArrowRight className="w-4 h-4 mr-2" />
-          </Button>
         </div>
       </div>
     );
@@ -90,9 +82,6 @@ export default function StepGender({ formData, setFormData, handleNext, subStep 
             <button onClick={() => navigate(createPageUrl('Onboarding') + '?step=7.5')} className="w-full h-12 bg-white border-2 border-gray-200 rounded-xl hover:border-primary text-sm font-medium text-gray-800 flex items-center justify-between px-4">
               <span>OTHER</span>
               <ChevronIcon />
-            </button>
-            <button className="w-full h-12 bg-white border-2 border-gray-200 rounded-xl text-sm font-medium text-gray-400" disabled>
-              PREFER NOT TO SAY
             </button>
           </div>
         </div>
