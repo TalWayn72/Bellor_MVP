@@ -113,6 +113,228 @@ Add regression coverage for cancel behavior:
 - The feed action should remain “צ'אט זמני ל-24 שעות” after cancel.
 - The “בקשה זמנית נשלחה” state should only appear after successful confirmation/send.
 
+## ISSUE-107: Photo/Age Verification is UI-only and does not perform real identity verification (12 May 2026)
+
+### Severity: Medium | Status: Open
+
+**Source:** Onboarding verification audit / developer QA
+
+**Problem description:**
+The current Photo Verification / Age Verification onboarding step appears to users as if it performs a real identity or security verification process, but the backend does not currently persist, review, or approve any verification photo.
+
+Current findings:
+
+- The Prisma schema only has `isVerified` as a Boolean with default `false`.
+- There is no `verificationPhotoUrl` or equivalent photo URL field.
+- There is no `VerificationStatus` enum such as `PENDING`, `APPROVED`, or `REJECTED`.
+- There is no `verifiedAt` field.
+- There is no `reviewedBy` field.
+- No backend endpoint was found that receives or stores a verification photo.
+- No admin UI was found for reviewing or approving verification photos.
+- In `StepVerification.jsx`, `takePhoto` stores the captured base64 `dataURL` only in local component state.
+- Once the user advances in onboarding, that local state is lost and the photo disappears without persistence.
+- The current `isVerified=true` behavior is tied to Google OAuth `verified_email`, which verifies email ownership, not human identity.
+
+**Expected behavior:**
+If the UI presents a verification flow, the system should either perform real verification or clearly avoid implying that identity verification occurred.
+
+**Actual behavior:**
+The user can experience a verification-like UI, but after completing the step there is no stored verification photo, review status, review timestamp, or admin approval flow.
+
+**Product impact:**
+
+- Users may believe they completed a real safety/identity verification process.
+- A “verified” label/status can be misleading if it only reflects Google email verification.
+- This may harm user trust over time, even if it is not an immediate security blocker.
+
+**Root cause:**
+The UI presents a verification concept that was never fully implemented in the data model, backend, or admin review tooling.
+
+**Possible solution directions:**
+
+1. Build real verification:
+   - Add `verificationPhotoUrl` to the schema.
+   - Add a `VerificationStatus` enum: `PENDING`, `APPROVED`, `REJECTED`.
+   - Add `verifiedAt` and `reviewedBy`.
+   - Add backend upload endpoint, likely uploading to R2.
+   - Add admin review/approval UI.
+   - Add user-facing feedback for review status/result.
+2. Remove the verification step from onboarding:
+   - Keep `isVerified` as what it currently is in practice.
+   - Stop presenting a fake verification flow to users.
+3. Integrate a third-party identity provider:
+   - Examples: Veriff, Onfido, Stripe Identity.
+   - Higher operational cost, but professional and avoids building manual admin review.
+
+**Decision:**
+Do not fix now. This requires a product/architecture decision.
+
+**Stakeholder:**
+
+- Tal
+
+**Likely files:**
+
+- `apps/web/src/components/onboarding/steps/StepVerification.jsx`
+- `apps/api/prisma/schema.prisma`
+- Admin verification review UI would need to be added if real verification is built.
+
+---
+
+## ISSUE-108: StepAuth Signup/Login toggle does not control auth routing (12 May 2026)
+
+### Severity: Medium/High | Status: Open
+
+**Source:** Auth/onboarding flow audit / developer QA
+
+**Problem description:**
+The Welcome screen itself has a valid high-level split:
+
+- `Get Started` routes to `/Onboarding?step=2`
+- `Sign In` routes to `/Login`
+
+The problem is inside `/Onboarding?step=2`, likely `StepAuth.jsx`.
+
+`StepAuth.jsx` shows four auth buttons:
+
+- Phone
+- Google
+- Apple
+- Email
+
+It also shows a bottom toggle with `Signup` and `Login`.
+
+However, the `Signup` / `Login` toggle is mostly decorative:
+
+- It changes the title, such as `Join Bellør` vs `Welcome Back`.
+- It changes whether the Terms of Service checkbox appears.
+- It does not meaningfully change the behavior of the auth buttons.
+
+Current broken flow example:
+
+1. Existing user reaches `/Onboarding?step=2`.
+2. User selects `Login` in the toggle.
+3. User clicks `Continue with Email`.
+4. The app routes to `/Login` with a `returnUrl` back to onboarding step 3.
+5. After successful login, the existing user is redirected into onboarding step 3 / Nickname, even though they should not restart onboarding.
+
+**Expected behavior:**
+A user choosing `Login` should be taken through an existing-user login flow and should not be redirected into onboarding unless their profile/onboarding state actually requires it.
+
+**Actual behavior:**
+The toggle visually suggests separate signup/login modes, but the middle auth buttons keep routing users into the onboarding continuation path.
+
+**Product impact:**
+
+- Existing users can be incorrectly sent into onboarding.
+- The UI promises a login/signup distinction but does not enforce it.
+- This creates confusing auth behavior and can cause returning users to edit or repeat onboarding unnecessarily.
+
+**Root cause:**
+`StepAuth.jsx` mixes signup onboarding entry and login entry in one screen, but the toggle only affects presentation and not routing/auth behavior.
+
+**Possible solution directions:**
+
+1. Remove `StepAuth`:
+   - Cheapest option.
+   - `Welcome.jsx` already separates `Get Started` and `Sign In`.
+   - Reduces duplicate auth-choice UI.
+2. Make `StepAuth` behavior actually depend on the toggle:
+   - Signup mode routes new users into onboarding.
+   - Login mode routes existing users to normal login/home flow.
+   - More work, but consistent with the current UI.
+3. Detect user state after successful auth:
+   - If the user already exists or completed onboarding, skip onboarding.
+   - If the user is new or incomplete, continue onboarding.
+   - Smarter, but requires changes in `Login` / auth redirect logic.
+
+**Decision:**
+Do not fix now. This requires a product-owner / architecture decision.
+
+**Stakeholder:**
+
+- Tal / product owner
+
+**Likely files:**
+
+- `apps/web/src/components/onboarding/steps/StepAuth.jsx`
+- `apps/web/src/pages/Welcome.jsx`
+- `apps/web/src/pages/Login.jsx`
+- Auth redirect / returnUrl handling
+
+---
+
+## ISSUE-109: Missing request/accept/reject model for temporary chats (12 May 2026)
+
+### Severity: Medium | Status: Open
+
+**Source:** ISSUE-106 investigation / chat flow audit
+
+**Problem description:**
+The temporary chat flow uses request-like UX language, but there does not appear to be a separate backend request entity or accept/reject lifecycle.
+
+Current behavior:
+
+- The UI presents the action as a temporary chat request.
+- The user opens `TemporaryChatRequestDialog`.
+- When the user confirms, the frontend calls `chatService.createOrGetChat(otherUserId)`.
+- The backend creates or returns a `Chat` directly.
+- The chat is represented as temporary using fields such as `isTemporary` and `expiresAt`.
+- There does not appear to be a separate `ChatRequest` model.
+- There does not appear to be a `pending` / `accepted` / `rejected` request status.
+- There does not appear to be a dedicated accept / decline endpoint for temporary chat requests.
+- The receiving user does not receive a separate request object; they effectively see or interact with the resulting chat/conversation context.
+- If ignored, the temporary chat cleanup job is expected to close or clean expired temporary chats after 24 hours.
+
+**Expected behavior:**
+If the product language says “request”, the system should either have a real request/approval lifecycle or make the UX clear that the action opens a temporary conversation context directly.
+
+**Actual behavior:**
+The UI suggests a request/approval model, but the data model appears to create or return a chat directly after confirmation.
+
+**Product impact:**
+
+- Users may be confused about whether they sent a pending request or started a conversation.
+- It creates ambiguity between `request sent` and `conversation started`.
+- It limits future product behavior such as explicit accept/decline, request inbox, rejection handling, or pending state visibility.
+- Mature dating/chat products often separate request/like/acceptance from active conversation.
+
+**Root cause:**
+The MVP architecture simplified the flow by creating the conversation context directly instead of modeling a separate request lifecycle.
+
+**Possible solution directions:**
+
+1. Full request model:
+   - Add a `ChatRequest` entity/model.
+   - Add status values such as `PENDING`, `ACCEPTED`, `REJECTED`.
+   - Add accept/decline endpoints.
+   - Create/open the temporary chat only after acceptance.
+2. Keep the current MVP philosophy:
+   - Treat the action as opening a temporary conversation context.
+   - Update UX copy to avoid request/approval terminology.
+   - Make the product behavior clear to users.
+3. Intermediate approach:
+   - Keep creating a temporary chat context.
+   - Delay visibility or message availability until the receiving user takes a first action.
+   - Reduce UX confusion without building a full request model immediately.
+
+**Decision:**
+Do not fix now. This requires a product/architecture decision.
+
+**Stakeholder:**
+
+- Tal
+
+**Likely files:**
+
+- `apps/web/src/components/chat/TemporaryChatRequestDialog.jsx`
+- `apps/web/src/api/services/chatService.ts`
+- `apps/web/src/pages/shared-space/SharedSpace.jsx`
+- `apps/api/src/routes/v1/chats-crud.routes.ts`
+- `apps/api/src/services/chat.service.ts`
+- `apps/api/prisma/schema.prisma`
+- `apps/api/src/jobs/` temporary chat cleanup jobs
+
 ---
 
 ## Domains & Infrastructure
@@ -153,6 +375,8 @@ A  qa    →  151.145.94.190   (TTL: 600)
 
 | קטגוריה                                                                                                                                     | מספר תקלות          | חומרה                                       | סטטוס                          |
 | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ------------------------------------------- | ------------------------------ |
+| **ISSUE-106: Temporary chat request cancel marks request as sent (May 11)**                                                                 | 1                   | 🟡 בינוני                                   | ✅ תוקן                        |
+| **ISSUE-105: Onboarding audit findings - verification loop + unclear inputs (May 11)**                                                      | 4 findings          | 🔴 קריטי / 🟡 בינוני                        | 🔄 חלקית תוקן                  |
 | **ISSUE-104: Video playback black screen - srcObject overrides src on reconciled DOM node (TRUE ROOT CAUSE) (Feb 23)**                      | 1 root cause        | 🔴 קריטי                                    | ✅ תוקן                        |
 | **ISSUE-103: Onboarding photo "Load failed" - R2 URLs not publicly accessible (TRUE ROOT CAUSE) (Feb 23)**                                  | 4 root causes       | 🔴 קריטי                                    | ✅ תוקן                        |
 | **ISSUE-102: Video playback black screen after recording - missing playsInline + preload + autoPlay + no error handling (Feb 19)**          | 7 root causes       | 🔴 קריטי                                    | ✅ תוקן (חלקי - לא טיפל בשורש) |
