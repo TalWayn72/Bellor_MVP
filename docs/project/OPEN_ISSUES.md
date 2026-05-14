@@ -336,7 +336,559 @@ Do not fix now. This requires a product/architecture decision.
 - `apps/api/src/jobs/` temporary chat cleanup jobs
 
 ---
+## ISSUE-110: Demo temporary chat route cannot resolve other user (14 May 2026)
 
+### Severity: Medium | Status: Open
+
+**Source:** Chat/media QA setup / developer QA
+
+**Problem description:**
+While preparing to QA chat message types between `demo_sarah` and `demo_michael`, opening a frontend demo temporary chat route failed.
+
+Broken route example:
+
+`/PrivateChat?chatId=demo-temp-chat-2`
+
+The app renders:
+
+`Unable to Load Chat`  
+`Could not find the user for this conversation.`
+
+Current findings:
+
+- `demo-temp-chat-2` appears to be frontend-only demo content.
+- It does not appear to exist as a real backend/DB chat.
+- `PrivateChat` treats `demo-*` chat IDs as demo chats and skips backend chat fetch.
+- The route does not include `userId`.
+- Because there is no backend chat metadata and no `userId`, `PrivateChat` cannot determine the other user in the conversation.
+
+**Expected behavior:**
+Opening a demo temporary chat should load the chat UI with the correct other user, or the app should avoid navigating to a route that cannot be resolved.
+
+**Actual behavior:**
+The app navigates to `PrivateChat` with only a frontend-only demo chat ID, then fails because it cannot resolve the conversation user.
+
+**Product impact:**
+
+- Demo temporary chat flows are unreliable.
+- QA/testing can be blocked or misdirected into frontend-only chat IDs instead of real backend chats.
+- Users/testers see a broken chat screen from an available UI path.
+
+**Root cause:**
+Frontend demo temporary chat IDs are mixed with `PrivateChat` logic that requires either real backend chat metadata or an explicit `userId`.
+
+**Possible solution directions:**
+
+1. Include `userId` when navigating from demo temporary chat cards.
+   - Example: `/PrivateChat?chatId=demo-temp-chat-2&userId=demo-user-3`
+2. Teach `PrivateChat` / `chatService` to resolve `demo-temp-chat-*` IDs from frontend demo temporary chat data.
+3. Avoid exposing frontend-only temporary chats through routes that look like real chat routes unless the route has all required demo metadata.
+
+**Decision:**
+Open. Needs confirmation whether frontend demo temporary chats should remain supported or be replaced by real seeded backend chats.
+
+**Stakeholder:**
+
+
+**Likely files:**
+
+- `apps/web/src/components/chat/TempChatCard.jsx`
+- `apps/web/src/pages/TemporaryChats.jsx`
+- `apps/web/src/pages/Chat/PrivateChat.jsx`
+- `apps/web/src/api/services/chatService.ts`
+- `apps/web/src/data/demo/demoContent.js`
+- `apps/web/src/data/demo/demoHelpers.js`
+
+**Tests:**
+Expected regression coverage:
+
+- Clicking a demo temporary chat should either navigate with enough metadata to resolve the other user, or render the correct demo chat UI without the “Could not find the user” error.
+- `PrivateChat` should handle `demo-temp-chat-*` consistently if those routes are supported.
+
+---
+## ISSUE-111: Edit Profile Name field is empty because frontend expects wrong user field name (14 May 2026)
+
+### Severity: Low/Medium | Status: Open
+
+**Source:** Profile/chat QA setup / developer QA
+
+**Problem description:**
+While investigating why real seeded demo users were hard to find/open, the Edit Profile screen showed an empty `Name` field for both `demo_sarah` and `demo_michael`.
+
+However, the database contains name data for both users:
+
+- `demo_sarah@bellor.app` has `firstName: Demo_Sarah`, `lastName: Johnson`
+- `demo_michael@bellor.app` has `firstName: Demo_Michael`, `lastName: Chen`
+
+Current findings:
+
+- `/auth/me` returns `firstName`, `lastName`, and `nickname`.
+- `apiClient` transforms response keys to snake_case, so the frontend receives `first_name`, `last_name`, and `nickname`.
+- `EditProfile` initializes the Name input from `currentUser.nickname || currentUser.firstName || ''`.
+- For seeded users without `nickname`, `currentUser.firstName` is undefined after transformation because the actual field is `currentUser.first_name`.
+
+**Expected behavior:**
+If a seeded user has `firstName` / `lastName` in the DB, the Edit Profile Name field should display the existing name or a clearly defined display name value.
+
+**Actual behavior:**
+The Name input is empty because the frontend reads `firstName` while the transformed user object contains `first_name`.
+
+**Product impact:**
+
+- Seeded/demo users appear to have incomplete profile data even though the DB contains names.
+- QA/debugging becomes confusing because the frontend appears out of sync with DB data.
+- Similar frontend/backend data-shape mismatches may affect other profile or discovery flows.
+
+**Root cause:**
+Frontend data mapping mismatch between backend camelCase fields and apiClient-transformed snake_case fields.
+
+**Possible solution directions:**
+
+1. Update `EditProfile` initialization to support both transformed and raw fields:
+   - `currentUser.nickname || currentUser.first_name || currentUser.firstName || ''`
+2. Standardize whether frontend code should consume camelCase or snake_case after `apiClient` transformation.
+3. Add a user normalization layer so components do not directly depend on inconsistent response shapes.
+
+**Decision:**
+Open. Small frontend fix, but may indicate broader data-shape consistency issue.
+
+**Stakeholder:**
+
+**Likely files:**
+
+- `apps/web/src/pages/EditProfile.jsx`
+- `apps/web/src/components/profile/EditProfileForm.jsx`
+- `apps/web/src/components/providers/UserProvider.jsx`
+- `apps/web/src/api/services/authService.ts`
+- `apps/web/src/api/client/apiClient.ts`
+- `apps/web/src/api/client/apiTransformers.js`
+- `apps/api/src/routes/v1/auth/auth-handlers.ts`
+- `apps/api/prisma/schema.prisma`
+- `apps/api/prisma/seed-data/users-1.ts`
+
+**Tests:**
+Expected regression coverage:
+
+- Render Edit Profile with a `currentUser` containing `{ first_name: 'Demo_Sarah', nickname: null }`.
+- Assert the Name input displays `Demo_Sarah`.
+- Optional: test fallback order for `nickname`, `first_name`, and `firstName`.
+
+---
+## ISSUE-112: Discover may filter out real backend users due to missing onboarding_completed field (14 May 2026)
+
+### Severity: Medium/High | Status: Open
+
+**Source:** Chat/media QA setup / developer QA
+
+**Problem description:**
+While preparing to test chat messages between `demo_sarah` and `demo_michael`, the normal app flow did not reliably show Sarah/Michael to each other through Discover/profile browsing.
+
+Current findings:
+
+- Real seeded backend users exist for `demo_sarah` and `demo_michael`.
+- Opening Michael directly by real DB ID can load his profile.
+- However, Discover appears to filter users by `user.onboarding_completed`.
+- The backend user list does not appear to return `onboarding_completed`.
+- Prisma does not appear to have a matching `onboardingCompleted` field.
+- As a result, valid backend users may be filtered out on the frontend.
+- The UI then appears to fall back to frontend demo profiles/chats, producing frontend-only IDs such as `demo-user-*`, `demo-chat-*`, or `demo-temp-chat-*`.
+
+**Expected behavior:**
+Discover should show eligible real backend users according to consistent backend/frontend eligibility rules.
+
+**Actual behavior:**
+Discover may discard real backend users because it expects an `onboarding_completed` field that the backend does not provide.
+
+**Product impact:**
+
+- Real users may not appear in Discover even when they exist in the DB.
+- Testers are pushed into frontend-only demo flows instead of real backend flows.
+- Chat creation QA becomes harder because real backend profiles cannot be reached naturally.
+- The app may appear functional with demo cards while hiding real data-shape issues.
+
+**Root cause:**
+Frontend Discover filtering expects a field that is not consistently provided by the backend/schema.
+
+**Possible solution directions:**
+
+1. Remove or relax the frontend `onboarding_completed` filter if the backend does not support it.
+2. Add a real backend field or derived value for onboarding completion and return it consistently.
+3. Centralize user eligibility filtering on the backend instead of duplicating incomplete logic in the frontend.
+4. Add logging or fallback handling when expected filter fields are missing.
+
+**Decision:**
+Open. Needs product/architecture decision about where onboarding completion should be modeled.
+
+**Stakeholder:**
+
+- Tal
+
+**Likely files:**
+
+- `apps/web/src/pages/Discover.jsx`
+- `apps/web/src/api/services/userService.ts`
+- `apps/api/src/routes/v1/users/`
+- `apps/api/src/services/user.service.ts`
+- `apps/api/prisma/schema.prisma`
+- Seed data under `apps/api/prisma/seed-data/`
+
+**Tests:**
+Expected regression coverage:
+
+- Discover should not discard otherwise valid backend users only because `onboarding_completed` is missing.
+- If onboarding completion is required, backend responses should include the field and tests should verify the filter behavior.
+- Add a test with backend users lacking `onboarding_completed` but containing valid profile data.
+
+---
+## ISSUE-113: Chat header presence shows green online dot while text says Offline (14 May 2026)
+
+### Severity: Low/Medium | Status: Open
+
+**Source:** Chat QA / developer QA
+
+**Problem description:**
+During real backend chat testing between `demo_sarah` and `demo_michael`, both users were active in separate incognito windows and viewing the same chat.
+
+The chat header showed conflicting presence indicators:
+
+- Avatar indicator showed a green online dot.
+- Text status next to the user said `Offline`.
+
+**Expected behavior:**
+Presence indicators should be consistent:
+
+- If the user is online, both the dot and text should indicate online.
+- If the user is offline, both the dot and text should indicate offline.
+
+**Actual behavior:**
+The avatar dot and text status disagree.
+
+**Product impact:**
+
+- Users may not understand whether the other person is actually online.
+- Presence state looks unreliable.
+- This may reduce trust in real-time chat behavior.
+
+**Root cause:**
+Not investigated yet. Suspected causes:
+
+- Avatar dot may be hardcoded or based on a different field than the text.
+- Socket presence state may update one UI element but not the other.
+- Presence mapping may differ between user profile data and chat room state.
+- One field may use stale DB status while the other uses live socket status.
+
+**Possible solution directions:**
+
+1. Ensure the chat header uses one canonical presence source.
+2. Update both avatar dot and text from the same computed online/offline state.
+3. Add socket presence tests for active chat participants.
+4. Add a fallback state when live presence is unknown.
+
+**Decision:**
+Open. Track separately from media-message QA.
+
+**Stakeholder:**
+
+**Likely files:**
+
+- `apps/web/src/pages/Chat/PrivateChat.jsx`
+- Chat header component under `apps/web/src/pages/Chat/` or `apps/web/src/components/chat/`
+- `apps/web/src/contexts/SocketContext.jsx`
+- `apps/web/src/api/hooks/useChatRoom.js`
+- Backend websocket presence handlers under `apps/api/src/websocket/`
+
+**Tests:**
+Expected regression coverage:
+
+- When socket presence marks the other user online, both avatar dot and text should show online.
+- When user is offline, both indicators should show offline.
+- Avoid mismatched UI states in chat header.
+
+---
+
+## ISSUE-114: Video message upload is not reachable from the chat composer (14 May 2026)
+
+### Severity: Medium/High | Status: Open
+
+**Source:** Chat media-message QA / developer QA
+
+**Problem description:**
+Tal asked to verify that chat supports `text`, `voice`, `image`, `video`, and `drawing` messages.
+
+During QA, the chat composer exposed controls for:
+
+- Text
+- Image upload
+- Voice recording
+
+However, no clear video-message send/upload entry point was found.
+
+The visible media upload button opens a file picker restricted to image files. Video files such as `.mp4` are not selectable.
+
+The visible video icon in the chat header starts a video call, not a video message.
+
+**Expected behavior:**
+If video messages are supported, the chat composer should provide a clear way to upload/send video files, such as `.mp4`.
+
+**Actual behavior:**
+The composer media picker is image-only, and no video-message control is visible.
+
+**Product impact:**
+
+- Video message support appears implemented or expected in code/product scope, but users cannot access it from the normal chat UI.
+- QA cannot fully verify video-message rendering, persistence, or receiver behavior.
+- Users may confuse video calls with video messages.
+
+**Root cause:**
+Not fully investigated yet. Suspected causes:
+
+- File input `accept` attribute is restricted to image MIME types/extensions.
+- Composer only implements image upload UI even though backend/shared schemas mention video.
+- Video message renderer/backend may exist, but send path is not exposed.
+
+**Possible solution directions:**
+
+1. Expand the media upload input to accept video files, if backend upload and rendering already support it.
+2. Add a separate video-message upload action in the composer.
+3. Clearly distinguish video message upload from video call.
+4. Add validation for supported video MIME types and size limits.
+
+**Decision:**
+Open. Strong candidate for a small focused fix if backend upload/rendering support exists.
+
+**Stakeholder:**
+
+**Likely files:**
+
+- `apps/web/src/pages/Chat/PrivateChat.jsx`
+- Chat composer/input component under `apps/web/src/pages/Chat/` or `apps/web/src/components/chat/`
+- `apps/web/src/api/services/chatService.ts`
+- Upload/media handling services
+- Backend chat/media routes under `apps/api/src/routes/v1/chats*`
+- Backend upload/media handling routes/services
+- Shared message type schemas
+
+**Tests:**
+Expected regression coverage:
+
+- Composer media input should accept supported video files.
+- Sending a video message should create a message with type `VIDEO`.
+- Receiver should see the video message live.
+- Video message should persist and remain playable after refresh.
+- Unsupported file types should be rejected cleanly.
+
+---
+
+## ISSUE-115: Drawing message has no visible entry point in the chat composer (14 May 2026)
+
+### Severity: Medium/High | Status: Open
+
+**Source:** Chat media-message QA / developer QA
+
+**Problem description:**
+Tal asked to verify that chat supports `text`, `voice`, `image`, `video`, and `drawing` messages.
+
+During QA, the chat composer exposed controls for:
+
+- Text
+- Image upload
+- Voice recording
+
+No clear drawing tool, drawing button, or send-drawing action was found in the visible chat composer.
+
+**Expected behavior:**
+If drawing messages are supported, the chat UI should expose a way to create and send a drawing message.
+
+**Actual behavior:**
+Drawing messages appear unreachable from the normal PrivateChat composer.
+
+**Product impact:**
+
+- Drawing support may exist in code/schema but cannot be tested or used through the UI.
+- Users cannot discover or send drawing messages.
+- QA cannot verify drawing send/render/persistence behavior.
+
+**Root cause:**
+Not fully investigated yet. Suspected causes:
+
+- Drawing message type exists in schema/renderer but composer action was never implemented.
+- Drawing tool exists elsewhere but is not connected to PrivateChat.
+- Drawing-as-message flow was not tested end-to-end.
+
+**Possible solution directions:**
+
+1. Add a visible drawing action in the chat composer.
+2. Reuse or connect an existing drawing component/tool if one already exists.
+3. Convert drawing output to an uploadable image/media payload and send it as type `DRAWING`.
+4. Ensure receiver rendering and persistence work consistently.
+
+**Decision:**
+Open. Candidate for focused investigation/fix after confirming intended drawing UX.
+
+**Stakeholder:**
+
+**Likely files:**
+
+- `apps/web/src/pages/Chat/PrivateChat.jsx`
+- Chat composer/input component under `apps/web/src/pages/Chat/` or `apps/web/src/components/chat/`
+- Existing drawing-related components, if any
+- `apps/web/src/api/services/chatService.ts`
+- Backend chat/media routes/services
+- Shared message type schemas
+
+**Tests:**
+Expected regression coverage:
+
+- Chat composer should expose a drawing action if drawing messages are supported.
+- Creating and sending a drawing should create a message with type `DRAWING`.
+- Receiver should see the drawing live.
+- Drawing message should persist and render after refresh.
+
+---
+
+## ISSUE-116: Video call starts for caller but receiver gets no incoming call notification (14 May 2026)
+
+### Severity: Medium/High | Status: Open
+
+**Source:** Chat/video call QA / developer QA
+
+**Problem description:**
+While testing chat media/video-related behavior, the chat header video icon was found to start a video call flow.
+
+Observed behavior:
+
+1. `demo_sarah` and `demo_michael` are in a real backend chat in two separate incognito windows.
+2. One user clicks the video call button.
+3. Caller navigates to `/VideoDate?chatId=<real-chat-id>` and sees a connecting/call screen.
+4. The other user remains in `PrivateChat`.
+5. The receiver gets no visible incoming call notification, modal, toast, or join prompt.
+
+**Expected behavior:**
+When one user starts a video call, the other participant should receive a visible incoming call notification or prompt.
+
+**Actual behavior:**
+The caller enters the video call screen, but the receiver is not visibly notified.
+
+**Product impact:**
+
+- Video call initiation appears broken or incomplete.
+- Caller may wait indefinitely while receiver has no idea a call started.
+- Users cannot reliably start calls from chat.
+
+**Root cause:**
+Not investigated yet. Suspected causes:
+
+- Call-start socket event is not emitted.
+- Receiver is not subscribed to the relevant chat/call room.
+- Incoming call event is emitted but not handled by frontend UI.
+- Event payload uses a mismatched chat/user ID.
+- VideoDate and PrivateChat do not share call state correctly.
+
+**Possible solution directions:**
+
+1. Trace video call start event from frontend to socket/backend.
+2. Add or fix incoming call listener on the receiver side.
+3. Show an incoming call modal/toast with accept/decline actions.
+4. Ensure both users join the same call/session using the real backend `chatId`.
+
+**Decision:**
+Open. Separate from video-message QA.
+
+**Stakeholder:**
+
+**Likely files:**
+
+- `apps/web/src/pages/VideoDate.jsx`
+- `apps/web/src/pages/Chat/PrivateChat.jsx`
+- Chat header/video call button component
+- `apps/web/src/contexts/SocketContext.jsx`
+- `apps/web/src/api/hooks/useChatRoom.js`
+- `apps/api/src/websocket/`
+- WebSocket call/chat handlers
+
+**Tests:**
+Expected regression coverage:
+
+- Starting a video call emits the expected call event.
+- Receiver in the chat receives an incoming call notification.
+- Incoming call UI appears for the other participant.
+- Accepting/declining call behaves consistently.
+
+---
+
+## ISSUE-117: Ending video call returns PrivateChat to skeleton/loading state (14 May 2026)
+
+### Severity: Medium/High | Status: Open
+
+**Source:** Chat/video call QA / developer QA
+
+**Problem description:**
+During video call testing, both users were able to enter a video call screen. After clicking hang up, the app returned to `PrivateChat`, but the chat UI did not restore correctly.
+
+Observed behavior:
+
+1. Real backend chat is open between `demo_sarah` and `demo_michael`.
+2. Video call starts and `VideoDate` opens.
+3. User clicks hang up.
+4. App returns to `PrivateChat`.
+5. The chat screen becomes stuck in a skeleton/loading layout instead of restoring the normal chat header, messages, and composer.
+
+Important clue:
+
+- Working chat URLs include both `chatId` and `userId`.
+- After hangup, the return route appears to include only `chatId`:
+
+`/PrivateChat?chatId=<real-chat-id>`
+
+**Expected behavior:**
+After ending a video call, users should return to the normal loaded chat screen.
+
+**Actual behavior:**
+After hangup, `PrivateChat` remains stuck in a loading/skeleton state.
+
+**Product impact:**
+
+- Ending a call leaves the chat unusable until manual recovery/renavigation.
+- Users may think the app is broken after every call.
+- This blocks a smooth chat/video-call experience.
+
+**Root cause:**
+Not fully investigated yet. Suspected causes:
+
+- `VideoDate` hangup navigation does not preserve `userId`.
+- `PrivateChat` relies on `userId` or complete chat metadata to resolve the other user.
+- Returning from `VideoDate` does not trigger a clean chat reload.
+- Route/state assumptions differ between normal chat entry and post-call return.
+
+**Possible solution directions:**
+
+1. Preserve `userId` when navigating back from `VideoDate` to `PrivateChat`.
+2. Teach `PrivateChat` to fully resolve chat metadata from `chatId` alone for real backend chats.
+3. Ensure post-call cleanup resets loading state and refetches chat metadata/history.
+4. Add fallback handling if `userId` is missing.
+
+**Decision:**
+Open. Separate from video-message QA, but important for video call stability.
+
+**Stakeholder:**
+
+**Likely files:**
+
+- `apps/web/src/pages/VideoDate.jsx`
+- `apps/web/src/pages/Chat/PrivateChat.jsx`
+- Chat navigation helpers
+- `apps/web/src/api/services/chatService.ts`
+- `apps/web/src/api/hooks/useChatRoom.js`
+
+**Tests:**
+Expected regression coverage:
+
+- Start a video call from a real backend chat.
+- End the call.
+- Assert the app returns to a fully loaded `PrivateChat`.
+- Ensure route params required by `PrivateChat` are preserved or recoverable.
+- Assert messages/header/composer are visible after hangup.
+---
 ## Domains & Infrastructure
 
 | Domain              | Purpose                          | Provider     | Status       |
