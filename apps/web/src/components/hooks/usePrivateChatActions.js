@@ -37,14 +37,16 @@ export function usePrivateChatActions({ chatId, currentUser, isDemo, isJoined, s
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data) => {
+      const requiresSocket = data.type === 'DRAWING';
       // Try WebSocket first if connected
       if (isJoined && socketService.isConnected()) {
         try {
           const r = await sendSocketMessage(data.content, { messageType: data.type || 'TEXT' });
           if (r && r.success) return r.data;
-        } catch {
-          // WebSocket failed, fall back to HTTP
-        }
+        } catch { /* handled below */ }
+      }
+      if (requiresSocket) {
+        throw new Error('Drawing messages require an active chat connection.');
       }
       // Fallback to HTTP API
       const result = await chatService.sendMessage(chatId, data);
@@ -103,6 +105,28 @@ export function usePrivateChatActions({ chatId, currentUser, isDemo, isJoined, s
     finally { setIsUploading(false); }
   };
 
+  const handleSendDrawing = async (createFile) => {
+    if (!chatId || !currentUser) return false;
+    if (!isJoined || !socketService.isConnected()) {
+      toast({
+        title: 'Drawing unavailable',
+        description: 'Drawing messages require an active chat connection.',
+        variant: 'destructive'
+      });
+      return false;
+    }
+    setIsUploading(true);
+    try {
+      const file = await createFile();
+      const { url } = await uploadService.uploadFile(file);
+      await sendMessageMutation.mutateAsync({ content: url, type: 'DRAWING' });
+      return true;
+    } catch {
+      toast({ title: 'Error', description: 'Failed to upload drawing', variant: 'destructive' });
+      return false;
+    } finally { setIsUploading(false); }
+  };
+
   const handleBlockUser = async (otherUserId) => {
     if (!confirm('Are you sure you want to block this user?')) return;
     try { await userService.blockUser(otherUserId); toast({ title: 'Success', description: 'User blocked successfully' }); navigate(createPageUrl('SharedSpace')); }
@@ -111,5 +135,5 @@ export function usePrivateChatActions({ chatId, currentUser, isDemo, isJoined, s
 
   const cleanup = () => { if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current); };
 
-  return { message, isUploading, localMessages, handleTyping, handleSendMessage, handleSendImage, handleSendVoice, handleBlockUser, cleanup };
+  return { message, isUploading, localMessages, handleTyping, handleSendMessage, handleSendImage, handleSendVoice, handleSendDrawing, handleBlockUser, cleanup };
 }

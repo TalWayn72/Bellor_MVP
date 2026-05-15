@@ -28,7 +28,7 @@ export default function PrivateChat() {
   const { messages: realtimeMessages, typingUsers, isJoined, sendMessage: sendSocketMessage, sendTyping } = useChatRoom(chatId);
   const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 
-  const { message, isUploading, localMessages, handleTyping, handleSendMessage, handleSendImage, handleSendVoice, handleBlockUser, cleanup } =
+  const { message, isUploading, localMessages, handleTyping, handleSendMessage, handleSendImage, handleSendVoice, handleSendDrawing, handleBlockUser, cleanup } =
     usePrivateChatActions({ chatId, currentUser, isDemo, isJoined, sendSocketMessage, sendTyping, scrollToBottom, toast, navigate });
 
   const { data: chat, isError: chatError } = useQuery({
@@ -109,7 +109,7 @@ export default function PrivateChat() {
         showIceBreakers={showIceBreakers} onToggleIceBreakers={() => setShowIceBreakers(!showIceBreakers)}
         iceBreakers={ICE_BREAKERS} showIceBreakerPanel={showIceBreakers && messages.length === 0}
         onSelectIceBreaker={(text) => { handleTyping(text); setShowIceBreakers(false); }}
-        onSendImage={handleSendImage} onSendVoice={handleSendVoice} isUploading={isUploading}
+        onSendImage={handleSendImage} onSendVoice={handleSendVoice} onSendDrawing={handleSendDrawing} isUploading={isUploading}
       />
     </div>
   );

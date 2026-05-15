@@ -4,10 +4,11 @@ import TypingIndicator from '@/components/chat/TypingIndicator';
 
 function MessageContent({ msg }) {
   const type = (msg.message_type || msg.messageType || 'TEXT').toUpperCase();
-  if (type === 'IMAGE') {
+  if (type === 'IMAGE' || type === 'DRAWING') {
+    const label = type === 'DRAWING' ? 'Shared drawing' : 'Shared image';
     return (
       <a href={msg.content} target="_blank" rel="noopener noreferrer">
-        <img src={msg.content} alt="Shared image" className="max-w-full rounded-lg max-h-60 object-cover" />
+        <img src={msg.content} alt={label} title={label} className="max-w-full rounded-lg max-h-60 object-cover" />
       </a>
     );
   }
