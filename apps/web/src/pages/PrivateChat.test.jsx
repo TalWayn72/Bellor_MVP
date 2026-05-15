@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
@@ -27,6 +27,7 @@ const mockGetMessages = vi.fn().mockResolvedValue({ messages: [] });
 const mockSendMessage = vi.fn().mockResolvedValue({ id: 'msg-new', content: 'Hello' });
 const mockGetUserById = vi.fn().mockResolvedValue({ user: null });
 const mockBlockUser = vi.fn();
+const mockUploadFile = vi.fn().mockResolvedValue({ url: 'https://example.com/uploaded.mp4' });
 
 vi.mock('@/api', () => ({
   chatService: {
@@ -37,6 +38,9 @@ vi.mock('@/api', () => ({
   userService: {
     getUserById: (...args) => mockGetUserById(...args),
     blockUser: (...args) => mockBlockUser(...args),
+  },
+  uploadService: {
+    uploadFile: (...args) => mockUploadFile(...args),
   },
   socketService: { on: vi.fn(() => vi.fn()), isConnected: vi.fn(() => false) },
 }));
@@ -67,6 +71,7 @@ vi.mock('@/components/hooks/useCurrentUser', () => ({
 // Render sub-components with realistic mock implementations
 let capturedOnSend = null;
 let capturedOnMessageChange = null;
+let capturedOnSendImage = null;
 let capturedMessage = '';
 
 vi.mock('@/components/chat/PrivateChatHeader', () => ({
@@ -95,9 +100,10 @@ vi.mock('@/components/chat/MessageList', () => ({
 }));
 
 vi.mock('@/components/chat/ChatInput', () => ({
-  default: ({ message, onMessageChange, onSend }) => {
+  default: ({ message, onMessageChange, onSend, onSendImage }) => {
     capturedOnSend = onSend;
     capturedOnMessageChange = onMessageChange;
+    capturedOnSendImage = onSendImage;
     capturedMessage = message;
     return (
       <div data-testid="chat-input">
@@ -150,7 +156,9 @@ describe('[P1][chat] PrivateChat', () => {
     vi.clearAllMocks();
     capturedOnSend = null;
     capturedOnMessageChange = null;
+    capturedOnSendImage = null;
     capturedMessage = '';
+    mockUploadFile.mockResolvedValue({ url: 'https://example.com/uploaded.mp4' });
     mockLocationSearch.mockReturnValue('');
     mockUseCurrentUser.mockReturnValue({
       currentUser: { id: 'user-1', nickname: 'TestUser' },
@@ -306,6 +314,48 @@ describe('[P1][chat] PrivateChat', () => {
 
       await waitFor(() => {
         expect(mockSendMessage).toHaveBeenCalled();
+      });
+    });
+
+    it('should upload selected video files and send them as VIDEO messages', async () => {
+      render(<PrivateChat />, { wrapper: createWrapper() });
+
+      await waitFor(() => {
+        expect(capturedOnSendImage).toBeTypeOf('function');
+      });
+
+      const file = new File(['video'], 'clip.mp4', { type: 'video/mp4' });
+      await act(async () => {
+        await capturedOnSendImage(file);
+      });
+
+      expect(mockUploadFile).toHaveBeenCalledWith(file);
+      await waitFor(() => {
+        expect(mockSendMessage).toHaveBeenCalledWith('chat-123', {
+          content: 'https://example.com/uploaded.mp4',
+          type: 'VIDEO',
+        });
+      });
+    });
+
+    it('should reject unsupported media files without uploading or sending', async () => {
+      render(<PrivateChat />, { wrapper: createWrapper() });
+
+      await waitFor(() => {
+        expect(capturedOnSendImage).toBeTypeOf('function');
+      });
+
+      const file = new File(['pdf'], 'notes.pdf', { type: 'application/pdf' });
+      await act(async () => {
+        await capturedOnSendImage(file);
+      });
+
+      expect(mockUploadFile).not.toHaveBeenCalled();
+      expect(mockSendMessage).not.toHaveBeenCalled();
+      expect(mockToast).toHaveBeenCalledWith({
+        title: 'Error',
+        description: 'Unsupported media type. Please choose an image or supported video file.',
+        variant: 'destructive',
       });
     });
   });

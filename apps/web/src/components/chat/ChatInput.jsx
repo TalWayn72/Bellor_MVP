@@ -67,7 +67,13 @@ export default function ChatInput({
             className={showIceBreakers ? 'text-primary' : ''}>
             <MessageCircle className="w-5 h-5" />
           </Button>
-          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
           <Button variant="ghost" size="icon" aria-label="Send image" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
             {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ImageIcon className="w-5 h-5" />}
           </Button>
