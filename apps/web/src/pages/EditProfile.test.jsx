@@ -17,6 +17,8 @@ vi.mock('@/api', () => ({
   userService: { updateUser: (...args) => mockUpdateUser(...args) },
 }));
 
+const mockUseCurrentUser = vi.hoisted(() => vi.fn());
+
 // IMPORTANT: return a STABLE object reference. Components with useEffect([currentUser])
 // will infinite-loop if the mock returns a new object on every call.
 vi.mock('../components/hooks/useCurrentUser', () => {
@@ -25,7 +27,8 @@ vi.mock('../components/hooks/useCurrentUser', () => {
     isLoading: false,
     updateUser: () => {},
   };
-  return { useCurrentUser: vi.fn(() => stable) };
+  mockUseCurrentUser.mockReturnValue(stable);
+  return { useCurrentUser: (...args) => mockUseCurrentUser(...args) };
 });
 
 vi.mock('@/components/navigation/BackButton', () => ({
@@ -37,7 +40,12 @@ vi.mock('@/components/profile/EditProfileImages', () => ({
 }));
 
 vi.mock('@/components/profile/EditProfileForm', () => ({
-  default: () => <div data-testid="edit-form">Form</div>,
+  default: ({ formData }) => (
+    <div data-testid="edit-form">
+      <label htmlFor="mock-profile-name">Name</label>
+      <input id="mock-profile-name" readOnly value={formData.nickname} />
+    </div>
+  ),
 }));
 
 vi.mock('../components/providers/ThemeProvider', () => ({
@@ -88,7 +96,15 @@ const createWrapper = () => {
 };
 
 describe('[P2][profile] EditProfile', () => {
-  beforeEach(() => { vi.clearAllMocks(); mockUpdateUser.mockResolvedValue({ data: {} }); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUpdateUser.mockResolvedValue({ data: {} });
+    mockUseCurrentUser.mockReturnValue({
+      currentUser: { id: 'user-1', nickname: 'TestUser', bio: 'Hello', gender: 'MALE', interests: [] },
+      isLoading: false,
+      updateUser: () => {},
+    });
+  });
 
   it('renders without crashing', () => {
     const { container } = render(<EditProfile />, { wrapper: createWrapper() });
@@ -113,6 +129,25 @@ describe('[P2][profile] EditProfile', () => {
   it('renders profile form', () => {
     render(<EditProfile />, { wrapper: createWrapper() });
     expect(screen.getByTestId('edit-form')).toBeInTheDocument();
+  });
+
+  it('initializes name from transformed first_name when nickname is missing', () => {
+    mockUseCurrentUser.mockReturnValue({
+      currentUser: {
+        id: 'user-1',
+        nickname: null,
+        first_name: 'Demo_Sarah',
+        bio: 'Hello',
+        gender: 'FEMALE',
+        interests: [],
+      },
+      isLoading: false,
+      updateUser: () => {},
+    });
+
+    render(<EditProfile />, { wrapper: createWrapper() });
+
+    expect(screen.getByLabelText('Name')).toHaveValue('Demo_Sarah');
   });
 
   describe('save - no setState after navigate (finally block removed)', () => {

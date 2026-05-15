@@ -183,6 +183,76 @@ describe('[P1][social] Discover', () => {
       expect(screen.getByTestId('pass-button')).toBeInTheDocument();
       expect(screen.getByTestId('superlike-button')).toBeInTheDocument();
     });
+
+    it('shows backend users when onboarding completion is missing', async () => {
+      mockSearchUsers.mockResolvedValue({
+        users: [
+          {
+            id: 'user-2',
+            nickname: 'Michael',
+            age: 31,
+            bio: 'Backend profile',
+          },
+        ],
+      });
+
+      render(<Discover />, { wrapper: createWrapper() });
+      await waitForProfiles();
+
+      expect(screen.getByTestId('profile-nickname')).toHaveTextContent('Michael');
+    });
+
+    it('filters users with explicit snake_case onboarding false', async () => {
+      mockSearchUsers.mockResolvedValue({
+        users: [
+          {
+            id: 'user-2',
+            nickname: 'Hidden',
+            age: 31,
+            bio: 'Incomplete profile',
+            onboarding_completed: false,
+          },
+          {
+            id: 'user-3',
+            nickname: 'Visible',
+            age: 29,
+            bio: 'Complete profile',
+            onboarding_completed: true,
+          },
+        ],
+      });
+
+      render(<Discover />, { wrapper: createWrapper() });
+      await waitForProfiles();
+
+      expect(screen.getByTestId('profile-nickname')).toHaveTextContent('Visible');
+    });
+
+    it('filters users with explicit camelCase onboarding false', async () => {
+      mockSearchUsers.mockResolvedValue({
+        users: [
+          {
+            id: 'user-2',
+            nickname: 'Hidden',
+            age: 31,
+            bio: 'Incomplete profile',
+            onboardingCompleted: false,
+          },
+          {
+            id: 'user-3',
+            nickname: 'Visible',
+            age: 29,
+            bio: 'Complete profile',
+            onboardingCompleted: true,
+          },
+        ],
+      });
+
+      render(<Discover />, { wrapper: createWrapper() });
+      await waitForProfiles();
+
+      expect(screen.getByTestId('profile-nickname')).toHaveTextContent('Visible');
+    });
   });
 
   describe('Empty state', () => {

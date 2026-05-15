@@ -35,7 +35,10 @@ export default function Discover() {
       try {
         const result = await userService.searchUsers({ limit: 50 });
         const allUsers = result.users || [];
-        const realProfiles = allUsers.filter(user => user.id !== currentUser.id && user.onboarding_completed);
+        const realProfiles = allUsers.filter(user => {
+          const onboardingCompleted = user.onboarding_completed ?? user.onboardingCompleted;
+          return user.id !== currentUser.id && onboardingCompleted !== false;
+        });
         return realProfiles.length > 0 ? realProfiles : getDemoProfiles();
       } catch (error) {
         console.error('Error fetching profiles:', error);
