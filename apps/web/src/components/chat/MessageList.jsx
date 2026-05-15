@@ -66,11 +66,12 @@ const MessageList = React.forwardRef(function MessageList({ messages, currentUse
           </div>
         )}
         {messages.map((msg) => {
-          const msgDate = new Date(msg.created_date || msg.createdAt);
+          const msgDate = new Date(msg.created_date || msg.created_at || msg.createdAt);
           const dateStr = msgDate.toDateString();
           const showDate = dateStr !== lastDate;
           lastDate = dateStr;
-          const isMe = msg.sender_id === currentUserId;
+          const senderId = msg.sender_id || msg.senderId;
+          const isMe = senderId === currentUserId;
           return (
             <React.Fragment key={msg.id}>
               {showDate && <DateSeparator date={msgDate} />}

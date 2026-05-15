@@ -4,6 +4,50 @@ import { render, screen } from '@testing-library/react';
 import MessageList from './MessageList';
 
 describe('[P1][chat] MessageList', () => {
+  it('treats socket messages with senderId as current user messages', () => {
+    const { container } = render(
+      <MessageList
+        messages={[
+          {
+            id: 'msg-socket-me',
+            senderId: 'user-1',
+            messageType: 'TEXT',
+            content: 'Socket hello',
+            created_at: '2026-05-14T10:00:00Z',
+          },
+        ]}
+        currentUserId="user-1"
+        isOtherUserTyping={false}
+        otherUserNickname="Dana"
+      />
+    );
+
+    const ownMessageRow = container.querySelector('.justify-end');
+    expect(ownMessageRow).toHaveTextContent('Socket hello');
+  });
+
+  it('formats messages that only have created_at timestamps', () => {
+    render(
+      <MessageList
+        messages={[
+          {
+            id: 'msg-created-at',
+            sender_id: 'user-2',
+            message_type: 'TEXT',
+            content: 'Created at hello',
+            created_at: '2026-05-14T10:00:00Z',
+          },
+        ]}
+        currentUserId="user-1"
+        isOtherUserTyping={false}
+        otherUserNickname="Dana"
+      />
+    );
+
+    expect(screen.getByText('Created at hello')).toBeInTheDocument();
+    expect(screen.queryByText('Invalid Date')).not.toBeInTheDocument();
+  });
+
   it('renders VIDEO messages as playable video elements', () => {
     render(
       <MessageList

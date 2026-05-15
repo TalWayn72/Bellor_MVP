@@ -39,6 +39,7 @@ export default function PrivateChat() {
     },
     enabled: !!chatId && !isDemo, retry: false,
   });
+  const chatOtherUser = chat?.otherUser || chat?.other_user;
 
   const { data: initialMessages = [] } = useQuery({
     queryKey: ['messages', chatId],
@@ -61,9 +62,9 @@ export default function PrivateChat() {
   }, [isDemo, demoMessages, initialMessages, realtimeMessages, localMessages]);
 
   const { data: otherUser } = useQuery({
-    queryKey: ['user', otherUserId, chat?.otherUser?.id],
+    queryKey: ['user', otherUserId, chatOtherUser?.id],
     queryFn: async () => {
-      const targetId = otherUserId || chat?.otherUser?.id;
+      const targetId = otherUserId || chatOtherUser?.id;
       if (!targetId) return null;
       try { return (await userService.getUserById(targetId)).user; }
       catch { return { id: targetId, nickname: 'User', age: null, profile_images: [`https://i.pravatar.cc/150?u=${targetId}`] }; }

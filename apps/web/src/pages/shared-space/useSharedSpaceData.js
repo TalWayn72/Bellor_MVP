@@ -40,10 +40,16 @@ export function useSharedSpaceData(currentUser) {
 
   const activeChatUsers = React.useMemo(() => {
     if (!currentUser || !chats.length) return getDemoChatUsers();
-    return chats.slice(0, 7).map(chat => ({
-      chatId: chat.id, userId: chat.otherUser?.id, name: chat.otherUser?.first_name,
-      image: chat.otherUser?.profile_images?.[0], isOnline: false,
-    }));
+    return chats.slice(0, 7).map(chat => {
+      const otherUser = chat.otherUser || chat.other_user;
+      return {
+        chatId: chat.id,
+        userId: otherUser?.id,
+        name: otherUser?.first_name || otherUser?.firstName || otherUser?.nickname || otherUser?.name,
+        image: otherUser?.profile_images?.[0] || otherUser?.profileImages?.[0],
+        isOnline: false,
+      };
+    });
   }, [chats, currentUser]);
 
   return { todayMission, allResponses, userTodayResponse, activeChatUsers };
