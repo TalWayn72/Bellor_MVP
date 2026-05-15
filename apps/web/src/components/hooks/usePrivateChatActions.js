@@ -3,6 +3,12 @@ import { useMutation } from '@tanstack/react-query';
 import { chatService, userService, socketService, uploadService } from '@/api';
 import { createPageUrl } from '@/utils';
 
+function getMediaMessageType(file) {
+  if (file.type?.startsWith('video/')) return 'VIDEO';
+  if (file.type?.startsWith('image/')) return 'IMAGE';
+  return null;
+}
+
 export function usePrivateChatActions({ chatId, currentUser, isDemo, isJoined, sendSocketMessage, sendTyping, scrollToBottom, toast, navigate }) {
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -67,12 +73,21 @@ export function usePrivateChatActions({ chatId, currentUser, isDemo, isJoined, s
 
   const handleSendImage = async (file) => {
     if (!chatId || !currentUser) return;
-    if (isDemo) { addLocalMessage(URL.createObjectURL(file), 'IMAGE'); return; }
+    const messageType = getMediaMessageType(file);
+    if (!messageType) {
+      toast({
+        title: 'Error',
+        description: 'Unsupported media type. Please choose an image or supported video file.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    if (isDemo) { addLocalMessage(URL.createObjectURL(file), messageType); return; }
     setIsUploading(true);
     try {
       const { url } = await uploadService.uploadFile(file);
-      sendMessageMutation.mutate({ content: url, type: 'IMAGE' });
-    } catch { toast({ title: 'Error', description: 'Failed to upload image', variant: 'destructive' }); }
+      sendMessageMutation.mutate({ content: url, type: messageType });
+    } catch { toast({ title: 'Error', description: 'Failed to upload media', variant: 'destructive' }); }
     finally { setIsUploading(false); }
   };
 

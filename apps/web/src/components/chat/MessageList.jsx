@@ -19,6 +19,18 @@ function MessageContent({ msg }) {
       </div>
     );
   }
+  if (type === 'VIDEO') {
+    return (
+      <video
+        src={msg.content}
+        controls
+        playsInline
+        preload="metadata"
+        title="Shared video"
+        className="max-w-full rounded-lg max-h-60"
+      />
+    );
+  }
   return <p className="text-sm leading-relaxed">{msg.content}</p>;
 }
 
