@@ -51,7 +51,7 @@ export default function EditProfile() {
   useEffect(() => {
     if (currentUser) {
       setFormData({
-        nickname: currentUser.nickname || currentUser.firstName || '',
+        nickname: currentUser.nickname || currentUser.first_name || currentUser.firstName || '',
         bio: currentUser.bio || '',
         age: getAge(currentUser.birthDate),
         gender: (currentUser.gender || '').toLowerCase(),
