@@ -23,9 +23,10 @@ export function getTimeRemaining(expiresAt) {
 
 export default function TempChatCard({ chat, onAvatarClick }) {
   const navigate = useNavigate();
-  const otherUserId = chat.otherUser?.id;
-  const otherUserName = chat.otherUser?.first_name;
-  const otherUserImage = chat.otherUser?.profile_images?.[0];
+  const otherUser = chat.otherUser || chat.other_user;
+  const otherUserId = otherUser?.id;
+  const otherUserName = otherUser?.first_name || otherUser?.firstName || otherUser?.nickname || otherUser?.name;
+  const otherUserImage = otherUser?.profile_images?.[0];
   const timeRemaining = getTimeRemaining(chat.expires_at);
   const isExpired = timeRemaining === 'Expired';
 

@@ -889,6 +889,44 @@ Expected regression coverage:
 - Ensure route params required by `PrivateChat` are preserved or recoverable.
 - Assert messages/header/composer are visible after hangup.
 ---
+
+## ISSUE-118: Temporary Chats shows Unknown user when chat uses other_user field (15 May 2026)
+
+### Severity: Medium | Status: Fixed
+
+**Source:** Tal / Temporary Chats QA
+
+**Problem description:**
+Temporary Chats can show `Unknown user` even though the backend returns the other user for the chat.
+
+Current finding:
+
+- `TempChatCard` read only `chat.otherUser`.
+- After frontend API transformation, the chat can arrive with the other user under `chat.other_user`.
+- When the payload used `other_user`, the card could not resolve the user name and fell back to `Unknown user`.
+
+**Expected behavior:**
+Temporary chat cards should display the other user's available display name when either `otherUser` or `other_user` is present.
+
+**Actual behavior:**
+Cards using `other_user` rendered `Unknown user`.
+
+**Root cause:**
+Frontend field-shape mismatch in `TempChatCard` between camelCase `otherUser` and snake_case `other_user`.
+
+**Fix:**
+`TempChatCard` now resolves the other user from `chat.otherUser || chat.other_user`, then derives the display name from `first_name`, `firstName`, `nickname`, or `name`.
+
+**Files:**
+
+- `apps/web/src/components/chat/TempChatCard.jsx`
+- `apps/web/src/components/chat/TempChatCard.test.jsx`
+
+**Tests:**
+
+- `npm run test --workspace=@bellor/web -- src/components/chat/TempChatCard.test.jsx`
+
+---
 ## Domains & Infrastructure
 
 | Domain              | Purpose                          | Provider     | Status       |
