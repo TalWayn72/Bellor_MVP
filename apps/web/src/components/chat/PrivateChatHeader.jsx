@@ -37,7 +37,7 @@ export default function PrivateChatHeader({
               />
               <AvatarFallback>{otherUser?.nickname?.charAt(0) || '?'}</AvatarFallback>
             </Avatar>
-            <AvatarStatus status="online" size="md" />
+            <AvatarStatus status={isOtherUserOnline ? 'online' : 'offline'} size="md" />
           </div>
           <div>
             <h1 className="font-semibold text-base text-foreground">{otherUser.nickname}</h1>

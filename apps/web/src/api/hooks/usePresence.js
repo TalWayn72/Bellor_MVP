@@ -6,6 +6,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { socketService } from '../services/socketService';
 
+function normalizePresenceStatus(data) {
+  if (Array.isArray(data)) {
+    return data.reduce((statusMap, item) => {
+      if (item?.userId) statusMap[item.userId] = !!item.isOnline;
+      return statusMap;
+    }, {});
+  }
+  return data?.onlineUsers || data || {};
+}
+
 export function usePresence(userIds = []) {
   const [onlineStatus, setOnlineStatus] = useState({});
 
@@ -16,8 +26,8 @@ export function usePresence(userIds = []) {
     socketService.connect()
       .then(() => socketService.checkUsersOnline(userIds))
       .then((response) => {
-        if (response.success && response.data?.onlineUsers) {
-          setOnlineStatus(response.data.onlineUsers);
+        if (response.success && response.data) {
+          setOnlineStatus(normalizePresenceStatus(response.data));
         }
       })
       .catch(console.error);

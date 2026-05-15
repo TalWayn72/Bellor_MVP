@@ -28,6 +28,20 @@ describe('PrivateChatHeader', () => {
     expect(screen.getByText("צ'אט קבוע")).toBeInTheDocument();
   });
 
+  it('shows online text and online avatar status when the other user is online', () => {
+    const { container } = render(<PrivateChatHeader {...baseProps} isOtherUserOnline />);
+
+    expect(screen.getByText('Online')).toBeInTheDocument();
+    expect(container.querySelector('.bg-success')).toBeInTheDocument();
+  });
+
+  it('shows offline text and offline avatar status when the other user is offline', () => {
+    const { container } = render(<PrivateChatHeader {...baseProps} isOtherUserOnline={false} />);
+
+    expect(screen.getByText('Offline')).toBeInTheDocument();
+    expect(container.querySelector('.bg-muted-foreground')).toBeInTheDocument();
+  });
+
   it('shows a temporary chat tier label when no countdown exists', () => {
     render(<PrivateChatHeader {...baseProps} isTemporary isPermanent={false} />);
 
