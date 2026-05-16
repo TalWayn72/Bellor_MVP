@@ -72,4 +72,28 @@ describe('[P1][chat] MessageList', () => {
     expect(video).toHaveAttribute('playsinline');
     expect(video).toHaveAttribute('preload', 'metadata');
   });
+
+  it('renders DRAWING messages as linked image media', () => {
+    render(
+      <MessageList
+        messages={[
+          {
+            id: 'msg-drawing',
+            sender_id: 'user-1',
+            message_type: 'DRAWING',
+            content: 'https://example.com/chat-drawing.png',
+            created_date: '2026-05-14T10:00:00Z',
+          },
+        ]}
+        currentUserId="user-1"
+        isOtherUserTyping={false}
+        otherUserNickname="Dana"
+      />
+    );
+
+    const image = screen.getByAltText('Shared drawing');
+    expect(image).toHaveAttribute('src', 'https://example.com/chat-drawing.png');
+    expect(image).toHaveAttribute('title', 'Shared drawing');
+    expect(screen.queryByText('https://example.com/chat-drawing.png')).not.toBeInTheDocument();
+  });
 });

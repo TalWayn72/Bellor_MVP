@@ -1,17 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Image as ImageIcon, Mic, MessageCircle, Square, Loader2 } from 'lucide-react';
+import { Send, Image as ImageIcon, Mic, MessageCircle, Square, Loader2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import ChatDrawingModal from './ChatDrawingModal';
 
 export default function ChatInput({
   message, onMessageChange, onSend,
   showIceBreakers, onToggleIceBreakers, iceBreakers, showIceBreakerPanel, onSelectIceBreaker,
-  onSendImage, onSendVoice, isUploading,
+  onSendImage, onSendVoice, onSendDrawing, isUploading,
 }) {
   const fileInputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
   const [isRecording, setIsRecording] = useState(false);
+  const [showDrawing, setShowDrawing] = useState(false);
 
   useEffect(() => {
     return () => { mediaRecorderRef.current?.stream?.getTracks().forEach(t => t.stop()); };
@@ -77,6 +79,9 @@ export default function ChatInput({
           <Button variant="ghost" size="icon" aria-label="Send image" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
             {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ImageIcon className="w-5 h-5" />}
           </Button>
+          <Button variant="ghost" size="icon" aria-label="Open drawing tool" onClick={() => setShowDrawing(true)} disabled={isUploading}>
+            <Pencil className="w-5 h-5" />
+          </Button>
           <Button variant="ghost" size="icon" aria-label={isRecording ? 'Stop recording' : 'Record voice message'}
             onClick={handleMicClick} disabled={isUploading} className={isRecording ? 'text-destructive animate-pulse' : ''}>
             {isRecording ? <Square className="w-4 h-4 fill-current" /> : <Mic className="w-5 h-5" />}
@@ -95,6 +100,9 @@ export default function ChatInput({
           </Button>
         </div>
       </div>
+      {showDrawing && (
+        <ChatDrawingModal onClose={() => setShowDrawing(false)} onSend={onSendDrawing} isUploading={isUploading} />
+      )}
     </>
   );
 }
