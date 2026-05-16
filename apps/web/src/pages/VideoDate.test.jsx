@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -34,6 +34,7 @@ vi.mock('@/components/video/VideoDateUI', () => ({
   default: ({ otherUser, isAudioOn, isVideoOn }) => (
     <div data-testid="video-date-ui">
       <span>Video Date UI</span>
+      <span data-testid="other-user-name">{otherUser?.nickname || ''}</span>
       <span data-testid="audio-status">{isAudioOn ? 'on' : 'off'}</span>
       <span data-testid="video-status">{isVideoOn ? 'on' : 'off'}</span>
     </div>
@@ -60,7 +61,10 @@ const createWrapper = () => {
 };
 
 describe('[P3][social] VideoDate', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+    window.history.pushState({}, '', '/VideoDate?chatId=chat-123');
+  });
 
   it('renders without crashing', () => {
     const { container } = render(<VideoDate />, { wrapper: createWrapper() });
@@ -76,6 +80,23 @@ describe('[P3][social] VideoDate', () => {
     render(<VideoDate />, { wrapper: createWrapper() });
     expect(screen.getByTestId('audio-status')).toHaveTextContent('on');
     expect(screen.getByTestId('video-status')).toHaveTextContent('on');
+  });
+
+  it('loads the other user from snake_case chat metadata', async () => {
+    const { chatService, userService } = await import('@/api');
+    chatService.getChatById.mockResolvedValue({
+      chat: { id: 'chat-123', other_user: { id: 'user-2' } },
+    });
+    userService.getUserById.mockResolvedValue({
+      user: { id: 'user-2', nickname: 'Dana' },
+    });
+
+    render(<VideoDate />, { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('other-user-name')).toHaveTextContent('Dana');
+    });
+    expect(userService.getUserById).toHaveBeenCalledWith('user-2');
   });
 
   it('shows loading state when user is loading', async () => {

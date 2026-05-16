@@ -34,43 +34,46 @@ export default function MonitoredChatList({ chats, isLoading }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {chats.slice(0, 50).map((chat) => (
-            <tr
-              key={chat.id}
-              className="hover:bg-muted/50 cursor-pointer"
-              onClick={() => navigate(createPageUrl(`PrivateChat?chatId=${chat.id}`))}
-            >
-              <td className="px-6 py-4 text-sm text-foreground">
-                {chat.otherUser?.id?.substring(0, 8) || '?'}... ↔ You
-              </td>
-              <td className="px-6 py-4">
-                {chat.is_permanent || chat.is_converted_to_permanent ? (
-                  <Badge variant="success">Permanent</Badge>
-                ) : (
-                  <Badge variant="warning">Temporary</Badge>
-                )}
-              </td>
-              <td className="px-6 py-4">
-                <Badge variant={
-                  chat.status === 'active' ? 'info' :
-                  chat.status === 'expired' ? 'secondary' :
-                  chat.status === 'blocked' ? 'destructive' : 'warning'
-                }>
-                  {chat.status}
-                </Badge>
-              </td>
-              <td className="px-6 py-4 text-center">
-                {chat.reported_count > 0 ? (
-                  <Badge variant="destructive">{chat.reported_count}</Badge>
-                ) : (
-                  <span className="text-muted-foreground">-</span>
-                )}
-              </td>
-              <td className="px-6 py-4 text-sm text-muted-foreground">
-                {new Date(chat.created_date).toLocaleDateString('en-US')}
-              </td>
-            </tr>
-          ))}
+          {chats.slice(0, 50).map((chat) => {
+            const otherUser = chat.otherUser || chat.other_user;
+            return (
+              <tr
+                key={chat.id}
+                className="hover:bg-muted/50 cursor-pointer"
+                onClick={() => navigate(createPageUrl(`PrivateChat?chatId=${chat.id}`))}
+              >
+                <td className="px-6 py-4 text-sm text-foreground">
+                  {otherUser?.id?.substring(0, 8) || '?'}... ↔ You
+                </td>
+                <td className="px-6 py-4">
+                  {chat.is_permanent || chat.is_converted_to_permanent ? (
+                    <Badge variant="success">Permanent</Badge>
+                  ) : (
+                    <Badge variant="warning">Temporary</Badge>
+                  )}
+                </td>
+                <td className="px-6 py-4">
+                  <Badge variant={
+                    chat.status === 'active' ? 'info' :
+                    chat.status === 'expired' ? 'secondary' :
+                    chat.status === 'blocked' ? 'destructive' : 'warning'
+                  }>
+                    {chat.status}
+                  </Badge>
+                </td>
+                <td className="px-6 py-4 text-center">
+                  {chat.reported_count > 0 ? (
+                    <Badge variant="destructive">{chat.reported_count}</Badge>
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
+                </td>
+                <td className="px-6 py-4 text-sm text-muted-foreground">
+                  {new Date(chat.created_date).toLocaleDateString('en-US')}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

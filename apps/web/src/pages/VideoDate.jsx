@@ -25,7 +25,8 @@ export default function VideoDate() {
         const chatResult = await chatService.getChatById(chatId);
         const chat = chatResult.chat;
         if (chat) {
-          const otherUserId = chat.otherUser?.id;
+          const chatOtherUser = chat.otherUser || chat.other_user;
+          const otherUserId = chatOtherUser?.id;
           if (!otherUserId) return null;
           const userResult = await userService.getUserById(otherUserId);
           return userResult.user || null;

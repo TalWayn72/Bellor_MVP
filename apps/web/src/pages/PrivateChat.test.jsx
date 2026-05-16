@@ -263,6 +263,25 @@ describe('[P1][chat] PrivateChat', () => {
     });
   });
 
+  describe('Chat metadata field shapes', () => {
+    it('loads the other user from snake_case chat metadata when only chatId is present', async () => {
+      mockLocationSearch.mockReturnValue('?chatId=chat-123');
+      mockGetChatById.mockResolvedValue({
+        chat: { id: 'chat-123', is_temporary: false, is_permanent: true, other_user: { id: 'user-2' } },
+      });
+      mockGetMessages.mockResolvedValue({ messages: [] });
+
+      render(<PrivateChat />, { wrapper: createWrapper() });
+
+      await waitFor(() => {
+        expect(mockGetUserById).toHaveBeenCalledWith('user-2');
+      });
+      await waitFor(() => {
+        expect(screen.getByTestId('chat-header')).toBeInTheDocument();
+      });
+    });
+  });
+
   describe('Sending messages', () => {
     beforeEach(() => {
       mockLocationSearch.mockReturnValue('?chatId=chat-123&userId=user-2');
