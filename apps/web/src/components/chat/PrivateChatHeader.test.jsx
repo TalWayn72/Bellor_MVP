@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import PrivateChatHeader from './PrivateChatHeader';
 
 vi.mock('@/components/navigation/BackButton', () => ({
@@ -52,5 +52,13 @@ describe('PrivateChatHeader', () => {
     render(<PrivateChatHeader {...baseProps} isTemporary isPermanent={false} timeLeft={12} />);
 
     expect(screen.getByText("צ'אט זמני · נשארו 12 שעות")).toBeInTheDocument();
+  });
+  it('preserves the other user id when starting a video call', () => {
+    const onNavigate = vi.fn();
+    render(<PrivateChatHeader {...baseProps} onNavigate={onNavigate} />);
+
+    fireEvent.click(screen.getByLabelText('Start video call'));
+
+    expect(onNavigate).toHaveBeenCalledWith('/VideoDate?chatId=chat-1&userId=user-2');
   });
 });

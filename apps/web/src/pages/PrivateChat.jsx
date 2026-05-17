@@ -22,7 +22,7 @@ export default function PrivateChat() {
   const [showActions, setShowActions] = useState(false);
   const [showIceBreakers, setShowIceBreakers] = useState(false);
   const params = new URLSearchParams(location.search);
-  const chatId = params.get('chatId') || params.get('id'), otherUserId = params.get('userId');
+  const chatId = params.get('chatId') || params.get('id'), routeOtherUserId = params.get('userId');
   const isDemo = chatId?.startsWith('demo-');
 
   const { messages: realtimeMessages, typingUsers, isJoined, sendMessage: sendSocketMessage, sendTyping } = useChatRoom(chatId);
@@ -40,6 +40,7 @@ export default function PrivateChat() {
     enabled: !!chatId && !isDemo, retry: false,
   });
   const chatOtherUser = chat?.otherUser || chat?.other_user;
+  const resolvedOtherUserId = routeOtherUserId || chatOtherUser?.id;
 
   const { data: initialMessages = [] } = useQuery({
     queryKey: ['messages', chatId],
@@ -62,17 +63,25 @@ export default function PrivateChat() {
   }, [isDemo, demoMessages, initialMessages, realtimeMessages, localMessages]);
 
   const { data: otherUser } = useQuery({
-    queryKey: ['user', otherUserId, chatOtherUser?.id],
+    queryKey: ['user', resolvedOtherUserId],
     queryFn: async () => {
-      const targetId = otherUserId || chatOtherUser?.id;
-      if (!targetId) return null;
-      try { return (await userService.getUserById(targetId)).user; }
-      catch { return { id: targetId, nickname: 'User', age: null, profile_images: [`https://i.pravatar.cc/150?u=${targetId}`] }; }
+      if (!resolvedOtherUserId) return null;
+      try { return (await userService.getUserById(resolvedOtherUserId)).user; }
+      catch { return { id: resolvedOtherUserId, nickname: 'User', age: null, profile_images: [`https://i.pravatar.cc/150?u=${resolvedOtherUserId}`] }; }
     },
-    enabled: !!otherUserId || (!!chat && !!currentUser),
+    enabled: !!resolvedOtherUserId && !!currentUser,
   });
+  const metadataOtherUser = React.useMemo(() => {
+    if (!chatOtherUser?.id) return null;
+    return {
+      ...chatOtherUser,
+      nickname: chatOtherUser.nickname || chatOtherUser.first_name || chatOtherUser.firstName || chatOtherUser.name || 'User',
+      profile_images: chatOtherUser.profile_images || chatOtherUser.profileImages || [],
+    };
+  }, [chatOtherUser]);
+  const resolvedOtherUser = otherUser || metadataOtherUser;
 
-  const presenceId = otherUser?.id || otherUserId;
+  const presenceId = resolvedOtherUser?.id || resolvedOtherUserId;
   const { isOnline } = usePresence(presenceId ? [presenceId] : []);
   const isOtherUserOnline = presenceId ? isOnline(presenceId) : false;
   const isOtherUserTyping = presenceId ? typingUsers[presenceId] : false;
@@ -85,8 +94,8 @@ export default function PrivateChat() {
 
   if (isLoading) return loadingSkeleton;
   if (chatId && !isDemo && chatError) return <ErrorScreen title="Chat Not Found" description="This conversation doesn't exist or has been deleted." onBack={goBack} />;
-  if (!otherUser) {
-    if (!otherUserId && !chat) return <ErrorScreen title="Unable to Load Chat" description="Could not find the user for this conversation." onBack={goBack} />;
+  if (!resolvedOtherUser) {
+    if (!resolvedOtherUserId && !chat) return <ErrorScreen title="Unable to Load Chat" description="Could not find the user for this conversation." onBack={goBack} />;
     return loadingSkeleton;
   }
 
@@ -98,13 +107,13 @@ export default function PrivateChat() {
   return (
     <div className="min-h-screen bg-background flex flex-col" dir="ltr">
       <PrivateChatHeader
-        otherUser={otherUser} otherUserId={otherUserId} chatId={chatId}
+        otherUser={resolvedOtherUser} otherUserId={resolvedOtherUserId} chatId={chatId}
         isTemporary={isTemporary} isPermanent={isPermanent} timeLeft={timeLeft}
         isOtherUserOnline={isOtherUserOnline} isOtherUserTyping={isOtherUserTyping}
         showActions={showActions} onToggleActions={() => setShowActions(!showActions)}
-        onNavigate={navigate} onBlockUser={() => handleBlockUser(otherUserId)}
+        onNavigate={navigate} onBlockUser={() => handleBlockUser(resolvedOtherUserId)}
       />
-      <MessageList ref={messagesEndRef} messages={messages} currentUserId={currentUser.id} isOtherUserTyping={isOtherUserTyping} otherUserNickname={otherUser?.nickname} />
+      <MessageList ref={messagesEndRef} messages={messages} currentUserId={currentUser.id} isOtherUserTyping={isOtherUserTyping} otherUserNickname={resolvedOtherUser?.nickname} />
       <ChatInput
         message={message} onMessageChange={handleTyping} onSend={handleSendMessage}
         showIceBreakers={showIceBreakers} onToggleIceBreakers={() => setShowIceBreakers(!showIceBreakers)}
