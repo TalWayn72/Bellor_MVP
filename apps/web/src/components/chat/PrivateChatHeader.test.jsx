@@ -18,6 +18,7 @@ const baseProps = {
   showActions: false,
   onToggleActions: vi.fn(),
   onNavigate: vi.fn(),
+  onStartVideoCall: vi.fn(),
   onBlockUser: vi.fn(),
 };
 
@@ -53,12 +54,12 @@ describe('PrivateChatHeader', () => {
 
     expect(screen.getByText("צ'אט זמני · נשארו 12 שעות")).toBeInTheDocument();
   });
-  it('preserves the other user id when starting a video call', () => {
-    const onNavigate = vi.fn();
-    render(<PrivateChatHeader {...baseProps} onNavigate={onNavigate} />);
+  it('calls the video call start handler when starting a video call', () => {
+    const onStartVideoCall = vi.fn();
+    render(<PrivateChatHeader {...baseProps} onStartVideoCall={onStartVideoCall} />);
 
     fireEvent.click(screen.getByLabelText('Start video call'));
 
-    expect(onNavigate).toHaveBeenCalledWith('/VideoDate?chatId=chat-1&userId=user-2');
+    expect(onStartVideoCall).toHaveBeenCalledTimes(1);
   });
 });

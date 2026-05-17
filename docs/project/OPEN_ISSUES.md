@@ -972,6 +972,49 @@ This fix does not touch onboarding/profile drawing logic, does not use `uploadDr
 - `npx vitest run src/test/integration/controllers/chat.controller.integration.test.ts`
 
 ---
+## ISSUE-120: Notifications badge can show chat unread count while Notifications list is empty (17 May 2026)
+
+### Severity: Medium | Status: Open
+
+**Source:** ISSUE-116 follow-up QA / notification badge investigation
+
+**Problem description:**
+After verifying that incoming video call prompts appear live in `PrivateChat`, QA noticed the global notifications badge can show a count such as `3` while the Notifications page/list is empty.
+
+**Current finding:**
+This does not appear to be caused by the ISSUE-116 incoming video call changes. The video call invite flow emits and listens only to `video-call:invite` / `video-call:incoming`, stores incoming call state locally in `useChatRoom`, and does not create notification rows or emit `notification:new`.
+
+The mismatch appears to be an existing notification-system issue:
+
+- `NotificationBadge` uses `useSocketContext().unreadChatCount` whenever the socket is connected.
+- `unreadChatCount` is populated from `socketService.getUnreadCount()`, which counts unread chat messages via `chat:unread:count`.
+- The Notifications page fetches persisted notification rows from `/notifications`.
+- The disconnected REST fallback path also appears inconsistent: `NotificationBadge` reads `result.count`, while the backend `/notifications/unread-count` response is `{ unreadCount }`.
+- Therefore the badge can show unread chat-message count even when there are no persisted notification rows matching the Notifications page filters.
+
+**Expected behavior:**
+The badge count and Notifications page should represent the same domain, or the UI should make clear that the badge is for unread chats rather than persisted notifications.
+
+**Actual behavior:**
+The badge can show unread chat-message count, but the Notifications page can still render an empty state.
+
+**Root cause:**
+Frontend mixes two different counters/lists: socket unread chat-message count for the badge, persisted notification rows for the Notifications page.
+
+**Decision for ISSUE-116 PR:**
+Do not fix this in the incoming video call PR. Incoming video calls should remain a live popup/dialog only and should not alter the global notification badge or create persisted notification rows unless a separate product decision establishes that convention.
+
+**Likely files for a future fix:**
+
+- `apps/web/src/components/notifications/NotificationBadge.jsx`
+- `apps/web/src/components/providers/SocketProvider.jsx`
+- `apps/web/src/components/providers/socket-events.js`
+- `apps/web/src/components/providers/socket-reconnection.js`
+- `apps/web/src/pages/Notifications.jsx`
+- `apps/api/src/websocket/handlers/chat-read.handler.ts`
+- `apps/api/src/services/notifications.service.ts`
+
+---
 ## Domains & Infrastructure
 
 | Domain              | Purpose                          | Provider     | Status       |

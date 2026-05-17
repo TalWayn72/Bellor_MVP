@@ -8,6 +8,7 @@ import { Server } from 'socket.io';
 import { AuthenticatedSocket } from '../index.js';
 import { prisma } from '../../lib/prisma.js';
 import { setupChatMessagingHandlers } from './chat-messaging.handler.js';
+import { createVideoCallInviteHandler } from './video-call.handler.js';
 import { logger } from '../../lib/logger.js';
 
 /**
@@ -93,9 +94,12 @@ export function setupChatHandlers(io: Server, socket: AuthenticatedSocket): () =
     }
   };
 
+  const handleVideoCallInvite = createVideoCallInviteHandler(io, socket);
+
   // Register event handlers
   socket.on('chat:join', handleChatJoin);
   socket.on('chat:leave', handleChatLeave);
+  socket.on('video-call:invite', handleVideoCallInvite);
 
   // Setup message-related handlers (send, read, typing, unread, delete)
   const cleanupMessagingHandlers = setupChatMessagingHandlers(io, socket);
@@ -104,6 +108,7 @@ export function setupChatHandlers(io: Server, socket: AuthenticatedSocket): () =
   return () => {
     socket.off('chat:join', handleChatJoin);
     socket.off('chat:leave', handleChatLeave);
+    socket.off('video-call:invite', handleVideoCallInvite);
     cleanupMessagingHandlers();
   };
 }
