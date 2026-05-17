@@ -37,25 +37,26 @@ describe('[P1][chat] usePrivateChatActions drawing messages', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUploadFile.mockResolvedValue({ url: 'https://example.com/drawing.png' });
+    mockSendMessage.mockResolvedValue({ message: { id: 'rest-msg-1' } });
     mockIsConnected.mockReturnValue(true);
   });
 
-  it('blocks drawing send before conversion or upload when socket path is unavailable', async () => {
+  it('uploads a PNG drawing and sends it through REST fallback when socket path is unavailable', async () => {
     mockIsConnected.mockReturnValue(false);
-    const createFile = vi.fn();
+    const file = new File(['png'], 'chat-drawing.png', { type: 'image/png' });
+    const createFile = vi.fn().mockResolvedValue(file);
     const { result, props } = renderActions({ isJoined: false });
 
     await act(async () => {
       await result.current.handleSendDrawing(createFile);
     });
 
-    expect(createFile).not.toHaveBeenCalled();
-    expect(mockUploadFile).not.toHaveBeenCalled();
+    expect(createFile).toHaveBeenCalled();
+    expect(mockUploadFile).toHaveBeenCalledWith(file);
     expect(props.sendSocketMessage).not.toHaveBeenCalled();
-    expect(props.toast).toHaveBeenCalledWith({
-      title: 'Drawing unavailable',
-      description: 'Drawing messages require an active chat connection.',
-      variant: 'destructive',
+    expect(mockSendMessage).toHaveBeenCalledWith('chat-123', {
+      content: 'https://example.com/drawing.png',
+      type: 'DRAWING',
     });
   });
 

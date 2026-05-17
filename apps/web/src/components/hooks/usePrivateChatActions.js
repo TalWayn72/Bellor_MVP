@@ -37,16 +37,12 @@ export function usePrivateChatActions({ chatId, currentUser, isDemo, isJoined, s
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data) => {
-      const requiresSocket = data.type === 'DRAWING';
       // Try WebSocket first if connected
       if (isJoined && socketService.isConnected()) {
         try {
           const r = await sendSocketMessage(data.content, { messageType: data.type || 'TEXT' });
           if (r && r.success) return r.data;
         } catch { /* handled below */ }
-      }
-      if (requiresSocket) {
-        throw new Error('Drawing messages require an active chat connection.');
       }
       // Fallback to HTTP API
       const result = await chatService.sendMessage(chatId, data);
@@ -107,14 +103,6 @@ export function usePrivateChatActions({ chatId, currentUser, isDemo, isJoined, s
 
   const handleSendDrawing = async (createFile) => {
     if (!chatId || !currentUser) return false;
-    if (!isJoined || !socketService.isConnected()) {
-      toast({
-        title: 'Drawing unavailable',
-        description: 'Drawing messages require an active chat connection.',
-        variant: 'destructive'
-      });
-      return false;
-    }
     setIsUploading(true);
     try {
       const file = await createFile();

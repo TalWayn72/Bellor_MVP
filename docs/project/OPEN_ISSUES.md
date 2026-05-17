@@ -927,6 +927,51 @@ Frontend field-shape mismatch in `TempChatCard` between camelCase `otherUser` an
 - `npm run test --workspace=@bellor/web -- src/components/chat/TempChatCard.test.jsx`
 
 ---
+## ISSUE-119: REST fallback does not support DRAWING chat messages (17 May 2026)
+
+### Severity: Medium | Status: Fixed
+
+**Source:** PR #21 drawing chat QA / REST fallback investigation
+
+**Problem description:**
+PR #21 added frontend support for DRAWING chat messages through the active socket/send path, but the REST fallback path did not support the same flow.
+
+Current findings:
+
+- The chat drawing modal converts the canvas to a PNG.
+- Chat drawings use `uploadService.uploadFile()`, not `uploadDrawing()`.
+- The uploaded PNG URL is sent as a chat message with type `DRAWING`.
+- The socket/send path accepted `DRAWING`.
+- The frontend REST fallback blocked drawing messages when there was no active socket connection.
+- The backend REST validation for `POST /api/v1/chats/:chatId/messages` did not include `DRAWING`, even though Prisma/shared schemas did.
+
+**Expected behavior:**
+When the socket path is unavailable, drawing chat messages should still be sent through the REST fallback as media messages backed by an uploaded PNG URL.
+
+**Actual behavior:**
+Drawing send was blocked before upload on the frontend, and the backend REST validator rejected `DRAWING`.
+
+**Root cause:**
+Frontend drawing send logic treated `DRAWING` as socket-only, and backend REST chat message validation was stale relative to Prisma/shared `MessageType`.
+
+**Fix:**
+Drawing sends now create the PNG, upload it with `uploadService.uploadFile()`, and use the existing socket-preferred send mutation so REST can handle fallback. REST chat message validation now accepts the Prisma/shared chat message types: `TEXT`, `VOICE`, `IMAGE`, `VIDEO`, and `DRAWING`.
+
+This fix does not touch onboarding/profile drawing logic, does not use `uploadDrawing()`, and does not update or overwrite `user.drawingUrl`.
+
+**Files:**
+
+- `apps/web/src/components/hooks/usePrivateChatActions.js`
+- `apps/api/src/routes/v1/chats-schemas.ts`
+- `apps/web/src/components/hooks/usePrivateChatActions.test.jsx`
+- `apps/api/src/test/integration/controllers/chat.controller.integration.test.ts`
+
+**Tests:**
+
+- `npm run test --workspace=@bellor/web -- src/components/hooks/usePrivateChatActions.test.jsx`
+- `npx vitest run src/test/integration/controllers/chat.controller.integration.test.ts`
+
+---
 ## Domains & Infrastructure
 
 | Domain              | Purpose                          | Provider     | Status       |

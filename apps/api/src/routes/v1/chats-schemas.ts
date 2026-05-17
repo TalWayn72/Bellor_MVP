@@ -41,7 +41,7 @@ export const createChatBodySchema = z.object({
 );
 
 const messageTypeEnum = z.string().transform(v => v.toUpperCase()).pipe(
-  z.enum(['TEXT', 'IMAGE', 'AUDIO', 'VIDEO', 'SYSTEM']),
+  z.enum(['TEXT', 'VOICE', 'IMAGE', 'VIDEO', 'DRAWING']),
 );
 
 export const sendMessageBodySchema = z.object({
