@@ -150,4 +150,76 @@ describe('[P1][chat] WebSocket - Chat Join/Leave & Messaging', () => {
       expect(result.isTyping).toBe(false);
     });
   });
+
+  describe('video-call:invite', () => {
+    it('should acknowledge and notify the verified receiver', async () => {
+      (prisma.chat.findFirst as Mock).mockResolvedValue({
+        ...mockChat,
+        user1: {
+          id: mockUser1.id,
+          firstName: mockUser1.firstName,
+          lastName: mockUser1.lastName,
+          profileImages: mockUser1.profileImages,
+        },
+        user2: {
+          id: mockUser2.id,
+          firstName: mockUser2.firstName,
+          lastName: mockUser2.lastName,
+          profileImages: mockUser2.profileImages,
+        },
+      } as unknown as Chat);
+
+      const incomingPromise = new Promise<SocketAck>((resolve) => {
+        clientSocket2.on('video-call:incoming', resolve);
+      });
+
+      const result = await new Promise<SocketAck>((resolve) => {
+        clientSocket1.emit('video-call:invite', { chatId: mockChat.id, receiverId: mockUser2.id }, resolve);
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.chatId).toBe(mockChat.id);
+      expect(result.data?.callerId).toBe(mockUser1.id);
+      expect(result.data?.receiverId).toBe(mockUser2.id);
+
+      const incoming = await Promise.race([
+        incomingPromise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000)),
+      ]);
+      expect(incoming.chatId).toBe(mockChat.id);
+      expect(incoming.callerId).toBe(mockUser1.id);
+      expect(incoming.receiverId).toBe(mockUser2.id);
+      expect((incoming.caller as Record<string, unknown>).id).toBe(mockUser1.id);
+    });
+
+    it('should reject invites when the caller is not in the chat', async () => {
+      (prisma.chat.findFirst as Mock).mockResolvedValue(null);
+
+      const result = await new Promise<SocketAck>((resolve) => {
+        clientSocket1.emit('video-call:invite', { chatId: 'other-chat', receiverId: mockUser2.id }, resolve);
+      });
+
+      expect(result.error).toBe('Conversation not found or access denied');
+    });
+
+    it('should reject invites to the caller', async () => {
+      (prisma.chat.findFirst as Mock).mockResolvedValue(mockChat as unknown as Chat);
+
+      const result = await new Promise<SocketAck>((resolve) => {
+        clientSocket1.emit('video-call:invite', { chatId: mockChat.id, receiverId: mockUser1.id }, resolve);
+      });
+
+      expect(result.error).toBe('Receiver must be the other chat participant');
+    });
+
+    it('should reject invites to a user outside the chat', async () => {
+      (prisma.chat.findFirst as Mock).mockResolvedValue(mockChat as unknown as Chat);
+
+      const result = await new Promise<SocketAck>((resolve) => {
+        clientSocket1.emit('video-call:invite', { chatId: mockChat.id, receiverId: 'not-in-chat' }, resolve);
+      });
+
+      expect(result.error).toBe('Receiver must be the other chat participant');
+    });
+  });
 });

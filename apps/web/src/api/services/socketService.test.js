@@ -139,4 +139,23 @@ describe('[P1][chat] Socket Service - Memory Leak Prevention', () => {
       await expect(socketService.connect()).rejects.toThrow('Connection failed');
     });
   });
+
+  describe('Video call invites', () => {
+    it('should emit video-call:invite and resolve from acknowledgement', async () => {
+      mockSocket.connected = true;
+      socketService.socket = mockSocket;
+      mockSocket.emit.mockImplementation((_event, _payload, callback) => {
+        callback({ success: true, data: { chatId: 'chat-1' } });
+      });
+
+      const result = await socketService.sendVideoCallInvite('chat-1', 'user-2');
+
+      expect(mockSocket.emit).toHaveBeenCalledWith(
+        'video-call:invite',
+        { chatId: 'chat-1', receiverId: 'user-2' },
+        expect.any(Function)
+      );
+      expect(result).toEqual({ success: true, data: { chatId: 'chat-1' } });
+    });
+  });
 });

@@ -19,6 +19,7 @@ export default function PrivateChatHeader({
   showActions,
   onToggleActions,
   onNavigate,
+  onStartVideoCall,
   onBlockUser,
 }) {
   const tierLabel = isTemporary ? "צ'אט זמני" : isPermanent ? "צ'אט קבוע" : "צ'אט קבוע";
@@ -62,7 +63,7 @@ export default function PrivateChatHeader({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => onNavigate(createPageUrl(`VideoDate?chatId=${chatId}${videoCallUserParam}`))}
+            onClick={onStartVideoCall || (() => onNavigate(createPageUrl(`VideoDate?chatId=${chatId}${videoCallUserParam}`)))}
             aria-label="Start video call"
           >
             <Video className="w-5 h-5" />

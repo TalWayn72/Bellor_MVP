@@ -95,4 +95,18 @@ export function attachChatMethods(service) {
       });
     });
   };
+
+  /**
+   * Invite the other chat participant to a video call
+   * @param {string} chatId
+   * @param {string} receiverId
+   * @returns {Promise<{success: boolean, data?: any, error?: string}>}
+   */
+  service.sendVideoCallInvite = function (chatId, receiverId) {
+    return new Promise((resolve) => {
+      this.emit('video-call:invite', { chatId, receiverId }, (response) => {
+        resolve(response);
+      });
+    });
+  };
 }

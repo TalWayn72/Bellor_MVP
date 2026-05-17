@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { chatService, userService } from '@/api';
+import { chatService, socketService, userService } from '@/api';
 import { useQuery } from '@tanstack/react-query';
 import { useChatRoom, usePresence } from '@/api/hooks/useSocket';
 import { ChatSkeleton } from '@/components/states';
@@ -11,6 +11,8 @@ import { getDemoMessages } from '@/data/demoData';
 import PrivateChatHeader from '@/components/chat/PrivateChatHeader';
 import MessageList from '@/components/chat/MessageList';
 import ChatInput from '@/components/chat/ChatInput';
+import IncomingVideoCallDialog from '@/components/chat/IncomingVideoCallDialog';
+import { buildVideoCallUrl, startVideoCallInvite } from '@/components/chat/videoCallInvite';
 import { ICE_BREAKERS, ErrorScreen } from '@/components/chat/PrivateChatConstants';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -25,7 +27,15 @@ export default function PrivateChat() {
   const chatId = params.get('chatId') || params.get('id'), routeOtherUserId = params.get('userId');
   const isDemo = chatId?.startsWith('demo-');
 
-  const { messages: realtimeMessages, typingUsers, isJoined, sendMessage: sendSocketMessage, sendTyping } = useChatRoom(chatId);
+  const {
+    messages: realtimeMessages,
+    typingUsers,
+    incomingCall,
+    isJoined,
+    sendMessage: sendSocketMessage,
+    sendTyping,
+    clearIncomingCall,
+  } = useChatRoom(chatId, currentUser?.id);
   const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 
   const { message, isUploading, localMessages, handleTyping, handleSendMessage, handleSendImage, handleSendVoice, handleSendDrawing, handleBlockUser, cleanup } =
@@ -90,6 +100,13 @@ export default function PrivateChat() {
   useEffect(() => () => cleanup(), []);
 
   const goBack = () => navigate(createPageUrl('SharedSpace'));
+  const handleStartVideoCall = () => startVideoCallInvite({ chatId, receiverId: resolvedOtherUserId, socketService, navigate, toast });
+
+  const handleJoinIncomingCall = () => {
+    if (!incomingCall) return;
+    clearIncomingCall?.();
+    navigate(buildVideoCallUrl(incomingCall.chatId, incomingCall.callerId));
+  };
   const loadingSkeleton = <div className="min-h-screen bg-background p-4"><ChatSkeleton count={6} /></div>;
 
   if (isLoading) return loadingSkeleton;
@@ -111,7 +128,7 @@ export default function PrivateChat() {
         isTemporary={isTemporary} isPermanent={isPermanent} timeLeft={timeLeft}
         isOtherUserOnline={isOtherUserOnline} isOtherUserTyping={isOtherUserTyping}
         showActions={showActions} onToggleActions={() => setShowActions(!showActions)}
-        onNavigate={navigate} onBlockUser={() => handleBlockUser(resolvedOtherUserId)}
+        onNavigate={navigate} onStartVideoCall={handleStartVideoCall} onBlockUser={() => handleBlockUser(resolvedOtherUserId)}
       />
       <MessageList ref={messagesEndRef} messages={messages} currentUserId={currentUser.id} isOtherUserTyping={isOtherUserTyping} otherUserNickname={resolvedOtherUser?.nickname} />
       <ChatInput
@@ -120,6 +137,12 @@ export default function PrivateChat() {
         iceBreakers={ICE_BREAKERS} showIceBreakerPanel={showIceBreakers && messages.length === 0}
         onSelectIceBreaker={(text) => { handleTyping(text); setShowIceBreakers(false); }}
         onSendImage={handleSendImage} onSendVoice={handleSendVoice} onSendDrawing={handleSendDrawing} isUploading={isUploading}
+      />
+      <IncomingVideoCallDialog
+        incomingCall={incomingCall}
+        fallbackName={resolvedOtherUser?.nickname}
+        onDecline={() => clearIncomingCall?.()}
+        onJoin={handleJoinIncomingCall}
       />
     </div>
   );

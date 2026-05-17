@@ -6,9 +6,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { socketService } from '../services/socketService';
 
-export function useChatRoom(chatId) {
+export function useChatRoom(chatId, currentUserId = null) {
   const [messages, setMessages] = useState([]);
   const [typingUsers, setTypingUsers] = useState({});
+  const [incomingCall, setIncomingCall] = useState(null);
   const [isJoined, setIsJoined] = useState(false);
   const [loading, setLoading] = useState(false);
   const typingTimeoutRef = useRef({});
@@ -36,6 +37,7 @@ export function useChatRoom(chatId) {
       setIsJoined(false);
       setMessages([]);
       setTypingUsers({});
+      setIncomingCall(null);
     };
   }, [chatId]);
 
@@ -67,20 +69,29 @@ export function useChatRoom(chatId) {
       }
     };
 
+    const handleIncomingCall = (data) => {
+      if (data.chatId !== chatId) return;
+      if (currentUserId && data.callerId === currentUserId) return;
+
+      setIncomingCall(data);
+    };
+
     const unsubMessage = socketService.on('chat:message:new', handleNewMessage);
     const unsubDeleted = socketService.on('chat:message:deleted', handleMessageDeleted);
     const unsubTyping = socketService.on('chat:typing', handleTyping);
+    const unsubIncomingCall = socketService.on('video-call:incoming', handleIncomingCall);
 
     return () => {
       unsubMessage();
       unsubDeleted();
       unsubTyping();
+      unsubIncomingCall();
 
       // Clear all typing timeouts
       Object.values(typingTimeoutRef.current).forEach(clearTimeout);
       typingTimeoutRef.current = {};
     };
-  }, [chatId]);
+  }, [chatId, currentUserId]);
 
   const sendMessage = useCallback(async (content, metadata = {}) => {
     if (!chatId) return;
@@ -100,5 +111,20 @@ export function useChatRoom(chatId) {
     return await socketService.deleteMessage(messageId);
   }, []);
 
-  return { messages, typingUsers, isJoined, loading, sendMessage, sendTyping, markAsRead, deleteMessage };
+  const clearIncomingCall = useCallback(() => {
+    setIncomingCall(null);
+  }, []);
+
+  return {
+    messages,
+    typingUsers,
+    incomingCall,
+    isJoined,
+    loading,
+    sendMessage,
+    sendTyping,
+    markAsRead,
+    deleteMessage,
+    clearIncomingCall,
+  };
 }

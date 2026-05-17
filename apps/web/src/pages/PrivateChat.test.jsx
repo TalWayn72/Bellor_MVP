@@ -28,6 +28,7 @@ const mockSendMessage = vi.fn().mockResolvedValue({ id: 'msg-new', content: 'Hel
 const mockGetUserById = vi.fn().mockResolvedValue({ user: null });
 const mockBlockUser = vi.fn();
 const mockUploadFile = vi.fn().mockResolvedValue({ url: 'https://example.com/uploaded.mp4' });
+const mockSendVideoCallInvite = vi.fn().mockResolvedValue({ success: true });
 
 vi.mock('@/api', () => ({
   chatService: {
@@ -42,7 +43,11 @@ vi.mock('@/api', () => ({
   uploadService: {
     uploadFile: (...args) => mockUploadFile(...args),
   },
-  socketService: { on: vi.fn(() => vi.fn()), isConnected: vi.fn(() => false) },
+  socketService: {
+    on: vi.fn(() => vi.fn()),
+    isConnected: vi.fn(() => false),
+    sendVideoCallInvite: (...args) => mockSendVideoCallInvite(...args),
+  },
 }));
 
 const mockSendSocketMessage = vi.fn();
@@ -72,17 +77,22 @@ vi.mock('@/components/hooks/useCurrentUser', () => ({
 let capturedOnSend = null;
 let capturedOnMessageChange = null;
 let capturedOnSendImage = null;
+let capturedOnStartVideoCall = null;
 let capturedMessage = '';
 
 vi.mock('@/components/chat/PrivateChatHeader', () => ({
-  default: ({ otherUser, otherUserId, isOtherUserOnline, isOtherUserTyping }) => (
+  default: ({ otherUser, otherUserId, isOtherUserOnline, isOtherUserTyping, onStartVideoCall }) => {
+    capturedOnStartVideoCall = onStartVideoCall;
+    return (
     <div data-testid="chat-header">
       <span data-testid="header-username">{otherUser?.nickname}</span>
       <span data-testid="header-other-user-id">{otherUserId}</span>
       {isOtherUserTyping && <span data-testid="header-typing">typing...</span>}
       {isOtherUserOnline && <span data-testid="header-online">Online</span>}
+      <button type="button" data-testid="start-video-call" onClick={onStartVideoCall}>Start video call</button>
     </div>
-  ),
+    );
+  },
 }));
 
 vi.mock('@/components/chat/MessageList', () => ({
@@ -123,6 +133,15 @@ vi.mock('@/components/chat/ChatInput', () => ({
   },
 }));
 
+vi.mock('@/components/ui/dialog', () => ({
+  Dialog: ({ open, children }) => (open ? <div data-testid="dialog">{children}</div> : null),
+  DialogContent: ({ children }) => <div>{children}</div>,
+  DialogHeader: ({ children }) => <div>{children}</div>,
+  DialogTitle: ({ children }) => <h2>{children}</h2>,
+  DialogDescription: ({ children }) => <p>{children}</p>,
+  DialogFooter: ({ children }) => <div>{children}</div>,
+}));
+
 vi.mock('@/components/states', () => ({
   ChatSkeleton: ({ count }) => <div data-testid="chat-skeleton">Loading {count} messages...</div>,
 }));
@@ -154,12 +173,15 @@ const createWrapper = () => {
 
 describe('[P1][chat] PrivateChat', () => {
   beforeEach(() => {
+    vi.useRealTimers();
     vi.clearAllMocks();
     capturedOnSend = null;
     capturedOnMessageChange = null;
     capturedOnSendImage = null;
+    capturedOnStartVideoCall = null;
     capturedMessage = '';
     mockUploadFile.mockResolvedValue({ url: 'https://example.com/uploaded.mp4' });
+    mockSendVideoCallInvite.mockResolvedValue({ success: true });
     mockLocationSearch.mockReturnValue('');
     mockUseCurrentUser.mockReturnValue({
       currentUser: { id: 'user-1', nickname: 'TestUser' },
@@ -419,6 +441,138 @@ describe('[P1][chat] PrivateChat', () => {
         description: 'Unsupported media type. Please choose an image or supported video file.',
         variant: 'destructive',
       });
+    });
+  });
+
+  describe('Video call invitations', () => {
+    beforeEach(() => {
+      mockLocationSearch.mockReturnValue('?chatId=chat-123&userId=user-2');
+      mockGetChatById.mockResolvedValue({
+        chat: { id: 'chat-123', is_temporary: false, is_permanent: true, otherUser: { id: 'user-2' } },
+      });
+      mockGetMessages.mockResolvedValue({ messages: [] });
+    });
+
+    it('waits for the backend invite acknowledgement before navigating to VideoDate', async () => {
+      mockSendVideoCallInvite.mockResolvedValueOnce({ success: true });
+
+      render(<PrivateChat />, { wrapper: createWrapper() });
+
+      await waitFor(() => {
+        expect(capturedOnStartVideoCall).toBeTypeOf('function');
+      });
+
+      await act(async () => {
+        await capturedOnStartVideoCall();
+      });
+
+      expect(mockSendVideoCallInvite).toHaveBeenCalledWith('chat-123', 'user-2');
+      expect(mockNavigate).toHaveBeenCalledWith('/VideoDate?chatId=chat-123&userId=user-2');
+    });
+
+    it('shows an error and stays in chat when the backend rejects the invite', async () => {
+      mockSendVideoCallInvite.mockResolvedValueOnce({ error: 'Conversation not found or access denied' });
+
+      render(<PrivateChat />, { wrapper: createWrapper() });
+
+      await waitFor(() => {
+        expect(capturedOnStartVideoCall).toBeTypeOf('function');
+      });
+
+      await act(async () => {
+        await capturedOnStartVideoCall();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(expect.stringContaining('/VideoDate'));
+      expect(mockToast).toHaveBeenCalledWith({
+        title: 'Video call unavailable',
+        description: 'Conversation not found or access denied',
+        variant: 'destructive',
+      });
+    });
+
+    it('shows an error and stays in chat when the invite acknowledgement times out', async () => {
+      mockSendVideoCallInvite.mockReturnValueOnce(new Promise(() => {}));
+
+      render(<PrivateChat />, { wrapper: createWrapper() });
+
+      await waitFor(() => {
+        expect(capturedOnStartVideoCall).toBeTypeOf('function');
+      });
+
+      vi.useFakeTimers();
+      await act(async () => {
+        const invitePromise = capturedOnStartVideoCall();
+        vi.advanceTimersByTime(5000);
+        await invitePromise;
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(expect.stringContaining('/VideoDate'));
+      expect(mockToast).toHaveBeenCalledWith({
+        title: 'Video call unavailable',
+        description: 'Unable to start the video call. Please try again.',
+        variant: 'destructive',
+      });
+
+      vi.useRealTimers();
+    });
+
+    it('shows an incoming call prompt and joins with the caller id', async () => {
+      const { useChatRoom } = await import('@/api/hooks/useSocket');
+      useChatRoom.mockReturnValue({
+        messages: [],
+        typingUsers: {},
+        isJoined: true,
+        sendMessage: mockSendSocketMessage,
+        sendTyping: mockSendTyping,
+        incomingCall: {
+          chatId: 'chat-123',
+          callerId: 'user-2',
+          receiverId: 'user-1',
+          caller: { id: 'user-2', firstName: 'Dana' },
+        },
+        clearIncomingCall: vi.fn(),
+      });
+
+      render(<PrivateChat />, { wrapper: createWrapper() });
+
+      await waitFor(() => {
+        expect(screen.getByText('Incoming video call')).toBeInTheDocument();
+      });
+
+      await userEvent.click(screen.getByRole('button', { name: /join/i }));
+
+      expect(mockNavigate).toHaveBeenCalledWith('/VideoDate?chatId=chat-123&userId=user-2');
+    });
+
+    it('dismisses an incoming call when declined', async () => {
+      const clearIncomingCall = vi.fn();
+      const { useChatRoom } = await import('@/api/hooks/useSocket');
+      useChatRoom.mockReturnValue({
+        messages: [],
+        typingUsers: {},
+        isJoined: true,
+        sendMessage: mockSendSocketMessage,
+        sendTyping: mockSendTyping,
+        incomingCall: {
+          chatId: 'chat-123',
+          callerId: 'user-2',
+          receiverId: 'user-1',
+          caller: { id: 'user-2', firstName: 'Dana' },
+        },
+        clearIncomingCall,
+      });
+
+      render(<PrivateChat />, { wrapper: createWrapper() });
+
+      await waitFor(() => {
+        expect(screen.getByText('Incoming video call')).toBeInTheDocument();
+      });
+
+      await userEvent.click(screen.getByRole('button', { name: /decline/i }));
+
+      expect(clearIncomingCall).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalledWith(expect.stringContaining('/VideoDate'));
     });
   });
 
