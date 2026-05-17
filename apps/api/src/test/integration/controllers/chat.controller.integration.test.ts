@@ -420,6 +420,46 @@ describe('[P1][chat] POST /api/v1/chats/:chatId/messages - Send Message', () => 
     expect(response.statusCode).toBe(201);
   });
 
+  it('should accept DRAWING messages as media backed by a PNG URL', async () => {
+    const drawingUrl = 'https://example.com/chat-drawing.png';
+    const mockChat = createMockChat({ user1Id: 'test-user-id' });
+    const chatWithStatus = { ...mockChat, status: 'ACTIVE' };
+    const msgWithSender = {
+      ...createMockMessageWithSender({
+        messageType: 'DRAWING',
+        content: drawingUrl,
+        senderId: 'test-user-id',
+      }),
+      messageType: 'DRAWING',
+      content: drawingUrl,
+      textContent: null,
+    };
+    (prisma.chat.findFirst as Mock).mockResolvedValue(chatWithStatus);
+    (prisma.message.create as Mock).mockResolvedValue(msgWithSender);
+    (prisma.chat.update as Mock).mockResolvedValue(chatWithStatus);
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/chats/test-chat-id/messages',
+      headers: { authorization: authHeader('test-user-id') },
+      payload: {
+        content: drawingUrl,
+        messageType: 'DRAWING',
+      },
+    });
+
+    expect(response.statusCode).toBe(201);
+    expect(prisma.message.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          messageType: 'DRAWING',
+          content: drawingUrl,
+          textContent: null,
+        }),
+      })
+    );
+  });
+
   it('should handle XSS in message content (stored safely)', async () => {
     // sendMessage uses prisma.chat.findFirst + prisma.message.create with include: { sender }
     const mockChat = createMockChat({ user1Id: 'test-user-id' });
