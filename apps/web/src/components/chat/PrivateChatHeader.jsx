@@ -23,6 +23,9 @@ export default function PrivateChatHeader({
 }) {
   const tierLabel = isTemporary ? "צ'אט זמני" : isPermanent ? "צ'אט קבוע" : "צ'אט קבוע";
   const showTemporaryCountdown = isTemporary && timeLeft !== null;
+  const videoCallUserParam = otherUserId && otherUserId !== 'undefined'
+    ? `&userId=${encodeURIComponent(otherUserId)}`
+    : '';
 
   return (
     <header className="bg-card sticky top-0 z-10 shadow-sm border-b border-border">
@@ -59,7 +62,7 @@ export default function PrivateChatHeader({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => onNavigate(createPageUrl(`VideoDate?chatId=${chatId}`))}
+            onClick={() => onNavigate(createPageUrl(`VideoDate?chatId=${chatId}${videoCallUserParam}`))}
             aria-label="Start video call"
           >
             <Video className="w-5 h-5" />

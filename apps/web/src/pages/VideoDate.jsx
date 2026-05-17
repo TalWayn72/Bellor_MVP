@@ -11,6 +11,7 @@ export default function VideoDate() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const chatId = searchParams.get('chatId');
+  const routeOtherUserId = searchParams.get('userId');
   const { currentUser, isLoading } = useCurrentUser();
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [isAudioOn, setIsAudioOn] = useState(true);
@@ -18,26 +19,28 @@ export default function VideoDate() {
   const videoRef = useRef(null);
 
   const { data: otherUser } = useQuery({
-    queryKey: ['videoCallOtherUser', chatId, currentUser?.id],
+    queryKey: ['videoCallOtherUser', chatId, routeOtherUserId, currentUser?.id],
     queryFn: async () => {
-      if (!chatId || !currentUser) return null;
+      if (!currentUser) return null;
       try {
-        const chatResult = await chatService.getChatById(chatId);
-        const chat = chatResult.chat;
-        if (chat) {
-          const chatOtherUser = chat.otherUser || chat.other_user;
-          const otherUserId = chatOtherUser?.id;
-          if (!otherUserId) return null;
-          const userResult = await userService.getUserById(otherUserId);
-          return userResult.user || null;
+        let otherUserId = routeOtherUserId;
+        if (!otherUserId && chatId) {
+          const chatResult = await chatService.getChatById(chatId);
+          const chat = chatResult.chat;
+          if (chat) {
+            const chatOtherUser = chat.otherUser || chat.other_user;
+            otherUserId = chatOtherUser?.id;
+          }
         }
-        return null;
+        if (!otherUserId) return null;
+        const userResult = await userService.getUserById(otherUserId);
+        return userResult.user || null;
       } catch (error) {
         console.error('Error fetching video call data:', error);
         return null;
       }
     },
-    enabled: !!chatId && !!currentUser,
+    enabled: (!!chatId || !!routeOtherUserId) && !!currentUser,
   });
 
   useEffect(() => {
@@ -97,7 +100,12 @@ export default function VideoDate() {
     if (chatId) {
       // Video call tracking - backend integration pending
     }
-    navigate(createPageUrl('PrivateChat?chatId=' + chatId));
+    const returnParams = new URLSearchParams();
+    if (chatId) returnParams.set('chatId', chatId);
+    const returnUserId = routeOtherUserId || otherUser?.id;
+    if (returnUserId) returnParams.set('userId', returnUserId);
+    const queryString = returnParams.toString();
+    navigate(createPageUrl(queryString ? `PrivateChat?${queryString}` : 'PrivateChat'));
   };
 
   if (isLoading) return <LoadingState variant="spinner" text="Loading..." />;

@@ -75,9 +75,10 @@ let capturedOnSendImage = null;
 let capturedMessage = '';
 
 vi.mock('@/components/chat/PrivateChatHeader', () => ({
-  default: ({ otherUser, isOtherUserOnline, isOtherUserTyping }) => (
+  default: ({ otherUser, otherUserId, isOtherUserOnline, isOtherUserTyping }) => (
     <div data-testid="chat-header">
       <span data-testid="header-username">{otherUser?.nickname}</span>
+      <span data-testid="header-other-user-id">{otherUserId}</span>
       {isOtherUserTyping && <span data-testid="header-typing">typing...</span>}
       {isOtherUserOnline && <span data-testid="header-online">Online</span>}
     </div>
@@ -279,6 +280,48 @@ describe('[P1][chat] PrivateChat', () => {
       await waitFor(() => {
         expect(screen.getByTestId('chat-header')).toBeInTheDocument();
       });
+    });
+
+    it('uses the recovered chat metadata user id when only chatId is present', async () => {
+      mockLocationSearch.mockReturnValue('?chatId=chat-123');
+      mockGetChatById.mockResolvedValue({
+        chat: { id: 'chat-123', is_temporary: false, is_permanent: true, otherUser: { id: 'user-2' } },
+      });
+      mockGetMessages.mockResolvedValue({ messages: [] });
+
+      render(<PrivateChat />, { wrapper: createWrapper() });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('chat-header')).toBeInTheDocument();
+      });
+      expect(screen.getByTestId('header-other-user-id')).toHaveTextContent('user-2');
+    });
+
+    it('renders chat UI from chat metadata when the user detail request returns no user', async () => {
+      mockLocationSearch.mockReturnValue('?chatId=chat-123');
+      mockGetChatById.mockResolvedValue({
+        chat: {
+          id: 'chat-123',
+          is_temporary: false,
+          is_permanent: true,
+          otherUser: {
+            id: 'user-2',
+            nickname: 'MetadataUser',
+            profile_images: ['https://example.com/metadata.jpg'],
+          },
+        },
+      });
+      mockGetMessages.mockResolvedValue({ messages: [] });
+      mockGetUserById.mockResolvedValue({ user: null });
+
+      render(<PrivateChat />, { wrapper: createWrapper() });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('chat-header')).toBeInTheDocument();
+      });
+      expect(screen.getByTestId('header-username')).toHaveTextContent('MetadataUser');
+      expect(screen.getByTestId('message-list')).toBeInTheDocument();
+      expect(screen.getByTestId('chat-input')).toBeInTheDocument();
     });
   });
 

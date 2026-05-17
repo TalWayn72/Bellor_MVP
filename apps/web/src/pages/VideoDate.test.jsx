@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -31,12 +31,13 @@ vi.mock('../components/providers/ThemeProvider', () => ({
 }));
 
 vi.mock('@/components/video/VideoDateUI', () => ({
-  default: ({ otherUser, isAudioOn, isVideoOn }) => (
+  default: ({ otherUser, isAudioOn, isVideoOn, endCall }) => (
     <div data-testid="video-date-ui">
       <span>Video Date UI</span>
       <span data-testid="other-user-name">{otherUser?.nickname || ''}</span>
       <span data-testid="audio-status">{isAudioOn ? 'on' : 'off'}</span>
       <span data-testid="video-status">{isVideoOn ? 'on' : 'off'}</span>
+      <button type="button" onClick={endCall}>End call</button>
     </div>
   ),
 }));
@@ -97,6 +98,33 @@ describe('[P3][social] VideoDate', () => {
       expect(screen.getByTestId('other-user-name')).toHaveTextContent('Dana');
     });
     expect(userService.getUserById).toHaveBeenCalledWith('user-2');
+  });
+
+  it('loads the other user from route userId when chat metadata is unavailable', async () => {
+    const { chatService, userService } = await import('@/api');
+    window.history.pushState({}, '', '/VideoDate?chatId=chat-123&userId=user-2');
+    chatService.getChatById.mockResolvedValue({ chat: { id: 'chat-123' } });
+    userService.getUserById.mockResolvedValue({
+      user: { id: 'user-2', nickname: 'Dana' },
+    });
+
+    render(<VideoDate />, { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('other-user-name')).toHaveTextContent('Dana');
+    });
+    expect(userService.getUserById).toHaveBeenCalledWith('user-2');
+  });
+
+  it('preserves userId when returning to PrivateChat after ending the call', async () => {
+    window.history.pushState({}, '', '/VideoDate?chatId=chat-123&userId=user-2');
+
+    render(<VideoDate />, { wrapper: createWrapper() });
+    fireEvent.click(screen.getByRole('button', { name: /end call/i }));
+
+    await waitFor(() => {
+      expect(window.location.pathname + window.location.search).toBe('/PrivateChat?chatId=chat-123&userId=user-2');
+    });
   });
 
   it('shows loading state when user is loading', async () => {
