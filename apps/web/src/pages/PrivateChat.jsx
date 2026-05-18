@@ -22,8 +22,7 @@ export default function PrivateChat() {
   const navigate = useNavigate(), location = useLocation();
   const messagesEndRef = useRef(null);
   const { currentUser, isLoading } = useCurrentUser();
-  const [showActions, setShowActions] = useState(false);
-  const [showIceBreakers, setShowIceBreakers] = useState(false);
+  const [showActions, setShowActions] = useState(false), [showIceBreakers, setShowIceBreakers] = useState(false);
   const params = new URLSearchParams(location.search);
   const chatId = params.get('chatId') || params.get('id'), routeOtherUserId = params.get('userId');
   const isDemo = isDemoId(chatId);
