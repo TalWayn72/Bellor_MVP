@@ -29,6 +29,7 @@ const mockGetUserById = vi.fn().mockResolvedValue({ user: null });
 const mockBlockUser = vi.fn();
 const mockUploadFile = vi.fn().mockResolvedValue({ url: 'https://example.com/uploaded.mp4' });
 const mockSendVideoCallInvite = vi.fn().mockResolvedValue({ success: true });
+const mockRefreshUnreadCount = vi.fn();
 
 vi.mock('@/api', () => ({
   chatService: {
@@ -52,6 +53,7 @@ vi.mock('@/api', () => ({
 
 const mockSendSocketMessage = vi.fn();
 const mockSendTyping = vi.fn();
+const mockMarkAsRead = vi.fn().mockResolvedValue({ success: true });
 
 vi.mock('@/api/hooks/useSocket', () => ({
   useChatRoom: vi.fn(() => ({
@@ -60,8 +62,13 @@ vi.mock('@/api/hooks/useSocket', () => ({
     isJoined: false,
     sendMessage: mockSendSocketMessage,
     sendTyping: mockSendTyping,
+    markAsRead: mockMarkAsRead,
   })),
   usePresence: vi.fn(() => ({ isOnline: vi.fn(() => false) })),
+}));
+
+vi.mock('@/components/providers/SocketProvider', () => ({
+  useSocketContext: () => ({ refreshUnreadCount: mockRefreshUnreadCount }),
 }));
 
 const mockUseCurrentUser = vi.fn(() => ({
@@ -156,6 +163,7 @@ vi.mock('@/components/ui/use-toast', () => ({
 }));
 
 import PrivateChat from './PrivateChat';
+import { useChatRoom } from '@/api/hooks/useSocket';
 
 const createTestQueryClient = () =>
   new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
@@ -182,10 +190,24 @@ describe('[P1][chat] PrivateChat', () => {
     capturedMessage = '';
     mockUploadFile.mockResolvedValue({ url: 'https://example.com/uploaded.mp4' });
     mockSendVideoCallInvite.mockResolvedValue({ success: true });
+    mockMarkAsRead.mockResolvedValue({ success: true });
+    mockRefreshUnreadCount.mockResolvedValue(undefined);
+    Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+    document.hasFocus = vi.fn(() => true);
     mockLocationSearch.mockReturnValue('');
     mockUseCurrentUser.mockReturnValue({
       currentUser: { id: 'user-1', nickname: 'TestUser' },
       isLoading: false,
+    });
+    useChatRoom.mockReturnValue({
+      messages: [],
+      typingUsers: {},
+      incomingCall: null,
+      isJoined: false,
+      sendMessage: mockSendSocketMessage,
+      sendTyping: mockSendTyping,
+      markAsRead: mockMarkAsRead,
+      clearIncomingCall: vi.fn(),
     });
     mockGetChatById.mockResolvedValue({ chat: null });
     mockGetMessages.mockResolvedValue({ messages: [] });
@@ -525,6 +547,7 @@ describe('[P1][chat] PrivateChat', () => {
         isJoined: true,
         sendMessage: mockSendSocketMessage,
         sendTyping: mockSendTyping,
+        markAsRead: mockMarkAsRead,
         incomingCall: {
           chatId: 'chat-123',
           callerId: 'user-2',
@@ -554,6 +577,7 @@ describe('[P1][chat] PrivateChat', () => {
         isJoined: true,
         sendMessage: mockSendSocketMessage,
         sendTyping: mockSendTyping,
+        markAsRead: mockMarkAsRead,
         incomingCall: {
           chatId: 'chat-123',
           callerId: 'user-2',
@@ -585,6 +609,7 @@ describe('[P1][chat] PrivateChat', () => {
         isJoined: true,
         sendMessage: mockSendSocketMessage,
         sendTyping: mockSendTyping,
+        markAsRead: mockMarkAsRead,
       });
 
       mockLocationSearch.mockReturnValue('?chatId=chat-123&userId=user-2');
@@ -610,6 +635,7 @@ describe('[P1][chat] PrivateChat', () => {
         isJoined: false,
         sendMessage: mockSendSocketMessage,
         sendTyping: mockSendTyping,
+        markAsRead: mockMarkAsRead,
       });
 
       mockLocationSearch.mockReturnValue('?chatId=chat-123&userId=user-2');
@@ -679,6 +705,7 @@ describe('[P1][chat] PrivateChat', () => {
         isJoined: false,
         sendMessage: mockSendSocketMessage,
         sendTyping: mockSendTyping,
+        markAsRead: mockMarkAsRead,
       });
     });
 
@@ -726,6 +753,7 @@ describe('[P1][chat] PrivateChat', () => {
         isJoined: true,
         sendMessage: mockSendSocketMessage,
         sendTyping: mockSendTyping,
+        markAsRead: mockMarkAsRead,
       });
 
       mockLocationSearch.mockReturnValue('?chatId=chat-123&userId=user-2');
@@ -748,6 +776,76 @@ describe('[P1][chat] PrivateChat', () => {
       const contents = screen.getAllByTestId('message-content');
       expect(contents[0]).toHaveTextContent('Initial message');
       expect(contents[1]).toHaveTextContent('Realtime message');
+    });
+  });
+
+  describe('Read state', () => {
+    beforeEach(() => {
+      mockLocationSearch.mockReturnValue('?chatId=chat-123&userId=user-2');
+      mockGetChatById.mockResolvedValue({
+        chat: { id: 'chat-123', is_temporary: false, is_permanent: true, otherUser: { id: 'user-2' } },
+      });
+      mockGetUserById.mockResolvedValue({ user: { id: 'user-2', nickname: 'OtherUser' } });
+    });
+
+    it('marks only loaded incoming unread messages as read and refreshes unread count', async () => {
+      mockGetMessages.mockResolvedValue({
+        messages: [
+          { id: 'own-unread', sender_id: 'user-1', content: 'mine', is_read: false, created_date: '2025-01-15T10:00:00Z' },
+          { id: 'incoming-read', sender_id: 'user-2', content: 'read', is_read: true, created_date: '2025-01-15T10:01:00Z' },
+          { id: 'incoming-unread', sender_id: 'user-2', content: 'unread', is_read: false, created_date: '2025-01-15T10:02:00Z' },
+        ],
+      });
+
+      render(<PrivateChat />, { wrapper: createWrapper() });
+
+      await waitFor(() => {
+        expect(mockMarkAsRead).toHaveBeenCalledWith('incoming-unread');
+      });
+      expect(mockMarkAsRead).not.toHaveBeenCalledWith('own-unread');
+      expect(mockMarkAsRead).not.toHaveBeenCalledWith('incoming-read');
+      await waitFor(() => {
+        expect(mockRefreshUnreadCount).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('does not mark loaded incoming messages when the document is inactive', async () => {
+      Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+      document.hasFocus = vi.fn(() => false);
+      mockGetMessages.mockResolvedValue({
+        messages: [
+          { id: 'incoming-unread', sender_id: 'user-2', content: 'hidden', is_read: false, created_date: '2025-01-15T10:02:00Z' },
+        ],
+      });
+
+      render(<PrivateChat />, { wrapper: createWrapper() });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('message-list')).toBeInTheDocument();
+      });
+      expect(mockMarkAsRead).not.toHaveBeenCalled();
+      expect(mockRefreshUnreadCount).not.toHaveBeenCalled();
+    });
+
+    it('marks an incoming realtime message as read when visible and active', async () => {
+      const socketMocks = await import('@/api/hooks/useSocket');
+      socketMocks.useChatRoom.mockReturnValue({
+        messages: [
+          { id: 'rt-incoming', senderId: 'user-2', content: 'live', isRead: false, createdAt: '2025-01-15T10:05:00Z' },
+        ],
+        typingUsers: {},
+        isJoined: true,
+        sendMessage: mockSendSocketMessage,
+        sendTyping: mockSendTyping,
+        markAsRead: mockMarkAsRead,
+      });
+      mockGetMessages.mockResolvedValue({ messages: [] });
+
+      render(<PrivateChat />, { wrapper: createWrapper() });
+
+      await waitFor(() => {
+        expect(mockMarkAsRead).toHaveBeenCalledWith('rt-incoming');
+      });
     });
   });
 });

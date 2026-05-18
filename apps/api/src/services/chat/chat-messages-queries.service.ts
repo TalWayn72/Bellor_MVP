@@ -56,6 +56,7 @@ export async function getMessages(
     content: msg.content,
     text_content: msg.textContent,
     is_read: msg.isRead,
+    read_at: msg.readAt,
     created_at: msg.createdAt,
   }));
 

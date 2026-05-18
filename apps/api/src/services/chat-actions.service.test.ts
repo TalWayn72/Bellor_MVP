@@ -14,18 +14,24 @@ describe('[P1][chat] chatService - markMessageAsRead', () => {
   });
 
   it('should mark message as read for recipient', async () => {
+    const readAt = new Date('2026-05-18T10:00:00.000Z');
     const mockMessage = {
       ...createMockMessage({ senderId: 'user-2' }),
       chat: createMockChat(),
     };
 
     mockPrisma.message.findFirst.mockResolvedValue(mockMessage);
-    mockPrisma.message.update.mockResolvedValue({ ...mockMessage, isRead: true });
+    mockPrisma.message.update.mockResolvedValue({ ...mockMessage, isRead: true, readAt });
 
     const result = await chatService.markMessageAsRead('message-1', 'user-1');
 
     expect(result).not.toBeNull();
     expect(result?.is_read).toBe(true);
+    expect(result?.read_at).toEqual(readAt);
+    expect(mockPrisma.message.update).toHaveBeenCalledWith({
+      where: { id: 'message-1' },
+      data: { isRead: true, readAt: expect.any(Date) },
+    });
   });
 
   it('should return null when message not found', async () => {
@@ -70,7 +76,7 @@ describe('[P1][chat] chatService - markMessageAsRead', () => {
     };
 
     mockPrisma.message.findFirst.mockResolvedValue(mockMessage);
-    mockPrisma.message.update.mockResolvedValue({ ...mockMessage, isRead: true });
+    mockPrisma.message.update.mockResolvedValue({ ...mockMessage, isRead: true, readAt: new Date() });
 
     const result = await chatService.markMessageAsRead('message-1', 'user-2');
 

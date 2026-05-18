@@ -63,6 +63,7 @@ export async function sendMessage(
     content: message.content,
     text_content: message.textContent,
     is_read: message.isRead,
+    read_at: message.readAt,
     created_at: message.createdAt,
   };
 }
@@ -91,10 +92,10 @@ export async function markMessageAsRead(messageId: string, userId: string) {
 
   const updated = await prisma.message.update({
     where: { id: messageId },
-    data: { isRead: true },
+    data: { isRead: true, readAt: new Date() },
   });
 
-  return { id: updated.id, is_read: updated.isRead };
+  return { id: updated.id, is_read: updated.isRead, read_at: updated.readAt };
 }
 
 /**
