@@ -48,6 +48,9 @@ export default async function adminRoutes(app: FastifyInstance) {
   // POST /admin/users/action - Perform action on user (block, unblock, etc.)
   app.post('/users/action', AdminController.userAction);
 
+  // GET /admin/vlogix/users/:userId/responses - Vlogix user response history
+  app.get('/vlogix/users/:userId/responses', AdminController.listVlogixUserResponses);
+
   // =====================
   // Reports / Moderation
   // =====================

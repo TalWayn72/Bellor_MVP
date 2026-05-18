@@ -39,7 +39,7 @@ const PUBLIC_ROUTES = new Set([
 const ADMIN_ROUTES = new Set([
   'AdminDashboard', 'AdminUserManagement', 'AdminReportManagement',
   'AdminChatMonitoring', 'AdminActivityMonitoring', 'AdminPreRegistration',
-  'AdminSystemSettings',
+  'AdminSystemSettings', 'AdminVlogixAI',
 ]);
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?

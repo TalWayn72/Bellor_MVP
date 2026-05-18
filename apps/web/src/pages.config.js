@@ -18,6 +18,7 @@ const AdminPreRegistration = lazy(() => import('./pages/AdminPreRegistration'));
 const AdminReportManagement = lazy(() => import('./pages/AdminReportManagement'));
 const AdminSystemSettings = lazy(() => import('./pages/AdminSystemSettings'));
 const AdminUserManagement = lazy(() => import('./pages/AdminUserManagement'));
+const AdminVlogixAI = lazy(() => import('./pages/AdminVlogixAI'));
 const Analytics = lazy(() => import('./pages/Analytics'));
 const AudioTask = lazy(() => import('./pages/AudioTask'));
 const BlockedUsers = lazy(() => import('./pages/BlockedUsers'));
@@ -77,6 +78,7 @@ export const PAGES = {
     "AdminReportManagement": AdminReportManagement,
     "AdminSystemSettings": AdminSystemSettings,
     "AdminUserManagement": AdminUserManagement,
+    "AdminVlogixAI": AdminVlogixAI,
     "Analytics": Analytics,
     "AudioTask": AudioTask,
     "BlockedUsers": BlockedUsers,

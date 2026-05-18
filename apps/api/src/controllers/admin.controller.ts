@@ -7,6 +7,7 @@ import { getDashboard, getUserAnalytics, getContentAnalytics, getModerationAnaly
 import { listUsers, userAction } from './admin/admin-users.controller.js';
 import { listReports, reportAction, createAchievement, cleanupStories, getJobs, runJob } from './admin/admin-content.controller.js';
 import { deleteMessage } from './admin/admin-messages.controller.js';
+import { listVlogixUserResponses } from './admin/admin-vlogix.controller.js';
 
 export const AdminController = {
   getDashboard,
@@ -25,4 +26,5 @@ export const AdminController = {
   cleanupStories,
   getJobs,
   runJob,
+  listVlogixUserResponses,
 };
