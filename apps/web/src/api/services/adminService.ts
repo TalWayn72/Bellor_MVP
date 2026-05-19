@@ -1,11 +1,6 @@
-/**
- * Admin Service
- * Handles admin-specific API calls
- * Analytics methods are in ./admin/adminAnalytics.ts
- */
-
 import { apiClient } from '../client/apiClient';
 import { adminAnalyticsService } from './admin/adminAnalytics';
+import { adminVlogixService } from './adminVlogixService';
 
 interface AdminUserListParams {
   limit?: number;
@@ -27,6 +22,10 @@ interface Pagination {
 interface AdminUserListResponse {
   users: unknown[];
   pagination: Pagination;
+  data?: {
+    users?: unknown[];
+    pagination?: Pagination;
+  };
 }
 
 interface UserActionData {
@@ -64,8 +63,7 @@ interface AchievementData {
 export const adminService = {
   // ============ Re-export Analytics ============
   ...adminAnalyticsService,
-
-  // ============ User Management ============
+  ...adminVlogixService,
 
   async listUsers(params: AdminUserListParams = {}): Promise<AdminUserListResponse> {
     const response = await apiClient.get('/admin/users', { params });

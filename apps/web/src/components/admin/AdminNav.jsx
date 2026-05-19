@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import {
   LayoutDashboard, Users, Flag, Activity, MessageSquare,
-  UserPlus, Settings, Palette, Home, LogOut
+  UserPlus, Settings, Palette, Sparkles, Home, LogOut
 } from 'lucide-react';
 
 const navItems = [
@@ -15,6 +15,7 @@ const navItems = [
   { label: 'Pre-Registrations', icon: UserPlus, path: 'AdminPreRegistration' },
   { label: 'System Settings', icon: Settings, path: 'AdminSystemSettings' },
   { label: 'Theme Settings', icon: Palette, path: 'ThemeSettings' },
+  { label: 'Vlogix AI', icon: Sparkles, path: 'AdminVlogixAI' },
 ];
 
 export function AdminNavItems({ onNavigate }) {
