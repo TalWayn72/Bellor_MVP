@@ -28,14 +28,21 @@ export function createMessageReadHandler(io: Server, socket: AuthenticatedSocket
         return callback?.({ error: 'Message not found' });
       }
 
-      if (message.chat.user1Id !== socket.userId && message.chat.user2Id !== socket.userId) {
+      const isRecipient =
+        (message.chat.user1Id === socket.userId && message.senderId === message.chat.user2Id) ||
+        (message.chat.user2Id === socket.userId && message.senderId === message.chat.user1Id);
+
+      if (!isRecipient) {
         return callback?.({ error: 'Access denied' });
       }
 
-      await prisma.message.update({ where: { id: messageId }, data: { isRead: true } });
+      const updated = await prisma.message.update({
+        where: { id: messageId },
+        data: { isRead: true, readAt: new Date() },
+      });
 
       io.to(`user:${message.senderId}`).emit('chat:message:read', {
-        messageId, readBy: socket.userId, timestamp: new Date().toISOString(),
+        messageId, readBy: socket.userId, readAt: updated.readAt?.toISOString(), timestamp: new Date().toISOString(),
       });
 
       callback?.({ success: true });

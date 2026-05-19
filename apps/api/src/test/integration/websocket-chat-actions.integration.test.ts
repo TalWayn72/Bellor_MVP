@@ -62,19 +62,25 @@ describe('[P1][chat] WebSocket - Chat Read/Unread/Delete', () => {
 
   describe('chat:message:read', () => {
     it('should mark message as read and notify sender', async () => {
+      const readAt = new Date('2026-05-18T10:00:00.000Z');
       (prisma.message.findUnique as Mock).mockResolvedValue({
         ...mockMessage, senderId: mockUser1.id,
         chat: { ...mockChat, user1Id: mockUser1.id, user2Id: mockUser2.id },
       } as unknown as Message);
-      (prisma.message.update as Mock).mockResolvedValue({ ...mockMessage, isRead: true } as unknown as Message);
+      (prisma.message.update as Mock).mockResolvedValue({ ...mockMessage, isRead: true, readAt } as unknown as Message);
 
       const readPromise = new Promise<SocketAck>((resolve) => { clientSocket1.on('chat:message:read', resolve); });
       const result = await new Promise<SocketAck>((resolve) => { clientSocket2.emit('chat:message:read', { messageId: mockMessage.id }, resolve); });
       expect(result.success).toBe(true);
+      expect(prisma.message.update).toHaveBeenCalledWith({
+        where: { id: mockMessage.id },
+        data: { isRead: true, readAt: expect.any(Date) },
+      });
 
       const readReceipt = await Promise.race([readPromise, new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))]);
       expect(readReceipt.messageId).toBe(mockMessage.id);
       expect(readReceipt.readBy).toBe(mockUser2.id);
+      expect(readReceipt.readAt).toBe(readAt.toISOString());
     });
 
     it('should reject marking non-existent message as read', async () => {
@@ -89,6 +95,20 @@ describe('[P1][chat] WebSocket - Chat Read/Unread/Delete', () => {
       } as unknown as Message);
       const result = await new Promise<SocketAck>((resolve) => { clientSocket1.emit('chat:message:read', { messageId: mockMessage.id }, resolve); });
       expect(result.error).toBe('Access denied');
+    });
+
+    it('should reject sender marking their own message as read', async () => {
+      (prisma.message.findUnique as Mock).mockResolvedValue({
+        ...mockMessage, senderId: mockUser1.id,
+        chat: { ...mockChat, user1Id: mockUser1.id, user2Id: mockUser2.id },
+      } as unknown as Message);
+
+      const result = await new Promise<SocketAck>((resolve) => {
+        clientSocket1.emit('chat:message:read', { messageId: mockMessage.id }, resolve);
+      });
+
+      expect(result.error).toBe('Access denied');
+      expect(prisma.message.update).not.toHaveBeenCalled();
     });
   });
 

@@ -24,9 +24,7 @@ export function createSocketEventHandlers(setIsConnected, setError, setUnreadCha
     setUnreadChatCount((prev) => prev + 1);
   };
 
-  const handleMessageRead = () => {
-    setUnreadChatCount((prev) => Math.max(0, prev - 1));
-  };
+  const handleMessageRead = () => {};
 
   return {
     handleConnect,

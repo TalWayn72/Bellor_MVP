@@ -7,7 +7,8 @@ import { ChatSkeleton } from '@/components/states';
 import { createPageUrl } from '@/utils';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import { usePrivateChatActions } from '@/components/hooks/usePrivateChatActions';
-import { getDemoMessages } from '@/data/demoData';
+import { usePrivateChatReadReceipts } from '@/components/hooks/usePrivateChatReadReceipts';
+import { getDemoMessages, isDemoId } from '@/data/demoData';
 import PrivateChatHeader from '@/components/chat/PrivateChatHeader';
 import MessageList from '@/components/chat/MessageList';
 import ChatInput from '@/components/chat/ChatInput';
@@ -21,12 +22,10 @@ export default function PrivateChat() {
   const navigate = useNavigate(), location = useLocation();
   const messagesEndRef = useRef(null);
   const { currentUser, isLoading } = useCurrentUser();
-  const [showActions, setShowActions] = useState(false);
-  const [showIceBreakers, setShowIceBreakers] = useState(false);
+  const [showActions, setShowActions] = useState(false), [showIceBreakers, setShowIceBreakers] = useState(false);
   const params = new URLSearchParams(location.search);
   const chatId = params.get('chatId') || params.get('id'), routeOtherUserId = params.get('userId');
-  const isDemo = chatId?.startsWith('demo-');
-
+  const isDemo = isDemoId(chatId);
   const {
     messages: realtimeMessages,
     typingUsers,
@@ -34,10 +33,10 @@ export default function PrivateChat() {
     isJoined,
     sendMessage: sendSocketMessage,
     sendTyping,
+    markAsRead,
     clearIncomingCall,
   } = useChatRoom(chatId, currentUser?.id);
   const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-
   const { message, isUploading, localMessages, handleTyping, handleSendMessage, handleSendImage, handleSendVoice, handleSendDrawing, handleBlockUser, cleanup } =
     usePrivateChatActions({ chatId, currentUser, isDemo, isJoined, sendSocketMessage, sendTyping, scrollToBottom, toast, navigate });
 
@@ -71,6 +70,7 @@ export default function PrivateChat() {
     realtimeMessages.forEach((msg) => { if (!all.some((m) => m.id === msg.id)) all.push(msg); });
     return all.sort((a, b) => new Date(a.created_date || a.createdAt) - new Date(b.created_date || b.createdAt));
   }, [isDemo, demoMessages, initialMessages, realtimeMessages, localMessages]);
+  usePrivateChatReadReceipts({ chatId, currentUserId: currentUser?.id, isDemo, messages, markAsRead });
 
   const { data: otherUser } = useQuery({
     queryKey: ['user', resolvedOtherUserId],

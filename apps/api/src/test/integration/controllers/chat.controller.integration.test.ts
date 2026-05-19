@@ -504,11 +504,12 @@ describe('[P1][chat] PATCH /api/v1/chats/:chatId/messages/:messageId/read - Mark
   it('should mark message as read', async () => {
     // markMessageAsRead uses prisma.message.findFirst with include: { chat }
     // Then checks isRecipient: the logged-in user must be the other party (not the sender)
+    const readAt = new Date('2026-05-18T10:00:00.000Z');
     const mockChat = createMockChat({ user1Id: 'test-user-id', user2Id: 'other-user-id' });
     const mockMessage = createMockMessage({ senderId: 'other-user-id', chatId: mockChat.id });
     const messageWithChat = { ...mockMessage, chat: mockChat };
     (prisma.message.findFirst as Mock).mockResolvedValue(messageWithChat);
-    (prisma.message.update as Mock).mockResolvedValue({ ...mockMessage, isRead: true });
+    (prisma.message.update as Mock).mockResolvedValue({ ...mockMessage, isRead: true, readAt });
 
     const response = await app.inject({
       method: 'PATCH',
@@ -517,6 +518,11 @@ describe('[P1][chat] PATCH /api/v1/chats/:chatId/messages/:messageId/read - Mark
     });
 
     expect(response.statusCode).toBe(200);
+    expect(prisma.message.update).toHaveBeenCalledWith({
+      where: { id: 'test-message-id' },
+      data: { isRead: true, readAt: expect.any(Date) },
+    });
+    expect(JSON.parse(response.body).message.read_at).toBe(readAt.toISOString());
   });
 
   it('should return 404 for non-existent message', async () => {

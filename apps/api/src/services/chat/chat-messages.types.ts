@@ -31,6 +31,7 @@ export interface FormattedMessage {
   content: string | null;
   text_content: string | null;
   is_read: boolean;
+  read_at: Date | null;
   created_at: Date;
 }
 

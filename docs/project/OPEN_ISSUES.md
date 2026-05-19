@@ -1015,6 +1015,48 @@ Do not fix this in the incoming video call PR. Incoming video calls should remai
 - `apps/api/src/services/notifications.service.ts`
 
 ---
+## ISSUE-121: Improve video call lifecycle and infrastructure (18 May 2026)
+
+### Severity: Low/Medium | Status: Future Improvement
+
+**Source:** ISSUE-116 / ISSUE-117 follow-up QA and minimal video-call implementation review
+
+**Problem description:**
+ISSUE-116 and ISSUE-117 are closed, and the basic video call flow now works for the MVP path. A caller can start a call, the receiver can see the incoming call prompt, both users can enter the call screen, and ending the call no longer blocks the basic chat return flow.
+
+The current implementation is intentionally minimal and does not yet provide a complete production-grade video-call lifecycle or infrastructure.
+
+**Future improvements still missing:**
+
+- Full WebRTC signaling flow.
+- Call history persistence.
+- Missed call tracking.
+
+**Expected future behavior:**
+Video calls should eventually have a complete lifecycle from invite through accept/decline, active call, hangup, reconnect/error handling, and durable call records where product requires them.
+
+**Current behavior:**
+The basic call flow works, but call signaling/lifecycle state is not fully modeled, call history is not persisted, and missed calls are not tracked.
+
+**Product impact:**
+
+- This is a non-blocking enhancement, not an urgent bug.
+- The MVP video-call path can be tested and used at a basic level.
+- Future product expectations around call reliability, audit/history, missed-call UX, and analytics will require dedicated follow-up work.
+
+**Decision:**
+Future improvement. Do not implement as part of the ISSUE-116 / ISSUE-117 fixes.
+
+**Likely future work areas:**
+
+- WebRTC signaling architecture and socket event lifecycle.
+- Persistent call session/history model.
+- Missed-call detection and user-facing missed-call indicators.
+
+**Tests:**
+Future implementation should add focused coverage for signaling, persistence, missed-call behavior, and regression coverage for the existing basic call flow.
+
+---
 ## Domains & Infrastructure
 
 | Domain              | Purpose                          | Provider     | Status       |
